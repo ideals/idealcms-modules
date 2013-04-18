@@ -1,0 +1,60 @@
+{% extends "site.twig" %}
+
+{% block content %}
+
+    <h1>{{ header }}</h1>
+
+    {{ template.content|raw }}
+
+    {%if parts|length > 0 %}
+    <ul>
+    {% for part in parts %}
+        <li><a href="{{ part.url }}">{{ part.cap }}</a></li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+
+    {%if goods|length > 0 %}
+        <table class="table table-bordered table-hover">
+            <tr>
+                <th>Наименование</th>
+                <th>measure</th>
+                <th>height</th>
+                <th>diameter</th>
+                <th>general</th>
+                <th>cell</th>
+                <th>width</th>
+                <th>steel</th>
+                <th>length</th>
+                <th>color</th>
+                <th>rib</th>
+                <th>full_name</th>
+                <th>weight</th>
+                <th>count</th>
+                <th>price</th>
+                <th>item</th>
+            </tr>
+            {% for good in goods %}
+            <tr>
+                <td>{{ good.name }}</a></td>
+                <td>{{ good.measure }}</a></td>
+                <td>{{ good.height }}</a></td>
+                <td>{{ good.diameter }}</a></td>
+                <td>{{ good.general }}</a></td>
+                <td>{{ good.cell }}</a></td>
+                <td>{{ good.width }}</a></td>
+                <td>{{ good.color }}</a></td>
+                <td>{{ good.length }}</a></td>
+                <td>{{ good.color }}</a></td>
+                <td>{{ good.rib }}</a></td>
+                <td>{{ good.full_name }}</a></td>
+                <td>{{ good.weight }}</a></td>
+                <td>{{ good.count }}</a></td>
+                <td>{{ good.price }}</a></td>
+                <td>{{ good.item }}</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+{% endblock %}
