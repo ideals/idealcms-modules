@@ -2,6 +2,7 @@
 
 return array(
     'cap'    => 'Загрузка из 1C',
+    'pos'    => 30,
     'info'   => '',
-    'action' => 'Load1c'
+    'action' => 'Ideal_Load1c'
 );
