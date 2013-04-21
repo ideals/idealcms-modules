@@ -219,7 +219,7 @@ function loadBase($importFile, $offersFile, $priceId)
             'Размер' => 'size'
         ),
         */
-        'Количество' => 'count',
+        'Количество' => 'stock',
         'ЦенаЗаЕдиницу' => 'price',
         'Валюта' => 'currency',
         'Единица' => 'item',

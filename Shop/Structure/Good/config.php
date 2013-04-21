@@ -41,7 +41,7 @@ return array(
             'sql'   => 'int',
             'type'  => 'Shop_Price'
         ),
-        'count' => array(
+        'stock' => array(
             'label' => 'Количество',
             'sql'   => 'int',
             'type'  => 'Ideal_Text'

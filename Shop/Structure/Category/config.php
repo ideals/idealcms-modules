@@ -77,6 +77,11 @@ return array(
             'sql'   => 'text',
             'type'  => 'Ideal_Area'
         ),
+        'num' => array(
+            'label' => 'Количество товаров в категории',
+            'sql'   => 'int(11) NOT NULL DEFAULT 0',
+            'type'  => 'Ideal_Text'
+        ),
         'img' => array(
             'label' => 'Картинка',
             'sql'   => 'varchar(255)',
