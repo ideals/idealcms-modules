@@ -7,7 +7,7 @@ return array(
         'elements_cms'  => 10,            // количество элементов в списке в CMS
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_cap'     => '',            // поле для входа в список потомков
-        'field_sort'    => 'date_create DESC', // поле, по которому проводится сортировка в CMS
+        'field_sort'    => 'name ASC', // поле, по которому проводится сортировка в CMS
         'field_list'    => array('name', 'is_active', 'date_create')
      ),
     'fields'   => array (
@@ -25,6 +25,12 @@ return array(
             'label' => 'ID родительских структур',
             'sql'   => 'char(15)',
             'type'  => 'Ideal_Hidden'
+        ),
+        'category' => array(
+            'label' => 'Категория',
+            'sql'   => '',
+            'type'  => 'Shop_Category',
+            'class' => '\\Shop\\Structure\\Category\\Getters\\CategoryList'
         ),
         'name' => array(
             'label' => 'Название',
