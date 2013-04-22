@@ -57,64 +57,9 @@ return array(
             'sql'   => 'char(5)',
             'type'  => 'Ideal_Text'
         ),
-        'item'=> array(
-            'label' => 'Единица измерения',
-            'sql'   => 'varchar(10)',
-            'type'  => 'Ideal_Text'
-        ),
         'coefficient'=> array(
             'label' => 'Коэффициент',
             'sql'   => 'float',
-            'type'  => 'Ideal_Text'
-        ),
-        'measure'=> array(
-            'label' => 'Базовая единица',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'height'=> array(
-            'label' => 'Высота',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'diameter'=> array(
-            'label' => 'Диаметр',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'general'=> array(
-            'label' => 'Основное свойство',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'cell'=> array(
-            'label' => 'Размер ячейки',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'width'=> array(
-            'label' => 'Высота',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'steel'=> array(
-            'label' => 'Марка стали',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'length'=> array(
-            'label' => 'Длина',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'color'=> array(
-            'label' => 'Цвет',
-            'sql'   => 'varchar(50)',
-            'type'  => 'Ideal_Text'
-        ),
-        'rib'=> array(
-            'label' => 'Количесто рёбер жесткости',
-            'sql'   => 'varchar(50)',
             'type'  => 'Ideal_Text'
         ),
         'full_name'=> array(

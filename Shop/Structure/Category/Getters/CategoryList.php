@@ -19,12 +19,12 @@ class CategoryList
     public function  getList()
     {
         $db = Db::getInstance();
-        $_sql = 'SELECT id_1c, cap FROM i_shop_structure_category';
+        $_sql = 'SELECT ID, cap FROM i_shop_structure_category';
         $arr = $db->queryArray($_sql);
 
         $list = array();
         foreach ($arr as $item) {
-            $list[$item['id_1c']] = $item['cap'];
+            $list[$item['ID']] = $item['cap'];
         }
 
         return $list;
@@ -34,8 +34,8 @@ class CategoryList
     public function getVariants()
     {
         $db = Db::getInstance();
-        $id1c = $this->obj->object['id_1c'];
-        $_sql = "SELECT category_id FROM i_good_category WHERE good_id='{$id1c}'";
+        $goodId = $this->obj->object['ID'];
+        $_sql = "SELECT category_id FROM i_good_category WHERE good_id='{$goodId}'";
         $arr = $db->queryArray($_sql);
 
         $list = array();
@@ -49,7 +49,7 @@ class CategoryList
 
     public function getSqlAdd($newValue)
     {
-        $goodId = $this->obj->object['id_1c'];
+        $goodId = $this->obj->object['ID'];
         $_sql = "DELETE FROM i_good_category WHERE good_id='{$goodId}';"
               . "INSERT INTO i_good_category SET good_id='{$goodId}', category_id='{$newValue}';";
         return $_sql;

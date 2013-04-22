@@ -8,7 +8,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     public function getGoods()
     {
         if (!isset($this->object['id_1c'])) {
-            return array();
+            //return array();
         }
         $db = Db::getInstance();
         $categoryId = $this->object['id_1c'];
@@ -23,7 +23,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         $goodIs = implode(',', $goodIs);
 
-        $_sql = "SELECT * FROM i_shop_structure_good WHERE is_active=1 AND id_1c IN ({$goodIs}) ORDER BY name";
+        $_sql = "SELECT * FROM i_shop_structure_good WHERE is_active=1 AND ID IN ({$goodIs}) ORDER BY name";
         $goods = $db->queryArray($_sql);
         return $goods;
     }
