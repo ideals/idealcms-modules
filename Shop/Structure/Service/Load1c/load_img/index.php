@@ -3,8 +3,9 @@
 require_once 'image.php';
 class Transfer
 {
-    private $config = array();
+    public $config = array();
     private $tmpDir = '';
+    private $count = 0;
 
     function __construct()
     {
@@ -14,6 +15,10 @@ class Transfer
         if (!file_exists($this->tmpDir)) {
             mkdir($this->tmpDir, 0777, true);
         }
+    }
+
+    public function getCount(){
+        return $this->count;
     }
 
 
@@ -45,7 +50,11 @@ class Transfer
                 fwrite($f, file_get_contents('php://input'));
                 fclose($f);
                 print "success\n";
-                if ($filename == 'import.xml' OR $filename == 'offers.xml' OR $this->config['manual'] == 1) return 0;
+                if ($filename == 'import.xml' OR $filename == 'offers.xml'){
+                    $this->count += 1;
+                    return 0;
+                }
+                if($this->config['manual'] == 1) return 0;
                 return $filename;
                 break;
             case 'import':
@@ -66,4 +75,12 @@ $tool = new Transfer();
 $tmp = $tool->get('mode');
 if ($tmp) {
     $i = new Image($tmp);
+}
+
+if($tool->getCount() == 2){
+    $base = new \Shop\Structure\Service\Load1c\Tools();
+    $import = $tool->config['import'];
+    $offers = $tool->config['offers'];
+    $priceId = $tool->config['priceId'];
+    $base->loadBase($import, $offers, $priceId);
 }

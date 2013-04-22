@@ -1,5 +1,5 @@
 <?php
-namespace Ideal\Structure\Service\Load1c;
+namespace Shop\Structure\Service\Load1c;
 
 class Model
 {
