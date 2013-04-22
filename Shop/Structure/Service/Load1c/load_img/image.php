@@ -8,17 +8,21 @@ class Image
     function __construct($img)
     {
 
-        $this->config = parse_ini_file('config.ini');
+        $this->config = parse_ini_file('ini.ini');
         $this->water = (isset($this->config['water'])) ? $this->config['water'] : NULL;
         $this->tmpDir = (isset($this->config['tmp_dir'])) ? $this->config['tmp_dir'] : "tmp/1c/";
         if (!isset($this->config['font'])) {
             $this->config['font'] = 'arial.ttf';
         }
         $this->color();
-        foreach ($this->config['sizeimg'] as $size) {
+        $tmp = explode('*', $this->config['bigimg']);
+        $this->resize($this->tmpDir . $img, $tmp[0], $tmp[1], $this->config['dirImage']);
+        $tmp = explode('*', $this->config['smallimg']);
+        $this->resize($this->tmpDir . $img, $tmp[0], $tmp[1], $this->config['dirImage']);
+        /*foreach ($this->config['sizeimg'] as $size) {
             $tmp = explode('*', $size);
             $this->resize($this->tmpDir . $img, $tmp[0], $tmp[1], $this->config['dirImage']);
-        }
+        }*/
     }
 
     private function color()

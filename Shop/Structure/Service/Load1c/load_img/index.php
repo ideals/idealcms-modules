@@ -8,7 +8,7 @@ class Transfer
 
     function __construct()
     {
-        $this->config = parse_ini_file('config.ini');
+        $this->config = parse_ini_file('ini.ini');
         $this->tmpDir = (isset($this->config['tmp_dir'])) ? $this->config['tmp_dir'] : "tmp/1c/";
         // Проверка существования папки для временных данных
         if (!file_exists($this->tmpDir)) {
@@ -45,7 +45,7 @@ class Transfer
                 fwrite($f, file_get_contents('php://input'));
                 fclose($f);
                 print "success\n";
-                if ($filename == 'import.xml' OR $filename == 'offers.xml') return 0;
+                if ($filename == 'import.xml' OR $filename == 'offers.xml' OR $this->config['manual'] == 1) return 0;
                 return $filename;
                 break;
             case 'import':
