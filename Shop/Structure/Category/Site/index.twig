@@ -9,7 +9,7 @@
     {% if parts|length > 0 %}
         <ul>
             {% for part in parts %}
-                <li><a href="{{ part.url }}">{{ part.cap }}</a></li>
+                <li><a href="/goods/{{ part.url }}">{{ part.cap }}</a></li>
             {% endfor %}
         </ul>
     {% endif %}
@@ -18,34 +18,27 @@
         {% for good in goods %}
             <div class="goodsProf">
                 <div class="head">
-                    <a href="{{ good.url }}">
+                    <a href="/goods/{{ good.url }}">
                         <h3 class="GoodsTitle">
-                            {{ good.name }}
+                            {{ good.name }} {{ good.full_name }}
                         </h3>
                     </a>
-
-                    <h3 class="subGoodsTitle">
-                        продукт:
-                        <a href="{{ good.url }}">
-                            {{ good.full_name }}
-                        </a>
-                    </h3>
                 </div>
                 <div class="body">
                     <div class="left">
-                        <a href="{{ good.url }}">
+                        <a href="/goods/{{ good.url }}">
                             <img class="shk-image" alt="" src="{{ good.img }}"/>
                         </a>
                     </div>
                     <div class="right">
-                        {{ good.price }} {{ good.currency }}<br/><br/>
+                        <span>{{ good.price }}</span> руб<br/><br/>
                         <button class="shk-but" type="submit">
                             В корзину
                         </button>
                     </div>
                 </div>
                 <div class="footer">
-                    <a class="introtext" href="{{ good.url }}">
+                    <a class="introtext" href="/goods/{{ good.url }}">
                         {{ good.annot }}
                     </a>
                 </div>
