@@ -6,33 +6,52 @@
 
     {{ template.content|raw }}
 
-    {%if parts|length > 0 %}
-    <ul>
-    {% for part in parts %}
-        <li><a href="{{ part.url }}">{{ part.cap }}</a></li>
-    {% endfor %}
-    </ul>
+    {% if parts|length > 0 %}
+        <ul>
+            {% for part in parts %}
+                <li><a href="{{ part.url }}">{{ part.cap }}</a></li>
+            {% endfor %}
+        </ul>
     {% endif %}
 
-    {%if goods|length > 0 %}
-        <table class="table table-bordered table-hover">
-            <tr>
-                <th>Наименование</th>
-                <th>full_name</th>
-                <th>weight</th>
-                <th>stock</th>
-                <th>price</th>
-            </tr>
-            {% for good in goods %}
-            <tr>
-                <td>{{ good.name }}</a></td>
-                <td>{{ good.full_name }}</a></td>
-                <td>{{ good.weight }}</a></td>
-                <td>{{ good.stock }}</a></td>
-                <td>{{ good.price }}</a></td>
-            </tr>
-            {% endfor %}
-        </table>
+    {% if goods|length > 0 %}
+        {% for good in goods %}
+            <div class="goodsProf">
+                <div class="head">
+                    <a href="{{ good.url }}">
+                        <h3 class="GoodsTitle">
+                            {{ good.name }}
+                        </h3>
+                    </a>
+
+                    <h3 class="subGoodsTitle">
+                        продукт:
+                        <a href="{{ good.url }}">
+                            {{ good.full_name }}
+                        </a>
+                    </h3>
+                </div>
+                <div class="body">
+                    <div class="left">
+                        <a href="{{ good.url }}">
+                            <img class="shk-image" alt="" src="{{ good.img }}"/>
+                        </a>
+                    </div>
+                    <div class="right">
+                        {{ good.price }} {{ good.currency }}<br/><br/>
+                        <button class="shk-but" type="submit">
+                            В корзину
+                        </button>
+                    </div>
+                </div>
+                <div class="footer">
+                    <a class="introtext" href="{{ good.url }}">
+                        {{ good.annot }}
+                    </a>
+                </div>
+
+            </div>
+        {% endfor %}
     {% endif %}
 
 {% endblock %}

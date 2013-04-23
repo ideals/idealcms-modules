@@ -47,6 +47,16 @@ return array(
             'sql'   => 'int',
             'type'  => 'Shop_Price'
         ),
+        'img' => array(
+            'label' => 'Картинка',
+            'sql'   => 'varchar(255)',
+            'type'  => 'Ideal_Image'
+        ),
+        'annot'=> array(
+            'label' => 'Аннотация',
+            'sql'   => 'text',
+            'type'  => 'Ideal_Area'
+        ),
         'stock' => array(
             'label' => 'Количество',
             'sql'   => 'int',
