@@ -3,7 +3,7 @@
 // Новости
 return array(
     'params' => array (
-        'in_structures'    => array('Shop_Category'), // в каких структурах можно создавать эту структуру
+        'in_structures'    => array(), // в каких структурах можно создавать эту структуру
         'elements_cms'  => 10,            // количество элементов в списке в CMS
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_cap'     => '',            // поле для входа в список потомков
@@ -85,7 +85,7 @@ return array(
         'content' => array(
             'label' => 'Текст',
             'sql'   => 'mediumtext',
-            'type'  => 'Ideal_RichEdit' // fullblock
+            'type'  => 'Ideal_RichEdit'
         ),
         'is_active' => array(
             'label' => 'Отображать на сайте',
