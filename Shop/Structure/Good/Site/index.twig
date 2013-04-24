@@ -9,10 +9,15 @@
     <div style="float: right"><img src="{{ info.img }}"/></div>
 
     <div style="padding: 50px 0px 25px 100px;">&nbsp;&nbsp;&nbsp;
-    <span style="font-size: 24px;">{{ info.price }}</span> руб
-    <button style="margin-left: 10px;" class="shk-but" type="submit">
-        В корзину
-    </button><br/>
+        <span style="font-size: 24px;">{{ info.price }}</span> руб
+        <form id="basket">
+            <input type="hidden" name="ID" value="{{ info.ID }}">
+            <input type="hidden" name="price" value="{{ info.price }}">
+        </form>
+        <button style="margin-left: 10px;" class="shk-but" type="submit">
+            В корзину
+        </button>
+        <br/>
     </div>
 
     {{ info.annot }}<br/><br/>

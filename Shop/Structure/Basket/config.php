@@ -3,7 +3,7 @@
 // Таблица пользователей
 return array(
     'params' => array(
-        'structures'    => array('Service'), // типы, которые можно создавать в этом разделе
+        'in_structures' => array('Ideal_Part'), // в каких структурах можно создавать эту структуру
     ),
     'fields'   => array (
     ),

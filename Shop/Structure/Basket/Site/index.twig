@@ -2,6 +2,8 @@
 
 {% block content %}
 
+    NTCNNNNNNN
+
     <h1>{{ header }}</h1>
 
     {{ template.content|raw }}
@@ -13,6 +15,7 @@
             {% endfor %}
         </ul>
     {% endif %}
+    {{ goods }}
 
     {% if goods|length > 0 %}
         {% for good in goods %}
