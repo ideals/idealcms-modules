@@ -1,0 +1,9 @@
+<!--
+    Этот файл содержит пример кода кнопки «Добавить в корзину»,
+    который вам нужно будет поставить в свой шаблон
+-->
+
+<button onClick="addToBasket({{ buyButton.goodId }})">В корзину</button>
+{% if buyButton.goodAmount  %}
+    В корзине {{ buyButton.goodAmount }} шт.
+{% endif %}
