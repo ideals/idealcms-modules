@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Basket\Site;
+namespace Shop\Structure\Order\Site;
 
 class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 {

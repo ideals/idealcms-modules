@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Basket\Site;
+namespace Shop\Structure\Order\Site;
 
 use Ideal\Core\Db;
 
@@ -30,14 +30,12 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         $_sql = "SELECT * FROM i_shop_structure_good WHERE id IN {$in}";
         $goodIdsArr = $db->queryArray($_sql);
-        //$basket = (array)$basket;
         foreach ($goodIdsArr as $good) {
             $id = $good['ID'];
             $basket[$id]['name'] = $good['name'];
             $basket[$id]['total_price'] = $basket[$id]['price'] * $basket[$id]['amount'];
             $basket[$id]['img'] = $good['img'];
             $basket[$id]['url'] = $good['url'];
-            $basket[$id]['ID'] = $id;
         }
         return $basket;
     }

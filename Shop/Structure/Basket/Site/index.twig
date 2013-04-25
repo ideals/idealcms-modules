@@ -2,56 +2,89 @@
 
 {% block content %}
 
-    NTCNNNNNNN
+    {% if goods|length > 2 %}
 
-    <h1>{{ header }}</h1>
+        <h1>Оформление заказа</h1>
+        <p>
+            Доставка заказов по России, странам СНГ и другим странам осуществляется курьерскими службами.<br/>
+            Cамовывоз возможен только из нашего центрального офиса в С-Петербурге.
+        </p>
+        <p>
+            Заказы отправляются по предоплате. Наложенный платеж на данный момент невозможен.
+        </p>
+        <p>
+            Стоимость и сроки доставки Вам сообщит наш сотрудник по телефону во время согласования заказа.
+        </p>
+        <div id="otvet">
 
-    {{ template.content|raw }}
+        </div>
 
-    {% if parts|length > 0 %}
-        <ul>
-            {% for part in parts %}
-                <li><a href="/goods/{{ part.url }}">{{ part.cap }}</a></li>
+        <table id="basket_list">
+            {% for good in goods %}
+                {% if good.name %}
+
+                    <tr>
+                        <td><img src="{{ good.img }}" style="max-height: 90px; max-width: 90px;"></td>
+                        <td><a href="/goods/{{ good.url }}">{{ good.name }}</a></td>
+                        <td>{{ good.amount }} шт</td>
+                        <td>{{ good.price }} руб</td>
+                        <td>{{ good.total_price }} руб</td>
+                        <td>
+                            <button id="{{ good.ID }}" class="delFromBasket">Удалить</button>
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
-        </ul>
-    {% endif %}
-    {{ goods }}
-
-    {% if goods|length > 0 %}
-        {% for good in goods %}
-            <div class="goodsProf">
-                <div class="head">
-                    <a href="/goods/{{ good.url }}">
-                        <h3 class="GoodsTitle">
-                            {{ good.name }} {{ good.full_name }}
-                        </h3>
-                    </a>
-                </div>
-                <div class="body">
-                    <div class="left">
-                        <a href="/goods/{{ good.url }}">
-                            <img class="shk-image" alt="" src="{{ good.img }}"/>
-                        </a>
-                    </div>
-                    <div class="right">
-                        <form id="basket">
-                            <input type="hidden" name="ID" value="{{ good.ID }}">
-                            <input type="hidden" name="price" value="{{ good.price }}">
-                        </form>
-                        <span>{{ good.price }}</span> руб<br/><br/>
-                        <button class="shk-but" type="submit">
-                            В корзину
-                        </button>
-                    </div>
-                </div>
-                <div class="footer">
-                    <a class="introtext" href="/goods/{{ good.url }}">
-                        {{ good.annot }}
-                    </a>
-                </div>
-
+            <tr>
+                <td></td>
+                <td></td>
+                <td>Всего</td>
+                <td id="total_count">{{ goods['count'] }} шт</td>
+                <td id="total_price">{{ goods['total_price'] }} руб</td>
+            </tr>
+        </table><br/><br/>
+        <form class="form_order">
+            <div class="form_basket">
+                <label for="address">Адрес:</label>
+                <input id="address" name="address" type="text"/>
             </div>
-        {% endfor %}
+            <div class="form_basket">
+                <label for="delivery">Способ доставки*:</label>
+                <select id="delivery" name="delivery">
+                    <option value="Курьер">Курьерская доставка (рассчет оператора)</option>
+                    <option value="Самовывоз">Самовывоз: C-Петербург, пл.Ал.Невского</option>
+                </select>
+            </div>
+            <div class="form_basket">
+                <label for="payment">Способ оплаты*:</label>
+                <select id="payment" name="payment">
+                    <option value="Банковский перевод">Банковский перевод</option>
+                    <option value="Яндекс">Яндекс.Деньги</option>
+                </select>
+            </div>
+            <div class="form_basket">
+                <label for="name">Ф.И.О.*:</label>
+                <input id="name" name="name" type="text"/>
+            </div>
+            <div class="form_basket">
+                <label for="email">E-mail*:</label>
+                <input id="email" name="email" type="text"/>
+            </div>
+            <div class="form_basket">
+                <label for="phone">Телефон*:</label>
+                <input id="phone" name="phone" type="text"/>
+            </div>
+            <div class="form_basket">
+                <label for="message">Комментарий:</label>
+                <textarea id="message" name="message" rows="4" cols="25"></textarea>
+            </div>
+            <div class="form_basket">
+                <label></label>
+                <input name="submit" id="addOrder" value="Отправить" type="button">
+            </div>
+        </form>
+    {% else %}
+        <h4>Корзина пуста</h4>
     {% endif %}
 
 {% endblock %}

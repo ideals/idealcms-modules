@@ -16,11 +16,6 @@ return array(
             'sql'   => 'int(4) unsigned not null auto_increment primary key',
             'type'  => 'Ideal_Hidden'
         ),
-        'id_1c' => array(
-            'label' => 'ID в 1С',
-            'sql'   => 'char(37)',
-            'type'  => 'Ideal_Text'
-        ),
         'structure_path' => array(
             'label' => 'ID родительских структур',
             'sql'   => 'char(15)',
@@ -55,21 +50,6 @@ return array(
         'currency'=> array(
             'label' => 'Валюта',
             'sql'   => 'char(5)',
-            'type'  => 'Ideal_Text'
-        ),
-        'coefficient'=> array(
-            'label' => 'Коэффициент',
-            'sql'   => 'float',
-            'type'  => 'Ideal_Text'
-        ),
-        'full_name'=> array(
-            'label' => 'Полное наименование',
-            'sql'   => 'varchar(250)',
-            'type'  => 'Ideal_Text'
-        ),
-        'weight'=> array(
-            'label' => 'Вес',
-            'sql'   => 'varchar(50)',
             'type'  => 'Ideal_Text'
         ),
         'date_create' => array(
