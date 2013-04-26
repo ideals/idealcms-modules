@@ -42,15 +42,25 @@ return array(
             'sql'   => 'int',
             'type'  => 'Shop_Price'
         ),
+        'alt_price' => array(
+            'label' => 'Цена по акции',
+            'sql'   => 'int',
+            'type'  => 'Shop_Price'
+        ),
         'stock' => array(
             'label' => 'Количество',
             'sql'   => 'int',
             'type'  => 'Ideal_Text'
         ),
-        'currency'=> array(
-            'label' => 'Валюта',
-            'sql'   => 'char(5)',
-            'type'  => 'Ideal_Text'
+        'annot' => array(
+            'label' => 'Описание',
+            'sql'   => 'text',
+            'type'  => 'Ideal_Area'
+        ),
+        'img' => array(
+            'label' => 'Картинка',
+            'sql'   => 'varchar(255)',
+            'type'  => 'Ideal_Image'
         ),
         'date_create' => array(
             'label' => 'Дата создания',

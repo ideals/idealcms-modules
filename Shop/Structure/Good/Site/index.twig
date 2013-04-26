@@ -9,10 +9,20 @@
     <div style="float: right"><img src="{{ info.img }}"/></div>
 
     <div style="padding: 50px 0px 25px 100px;">&nbsp;&nbsp;&nbsp;
-        <span style="font-size: 24px;">{{ info.price }}</span> руб
+        {% if info.alt_price > 0 %}
+            <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ info.price }} руб </span>
+            &nbsp;&nbsp;&nbsp;
+            <span style="font-size: 24px;">{{ info.alt_price }}</span> руб <br/>
+        {% else %}
+            <span style="font-size: 24px;">{{ info.price }}</span> руб
+        {% endif %}
         <form id="basket">
             <input type="hidden" name="ID" value="{{ info.ID }}">
-            <input type="hidden" name="price" value="{{ info.price }}">
+            {% if info.alt_price > 0 %}
+                <input type="hidden" name="price" value="{{ info.alt_price }}">
+            {% else %}
+                <input type="hidden" name="price" value="{{ info.price }}">
+            {% endif %}
         </form>
         <button style="margin-left: 10px;" class="shk-but" type="submit">
             В корзину
