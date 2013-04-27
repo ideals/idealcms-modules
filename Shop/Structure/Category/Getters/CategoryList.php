@@ -49,9 +49,8 @@ class CategoryList
 
     public function getSqlAdd($newValue)
     {
-        $goodId = $this->obj->object['ID'];
-        $_sql = "DELETE FROM i_good_category WHERE good_id='{$goodId}';"
-              . "INSERT INTO i_good_category SET good_id='{$goodId}', category_id='{$newValue}';";
+        $_sql = "DELETE FROM i_good_category WHERE good_id='{{ objectId }}';"
+              . "INSERT INTO i_good_category SET good_id='{{ objectId }}', category_id='{$newValue}';";
         return $_sql;
     }
 
