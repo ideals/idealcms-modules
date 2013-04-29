@@ -47,11 +47,6 @@ return array(
             'sql'   => 'int',
             'type'  => 'Shop_Price'
         ),
-        'stock' => array(
-            'label' => 'Количество',
-            'sql'   => 'int',
-            'type'  => 'Ideal_Text'
-        ),
         'annot' => array(
             'label' => 'Описание',
             'sql'   => 'text',
@@ -63,14 +58,34 @@ return array(
             'type'  => 'Ideal_Image'
         ),
         'date_create' => array(
+            'tab'   => 'SEO',
             'label' => 'Дата создания',
             'sql'   => 'int(11) not null',
             'type'  => 'Ideal_DateSet'
         ),
         'date_mod' => array(
+            'tab'   => 'SEO',
             'label' => 'Дата модификации',
             'sql'   => 'int(11) not null',
             'type'  => 'Ideal_DateAuto'
+        ),
+        'title' => array(
+            'tab'   => 'SEO',
+            'label' => 'Title',
+            'sql'   => 'text',
+            'type'  => 'Ideal_Area'
+        ),
+        'keywords' => array(
+            'tab'   => 'SEO',
+            'label' => 'Keywords tag',
+            'sql'   => 'text',
+            'type'  => 'Ideal_Area'
+        ),
+        'description' => array(
+            'tab'   => 'SEO',
+            'label' => 'Description tag',
+            'sql'   => 'text',
+            'type'  => 'Ideal_Area'
         ),
         'content' => array(
             'label' => 'Текст',
