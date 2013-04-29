@@ -7,8 +7,8 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
     public function addToBasketAction()
     {
         $id = $_POST['goodId'];
-        $amount = $_POST['goodAmount'];
-        $price = $_POST['goodPrice'];
+        $amount = (int)$_POST['goodAmount'];
+        $price = (int)$_POST['goodPrice'];
         $arr = json_decode($_POST['cookie'], true);
         $arr['count'] += 1;
         $arr['total_price'] += ($price * $amount);
@@ -24,7 +24,7 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
     public function delBasketAction()
     {
         $arr = json_decode($_POST['cookie'], true);
-        $amount = $arr[$_POST['did']]['amount'];
+        $amount = (int)$arr[$_POST['did']]['amount'];
         $price = (int)$arr[$_POST['did']]['price'];
 
         unset($arr[$_POST['did']]);
