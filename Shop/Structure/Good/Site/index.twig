@@ -1,37 +1,36 @@
 {% extends "site.twig" %}
 
 {% block content %}
-    <img src="images/1.gif" alt="" style="height: 20px; width: 300px; float:right">
+    <img src="/images/1.gif" alt="" style="height: 50px; width: 400px; float:right">
 
     <h1 style="font-size: 18px; color: #545a4a">{{ info.name }}</h1>
 
     {{ template.content|raw }}
 
-    <div style="float: left"><img src="{{ info.img }}"/></div>
-
-    <div style="padding: 100px 0 50px 0;">&nbsp;&nbsp;&nbsp;
-        {% if info.alt_price > 0 %}
-            <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ info.price }} руб </span>
-            &nbsp;&nbsp;&nbsp;
-            <span style="font-size: 24px;">{{ info.alt_price }}</span> руб <br/>
-        {% else %}
-            <span style="font-size: 24px;">{{ info.price }}</span> руб
-        {% endif %}
-        <form id="basket">
-            <input type="hidden" name="ID" value="{{ info.ID }}">
+    <div style="display: block; padding: 30px;">
+        <div id="left" style="width: 500px; float: left">
+            <form id="basket">
+                <input type="hidden" name="ID" value="{{ info.ID }}">
+                {% if info.alt_price > 0 %}
+                    <input type="hidden" name="price" value="{{ info.alt_price }}">
+                {% else %}
+                    <input type="hidden" name="price" value="{{ info.price }}">
+                {% endif %}
+            </form>
+            <img src="{{ info.img }}"/><br/>
             {% if info.alt_price > 0 %}
-                <input type="hidden" name="price" value="{{ info.alt_price }}">
+                <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ info.price }} руб </span>
+                &nbsp;&nbsp;&nbsp;
+                <span style="font-size: 24px;">{{ info.alt_price }}</span> руб
             {% else %}
-                <input type="hidden" name="price" value="{{ info.price }}">
+                <span style="font-size: 24px;">{{ info.price }}</span> руб
             {% endif %}
-        </form>
-        <button class="shk-but" type="submit">
-            В корзину
-        </button>
-        <br/>
+            <button class="shk-but" type="submit">
+                В корзину
+            </button>
+        </div>
+        {{ info.annot }}<br/><br/>
+        {{ info.content|raw }}
     </div>
-
-    {{ info.annot }}<br/><br/>
-    {{ info.content|raw }}
 
 {% endblock %}
