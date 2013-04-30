@@ -1,14 +1,15 @@
 {% extends "site.twig" %}
 
 {% block content %}
+    <img src="images/1.gif" alt="" style="height: 20px; width: 300px; float:right">
 
-    <h1>{{ info.name }}</h1>
+    <h1 style="font-size: 18px; color: #545a4a">{{ info.name }}</h1>
 
     {{ template.content|raw }}
 
-    <div style="float: right"><img src="{{ info.img }}"/></div>
+    <div style="float: left"><img src="{{ info.img }}"/></div>
 
-    <div style="padding: 50px 0px 25px 100px;">&nbsp;&nbsp;&nbsp;
+    <div style="padding: 100px 0 50px 0;">&nbsp;&nbsp;&nbsp;
         {% if info.alt_price > 0 %}
             <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ info.price }} руб </span>
             &nbsp;&nbsp;&nbsp;
@@ -24,7 +25,7 @@
                 <input type="hidden" name="price" value="{{ info.price }}">
             {% endif %}
         </form>
-        <button style="margin-left: 10px;" class="shk-but" type="submit">
+        <button class="shk-but" type="submit">
             В корзину
         </button>
         <br/>
