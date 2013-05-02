@@ -136,20 +136,21 @@ EOT;
 </div>
 EOT;
 
-        $to = "help1@neox.ru";
-        if(isset($email)){
-            $to .= ", $email";
-        }
-        $subject = 'Заявка с mcpoz.ru';
+        $subject = 'Заказ товара с mcpoz.ru';
         $headers = 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+        $headers .= 'Content-type: text/html; charset="utf-8"' . "\r\n";
 
 // Дополнительные заголовки
-        $headers .= 'From: order@mcpoz.ru>' . "\r\n";
+        $headers .= 'From: order@mcpoz.ru' . "\r\n";
 
 // Отправляем
         print $mail;
-        mail($to, $subject, $mail, $headers);
+        if (isset($email)) {
+            // Если указано мыло - отправляем уведомление покупателю
+            mail($email, $subject, $mail, $headers);
+        }
+        $headers .= "Bcc: top@neox.ru, help1@neox.ru\r\n";
+        mail('vitaminb17@mail.ru', $subject, $mail, $headers);
         $tmp['content'] = mysql_real_escape_string($mail);
         $tmp['is_active'] = 1;
         $db->update("i_shop_structure_order", $id, $tmp);
