@@ -39,7 +39,8 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
         $insert['price'] = $basket['total_price'];
         $insert['name'] = $name;
         $insert['stock'] = $basket['count'];
-        $insert['is_active'] = 0;
+        $insert['structure_path'] = 8;
+        $insert['is_active'] = 1;
         $id = $db->insert("i_shop_structure_order", $insert);
 
         $mail = <<<EOT
@@ -88,9 +89,9 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
 Программа составляется с учетом диагноза, возраста и других индвидуальных особенностей больного раком.</p>
 
 
+<p>Состав заказа № $id:</p>
 
-Состав заказа № $id:
-<br><br>
+<ul>
 EOT;
 
         foreach ($goodIdsArr as $good) {
@@ -99,23 +100,18 @@ EOT;
             $amount = $basket[$good['ID']]['amount'];
             $price = $basket[$good['ID']]['price'];
             $gPrice = $amount * $price;
-            $mail .= <<<EOT
-<li>
-<b><a href='$gUrl' target="_blank">
-$gName</a></b>
-<b> $price руб x $amount шт</b>
-<b> = $gPrice руб.</b>";
-</li>
-
-EOT;
+            $mail .= '<li>';
+            $mail .= "<b><a href='$gUrl' target='_blank'>$gName</a> $price руб x $amount шт = $gPrice руб.</b>";
+            $mail .= '</li>';
         }
 
 
         $mail .= <<<EOT
-        <b>На сумму {$basket['total_price']} руб</b>
-<br><br>
+</ul>
 
-Данные покупателя:<br>
+<p><b>На сумму {$basket['total_price']} руб</b></p>
+
+<p>Данные покупателя:</p>
 
 <table cellpadding="3">
   <tbody><tr><td>Адрес:</td><td>$address</td></tr>
@@ -128,11 +124,9 @@ EOT;
 </tbody></table>
 
 
-<p style="color:#575757">Спасибо за обращение в Международный Центр Профилактики Онкологических Заболеваний.
-<br>
-</p><p style="color:#575757">Здоровья Вам и Вашим близким!
-
-</p></div>
+<p style="color:#575757">Спасибо за обращение в Международный Центр Профилактики Онкологических Заболеваний.</p>
+<p style="color:#575757">Здоровья Вам и Вашим близким!</p>
+</div>
 </div>
 </div>
 EOT;
