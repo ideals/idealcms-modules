@@ -50,6 +50,17 @@
                     <button class="shk-but" type="submit" style="margin: 10px 0">
                         В корзину
                     </button>
+                    <br>
+                    {% if Basket[good.ID] %}
+                    <span id="countBasket" style="font-size: 12px;">
+                    {% else %}
+                        <span class="hide" id="countBasket" style="font-size: 12px;">
+                    {% endif %}
+                        Количество в корзине:
+                        <span id="count" style="font-size: 12px;">
+                            {{ Basket[good.ID]['amount'] ? Basket[good.ID]['amount'] : 0 }}
+                         </span>
+                    </span>
                 </div>
                 <div class="footer">
                     <a class="introtext" href="/goods/{{ good.url }}">

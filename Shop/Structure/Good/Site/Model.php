@@ -25,4 +25,15 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         return array();
     }
+
+
+    public function getTitle()
+    {
+        if (isset($this->object['title']) AND $this->object['title'] != '') {
+            return $this->object['title'];
+        } else {
+            return $this->object['name'];
+        }
+    }
+
 }

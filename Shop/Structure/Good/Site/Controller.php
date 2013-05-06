@@ -8,7 +8,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
     {
         $this->templateInit();
 
-        $this->view->info = $this->model->object;
+        $this->view->good = $this->model->object;
     }
 
 }

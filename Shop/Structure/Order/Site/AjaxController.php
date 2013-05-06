@@ -8,18 +8,20 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
 
     public function testAction()
     {
-        $address = $_POST['address'];
+        $basket = $_COOKIE['basket'];
+        $basket = json_decode($basket, true);
+        if ($basket['count'] <= 0 OR $_POST['i'] != 0) {
+            return;
+        }
+        $address = htmlspecialchars($_POST['address']);
         $delivery = $_POST['delivery'];
         $payment = $_POST['payment'];
-        $name = $_POST['name'];
-        $email = $_POST['email'];
-        $phone = $_POST['phone'];
-        $message = $_POST['message'];
-        $basket = $_COOKIE['basket'];
+        $name = htmlspecialchars($_POST['name']);
+        $email = htmlspecialchars($_POST['email']);
+        $phone = htmlspecialchars($_POST['phone']);
+        $message = htmlspecialchars($_POST['message']);
         $db = Db::getInstance();
 
-
-        $basket = json_decode($basket, true);
         $in = "(";
         foreach ($basket as $key => $value) {
             if ($key == 'count' OR $key == 'total_price') continue;
@@ -76,7 +78,6 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
 <p style="color:#575757">Вы выбрали способ оплаты:Банковский перевод<br>
 Пожалуйста не оплачивайте заказ без согласования с нашим сотрудником.</p>
 
-$date
 <p>
 <font color="red">Важно!</font><br>
 Если продукция в Вашем заказе предназначена для больного раком, то настоятельно рекомендуем заполнить
@@ -94,7 +95,7 @@ EOT;
 
         foreach ($goodIdsArr as $good) {
             $gName = $good["name"];
-            $gUrl = $good["url"];
+            $gUrl = "http://mcpoz.ru/goods/" . $good["url"];
             $amount = $basket[$good['ID']]['amount'];
             $price = $basket[$good['ID']]['price'];
             $gPrice = $amount * $price;
@@ -154,6 +155,7 @@ EOT;
         $tmp['content'] = mysql_real_escape_string($mail);
         $tmp['is_active'] = 1;
         $db->update("i_shop_structure_order", $id, $tmp);
+        return;
     }
 
 }
