@@ -8,18 +8,21 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
 
     public function testAction()
     {
-        $basket = $_COOKIE['basket'];
+        $basket = $_POST['cookie'];
         $basket = json_decode($basket, true);
-        if ($basket['count'] <= 0 OR $_POST['i'] != 0) {
+        if ($basket['count'] <= 0) {
             return;
         }
-        $address = htmlspecialchars($_POST['address']);
-        $delivery = $_POST['delivery'];
-        $payment = $_POST['payment'];
-        $name = htmlspecialchars($_POST['name']);
-        $email = htmlspecialchars($_POST['email']);
-        $phone = htmlspecialchars($_POST['phone']);
-        $message = htmlspecialchars($_POST['message']);
+        $params = array();
+        parse_str($_POST['form'], $params);
+
+        $address = @ htmlspecialchars($params['address']);
+        $delivery = @ htmlspecialchars($params['delivery']);
+        $payment = @ htmlspecialchars($params['payment']);
+        $name = @ htmlspecialchars($params['name']);
+        $email = @ htmlspecialchars($params['email']);
+        $phone = @ htmlspecialchars($params['phone']);
+        $message = @ htmlspecialchars($params['message']);
         $db = Db::getInstance();
 
         $in = "(";
@@ -139,17 +142,16 @@ EOT;
         $headers .= 'From: order@mcpoz.ru' . "\r\n";
 
 // Отправляем
-        print $mail;
-        if (isset($email)) {
+        if ($email != '') {
             // Если указано мыло - отправляем уведомление покупателю
             mail($email, $subject, $mail, $headers);
         }
         $headers .= "Bcc: top@neox.ru, help1@neox.ru\r\n";
         mail('vitaminb17@mail.ru', $subject, $mail, $headers);
-        $tmp['content'] = mysql_real_escape_string($mail);
+        $tmp['content'] = $mail;
         $tmp['is_active'] = 1;
         $db->update("i_shop_structure_order", $id, $tmp);
-        return;
+        print $mail;
     }
 
 }
