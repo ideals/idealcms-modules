@@ -1,0 +1,14 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <img src="/images/1.gif" alt="" style="height: 50px; width: 400px; float:right">
+
+    <h1 style="font-size: 18px; color: #545a4a">{{ good.name }}</h1>
+
+    {{ template.content|raw }}
+
+    <div style="display: block; padding: 30px;">
+        {{ good.content|raw }}
+    </div>
+
+{% endblock %}

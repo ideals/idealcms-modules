@@ -1,0 +1,72 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <img src="/images/1.gif" alt="" style="height: 50px; width: 400px; float:right">
+
+    <style>
+        .art .clear {
+            clear: both;
+            border-bottom: solid 2px #deedfd;
+        }
+
+        .art .head {
+            color: #43a8d2;
+        }
+
+        .art .head a {
+            padding: 5px 15px;
+            text-decoration: none;
+            float: left;
+        }
+
+        .art .head a:hover {
+            color: #ffffff;
+            background: #43a8d2;
+        }
+
+        .art .head .active {
+            color: #ffffff;
+            background: #43a8d2;
+        }
+
+        .art .articles {
+            padding: 0 10px;
+        }
+
+        .art .articles a {
+            color: #498d01;
+            text-decoration: none
+        }
+
+        .art .articles .name {
+            margin: 25px 0 10px 0;
+        }
+
+        .art .articles .annot {
+            margin-bottom: 25px;
+        }
+    </style>
+
+    {{ template.content|raw }}
+    <div class="art">
+        <div class="head">
+            {% for part in parts %}
+                <a href="{{ part.url_full }}" class="{{ part.url == url ? 'active':'' }}">{{ part.cap }}</a>
+            {% endfor %}
+        </div>
+        <div class="clear"></div>
+        <div class="articles">
+            {% if goods|length > 0 %}
+                {% for good in goods %}
+                    <div class="name">
+                        <a href="/info/{{ good.url }}">{{ good.name }}</a>
+                    </div>
+                    <div class="annot">{{ good.annot }}</div>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+        <div class="clear"></div>
+    </div>
+
+{% endblock %}
