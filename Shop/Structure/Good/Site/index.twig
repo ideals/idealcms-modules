@@ -18,26 +18,31 @@
                 {% endif %}
             </form>
             <img src="{{ good.img }}"/><br/>
-            {% if good.alt_price > 0 %}
-                <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ good.price }} руб </span>
-                &nbsp;&nbsp;&nbsp;
-                <span style="font-size: 24px;">{{ good.alt_price }}</span> руб
+
+            <div style="margin: 0 auto 30px auto; padding: 0px 15%">
+                {% if good.alt_price > 0 %}
+                    <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ good.price }}
+                        руб </span>
+                    &nbsp;&nbsp;&nbsp;
+                    <span style="font-size: 24px;">{{ good.alt_price }}</span> руб
+                {% else %}
+                    <span style="font-size: 24px;">{{ good.price }}</span> руб
+                {% endif %}
+                <button class="shk-but" type="submit">
+                    В корзину
+                </button>
+                <br>
+                {% if Basket[good.ID] %}
+                <span id="countBasket" style="font-size: 12px;">
             {% else %}
-                <span style="font-size: 24px;">{{ good.price }}</span> руб
+                    <span class="hide" id="countBasket" style="font-size: 12px;">
             {% endif %}
-            <button class="shk-but" type="submit">
-                В корзину
-            </button><br>
-            {% if Basket[good.ID] %}
-            <span id="countBasket" style="font-size: 12px;">
-            {% else %}
-            <span class="hide" id="countBasket" style="font-size: 12px;">
-            {% endif %}
-                <span id="textBasket"></span>
+                        <span id="textBasket"></span>
                 <span id="count" style="font-size: 12px;">
                     {{ Basket[good.ID]['amount'] ? Basket[good.ID]['amount'] : 0 }}
                 </span>
             </span>
+            </div>
         </div>
         {{ good.annot }}<br/><br/>
         {{ good.content|raw }}
