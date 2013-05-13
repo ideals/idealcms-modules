@@ -117,6 +117,12 @@ return array(
             'sql'   => "bool DEFAULT '0' NOT NULL",
             'type'  => 'Ideal_Checkbox'
         ),
+        'url_full' => array(
+            'tab'   => 'SEO',
+            'label' => 'URL FULL',
+            'sql'   => 'varchar(255)',
+            'type'  => 'Ideal_Text'
+        ),
         'title' => array(
             'tab'   => 'SEO',
             'label' => 'Title',

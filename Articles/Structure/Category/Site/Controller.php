@@ -16,7 +16,18 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
         array_unshift($paper, array("cap" => "Все статьи", "url" => "article", "url_full" => "/article"));
         $this->view->parts = $paper;
 
-        $this->view->goods = $this->model->getArticles();
+        if (isset($_GET['page'])) {
+            $page = intval($_GET['page']);
+        } else {
+            $page = 1;
+        }
+
+        $paper = $this->model->getArticles(1,$page);
+
+        $this->view->list = $paper['list'];
+        $this->view->goods = $paper['paper'];
+
+
         return;
     }
 }
