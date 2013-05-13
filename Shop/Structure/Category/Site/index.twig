@@ -56,7 +56,7 @@
                     {% else %}
                         <span class="hide" id="countBasket" style="font-size: 12px;">
                     {% endif %}
-                        Количество в корзине:
+                            Количество <a href="/basket">в корзине</a>:
                         <span id="count" style="font-size: 12px;">
                             {{ Basket[good.ID]['amount'] ? Basket[good.ID]['amount'] : 0 }}
                          </span>

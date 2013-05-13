@@ -20,13 +20,12 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         $db = Db::getInstance();
 
-        $in = "(";
+        $in = array();
         foreach ($basket as $key => $value) {
             if ($key == 'count' OR $key == 'total_price') continue;
-            $in .= $key . ',';
+            if (!empty($value['price'])) $in[] = $key;
         }
-        $in = substr($in, 0, strlen($in) - 1);
-        $in .= ")";
+        $in = '(' . implode(',', $in) . ')';
 
         $_sql = "SELECT * FROM i_shop_structure_good WHERE id IN {$in}";
         $goodIdsArr = $db->queryArray($_sql);

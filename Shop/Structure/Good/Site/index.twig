@@ -19,7 +19,7 @@
             </form>
             <img src="{{ good.img }}"/><br/>
 
-            <div style="margin: 0 auto 30px auto; padding: 0px 15%">
+            <div style="text-align: center">
                 {% if good.alt_price > 0 %}
                     <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ good.price }}
                         руб </span>
@@ -37,7 +37,7 @@
             {% else %}
                     <span class="hide" id="countBasket" style="font-size: 12px;">
             {% endif %}
-                        <span id="textBasket"></span>
+                        <span id="textBasket">Количество <a href="/basket">в корзине</a>: </span>
                 <span id="count" style="font-size: 12px;">
                     {{ Basket[good.ID]['amount'] ? Basket[good.ID]['amount'] : 0 }}
                 </span>
