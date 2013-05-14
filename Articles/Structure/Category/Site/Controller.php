@@ -22,7 +22,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
             $page = 1;
         }
 
-        $paper = $this->model->getArticles(1,$page);
+        $paper = $this->model->getArticles(15,$page);
 
         $this->view->list = $paper['list'];
         $this->view->goods = $paper['paper'];

@@ -13,24 +13,24 @@
             color: #43a8d2;
         }
 
-        .art .head a {
+        .art .head a, .art .footer a {
             padding: 5px 15px;
             text-decoration: none;
             float: left;
         }
 
-        .art .head a:hover {
+        .art .head a:hover, .art .footer a:hover {
             color: #ffffff;
             background: #43a8d2;
         }
 
-        .art .head .active {
+        .art .head .active, .art .footer .active{
             color: #ffffff;
             background: #43a8d2;
         }
 
         .art .articles {
-            padding: 0 10px;
+            padding: 0 15px;
         }
 
         .art .articles a {
@@ -44,6 +44,10 @@
 
         .art .articles .annot {
             margin-bottom: 25px;
+        }
+
+        .art .footer{
+            padding: 20px 0 0 0;
         }
     </style>
 
@@ -66,8 +70,10 @@
             {% endif %}
 
         </div>
-        {{ list|raw }}
         <div class="clear"></div>
+        <div class="footer">
+            {{ list|raw }}
+        </div>
     </div>
 
 {% endblock %}

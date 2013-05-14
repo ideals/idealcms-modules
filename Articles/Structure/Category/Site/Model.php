@@ -9,10 +9,15 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     public function getArticles($row, $page)
     {
         $db = Db::getInstance();
+        $arr = array();
         $_sql = "SELECT COUNT(*) AS `counter` FROM `i_articles_structure_paper`";
         $count = $db->queryArray($_sql);
 
         $elements = $count[0]['counter'];
+        if(empty($elements)){
+            $arr['list'] = '<a class="active">1</a>';
+            return $arr;
+        }
 
         $pages = ceil($elements / $row);
         if ($page < 1) {
@@ -33,7 +38,8 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             $_sql = "SELECT paper FROM i_articles_paper WHERE articles='{$categoryId}'LIMIT {$start}, {$row}";
             $goodIdsArr = $db->queryArray($_sql);
             if (count($goodIdsArr) == 0) {
-                return array();
+                $arr['list'] = '<a class="active">1</a>';
+                return $arr;
             }
             $goodIs = array();
             foreach ($goodIdsArr as $good) {
@@ -59,7 +65,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
                 $arr['list'] .= ' <a href="?page=' . $i . '">' . $i . '</a> ';
             } else {
                 // выбранная страница
-                $arr['list'] .= ' <b>' . $i . '</b> ';
+                $arr['list'] .= ' <a class="active">' . $i . '</a> ';
             }
         }
 
