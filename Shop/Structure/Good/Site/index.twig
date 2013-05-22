@@ -19,7 +19,7 @@
             </form>
             <img src="{{ good.img }}"/><br/>
 
-            <div style="text-align: center">
+            <div style="text-align: center; margin: 10px 0 17px 0;">
                 {% if good.alt_price > 0 %}
                     <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ good.price }}
                         руб </span>
@@ -44,7 +44,6 @@
             </span>
             </div>
         </div>
-        {{ good.annot }}<br/><br/>
         {{ good.content|raw }}
     </div>
 
