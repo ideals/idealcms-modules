@@ -12,9 +12,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 
         $this->view->url = $this->model->object['url'];
 
-        $paper = $this->model->getList();
-        array_unshift($paper, array("cap" => "Все статьи", "url" => "article", "url_full" => "/article"));
-        $this->view->parts = $paper;
+        $this->view->parts = $this->model->getCategories();
 
         if (isset($_GET['page'])) {
             $page = intval($_GET['page']);
@@ -22,7 +20,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
             $page = 1;
         }
 
-        $paper = $this->model->getArticles(15,$page);
+        $paper = $this->model->getArticles(15, $page);
 
         $this->view->list = $paper['list'];
         $this->view->goods = $paper['paper'];

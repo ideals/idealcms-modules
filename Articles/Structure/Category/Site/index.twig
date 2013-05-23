@@ -51,11 +51,12 @@
         }
     </style>
 
-    {{ template.content|raw }}
+    <h1>{{ header }}</h1>
+
     <div class="art">
         <div class="head">
             {% for part in parts %}
-                <a href="{{ part.url_full }}" class="{{ part.url == url ? 'active':'' }}">{{ part.cap }}</a>
+                <a href="{{ part.url }}" class="{{ part.class }}">{{ part.cap }}</a>
             {% endfor %}
         </div>
         <div class="clear"></div>
@@ -74,6 +75,9 @@
         <div class="footer">
             {{ list|raw }}
         </div>
+
+        {{ template.content|raw }}
+
     </div>
 
 {% endblock %}

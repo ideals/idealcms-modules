@@ -72,15 +72,39 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         return $arr;
     }
 
-    public function getList()
+    public function getCategories()
     {
         $db = Db::getInstance();
         $_sql = "SELECT * FROM i_articles_structure_category WHERE structure_path='{$this->structurePath}'";
         //return $db->queryArray($_sql);
         $list = $db->queryArray($_sql);
-        foreach ($list as $k => $v) {
-            $list[$k]['url_full'] = "/article/" . $list[$k]['url'];
+        $url = new \Ideal\Field\Url\Model();
+
+        $first = array(
+            'cap'   => 'Все статьи',
+            'url'   => '/articles.html',
+            'class' => ''
+        );
+
+        $path = $this->getPath();
+        $end = count($path) - 1; // последний элемент пути
+        if ($path[$end - 1]['structure'] == $path[$end]['structure']) {
+            // Если последний и предпоследний - категории, убираем последний элемент,
+            // т.к. вложенных категорий у нас нет
+            $last = array_pop($path);
+            $lastID = $last['ID'];
+        } else {
+            $lastID = 0;
+            $first['class'] = 'active';
         }
+
+        $url->setParentUrl($path);
+        foreach ($list as $k => $v) {
+            $list[$k]['url'] = $url->getUrl($v);
+            $list[$k]['class'] = ($v['ID'] == $lastID) ? 'active' : '';
+        }
+
+        array_unshift($list, $first);
 
         return $list;
     }
