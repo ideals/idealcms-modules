@@ -3,73 +3,56 @@ namespace Articles\Structure\Category\Site;
 
 use Ideal\Core\Db;
 use Ideal\Field;
+use Ideal\Core\Config;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
-    public function getArticles($row, $page)
+
+    public function getArticlesCount()
     {
         $db = Db::getInstance();
-        $arr = array();
-        $_sql = "SELECT COUNT(*) AS `counter` FROM `i_articles_structure_paper`";
+        if ($this->object['structure_path'] === "1") {
+            // Считаем все статьи
+            $_sql = "SELECT COUNT(ID) FROM i_articles_structure_paper WHERE is_active=1";
+        } else {
+            // Считаем статьи только одной категории
+            $categoryId = $this->object['ID'];
+            $_sql = "SELECT COUNT(ID) FROM i_articles_structure_paper WHERE is_active=1
+                            AND ID IN (SELECT paper FROM i_articles_paper WHERE articles='{$categoryId})";
+        }
         $count = $db->queryArray($_sql);
-
-        $elements = $count[0]['counter'];
-        if(empty($elements)){
-            $arr['list'] = '<a class="active">1</a>';
-            return $arr;
-        }
-
-        $pages = ceil($elements / $row);
-        if ($page < 1) {
-            $page = 1;
-        } elseif ($page > $pages) {
-            $page = $pages;
-        }
+        return $count[0]['COUNT(ID)'];
+    }
 
 
-        $start = ($page - 1) * $row;
+    public function getArticles($page, $onPage)
+    {
+        $config = Config::getInstance();
+        $db = Db::getInstance();
+
+        $start = ($page < 2) ? 0 : ($page - 1) * $onPage;
+
         if ($this->object['structure_path'] === "1") {
             // Запрос для отображения всех статей
-            $_sql = "SELECT * FROM i_articles_structure_paper WHERE is_active = 1 LIMIT {$start}, {$row}";
+            $_sql = "SELECT * FROM i_articles_structure_paper WHERE is_active = 1 ORDER BY date_create LIMIT {$start}, {$onPage}";
 
         } else {
             // Вывод статей только определённой категории
             $categoryId = $this->object['ID'];
-            $_sql = "SELECT paper FROM i_articles_paper WHERE articles='{$categoryId}'LIMIT {$start}, {$row}";
-            $goodIdsArr = $db->queryArray($_sql);
-            if (count($goodIdsArr) == 0) {
-                $arr['list'] = '<a class="active">1</a>';
-                return $arr;
-            }
-            $goodIs = array();
-            foreach ($goodIdsArr as $good) {
-                $goodIs[] = "'" . $good['paper'] . "'";
-            }
-            $goodIs = implode(',', $goodIs);
-
-            $_sql = "SELECT * FROM i_articles_structure_paper WHERE is_active=1 AND ID IN ({$goodIs}) ORDER BY name";
+            $_sql = "SELECT * FROM i_articles_structure_paper WHERE is_active=1
+                            AND ID IN (SELECT paper FROM i_articles_paper WHERE articles='{$categoryId})
+                            ORDER BY date_create LIMIT {$start}, {$onPage}";
         }
-        $arr['paper'] = $db->queryArray($_sql);
+        $list = $db->queryArray($_sql);
 
-        $neighbours = 6; // Количество ячеек отображаемых для навигации по страницам
-        $left_neighbour = $page - $neighbours;
-        if ($left_neighbour < 1) $left_neighbour = 1;
-
-        $right_neighbour = $page + $neighbours;
-        if ($right_neighbour > $pages) $right_neighbour = $pages;
-
-        $arr['list'] = "";
-
-        for ($i = $left_neighbour; $i <= $right_neighbour; $i++) {
-            if ($i != $page) {
-                $arr['list'] .= ' <a href="?page=' . $i . '">' . $i . '</a> ';
-            } else {
-                // выбранная страница
-                $arr['list'] .= ' <a class="active">' . $i . '</a> ';
-            }
+        // Проставление правильных URL
+        $parentUrl = $this->getParentUrl();
+        foreach ($list as $k => $v) {
+            $news[$k]['url'] = $parentUrl . '/' . $v['url'] . $config->urlSuffix;
+            $news[$k]['date_create'] = \Ideal\Core\Util::dateReach($v['date_create']);
         }
 
-        return $arr;
+        return $list;
     }
 
     public function getCategories()

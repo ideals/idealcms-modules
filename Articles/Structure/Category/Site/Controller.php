@@ -1,6 +1,9 @@
 <?php
 namespace Articles\Structure\Category\Site;
 
+use Ideal\Core\Request;
+use Ideal\Core\Pagination;
+
 class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 {
     /* @var $model Model */
@@ -14,18 +17,15 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 
         $this->view->parts = $this->model->getCategories();
 
-        if (isset($_GET['page'])) {
-            $page = intval($_GET['page']);
-        } else {
-            $page = 1;
-        }
+        $request = new Request();
+        $page = intval($request->page);
+        $onPage = $this->model->params['elements_site'];
 
-        $paper = $this->model->getArticles(15, $page);
+        $this->view->goods = $this->model->getArticles($page, $onPage);
 
-        $this->view->list = $paper['list'];
-        $this->view->goods = $paper['paper'];
-
-
-        return;
+        // Отображение листалки
+        $pagination = new Pagination();
+        $this->view->pages = $pagination->getPages($this->model->getArticlesCount(),
+            $onPage, $page, $request->getQueryWithout('page'), 'page');
     }
 }

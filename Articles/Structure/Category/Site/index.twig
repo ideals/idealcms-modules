@@ -9,22 +9,26 @@
             border-bottom: solid 2px #deedfd;
         }
 
-        .art .head {
-            color: #43a8d2;
+        .pagination ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
-
-        .art .head a, .art .footer a {
-            padding: 5px 15px;
-            text-decoration: none;
+        .pagination li {
             float: left;
         }
+        .pagination a {
+            display: block;
+            padding: 5px 15px;
+            text-decoration: none;
+        }
 
-        .art .head a:hover, .art .footer a:hover {
+        .pagination a:hover {
             color: #ffffff;
             background: #43a8d2;
         }
 
-        .art .head .active, .art .footer .active{
+        .pagination .active a {
             color: #ffffff;
             background: #43a8d2;
         }
@@ -45,19 +49,17 @@
         .art .articles .annot {
             margin-bottom: 25px;
         }
-
-        .art .footer{
-            padding: 20px 0 0 0;
-        }
     </style>
 
     <h1>{{ header }}</h1>
 
     <div class="art">
-        <div class="head">
+        <div class="pagination">
+            <ul>
             {% for part in parts %}
-                <a href="{{ part.url }}" class="{{ part.class }}">{{ part.cap }}</a>
+                <li class="{{ part.class }}"><a href="{{ part.url }}">{{ part.cap }}</a></li>
             {% endfor %}
+            </ul>
         </div>
         <div class="clear"></div>
         <div class="articles">
@@ -71,10 +73,19 @@
             {% endif %}
 
         </div>
-        <div class="clear"></div>
-        <div class="footer">
-            {{ list|raw }}
-        </div>
+        {%if pages|length > 0 %}
+            <div class="pagination pagination-left">
+                <ul>
+                    {% for page in pages %}
+                        {% if page.current == 1 %}
+                            <li class="active"><a>{{ page.num }}</a></li>
+                        {% else %}
+                            <li><a href="{{ page.url }}">{{ page.num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
         {{ template.content|raw }}
 
