@@ -18,7 +18,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             // Считаем статьи только одной категории
             $categoryId = $this->object['ID'];
             $_sql = "SELECT COUNT(ID) FROM i_articles_structure_paper WHERE is_active=1
-                            AND ID IN (SELECT paper FROM i_articles_paper WHERE articles='{$categoryId})";
+                            AND ID IN (SELECT paper FROM i_articles_paper WHERE articles={$categoryId})";
         }
         $count = $db->queryArray($_sql);
         return $count[0]['COUNT(ID)'];
@@ -40,7 +40,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             // Вывод статей только определённой категории
             $categoryId = $this->object['ID'];
             $_sql = "SELECT * FROM i_articles_structure_paper WHERE is_active=1
-                            AND ID IN (SELECT paper FROM i_articles_paper WHERE articles='{$categoryId})
+                            AND ID IN (SELECT paper FROM i_articles_paper WHERE articles={$categoryId})
                             ORDER BY date_create LIMIT {$start}, {$onPage}";
         }
         $list = $db->queryArray($_sql);
