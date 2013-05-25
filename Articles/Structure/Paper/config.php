@@ -4,10 +4,10 @@
 return array(
     'params' => array (
         'in_structures'    => array(), // в каких структурах можно создавать эту структуру
-        'elements_cms'  => 10,            // количество элементов в списке в CMS
+        'elements_cms'  => 20,            // количество элементов в списке в CMS
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_cap'     => '',            // поле для входа в список потомков
-        'field_sort'    => 'name ASC', // поле, по которому проводится сортировка в CMS
+        'field_sort'    => 'date_create ASC', // поле, по которому проводится сортировка в CMS
         'field_list'    => array('name', 'is_active', 'date_create')
      ),
     'fields'   => array (
