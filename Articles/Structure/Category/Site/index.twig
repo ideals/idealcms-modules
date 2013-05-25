@@ -1,11 +1,10 @@
 {% extends "site.twig" %}
 
 {% block content %}
-    <img src="/images/1.gif" alt="" style="height: 50px; width: 400px; float:right">
-
     <h1>{{ header }}</h1>
 
     <div class="art">
+        <div class="clear"></div>
         <div class="pagination">
             <ul>
             {% for part in parts %}
@@ -18,7 +17,7 @@
             {% if goods|length > 0 %}
                 {% for good in goods %}
                     <div class="name">
-                        <a href="/info/{{ good.url }}">{{ good.name }}</a>
+                        <a href="/info/{{ good.url }}.html">{{ good.name }}</a>
                     </div>
                     <div class="annot">{{ good.annot }}</div>
                 {% endfor %}
