@@ -28,7 +28,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         $in = substr($in, 0, strlen($in) - 1);
         $in .= ")";
 
-        $_sql = "SELECT * FROM i_shop_structure_good WHERE id IN {$in}";
+        $_sql = "SELECT * FROM i_shop_structure_good WHERE ID IN {$in}";
         $goodIdsArr = $db->queryArray($_sql);
         foreach ($goodIdsArr as $good) {
             $id = $good['ID'];
