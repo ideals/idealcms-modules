@@ -7,17 +7,17 @@
 
     <div style="display: block; padding: 30px;">
         <div id="left" style="width: 500px; float: left">
-            <form id="basket">
-                <input type="hidden" name="ID" value="{{ good.ID }}">
-                {% if good.alt_price > 0 %}
-                    <input type="hidden" name="price" value="{{ good.alt_price }}">
-                {% else %}
-                    <input type="hidden" name="price" value="{{ good.price }}">
-                {% endif %}
-            </form>
             <img src="{{ good.img }}"/><br/>
 
             <div style="text-align: center; margin: 10px 0 17px 0;">
+                <form id="basket">
+                    <input type="hidden" name="ID" value="{{ good.ID }}">
+                    {% if good.alt_price > 0 %}
+                        <input type="hidden" name="price" value="{{ good.alt_price }}">
+                    {% else %}
+                        <input type="hidden" name="price" value="{{ good.price }}">
+                    {% endif %}
+                </form>
                 {% if good.alt_price > 0 %}
                     <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ good.price }}
                         руб </span>
