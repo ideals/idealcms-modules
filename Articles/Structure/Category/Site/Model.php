@@ -58,7 +58,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     public function getCategories()
     {
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM i_articles_structure_category WHERE structure_path='{$this->structurePath}'";
+        $_sql = "SELECT * FROM i_articles_structure_category WHERE structure_path='{$this->structurePath}' AND is_active=1";
         //return $db->queryArray($_sql);
         $list = $db->queryArray($_sql);
         $url = new \Ideal\Field\Url\Model();
