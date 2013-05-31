@@ -11,7 +11,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             //return array();
         }
         $db = Db::getInstance();
-        $categoryId = $this->object['id_1c'];
+        $categoryId = $this->object['ID'];
         $_sql = "SELECT good_id FROM i_good_category WHERE category_id='{$categoryId}'";
         $goodIdsArr = $db->queryArray($_sql);
 		if (count($goodIdsArr) == 0) {
