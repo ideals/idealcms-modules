@@ -1,6 +1,10 @@
 <?php
 namespace Shop\Structure\Service\Load1c;
 
+use Ideal\Core\Db;
+use Ideal\Core\Config;
+use Ideal\Field\Cid;
+
 class Model
 {
     // Основной xml-контент, загруженный из файла
@@ -57,6 +61,161 @@ class Model
 
 
     /**
+     * Создания массива категории для сайта
+     * id-1c ID взятый из выгрузки 1с
+     * id-site ID категорий на сайте
+     * @param bool $list
+     * @param bool $group
+     * @param null $IDroot
+     * @return array
+     */
+    protected function loadSiteGroup($list = false, $group = false, $IDroot = null)
+    {
+        $arr = array();
+        if (!$list) {
+            $db = Db::getInstance();
+            $table = ''; //Таблица где хронятся соотношений id-site к id-1c категорий
+            $_sql = "SELECT * FROM {$table}";
+            $list = $db->queryArray($_sql);
+            $_tmp = array();
+            //Создаем массив где ключ id-1c, а значения соответсвуют id-site
+            foreach ($list as $v) {
+                $_tmp[$v['id-1c']]['id'] = $v['id-site'];
+                $_tmp[$v['id-1c']]['terminal'] = $v['terminal'];
+            }
+            $list = $_tmp;
+            $group = $this->groups;
+        }
+        foreach ($group as $v) {
+            if ($IDroot == null) {
+                $ter = $list[$v['Ид']]['terminal'];
+                $IDroot = ($ter == 1) ? $list[$v['Ид']]['id'] : null;
+            }
+            $i = (isset($IDroot)) ? $IDroot : $list[$v['Ид']]['id'];
+            $arr[$list[$v['Ид']]] = $i;
+            if (count($v['Группы']) > 0) {
+                $_tmp = $this->loadSiteGroup($list, $v['Группы'], $IDroot);
+                $arr += $_tmp;
+            }
+        }
+        return $arr;
+    }
+
+    /**
+     * Создание select тега для удобного сопоставления категорий
+     * @param $id ID категории из 1c с родителем
+     * @return string список для выбора
+     */
+    private function getGroupSelect($id)
+    {
+        $mapping = array();
+        $IDreal = basename($id); //ID категории в 1c без родителей
+
+        $db = Db::getInstance();
+        $query = $db->query("SELECT * FROM i_1c_category");//Загрузка уже созданных сопоставлений
+        while ($row = mysql_fetch_array($query, MYSQL_ASSOC)) {
+            $mapping[$row['1c_id']] = $row['category_id'];
+        }
+        $select = ($mapping[$IDreal] == -1) ? 'selected' : '';
+
+        $table = 'i_shop_structure_category';
+        $_sql = "SELECT ID,cap FROM {$table} ORDER BY cid ASC";
+
+        $str = '<select name="form[][' . $id . '][v]">';
+        $str .= '<option value="0"></option>';
+        $str .= '<option ' . $select . ' value="-1">НЕ СОХРАНЯТЬ</option>';
+        foreach ($db->queryArray($_sql) as $v) {
+            $select = ($mapping[$IDreal] == $v['ID']) ? 'selected' : '';
+            $str .= '<option ' . $select . ' value=' . $v['ID'] . '>' . $v['cap'] . '</option>';
+        }
+        $str .= '</select>';
+        return $str;
+    }
+
+    /**
+     * Создание списка для редактирования сопоставлений категорий
+     * @param null $tree Массив категорий из 1с
+     * @param string $root Список с отображение названия и сопоставления категрий из 1с к группам на сайте
+     * @return string возрашает массив с сопоставление категорий где ключ ID 1с, а значение ID категории на сайте
+     */
+    public function createTableMapping($tree = null, $root = '')
+    {
+        $str = ''; // Строка на возвращение
+
+        $goodsXML = $this->xml->xpath('Каталог/Товары/Товар');
+        $goodGroups = array();
+        foreach ($goodsXML as $child) {
+            foreach ($child->{'Группы'}->children() as $item) {
+                $id = (string)$item;
+                if (isset($goodGroups[$id])) {
+                    $goodGroups[$id]++;
+                } else {
+                    $goodGroups[$id] = 1;
+                }
+            }
+        }
+        $this->goodGroups = $goodGroups;
+
+        if ($tree == null) $tree = $this->groups;
+        $str .= '<ul>';
+
+        foreach ($tree as $key => $value) {
+            $selectID = $root . '/' . $value['Ид'] . ''; //ID родителя для поиска значения в createArrayMapping()
+            // Если в категории нету товара то она не отображееться, но подкатегории да, если у них есть товар
+            $str .= '<li><label style="min-height:50px">' . $value['Наименование'];
+            if (isset($value['Ид']) AND isset($this->goodGroups[$value['Ид']])) {
+                $str .= ' (' . $this->goodGroups[$value['Ид']] . ')';
+            }
+            $str .= '<div style="float:right">' . $this->getGroupSelect($selectID) . '</div></label>';
+
+            if (count($value['Группы']) > 0) {
+                $str .= $this->createTableMapping($value['Группы'], $selectID);
+            }
+            $str .= '</li>';
+        }
+        $str .= '</ul>';
+        return $str;
+    }
+
+    /**
+     * Создание массива сопоставление и сохранение его в базу
+     * @param $data Массив с ключом в виде иерархии /parent/child/child
+     * @return array возрашает массив с сопоставление категорий где ключ ID 1с, а значение ID категории на сайте
+     */
+    public function createArrayMapping($data)
+    {
+        $arr = array();
+        $str = "INSERT INTO i_1c_category (1c_id,category_id) VALUES ";
+        foreach ($data as $k => $v) {
+            foreach ($v as $k2 => $v2) {
+                $bn = basename($k2); // Создание ключа
+                if ($v2['v'] == 0) {
+                    $root = str_replace('/' . $bn, '', $k2);
+                    // Поиск значение у родетеля(ей)
+                    while ($root != '') {
+                        if ($arr[basename($root)] != 0) {
+                            $arr[$bn] = $arr[basename($root)];
+                            $str .= "('{$bn}',{$arr[basename($root)]}),";
+                            break;
+                        } else {
+                            $root = str_replace('/' . basename($root), '', $root);
+                        }
+                    }
+                } else {
+                    $str .= "('{$bn}',{$v2['v']}),";
+                    $arr[$bn] = $v2['v'];
+                }
+            }
+        }
+        $str = substr($str, 0, strlen($str) - 1);
+        $str .= ' ON DUPLICATE KEY UPDATE category_id = VALUES(category_id);'; //Если строка с id_1c же есть, то обновить значение
+        $db = Db::getInstance();
+        $db->query($str);
+        return $arr;
+    }
+
+
+    /**
      * Превращение групп товаров из SimpleXML объекта в многомерный массив
      * @param $groupsXML Узел с группами
      * @return array Массив с группами
@@ -71,7 +230,7 @@ class Model
                 'Ид' => $id,
                 'Наименование' => (string)$child->{'Наименование'},
                 'Группы' => $this->loadGroups($child->{'Группы'})
-                );
+            );
         }
         return $groups;
     }
@@ -155,7 +314,7 @@ class Model
         //print_r($child->{'ХарактеристикиТовара'});
         $good['char'][0]['ID'] = $id;
         $char = $node->{'ХарактеристикиТовара'};
-        if($char != '') {
+        if ($char != '') {
             // Добавляем характеристики, только в случае, если они есть
             foreach ($char->children() as $item) {
                 $itemId = (string)$item->{'Наименование'};
@@ -231,9 +390,9 @@ class Model
     public function setOldGroups($groups)
     {
         // В качестве ключей для категорий из БД ставим ключ 1С
-        foreach($groups as $v) {
+        foreach ($groups as $v) {
             $v['is_exist'] = false;
-            if($v['id_1c'] == '') {
+            if ($v['id_1c'] == '') {
                 $v['id_1c'] = $v['ID'];
             }
             $oldGroups[$v['id_1c']] = $v;
@@ -253,7 +412,7 @@ class Model
         if ($this->status == 'full') {
             // Если грузим полный прайс, то удаляем группы, которые есть в БД, но нет в xml
             $delete = array();
-            foreach($this->oldGroups as $v) {
+            foreach ($this->oldGroups as $v) {
                 if (!$v['is_exist'] AND $v['is_active'] == 1) {
                     $delete[] = $v;
                 }
@@ -279,7 +438,7 @@ class Model
         }
 
         $update = $add = array();
-        foreach($groups as $v) {
+        foreach ($groups as $v) {
             $id_1c = $v['Ид'];
             $self = $v;
             // Прописываем кол-во товара в тех группах, в которых он есть
@@ -302,7 +461,8 @@ class Model
                 }
                 if ($this->oldGroups[$id_1c]['is_active'] == 0
                     OR $this->oldGroups[$id_1c]['cap'] != $v['Наименование']
-                    OR $this->oldGroups[$id_1c]['lvl'] != $structureField['lvl']) {
+                    OR $this->oldGroups[$id_1c]['lvl'] != $structureField['lvl']
+                ) {
                     $were = 'update';
                     //$update[] = $self;
                 }
@@ -340,7 +500,7 @@ class Model
 
         return array(
             'update' => $update,
-            'add'    => $add
+            'add' => $add
         );
     }
 
@@ -361,14 +521,14 @@ class Model
             $parent['cid'] = '';
         }
 
-        $config = Ideal\Core\Config::getInstance();
-        $part = $config->getModuleByName('Part');
-        $cid = new Ideal\Field\Cid\Model($part['params']['levels'], $part['params']['digits']);
+        $config = Config::getInstance();
+        $part = $config->getStructureByName('Ideal_Part');
+        $cid = new Cid\Model($part['params']['levels'], $part['params']['digits']);
 
         // Ищем максимальный cid
         $maxCid = $parent['cid'];
         $lvl = $parent['lvl'] + 1;
-        foreach($this->oldGroups as $v) {
+        foreach ($this->oldGroups as $v) {
             if ($v['lvl'] != $lvl) continue;
             $vCidSegment = $cid->getCidByLevel($v['cid'], $lvl - 1, false); //
             $parentCidSegment = $cid->getCidByLevel($parent['cid'], $lvl - 1, false); //
@@ -389,9 +549,9 @@ class Model
     public function getGoods($fields, $goods)
     {
         // В качестве ключей для категорий из БД ставим ключ 1С
-        foreach($goods as $v) {
+        foreach ($goods as $v) {
             $v['is_exist'] = false;
-            if($v['id_1c'] == '') {
+            if ($v['id_1c'] == '') {
                 $v['id_1c'] = $v['ID'];
             }
             $oldGoods[$v['id_1c']] = $v;
@@ -467,7 +627,7 @@ class Model
 
         if ($this->status == 'full') {
             // Если грузим полный прайс, то удаляем товары, которые есть в БД, но нет в xml
-            foreach($oldGoods as $k => $v) {
+            foreach ($oldGoods as $k => $v) {
                 if ($v['is_exist'] == false) {
                     $goods['delete'][] = $v;
                 }
@@ -485,7 +645,7 @@ class Model
         $offersArr = array();
         foreach ($offers->{'Предложение'} as $child) {
             $id = (string)$child->{'Ид'};
-            foreach($child->{'Цены'}->{'Цена'} as $price) {
+            foreach ($child->{'Цены'}->{'Цена'} as $price) {
                 if ((string)$price->{'ИдТипаЦены'} != $idTypeOfPrice) continue;
                 $offersArr[$id] = array(
                     'Количество' => (string)$child->{'Количество'},

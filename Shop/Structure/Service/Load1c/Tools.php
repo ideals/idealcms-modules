@@ -1,15 +1,23 @@
 <?php
 namespace Shop\Structure\Service\Load1c;
 
+use Ideal;
+use Ideal\Core\Db;
+use Ideal\Field\Url;
+use Shop\Structure\Service\Load1c;
+
 class Tools
 {
     private $test;
-    public function __construct(){
+
+    public function __construct()
+    {
         $this->test = "load";
     }
+
     function showProperties($importFile, $offersFile, $priceId)
     {
-        $base = new \Shop\Structure\Service\Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
+        $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
 
         // Отображение свойств товара, заданных в каталоге
         print '<pre>';
@@ -20,18 +28,53 @@ class Tools
 
     function showCategories($importFile, $offersFile, $priceId)
     {
-        $base = new \Shop\Structure\Service\Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
+        $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
 
         // Отображение структуры категорий товара, с указанием сколько товаров в каждой категории
+        print '<pre>';
         $base->checkGoodsInGroups();
+        print '</pre>';
+    }
+
+    /**
+     * Отображение списка на редактирование сопостовление категорий
+     * @param $importFile
+     * @param $offersFile
+     * @param $priceId
+     */
+    public function showMappingCategories($importFile, $offersFile, $priceId)
+    {
+        $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
+
+        print '<form name="test" method="POST" action="" ><pre>';
+        print $base->createTableMapping(null);
+        print '</pre><input type="hidden" name="mode" value="5"/>';
+        print '<input type="hidden" name="import" value="' . $importFile . '"/>';
+        print '<input type="hidden" name="offers" value="' . $offersFile . '"/>';
+        print '<input type="submit" class="btn btn-primary btn-large" name="load" value="save"/></form>';
+    }
+
+    /**
+     * Сохранение изменений в сопостовление категорий
+     * @param $importFile
+     * @param $offersFile
+     * @param $priceId
+     * @param $data Данные на сохранение
+     */
+    public function showSaveMapping($importFile, $offersFile, $priceId, $data)
+    {
+        $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
+        print '<pre>';
+        print_r($base->createArrayMapping($data));
+        print '</pre>';
     }
 
 
     function loadBase($importFile, $offersFile, $priceId)
     {
-        $db = \Ideal\Core\Db::getInstance();
+        $db = Db::getInstance();
 
-        $base = new \Shop\Structure\Service\Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
+        $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
 
         $fields = array(
             'Ид' => 'id_1c',
@@ -68,7 +111,7 @@ class Tools
         // УСТАНОВКА КАТЕГОРИЙ ТОВАРА ИЗ БД
 
         // Считываем категории из нашей БД
-        $table = 'i_structure_category';
+        $table = 'i_shop_structure_category';
         $groups = $db->queryArray('SELECT ID, cap, cid, lvl, id_1c, is_active FROM ' . $table . ' WHERE structure_path="1-2"');
 
         // Устанавливаем категории из БД
@@ -80,7 +123,7 @@ class Tools
         // ОБРАБОТКА ТОВАРА
 
         // Считываем товар из нашей БД
-        $table = 'i_structure_good';
+        $table = 'i_shop_structure_good';
         $goods = $db->queryArray('SELECT ID, name, id_1c, is_active FROM ' . $table . ' WHERE structure_path="4"');
 
         $changedGoods = $base->getGoods($fields, $goods);
@@ -100,11 +143,11 @@ class Tools
         $changedGroups = $base->getLoadGroups();
 
         echo '<h2>Категории</h2>';
-        echo 'Добавлено: ' . count($changedGroups['add']) . '<br />';
+        //echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
         echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
         echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
 
-        $table = 'i_structure_category';
+        $table = 'i_shop_structure_category';
         $txt = $this->updateCategories($db, $table, $txt, $changedGroups);
         unset($changedGroups);
 
@@ -116,7 +159,7 @@ class Tools
     }
 
 
-    function updateCategories(\Ideal\Core\Db $db, $table, $txt, $changedGroups)
+    function updateCategories(Db $db, $table, $txt, $changedGroups)
     {
         foreach ($changedGroups['update'] as $v) {
             if ($v['Наименование'] != $v['cap']) {
@@ -141,23 +184,24 @@ class Tools
             'date_create' => time(),
             'date_mod' => time(),
             'structure_path' => '1-2',
-            'structure' => 'Category',
-            'template' => 'Page',
+            'structure' => 'Shop_Category',
+            'template' => 'Ideal_Page',
             'is_active' => 1
         );
 
+        /* TODO отключил, пока не требуется
         foreach ($changedGroups['add'] as $v) {
             $v['id_1c'] = $v['Ид'];
             unset($v['Ид']);
             $v['cap'] = $v['Наименование'];
             unset($v['Наименование']);
 
-            $v['url'] = \Ideal\Field\Url\Model::translitUrl($v['cap']);
+            $v['url'] = Url\Model::translitUrl($v['cap']);
 
             $v = array_merge($v, $add);
 
             $db->insert($table, $v);
-        }
+        }*/
 
         foreach ($changedGroups['delete'] as $v) {
             $par = array('is_active' => 0);
@@ -170,7 +214,7 @@ class Tools
     }
 
 
-    function updateGoods(\Ideal\Core\Db $db, $table, $txt, &$changedGoods)
+    function updateGoods(Db $db, $table, $txt, &$changedGoods)
     {
         foreach ($changedGoods['update'] as $v) {
             $v['is_active'] = 1;
@@ -190,7 +234,7 @@ class Tools
         );
 
         foreach ($changedGoods['add'] as $v) {
-            $v['url'] = \Ideal\Field\Url\Model::translitUrl($v['name']);
+            $v['url'] = Url\Model::translitUrl($v['name']);
             $v = array_merge($v, $add);
             $db->insert($table, $v);
         }
@@ -211,13 +255,19 @@ class Tools
     }
 
 
-    function updateGoodsToGroups(\Ideal\Core\Db $db, $goodsToGroups, $status)
+    function updateGoodsToGroups(Db $db, $goodsToGroups, $status)
     {
         $table = 'i_good_category';
         $fields = array(
-            'category_id' => array('sql' => 'char(37)'),
+            'category_id' => array('sql' => 'int(11)'),
             'good_id' => array('sql' => 'char(37)')
         );
+
+        $mapping = array();
+        $query = $db->query("SELECT * FROM i_1c_category"); //Загрузка уже созданных сопоставлений
+        while ($row = mysql_fetch_array($query, MYSQL_ASSOC)) {
+            $mapping[$row['1c_id']] = $row['category_id'];
+        }
 
         if ($status == 'full') {
             $_sql = "DROP TABLE IF EXISTS {$table}";
@@ -226,8 +276,9 @@ class Tools
             print 'Count goods to groups: ' . count($goodsToGroups) . '<br />';
             foreach ($goodsToGroups as $groupId => $goodIds) {
                 foreach ($goodIds as $goodId) {
+                    if (!$mapping[$groupId] OR $mapping[$groupId] < 0) continue;
                     $row = array(
-                        'category_id' => $groupId,
+                        'category_id' => $mapping[$groupId],
                         'good_id' => $goodId
                     );
                     $db->insert($table, $row);
@@ -247,8 +298,9 @@ class Tools
                 $_sql = "DELETE FROM {$table} WHERE good_id = '{$goodId}'";
                 $db->query($_sql);
                 foreach ($groupsId as $groupId) {
+                    if (!$mapping[$groupId] OR $mapping[$groupId] < 0) continue;
                     $row = array(
-                        'category_id' => $groupId,
+                        'category_id' => $mapping[$groupId],
                         'good_id' => $goodId
                     );
                     $db->insert($table, $row);

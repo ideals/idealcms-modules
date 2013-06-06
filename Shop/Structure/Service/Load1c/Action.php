@@ -19,9 +19,19 @@ if (isset($_POST['load'])) {
     switch (intval($_POST['mode'])) {
         case '2':
             $base->showCategories($import, $offers, $priceId);
+            $mode2 = 'checked';
             break;
         case '3':
             $base->showProperties($import, $offers, $priceId);
+            $mode3 = 'checked';
+            break;
+        case '4':
+            $base->showMappingCategories($import, $offers, $priceId);
+            $mode4 = 'checked';
+            break;
+        case '5':
+            $base->showSaveMapping('/tmp/1c/import.xml', '/tmp/1c/offers.xml', $priceId, $_POST['form']);
+            $mode4 = 'checked';
             break;
         default:
             $base->loadBase($import, $offers, $priceId);
@@ -35,66 +45,17 @@ $ini = parse_ini_file('ini.ini', true);
 
     <form method="POST" action="" class="form-horizontal" style="width: 60%; margin:30px auto;">
         <div class="control-group">
-            <label class="control-label" for="tmp_dir">Каталог для сохранения временных данных:</label>
-
-            <div class="controls">
-                <input type="text" name="tmp_dir" value="<?php echo $ini['tmp_dir'] ?>"/>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="dirImage">Каталог для сохранения изображений:</label>
-
-            <div class="controls">
-                <input type="text" name="dirImage" value="<?php echo $ini['dirImage']; ?>"/>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="color">Цвет фона картинок:</label>
-
-            <div class="controls">
-                <input type="text" name="color" value="<?php echo $ini['color']; ?>"/>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="smallimg">Размер маленькой картинки:</label>
-
-            <div class="controls">
-                <input type="text" name="smallimg" value="<?php echo $ini['smallimg']; ?>"/>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="bigimg">Размер большой картинки:</label>
-
-            <div class="controls">
-                <input type="text" name="bigimg" value="<?php echo $ini['bigimg']; ?>"/>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="water">Надпись на картинке:</label>
-
-            <div class="controls">
-                <input type="text" name="water" value="<?php echo $ini['water']; ?>"/>
-            </div>
-        </div>
-        <div class="control-group">
             <label class="control-label" for="import">Каталог:</label>
 
             <div class="controls">
-                <input type="text" name="import" value="<?php echo $ini['import']; ?>"/>
+                <input type="text" name="import" value="<?php echo $import; ?>"/>
             </div>
         </div>
         <div class="control-group">
             <label class="control-label" for="offers">Цены:</label>
 
             <div class="controls">
-                <input type="text" name="offers" value="<?php echo $ini['offers']; ?>"/>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="manual">Ручная загрузка:</label>
-
-            <div class="controls">
-                <input type="checkbox" name="manual" value="1" <?php echo ($ini['manual'] == 1) ? 'checked' : ''; ?>/>
+                <input type="text" name="offers" value="<?php echo $offers; ?>"/>
             </div>
         </div>
         <div class="control-group">
@@ -102,22 +63,25 @@ $ini = parse_ini_file('ini.ini', true);
 
             <div class="controls">
                 <label class="radio">
-                    <input type="radio" name="mode" value="1" <?php echo ($ini['mode'] == 1) ? 'checked' : ''; ?>/>
+                    <input type="radio" name="mode" value="1" <?php echo $mode1; ?>/>
                     Загрузка каталога
                 </label>
                 <label class="radio">
-                    <input type="radio" name="mode" value="2" <?php echo ($ini['mode'] == 2) ? 'checked' : ''; ?>/>
+                    <input type="radio" name="mode" value="2" <?php echo $mode2; ?>/>
                     Отображение структуры категорий товара
                 </label>
                 <label class="radio">
-                    <input type="radio" name="mode" value="3" <?php echo ($ini['mode'] == 3) ? 'checked' : ''; ?>/>
+                    <input type="radio" name="mode" value="3" <?php echo $mode3; ?>/>
                     Отображение свойств товара
+                </label>
+                <label class="radio">
+                    <input type="radio" name="mode" value="4" <?php echo $mode4; ?>/>
+                    Сопостовление категорий
                 </label>
             </div>
         </div>
         <div style="text-align:center;">
             <input type="submit" class="btn btn-primary btn-large" name="load" value="Пуск"/>
-            <input type="submit" class="btn btn-info btn-large" name="save" value="Сохранить"/>
         </div>
     </form>
 
