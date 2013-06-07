@@ -218,6 +218,16 @@ class Tools
     {
         foreach ($changedGoods['update'] as $v) {
             $v['is_active'] = 1;
+            if ($v['img'] != null) {
+                $img = $v['img'];
+                $i = new Image($img, 50, 50, 'small');
+                $v['img'] = $i->getName();
+                $i2 = new Image($img, 500, 500, 'big',false);
+                $v['img2'] = $i2->getName();
+            } else {
+                $v['img'] = null;
+                $v['img2'] = null;
+            }
             if ($v['ID'] == 0) {
                 echo 'Невозможно обновить, т.к. нулевой ID.<br />';
                 print_r($v);
