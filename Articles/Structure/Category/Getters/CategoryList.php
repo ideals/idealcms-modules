@@ -34,13 +34,13 @@ class CategoryList
     public function getVariants()
     {
         $db = Db::getInstance();
-        $paperId = $this->obj->object['ID'];
-        $_sql = "SELECT articles FROM i_articles_paper WHERE paper='{$paperId}'";
+        $articleId = $this->obj->object['ID'];
+        $_sql = "SELECT category_id FROM i_articles_category_article WHERE article_id='{$articleId}'";
         $arr = $db->queryArray($_sql);
 
         $list = array();
         foreach ($arr as $v) {
-            $list[] = $v['articles'];
+            $list[] = $v['category_id'];
         }
 
         return $list;
@@ -49,8 +49,8 @@ class CategoryList
 
     public function getSqlAdd($newValue)
     {
-        $_sql = "DELETE FROM i_articles_paper WHERE paper='{{ objectId }}';"
-              . "INSERT INTO i_articles_paper SET paper='{{ objectId }}', articles='{$newValue}';";
+        $_sql = "DELETE FROM i_articles_category_article WHERE article_id='{{ objectId }}';"
+              . "INSERT INTO i_articles_category_article SET article_id='{{ objectId }}', category_id='{$newValue}';";
         return $_sql;
     }
 

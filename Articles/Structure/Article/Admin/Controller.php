@@ -1,5 +1,5 @@
 <?php
-namespace Articles\Structure\Paper\Admin;
+namespace Articles\Structure\Article\Admin;
 
 class Controller extends \Ideal\Structure\Roster\Admin\ControllerAbstract
 {
