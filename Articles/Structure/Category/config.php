@@ -3,7 +3,7 @@
 // Страницы сайта
 return array(
     'params' => array(
-        'in_structures' => array('Ideal_Part'),
+        'in_structures' => array('Ideal_DataList'),
         'structures'    => array('Articles_Category'), // типы, которые можно создавать в этом разделе
         'elements_cms'  => 10, // количество элементов в списке в CMS
         'elements_site' => 15, // количество элементов в списке на сайте
