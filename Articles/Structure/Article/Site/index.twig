@@ -1,0 +1,45 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <h1>{{ header }}</h1>
+
+    <div class="art">
+        <div class="clear"></div>
+        <div class="pagination">
+            <ul>
+            {% for part in parts %}
+                <li class="{{ part.class }}"><a href="{{ part.url }}">{{ part.cap }}</a></li>
+            {% endfor %}
+            </ul>
+        </div>
+        <div class="clear"></div>
+        <div class="articles">
+            {% if articles|length > 0 %}
+                {% for article in articles %}
+                    <div class="name">
+                        <a href="{{ article.url }}">{{ article.name }}</a>
+                    </div>
+                    <div class="annot">{{ article.annot }}</div>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+        {%if pages|length > 0 %}
+            <div class="pagination pagination-left">
+                <ul>
+                    {% for page in pages %}
+                        {% if page.current == 1 %}
+                            <li class="active"><a>{{ page.num }}</a></li>
+                        {% else %}
+                            <li><a href="{{ page.url }}">{{ page.num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {{ template.content|raw }}
+
+    </div>
+
+{% endblock %}
