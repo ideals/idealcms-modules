@@ -12,14 +12,14 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     public function getCategories($urlAll)
     {
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM {$this->_table} WHERE structure_path='{$this->structurePath}' AND is_active=1";
+        // structure_path='{$this->structurePath}' AND
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1";
         $list = $db->queryArray($_sql);
-        $url = new \Ideal\Field\Url\Model();
 
         $config = Config::getInstance();
         $first = array(
-            'cap'   => 'Все статьи',
-            'url'   => $urlAll . $config->urlSuffix,
+            'name'  => 'Все статьи',
+            'link'  => $urlAll . $config->urlSuffix,
             'class' => ''
         );
 
@@ -30,15 +30,20 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             $first['class'] = 'active';
         }
 
-        $url->setParentUrl($path);
         foreach ($list as $k => $v) {
-            $list[$k]['url'] = $urlAll . $config->urlSuffix . '?tag=' . $v['url'];
+            $list[$k]['link'] = $urlAll . $config->urlSuffix . '?tag=' . $v['url'];
             $list[$k]['class'] = ($v['url'] == $tag) ? 'active' : '';
         }
 
         array_unshift($list, $first);
 
         return $list;
+    }
+
+
+    public function getStructureElements()
+    {
+        return array();
     }
 
 }

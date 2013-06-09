@@ -8,7 +8,7 @@
         <div class="pagination">
             <ul>
             {% for part in parts %}
-                <li class="{{ part.class }}"><a href="{{ part.url }}">{{ part.cap }}</a></li>
+                <li class="{{ part.class }}"><a href="{{ part.link }}">{{ part.name }}</a></li>
             {% endfor %}
             </ul>
         </div>
@@ -17,7 +17,7 @@
             {% if articles|length > 0 %}
                 {% for article in articles %}
                     <div class="name">
-                        <a href="{{ article.url }}">{{ article.name }}</a>
+                        <a href="{{ article.link }}">{{ article.name }}</a>
                     </div>
                     <div class="annot">{{ article.annot }}</div>
                 {% endfor %}

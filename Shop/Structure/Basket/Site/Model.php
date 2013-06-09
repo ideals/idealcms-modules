@@ -40,4 +40,11 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         return $basket;
     }
+
+
+    public function getStructureElements()
+    {
+        return array();
+    }
+
 }

@@ -67,7 +67,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         // Проставление правильных URL
         $parentUrl = $this->getParentUrl();
         foreach ($list as $k => $v) {
-            $list[$k]['url'] = $parentUrl . '/' . $v['url'] . $config->urlSuffix;
+            $list[$k]['link'] = $parentUrl . '/' . $v['url'] . $config->urlSuffix;
         }
 
         return $list;
@@ -88,6 +88,12 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         $count = $db->queryArray($_sql);
         return $count[0]['COUNT(ID)'];
+    }
+
+
+    public function getStructureElements()
+    {
+        return $this->getArticles(0, 9999);
     }
 
 }
