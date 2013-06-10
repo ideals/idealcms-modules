@@ -3,12 +3,13 @@
 // Новости
 return array(
     'params' => array (
-        'in_structures'    => array(), // в каких структурах можно создавать эту структуру
+        'in_structures' => array(), // в каких структурах можно создавать эту структуру
         'elements_cms'  => 20,            // количество элементов в списке в CMS
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
         'field_sort'    => 'date_create ASC', // поле, по которому проводится сортировка в CMS
-        'field_list'    => array('name', 'is_active', 'date_create')
+        'field_list'    => array('name', 'is_active', 'date_create'),
+        'is_query_param'=> true    // категория определяется через QUERY_STRING
      ),
     'fields'   => array (
         'ID' => array(

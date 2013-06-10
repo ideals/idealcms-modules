@@ -7,10 +7,24 @@ use Ideal\Core\Request;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
+    protected $categoryModel;
 
     public function detectPageByUrl($url)
     {
-        $articleUrl = $url[0];
+        $articleUrl = array_shift($url);
+
+        // TODO для определения названия тэга нужно создавать categoryModel
+
+        if (!$this->params['is_query_param'] AND ($articleUrl == 'tag')) {
+            $tag = array_shift($url);
+            $request = new Request();
+            $request->$articleUrl = $tag;
+        }
+
+        if (count($url) > 0) {
+            // У статьи не может быть URL с несколькими уровнями вложенности
+            return '404';
+        }
 
         $db = Db::getInstance();
 
@@ -34,12 +48,26 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     }
 
 
-    public function getTitle()
+    public function setPath($path)
     {
-        if (isset($this->object['title']) AND $this->object['title'] != '') {
-            return $this->object['title'];
-        } else {
-            return $this->object['name'];
+        parent::setPath($path);
+        $this->setCategory();
+    }
+
+
+    public function getCategories()
+    {
+        $parentUrl = $this->getParentUrl();
+        return $this->categoryModel->getCategories($parentUrl);
+    }
+
+
+    public function setCategory($category = '')
+    {
+        if (!isset($this->categoryModel)) {
+            $categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
+            $categoryModel->setPath($this->path);
+            $this->categoryModel = $categoryModel;
         }
     }
 
@@ -51,16 +79,17 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         $start = ($page < 2) ? 0 : ($page - 1) * $onPage;
 
-        if ($this->object['structure_path'] === "1") {
+        $currentCategory = $this->categoryModel->getCurrent();
+        if (isset($currentCategory['ID'])) {
+            // Вывод статей только определённой категории
+            $_sql = "SELECT * FROM i_articles_structure_article WHERE is_active=1
+                            AND ID IN (SELECT article_id FROM i_articles_category_article WHERE category_id={$currentCategory['ID']})
+                            ORDER BY date_create LIMIT {$start}, {$onPage}";
+            $this->path[] = $currentCategory;
+            $this->object = $currentCategory;
+        } else {
             // Запрос для отображения всех статей
             $_sql = "SELECT * FROM {$this->_table} WHERE is_active = 1 ORDER BY date_create LIMIT {$start}, {$onPage}";
-
-        } else {
-            // Вывод статей только определённой категории
-            $categoryId = $this->object['ID'];
-            $_sql = "SELECT * FROM i_articles_structure_article WHERE is_active=1
-                            AND ID IN (SELECT article_id FROM i_articles_category_article WHERE category_id={$categoryId})
-                            ORDER BY date_create LIMIT {$start}, {$onPage}";
         }
         $list = $db->queryArray($_sql);
 
@@ -77,14 +106,14 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     public function getArticlesCount()
     {
         $db = Db::getInstance();
-        if ($this->object['structure_path'] === "1") {
+        $currentCategory = $this->categoryModel->getCurrent();
+        if (isset($currentCategory['ID'])) {
+            // Считаем статьи только одной категории
+            $_sql = "SELECT COUNT(ID) FROM i_articles_structure_article WHERE is_active=1
+                            AND ID IN (SELECT article_id FROM i_articles_category_article WHERE category_id={$currentCategory['ID']})";
+        } else {
             // Считаем все статьи
             $_sql = "SELECT COUNT(ID) FROM i_articles_structure_article WHERE is_active=1";
-        } else {
-            // Считаем статьи только одной категории
-            $categoryId = $this->object['ID'];
-            $_sql = "SELECT COUNT(ID) FROM i_articles_structure_article WHERE is_active=1
-                            AND ID IN (SELECT article_id FROM i_articles_category_article WHERE category_id={$categoryId})";
         }
         $count = $db->queryArray($_sql);
         return $count[0]['COUNT(ID)'];
@@ -94,6 +123,16 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     public function getStructureElements()
     {
         return $this->getArticles(0, 9999);
+    }
+
+
+    public function getTemplatesVars()
+    {
+        if ($this->categoryModel->getCurrent()) {
+            return $this->categoryModel->getTemplatesVars();
+        } else {
+            return parent::getTemplatesVars();
+        }
     }
 
 }

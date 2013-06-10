@@ -4,7 +4,7 @@ namespace Articles\Structure\Article\Site;
 use Ideal\Core\Request;
 use Ideal\Core\Pagination;
 
-class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
+class Controller extends \Ideal\Core\Site\Controller
 {
     /**
      * @var $model Model
@@ -29,12 +29,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 
         $this->view->header = $this->model->getHeader($header);
 
-        $this->view->url = $this->model->object['url'];
-
-        $modelCategory = new \Articles\Structure\Category\Site\Model($this->model->getStructurePath());
-        $end = end($this->path);
-        $parentUrl = $this->model->getParentUrl();
-        $this->view->parts = $modelCategory->getCategories($parentUrl);
+        $this->view->parts = $this->model->getCategories();
 
         $request = new Request();
         $page = intval($request->page);
