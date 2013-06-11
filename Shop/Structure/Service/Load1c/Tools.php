@@ -15,6 +15,7 @@ class Tools
         $this->test = "load";
     }
 
+
     function showProperties($importFile, $offersFile, $priceId)
     {
         $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
@@ -33,39 +34,6 @@ class Tools
         // Отображение структуры категорий товара, с указанием сколько товаров в каждой категории
         print '<pre>';
         $base->checkGoodsInGroups();
-        print '</pre>';
-    }
-
-    /**
-     * Отображение списка на редактирование сопостовление категорий
-     * @param $importFile
-     * @param $offersFile
-     * @param $priceId
-     */
-    public function showMappingCategories($importFile, $offersFile, $priceId)
-    {
-        $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
-
-        print '<form name="test" method="POST" action="" ><pre>';
-        print $base->createTableMapping(null);
-        print '</pre><input type="hidden" name="mode" value="5"/>';
-        print '<input type="hidden" name="import" value="' . $importFile . '"/>';
-        print '<input type="hidden" name="offers" value="' . $offersFile . '"/>';
-        print '<input type="submit" class="btn btn-primary btn-large" name="load" value="save"/></form>';
-    }
-
-    /**
-     * Сохранение изменений в сопостовление категорий
-     * @param $importFile
-     * @param $offersFile
-     * @param $priceId
-     * @param $data Данные на сохранение
-     */
-    public function showSaveMapping($importFile, $offersFile, $priceId, $data)
-    {
-        $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
-        print '<pre>';
-        print_r($base->createArrayMapping($data));
         print '</pre>';
     }
 
@@ -143,7 +111,7 @@ class Tools
         $changedGroups = $base->getLoadGroups();
 
         echo '<h2>Категории</h2>';
-        //echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
+        echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
         echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
         echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
 
@@ -179,7 +147,6 @@ class Tools
             $db->update($table, $v['ID'], $update);
         }
 
-
         $add = array(
             'date_create' => time(),
             'date_mod' => time(),
@@ -189,7 +156,6 @@ class Tools
             'is_active' => 1
         );
 
-        /* TODO отключил, пока не требуется
         foreach ($changedGroups['add'] as $v) {
             $v['id_1c'] = $v['Ид'];
             unset($v['Ид']);
@@ -201,7 +167,7 @@ class Tools
             $v = array_merge($v, $add);
 
             $db->insert($table, $v);
-        }*/
+        }
 
         foreach ($changedGroups['delete'] as $v) {
             $par = array('is_active' => 0);
@@ -321,4 +287,5 @@ class Tools
         }
 
     }
+
 }
