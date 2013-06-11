@@ -1,7 +1,7 @@
 <?php
 
 return array(
-    'cap'    => 'Загрузка из 1C',
+    'name'   => 'Загрузка из 1C',
     'pos'    => 30,
     'info'   => '',
     'structure' => 'Ideal_Service',
