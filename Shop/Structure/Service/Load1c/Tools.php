@@ -80,7 +80,7 @@ class Tools
 
         // Считываем категории из нашей БД
         $table = 'i_shop_structure_category';
-        $groups = $db->queryArray('SELECT ID, cap, cid, lvl, id_1c, is_active FROM ' . $table . ' WHERE structure_path="1-2"');
+        $groups = $db->queryArray('SELECT ID, cap, cid, lvl, id_1c, is_active, title FROM ' . $table . ' WHERE structure_path="1-96"');
 
         // Устанавливаем категории из БД
         $base->setOldGroups($groups);
@@ -102,18 +102,23 @@ class Tools
         echo 'Обновлено: ' . count($changedGoods['update']) . '<br />';
         echo 'Удалено: ' . count($changedGoods['delete']) . '<br />';
 
-        $txt = $this->updateGoods($db, $table, $txt, $changedGoods);
+        //$txt = $this->updateGoods($db, $table, $txt, $changedGoods);
         unset($changedGoods);
 
         // ОБРАБОТКА КАТЕГОРИЙ ТОВАРА
 
         // Получаем изменённые категории
         $changedGroups = $base->getLoadGroups();
+        //print '<pre>'; print_r($changedGroups);
 
         echo '<h2>Категории</h2>';
         echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
         echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
         echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
+
+        /*print '<pre>';
+        print_r($changedGroups);
+        print '</pre>';*/
 
         $table = 'i_shop_structure_category';
         $txt = $this->updateCategories($db, $table, $txt, $changedGroups);
@@ -150,7 +155,7 @@ class Tools
         $add = array(
             'date_create' => time(),
             'date_mod' => time(),
-            'structure_path' => '1-2',
+            'structure_path' => '1-96',
             'structure' => 'Shop_Category',
             'template' => 'Ideal_Page',
             'is_active' => 1
@@ -188,7 +193,7 @@ class Tools
                 $img = $v['img'];
                 $i = new Image($img, 50, 50, 'small');
                 $v['img'] = $i->getName();
-                $i2 = new Image($img, 500, 500, 'big',false);
+                $i2 = new Image($img, 500, 500, 'big', false);
                 $v['img2'] = $i2->getName();
             } else {
                 $v['img'] = null;
@@ -236,14 +241,8 @@ class Tools
         $table = 'i_good_category';
         $fields = array(
             'category_id' => array('sql' => 'int(11)'),
-            'good_id' => array('sql' => 'char(37)')
+            'good_id' => array('sql' => 'int(11)')
         );
-
-        $mapping = array();
-        $query = $db->query("SELECT * FROM i_1c_category"); //Загрузка уже созданных сопоставлений
-        while ($row = mysql_fetch_array($query, MYSQL_ASSOC)) {
-            $mapping[$row['1c_id']] = $row['category_id'];
-        }
 
         if ($status == 'full') {
             $_sql = "DROP TABLE IF EXISTS {$table}";
@@ -252,31 +251,37 @@ class Tools
             print 'Count goods to groups: ' . count($goodsToGroups) . '<br />';
             foreach ($goodsToGroups as $groupId => $goodIds) {
                 foreach ($goodIds as $goodId) {
-                    if (!$mapping[$groupId] OR $mapping[$groupId] < 0) continue;
+                    if ($groupId == '') continue;
+                    $_sql = "SELECT ID FROM i_shop_structure_category AS t1 WHERE t1.id_1c='{$groupId}' LIMIT 1";
+                    $id = $db->queryArray($_sql);
+                    $id = $id[0]['ID'];
+                    $_sql = "SELECT ID FROM i_shop_structure_good AS t1 WHERE t1.id_1c='{$goodId}' LIMIT 1";
+                    $id2 = $db->queryArray($_sql);
+                    $id2 = $id2[0]['ID'];
                     $row = array(
-                        'category_id' => $mapping[$groupId],
-                        'good_id' => $goodId
+                        'category_id' => $id,
+                        'good_id' => $id2
                     );
+                    if ($row['category_id'] == '') continue;
                     $db->insert($table, $row);
                 }
             }
         } else {
             $goods = array();
-            // Перестраиваем массив привязок с группа->товар на товар->группы
+            // РџРµСЂРµСЃС‚СЂР°РёРІР°РµРј РјР°СЃСЃРёРІ РїСЂРёРІСЏР·РѕРє СЃ РіСЂСѓРїРїР°->С‚РѕРІР°СЂ РЅР° С‚РѕРІР°СЂ->РіСЂСѓРїРїС‹
             foreach ($goodsToGroups as $groupId => $goodIds) {
                 foreach ($goodIds as $goodId) {
                     $goods[$goodId] = $groupId;
                 }
             }
 
-            // Проходимся по массиву товаров: удаляем все привязки товара из БД, добавляем из XML
+            // РџСЂРѕС…РѕРґРёРјСЃСЏ РїРѕ РјР°СЃСЃРёРІСѓ С‚РѕРІР°СЂРѕРІ: СѓРґР°Р»СЏРµРј РІСЃРµ РїСЂРёРІСЏР·РєРё С‚РѕРІР°СЂР° РёР· Р‘Р”, РґРѕР±Р°РІР»СЏРµРј РёР· XML
             foreach ($goods as $goodId => $groupsId) {
                 $_sql = "DELETE FROM {$table} WHERE good_id = '{$goodId}'";
                 $db->query($_sql);
                 foreach ($groupsId as $groupId) {
-                    if (!$mapping[$groupId] OR $mapping[$groupId] < 0) continue;
                     $row = array(
-                        'category_id' => $mapping[$groupId],
+                        'category_id' => $groupId,
                         'good_id' => $goodId
                     );
                     $db->insert($table, $row);
@@ -287,5 +292,4 @@ class Tools
         }
 
     }
-
 }

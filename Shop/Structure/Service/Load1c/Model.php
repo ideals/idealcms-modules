@@ -33,7 +33,11 @@ class Model
 
         // Считываем категории товара в массив $this->groups
         $groupsXML = $this->xml->xpath('Классификатор/Группы');
+        $modGroups = new ModGroups($groupsXML[0]);
+        //print '<pre>'; print_r($groupsXML[0]);
+
         $this->groups = $this->loadGroups($groupsXML[0]);
+        print '<pre>'; print_r($this->groups); exit;
         unset($groupsXML);
 
         // Считываем свойства товара в массив $this->props
@@ -69,8 +73,6 @@ class Model
     {
         if ($groupsXML->count() == 0) return array();
 
-        $modGroups = new ModGroups($groupsXML);
-
         $groups = array();
         foreach ($groupsXML->{'Группа'} as $child) {
             $id = (string)$child->{'Ид'};
@@ -104,9 +106,9 @@ class Model
         foreach ($tree as $key => $value) {
             print '<li>' . $value['Наименование'];
             // Для групп выводим кол-во привязанного товара (если есть)
-            if (isset($value['Ид']) AND isset($this->goodGroups[$value['Ид']])) {
-                print ' (' . $this->goodGroups[$value['Ид']] . ')';
-            }
+            //if (isset($value['Ид']) AND isset($this->goodGroups[$value['Ид']])) {
+            print ' (' . $this->goodGroups[$value['Ид']] . ')(' . $value['Ид'] . ')';
+            //}
             if (count($value['Группы']) > 0) {
                 $this->printStructure($value['Группы']);
             }
@@ -240,6 +242,8 @@ class Model
         // В качестве ключей для категорий из БД ставим ключ 1С
         foreach ($groups as $v) {
             $v['is_exist'] = false;
+            if ($v['title']) $v['is_exist'] = true;
+
             if ($v['id_1c'] == '') {
                 $v['id_1c'] = $v['ID'];
             }
