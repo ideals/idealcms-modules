@@ -68,6 +68,9 @@ class Model
     protected function loadGroups($groupsXML)
     {
         if ($groupsXML->count() == 0) return array();
+
+        $modGroups = new ModGroups($groupsXML);
+
         $groups = array();
         foreach ($groupsXML->{'Группа'} as $child) {
             $id = (string)$child->{'Ид'};
