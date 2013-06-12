@@ -19,7 +19,7 @@ class Basket extends \Ideal\Core\Widget
 
         // Считываем список новостей
         $table = $config->db['prefix'] . 'ideal_structure_news';
-        $_sql = 'SELECT ID, cap, annot, date_create, img, url
+        $_sql = 'SELECT ID, name, annot, date_create, img, url
                  FROM ' . $table . '
                  WHERE is_active=1
                  ORDER BY date_create DESC
@@ -28,7 +28,7 @@ class Basket extends \Ideal\Core\Widget
         $freshNews = array();
         $num = 0;
         foreach ($news as $v) {
-            $freshNews[$num]['cap'] = $v['cap'];
+            $freshNews[$num]['name'] = $v['name'];
             $freshNews[$num]['url'] = $v['url'];
             $freshNews[$num]['img'] = $v['img'];
             $freshNews[$num]['annot'] = $v['annot'];
