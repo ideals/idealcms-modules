@@ -35,6 +35,15 @@ class Controller extends \Ideal\Core\Site\Controller
         $page = intval($request->page);
         $onPage = $this->model->params['elements_site'];
 
+        if ($page > 1) {
+            // На страницах листалки описание категории отображать не надо
+            $template = $this->view->template;
+            $template['content'] = '';
+            $this->view->template = $template;
+            // Страницы листалки неиндексируются, но ссылки с них — индексируются
+            $this->model->metaTags['robots'] = 'follow, noindex';
+        }
+
         $this->view->articles = $this->model->getArticles($page, $onPage);
 
         // Отображение листалки

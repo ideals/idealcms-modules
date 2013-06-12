@@ -7,6 +7,9 @@ use Ideal\Core\Request;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
+    /**
+     * @var $categoryModel \Articles\Structure\Category\Site\Model
+     */
     protected $categoryModel;
 
     public function detectPageByUrl($url)
@@ -51,7 +54,13 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     public function setPath($path)
     {
         parent::setPath($path);
-        $this->setCategory();
+
+        if (!isset($this->categoryModel)) {
+            $categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
+            $categoryModel->setPath($this->path);
+            $this->categoryModel = $categoryModel;
+            $this->object = $categoryModel->getCurrent();
+        }
     }
 
 
@@ -59,16 +68,6 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     {
         $parentUrl = $this->getParentUrl();
         return $this->categoryModel->getCategories($parentUrl);
-    }
-
-
-    public function setCategory($category = '')
-    {
-        if (!isset($this->categoryModel)) {
-            $categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
-            $categoryModel->setPath($this->path);
-            $this->categoryModel = $categoryModel;
-        }
     }
 
 
