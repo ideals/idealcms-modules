@@ -7,9 +7,9 @@ return array(
         'structures'    => array('Articles_Category'), // типы, которые можно создавать в этом разделе
         'elements_cms'  => 10, // количество элементов в списке в CMS
         'elements_site' => 15, // количество элементов в списке на сайте
-        'field_name'    => 'cap', // поля для вывода информации по объекту
+        'field_name'    => 'name', // поля для вывода информации по объекту
         'field_sort'    => 'cid', // поле, по которому проводится сортировка в CMS
-        'field_list'    => array('cid!40', 'ID', 'cap', 'date_mod', 'url'),
+        'field_list'    => array('cid!40', 'ID', 'name', 'date_mod', 'url'),
         'levels'        => 6, // количество уровней вложенности
         'digits'        => 3 // //кол-во разрядов
     ),
@@ -57,7 +57,7 @@ return array(
             'class'     => '\\Ideal\\Structure\\Part\\Getters\\TemplateList',
             'templates' =>  array('Ideal_Page', 'Ideal_PhpFile'),
         ),
-        'cap' => array(
+        'name' => array(
             'label' => 'Название',
             'sql'   => 'varchar(255) not null',
             'type'  => 'Ideal_Text'

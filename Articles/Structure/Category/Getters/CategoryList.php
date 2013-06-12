@@ -24,7 +24,7 @@ class CategoryList
 
         $list = array();
         foreach ($arr as $item) {
-            $list[$item['ID']] = $item['cap'];
+            $list[$item['ID']] = $item['name'];
         }
 
         return $list;
