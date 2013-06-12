@@ -80,7 +80,7 @@ class Tools
 
         // Считываем категории из нашей БД
         $table = 'i_shop_structure_category';
-        $groups = $db->queryArray('SELECT ID, cap, cid, lvl, id_1c, is_active, title FROM ' . $table . ' WHERE structure_path="1-96"');
+        $groups = $db->queryArray('SELECT ID, name, cid, lvl, id_1c, is_active, title FROM ' . $table . ' WHERE structure_path="1-96"');
 
         // Устанавливаем категории из БД
         $base->setOldGroups($groups);
@@ -102,23 +102,18 @@ class Tools
         echo 'Обновлено: ' . count($changedGoods['update']) . '<br />';
         echo 'Удалено: ' . count($changedGoods['delete']) . '<br />';
 
-        //$txt = $this->updateGoods($db, $table, $txt, $changedGoods);
+        $txt = $this->updateGoods($db, $table, $txt, $changedGoods);
         unset($changedGoods);
 
         // ОБРАБОТКА КАТЕГОРИЙ ТОВАРА
 
         // Получаем изменённые категории
         $changedGroups = $base->getLoadGroups();
-        //print '<pre>'; print_r($changedGroups);
 
         echo '<h2>Категории</h2>';
         echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
         echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
         echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
-
-        /*print '<pre>';
-        print_r($changedGroups);
-        print '</pre>';*/
 
         $table = 'i_shop_structure_category';
         $txt = $this->updateCategories($db, $table, $txt, $changedGroups);
@@ -135,16 +130,16 @@ class Tools
     function updateCategories(Db $db, $table, $txt, $changedGroups)
     {
         foreach ($changedGroups['update'] as $v) {
-            if ($v['Наименование'] != $v['cap']) {
-                $txt .= 'Переименована категория &laquo;' . $v['cap'] . '&raquo; в &laquo;'
+            if ($v['Наименование'] != $v['name']) {
+                $txt .= 'Переименована категория &laquo;' . $v['name'] . '&raquo; в &laquo;'
                     . $v['Наименование'] . "\n";
             }
             if (isset($v['old_cid_lvl'])) {
-                $txt .= 'Категория &laquo;' . $v['cap'] . '&raquo; перемещена. Было '
+                $txt .= 'Категория &laquo;' . $v['name'] . '&raquo; перемещена. Было '
                     . $v['old_cid_lvl'] . ' стало cid=' . $v['cid'] . ', lvl=' . $v['lvl'] . "\n";
             }
             $update = array(
-                'cap' => $v['Наименование'],
+                'name' => $v['Наименование'],
                 'cid' => $v['cid'],
                 'lvl' => $v['lvl'],
                 'is_active' => 1
@@ -164,10 +159,10 @@ class Tools
         foreach ($changedGroups['add'] as $v) {
             $v['id_1c'] = $v['Ид'];
             unset($v['Ид']);
-            $v['cap'] = $v['Наименование'];
+            $v['name'] = $v['Наименование'];
             unset($v['Наименование']);
 
-            $v['url'] = Url\Model::translitUrl($v['cap']);
+            $v['url'] = Url\Model::translitUrl($v['name']);
 
             $v = array_merge($v, $add);
 
@@ -177,7 +172,7 @@ class Tools
         foreach ($changedGroups['delete'] as $v) {
             $par = array('is_active' => 0);
             $db->update($table, $v['ID'], $par);
-            $txt .= 'Удалена категория: ' . $v['cap'] . "\n";
+            $txt .= 'Удалена категория: ' . $v['name'] . "\n";
 
         }
 
@@ -191,9 +186,9 @@ class Tools
             $v['is_active'] = 1;
             if ($v['img'] != null) {
                 $img = $v['img'];
-                $i = new Image($img, 50, 50, 'small');
-                $v['img'] = $i->getName();
-                $i2 = new Image($img, 500, 500, 'big', false);
+                /*$i = new Image($img, 50, 50, 'small');
+                $v['img'] = $i->getName();*/
+                $i2 = new Image($img, 1000, 1000, 'big', false);
                 $v['img2'] = $i2->getName();
             } else {
                 $v['img'] = null;

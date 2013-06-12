@@ -34,10 +34,8 @@ class Model
         // Считываем категории товара в массив $this->groups
         $groupsXML = $this->xml->xpath('Классификатор/Группы');
         $modGroups = new ModGroups($groupsXML[0]);
-        //print '<pre>'; print_r($groupsXML[0]);
 
         $this->groups = $this->loadGroups($groupsXML[0]);
-        print '<pre>'; print_r($this->groups); exit;
         unset($groupsXML);
 
         // Считываем свойства товара в массив $this->props
@@ -312,7 +310,7 @@ class Model
                     $this->oldGroups[$id_1c] = $self;
                 }
                 if ($this->oldGroups[$id_1c]['is_active'] == 0
-                    OR $this->oldGroups[$id_1c]['cap'] != $v['Наименование']
+                    OR $this->oldGroups[$id_1c]['name'] != $v['Наименование']
                     OR $this->oldGroups[$id_1c]['lvl'] != $structureField['lvl']
                 ) {
                     $were = 'update';

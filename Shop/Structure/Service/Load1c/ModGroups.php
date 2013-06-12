@@ -5,34 +5,15 @@ namespace Shop\Structure\Service\Load1c;
 class ModGroups
 {
     protected $groupsXML;
-    protected $megaRules;
 
     public function __construct($groupsXML)
     {
         $this->groupsXML = $groupsXML;
 
-
         $rules = array(
-            array(
-                'type' => 'delete',
-                'ID' => '', // id удаляемой группы
-            ),
-            array(
-                'type' => 'insert',
-                'ID' => '', // id, который будет присвоен создаваемой группе
-                'parent_id' => '', // id, в который добавится эта группа
-                'name' => 'Металлоизделия' // название добавляемой группы
-            ),
-            array(
-                'type' => 'move',
-                'ID' => '', // id перемещаемой группы
-                'parent_id' => '' // id, в который добавится эта группа
-            )
-        );
-
-        $megaRules = array(
+            // Правила на создание групп
             'insert' => array(
-                /*'0++' => array(
+                /*array(
                     'name' => 'TEST', Имя категории
                     'ID'   => 'insert-1', ID категории
                     'parent' => '', ID одителя
@@ -113,6 +94,7 @@ class ModGroups
                     'parent' => 'ceeb24b4-a0d5-11e2-aa72-1c6f65d9c788'
                 )
             ),
+            // Правила на удаление групп
             'delete' => array(
                 //'id_1c_element_for_delete' => 1
                 'a7e216ca-d4f4-11df-8493-001617a7c060' => 1, // Гидростеклоизол
@@ -120,8 +102,13 @@ class ModGroups
                 // 'c553344c-9dc5-11e2-bfb5-1c6f65d9c788' => 1  // ВНУТРЕННЯЯ (Шпуля, Ограждения/панели/столбы/хомуты и т.д.)
 
             ),
+            // Правила на перемещение групп
             'move' => array(
-                //'parent_id' => 'child_id'
+                /*array(
+                    // менять только значения
+                    'IDparent' => 'parent_id',
+                    'IDchild' => 'child_id'
+                ),*/
                 array(
                     // Сетки полипропиленовые в Сетка пластиковая
                     'IDparent' => 'qwerty-0005',
@@ -144,22 +131,21 @@ class ModGroups
                 )
             )
         );
-        $this->moveIt($megaRules);
 
-        /**
-        foreach ($rules as $rule) {
-        $action = $rule['type'] . 'action';
-        $this->$action($rule);
-        }
-         */
+        $this->moveIt($rules);
 
     }
 
 
-    protected function moveIt($megaRules)
+    /**
+     * Выполняет создание, перемещение и удаление групп в соответствии с правилами
+     * @param $rules
+     */
+    protected function moveIt($rules)
     {
 
-        foreach ($megaRules['insert'] as $v) {
+        // Создание новых групп
+        foreach ($rules['insert'] as $v) {
 
             // Добавление группы в корень
             if ($v['parent'] == '') {
@@ -172,9 +158,11 @@ class ModGroups
             // Ищем группу-родитель, где нужно создать новую группу
             $parent = $this->groupsXML->xpath('//Группа[Ид="' . $v['parent'] . '"]');
 
-            if(!isset($parent[0])){
+            if (!isset($parent[0])) {
                 // Если родителя нет - облом!!!
-                echo 'Нету родителя :(<br />'; print_r($v); exit;
+                echo 'Нету родителя :(<br />';
+                print_r($v);
+                exit;
             }
 
             // Проверяем, есть ли у нашего родителя ребёнки
@@ -192,7 +180,8 @@ class ModGroups
 
         }
 
-        foreach ($megaRules['move'] as $v) {
+        // Перемещение групп
+        foreach ($rules['move'] as $v) {
             $child = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDchild'] . '"]');
             $parent = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDparent'] . '"]');
 
@@ -210,30 +199,13 @@ class ModGroups
             $prnt->item(0)->appendChild($domChild);
         }
 
-        foreach ($megaRules['delete'] as $k => $v) {
+        // Удаление групп
+        foreach ($rules['delete'] as $k => $v) {
             $node = $this->groupsXML->xpath('//Группа[Ид="' . $k . '"]');
             $dom = dom_import_simplexml($node[0]);
             $dom->parentNode->removeChild($dom);
 
         }
-    }
-
-    protected function deleteAction($rule)
-    {
-
-    }
-
-
-    protected function insertAction($rule)
-    {
-        //$groupsXML1 = $this->groupsXML->xpath("//Группа[Ид='29144868-a267-11e2-b486-1c6f65d9c788']");
-        //$groupsXML1[0]->addChild('Группы')->addChild('Группа')->addChild('Ид', 123);
-    }
-
-
-    protected function moveAction($rule)
-    {
-
     }
 
 
