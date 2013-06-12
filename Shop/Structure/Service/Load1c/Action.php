@@ -26,6 +26,9 @@ if (isset($_POST['load'])) {
         case 3:
             $base->showProperties($import, $offers, $priceId);
             break;
+        case 4:
+            $base->loadBase($import, $offers, $priceId, true);
+            break;
     }
     $modeName = 'mode' . $mode;
     $$modeName = 'checked';
@@ -54,6 +57,10 @@ if (isset($_POST['load'])) {
                 <label class="radio">
                     <input type="radio" name="mode" value="1" <?php echo $mode1; ?>/>
                     Загрузка каталога
+                </label>
+                <label class="radio">
+                    <input type="radio" name="mode" value="4" <?php echo $mode4; ?>/>
+                    Загрузить товары с картинками
                 </label>
                 <label class="radio">
                     <input type="radio" name="mode" value="2" <?php echo $mode2; ?>/>

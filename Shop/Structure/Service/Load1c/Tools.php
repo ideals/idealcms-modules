@@ -38,7 +38,7 @@ class Tools
     }
 
 
-    function loadBase($importFile, $offersFile, $priceId)
+    function loadBase($importFile, $offersFile, $priceId, $loadImg = false)
     {
         $db = Db::getInstance();
 
@@ -102,7 +102,7 @@ class Tools
         echo 'Обновлено: ' . count($changedGoods['update']) . '<br />';
         echo 'Удалено: ' . count($changedGoods['delete']) . '<br />';
 
-        $txt = $this->updateGoods($db, $table, $txt, $changedGoods);
+        $txt = $this->updateGoods($db, $table, $txt, $changedGoods, $loadImg);
         unset($changedGoods);
 
         // ОБРАБОТКА КАТЕГОРИЙ ТОВАРА
@@ -180,19 +180,21 @@ class Tools
     }
 
 
-    function updateGoods(Db $db, $table, $txt, &$changedGoods)
+    function updateGoods(Db $db, $table, $txt, &$changedGoods, $loadImg = false)
     {
         foreach ($changedGoods['update'] as $v) {
             $v['is_active'] = 1;
-            if ($v['img'] != null) {
-                $img = $v['img'];
-                /*$i = new Image($img, 50, 50, 'small');
-                $v['img'] = $i->getName();*/
-                $i2 = new Image($img, 1000, 1000, 'big', false);
-                $v['img2'] = $i2->getName();
-            } else {
-                $v['img'] = null;
-                $v['img2'] = null;
+            if ($loadImg) {
+                if ($v['img'] != null) {
+                    $img = $v['img'];
+                    /*$i = new Image($img, 50, 50, 'small');
+                    $v['img'] = $i->getName();*/
+                    $i2 = new Image($img, 1000, 1000, 'big', false);
+                    $v['img2'] = $i2->getName();
+                } else {
+                    $v['img'] = null;
+                    $v['img2'] = null;
+                }
             }
             if ($v['ID'] == 0) {
                 echo 'Невозможно обновить, т.к. нулевой ID.<br />';

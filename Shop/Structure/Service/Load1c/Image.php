@@ -26,10 +26,14 @@ class Image
             $this->config['font'] = 'arial.ttf';
         }
         $this->color1("e6e6e6");
-        $this->resize($this->tmpDir . $image, $width, $height, "images/1c/{$nameDir}/", $border);
+        $filename = "images/1c/{$this->nameDir}/" . basename($this->img);
+        if (!file_exists($filename)) {
+            $this->resize($this->tmpDir . $image, $width, $height, "images/1c/{$nameDir}/", $border);
+        }
     }
 
-    public function getName(){
+    public function getName()
+    {
         return "images/1c/{$this->nameDir}/" . basename($this->img);
     }
 
