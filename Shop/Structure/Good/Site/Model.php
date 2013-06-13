@@ -8,7 +8,7 @@ use Ideal\Field\Url;
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
 
-    public function detectPageByUrl($url)
+    public function detectPageByUrl($url, $path)
     {
         $db = Db::getInstance();
 

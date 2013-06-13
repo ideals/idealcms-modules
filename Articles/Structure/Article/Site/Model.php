@@ -12,7 +12,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
      */
     protected $categoryModel;
 
-    public function detectPageByUrl($url)
+    public function detectPageByUrl($url, $path)
     {
         $articleUrl = array_shift($url);
 
