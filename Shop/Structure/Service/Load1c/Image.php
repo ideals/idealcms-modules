@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1c;
 
 class Image
@@ -15,20 +16,24 @@ class Image
         $this->img = $img;
         $this->nameDir = $nameDir;
         $image = basename($img);
-        $image = basename($root = str_replace('/' . $image, '', $img)) . '/' . $image;
+        $dir = basename(str_replace('/' . $image, '', $img));
+        $image = $dir . '/' . $image;
 
-        $this->config = parse_ini_file('ini.ini');
-        $this->water = "logo.png";
-        $this->tmpDir = "tmp/1c/import_files/";
-        $this->dirImage = "images/1c/";
-        $this->minSizeWater = "150*150";
-        if (!isset($this->config['font'])) {
-            $this->config['font'] = 'arial.ttf';
+        $this->water = 'TEXT';
+        $this->tmpDir = DOCUMENT_ROOT . '/tmp/1c/import_files/';
+        $this->dirImage = DOCUMENT_ROOT . '/images/1c';
+
+        if (!file_exists("{$this->dirImage}/{$nameDir}/{$dir}/")) {
+            mkdir("{$this->dirImage}/{$nameDir}/{$dir}/", 0777, true);
         }
+        $this->minSizeWater = "140*140";
+        $this->config['font'] = 'arial.ttf';
         $this->color1("e6e6e6");
-        $filename = "images/1c/{$this->nameDir}/" . basename($this->img);
+        $filename = "{$this->dirImage}/{$this->nameDir}/" . basename($this->img);
+
+
         if (!file_exists($filename)) {
-            $this->resize($this->tmpDir . $image, $width, $height, "images/1c/{$nameDir}/", $border);
+            $this->resize($this->tmpDir . $image, $width, $height, "{$this->dirImage}/{$nameDir}/{$dir}/", $border);
         }
     }
 
@@ -94,42 +99,41 @@ class Image
             imagecopy($tmpImage, $newImage, $margeX, $margeY, 0, 0, $w2, $h2);
             $newImage = $tmpImage;
         }
-        //$tmp = explode('*', $this->minSizeWater);
-        if ($tmp[0] < $newWidth AND $tmp[1] < $newHeight) {
-            if ($water != NULL AND $newHeight > 40) {
-                $tmp = ($newWidth - 10) / strlen($water);
-                if (floor($tmp) >= 20) {
-                    $fontSize = 20;
-                } elseif (floor($tmp) <= 6) {
-                    $fontSize = 0;
-                } else {
-                    $fontSize = floor($tmp);
-                }
-                if ($fontSize > 5) {
-                    // Вывод текста на картинку
-                    $white = imagecolorallocatealpha($newImage, 250, 250, 250, 75);
-                    $gray = imagecolorallocatealpha($newImage, 100, 100, 100, 75);
-                    $font = $this->config['font']; // Шрифт
-                    $bbox = imagettfbbox($fontSize, 45, $font, $water); // определяем размер картинки со шрифтом
-
-                    $x = $newWidth - ($bbox[2] - $bbox[0] + 10); // отступ с левого края
-                    $y = $newHeight - ($bbox[1] - $bbox[7] + 10); // отступ с нижнего края
-                    imagettftext($newImage, $fontSize + 2, 45, $x - 2, $y + 2, $gray, $font, $water); // вывод текста на картинку
-                    imagettftext($newImage, $fontSize, 45, $x, $y, $white, $font, $water); // вывод текста на картинку
-                }
-
+        $tmp = explode('*', $this->minSizeWater);
+        if ($tmp[0] < $newWidth AND $tmp[1] < $newHeight AND $water != NULL) {
+            $tmp = ($newWidth - 10) / strlen($water);
+            if (floor($tmp) >= 20) {
+                $fontSize = 20;
+            } elseif (floor($tmp) <= 6) {
+                $fontSize = 0;
+            } else {
+                $fontSize = floor($tmp);
             }
+            if ($fontSize > 5) {
+                // Вывод текста на картинку
+                $white = imagecolorallocatealpha($newImage, 250, 250, 250, 75);
+                $gray = imagecolorallocatealpha($newImage, 100, 100, 100, 75);
+                $font = $this->config['font']; // Шрифт
+                $bbox = imagettfbbox($fontSize, 0, $font, $water); // определяем размер картинки со шрифтом
+
+                $x = $w2 - ($bbox[2] - $bbox[0] + 10); // отступ с левого края
+                $y = $h2 - ($bbox[1] - $bbox[7] + 10); // отступ с нижнего края
+                imagettftext($newImage, $fontSize + 2, 45, $x - 2, $y + 2, $gray, $font, $water); // вывод текста на картинку
+                imagettftext($newImage, $fontSize, 45, $x, $y, $white, $font, $water); // вывод текста на картинку
+            }
+
         }
+
         switch ($extension) {
             case 'gif':
-                imagegif($newImage, $uri . $i['filename'] . '.' . $extension);
-                break;
+                //imagegif($newImage, $uri . $i['filename'] . '.' . $extension);
+                //break;
+            case 'png':
+                //imagepng($newImage, $uri . $i['filename'] . '.' . $extension);
+                //break;
             case 'jpg':
             case 'jpeg':
-                imagejpeg($newImage, $uri . $i['filename'] . '.' . $extension);
-                break;
-            case 'png':
-                imagepng($newImage, $uri . $i['filename'] . '.' . $extension);
+                imagejpeg($newImage, $uri . $i['filename'] . '.jpeg');
                 break;
             default:
                 break;
