@@ -1,5 +1,5 @@
 <?php
-namespace Ideal\Structure\News\Admin;
+namespace Gallery\Structure\Video\Admin;
 
 class Controller extends \Ideal\Structure\Roster\Admin\ControllerAbstract
 {

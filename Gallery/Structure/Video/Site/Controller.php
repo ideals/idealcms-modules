@@ -1,5 +1,5 @@
 <?php
-namespace Ideal\Structure\News\Site;
+namespace Gallery\Structure\Video\Site;
 
 class Controller extends ControllerAbstract
 {
