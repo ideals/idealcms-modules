@@ -36,6 +36,11 @@ return array(
             'sql'   => 'varchar(255)',
             'type'  => 'Ideal_Image'
         ),
+        'video' => array(
+            'label' => 'Видео',
+            'sql'   => 'varchar(255) not null',
+            'type'  => 'Ideal_Text'
+        ),
         'annot'=> array(
             'label' => 'Аннотация',
             'sql'   => 'text',
