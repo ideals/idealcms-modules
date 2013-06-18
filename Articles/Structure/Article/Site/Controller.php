@@ -15,6 +15,8 @@ class Controller extends \Ideal\Core\Site\Controller
     {
         $this->templateInit();
 
+        $this->model->detectCurrentCategory($this->path);
+
         $header = '';
         $templatesVars = $this->model->getTemplatesVars();
 

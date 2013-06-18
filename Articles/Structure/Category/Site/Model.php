@@ -10,6 +10,71 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
     protected $categories;
     protected $current;
+    protected $tagParam;
+
+    public function detectPageByUrl($url, $path)
+    {
+        $this->tagParam = $this->setTagParamName($path);
+        if ($this->params['is_query_param']) {
+            // Категория определяется через QUERY_STRING
+            $request = new Request();
+            $tag = $request->{$this->tagParam};
+            if ($tag == '') {
+                // Категория не указана, выходим
+                return $url;
+            }
+            // TODO сделать проверку, что $url на этом этапе должен быть пустой или содержать один элемент?
+            $url = explode('/', $tag); // В тэге могут быть подкатегории
+        } else {
+            $tagName = reset($url);
+            if ($this->tagParam != $tagName) {
+                // Первый элемент URL не обозначает категорию, значит это статья
+                return $url;
+            }
+            array_shift($url);
+        }
+
+        if (count($url) == 1) {
+            // Для первого уровня категорий используем небольшой хак — кэширование категорий
+            $url = $this->detectPageByTag($url, $path);
+        } else {
+            // Для вложенных категорий используем стандартное средство обнаружения страницы
+            $url = parent::detectPageByUrl($url, $path);
+        }
+
+        return $url;
+    }
+
+
+    public function detectPageByTag($url, $path)
+    {
+        $this->object = false;
+        $list = $this->readCategories();
+        foreach ($list as $v) {
+            if ($v['url'] == $url[0]) {
+                $this->object = $v;
+                $this->path[] = $v;
+                break;
+            }
+        }
+        // TODO \/ надо бы продумать этот момент \/
+        return array();
+    }
+
+
+    public function setTagParamName($path)
+    {
+        $config = Config::getInstance();
+        $structure = $config->getStructureByName('Ideal_DataList');
+        $dataList = new \Ideal\Structure\DataList\Admin\ModelAbstract($structure['ID']);
+        $end = end($path);
+        $spravochnik = $dataList->getByParentUrl($end['url']);
+        $this->tagParamName = $spravochnik['url'];
+        $this->structurePath = $structure['ID'] . '-' . $spravochnik['ID'];
+        $this->path = array($structure, $spravochnik);
+        return $this->tagParamName;
+    }
+
 
     public function readCategories()
     {
@@ -21,25 +86,27 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         return $this->categories;
     }
 
+
     public function getCategories($urlAll)
     {
-        $list = $this->readCategories();
         $config = Config::getInstance();
+        $list = $this->readCategories();
         $first = array(
             'name'  => 'Все статьи',
             'link'  => $urlAll . $config->urlSuffix,
             'class' => ''
         );
 
-        $request = new Request();
-        $tag = $request->tag;
-
-        if ($tag == '') {
+        if ($this->object == null) {
+            // Не выбрана ни одна категория
             $first['class'] = 'active';
+            $tag = '';
+        } else {
+            $tag = $this->object['url'];
         }
 
         foreach ($list as $k => $v) {
-            $list[$k]['link'] = $urlAll . $config->urlSuffix . '?tag=' . $v['url'];
+            $list[$k]['link'] = $this->getUrl($urlAll, $v);
             $list[$k]['class'] = ($v['url'] == $tag) ? 'active' : '';
         }
 
@@ -49,16 +116,16 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     }
 
 
-    public function setPath($path)
+    public function getUrl($prefix, $element)
     {
-        $config = Config::getInstance();
-        $structure = $config->getStructureByName('Ideal_DataList');
-        $dataList = new \Ideal\Structure\DataList\Admin\ModelAbstract($structure['ID']);
-        $end = end($path);
-        $spravochnik = $dataList->getByParentUrl($end['url']);
-        $this->path = array($structure, $spravochnik);
-        $this->object = $spravochnik;
-        $this->structurePath = $structure['ID'] . '-' . $spravochnik['ID'];
+        if ($this->params['is_query_param']) {
+            $config = Config::getInstance();
+            $url = $prefix . $config->urlSuffix . '?tag=' . $element['url'];
+        } else {
+            $urlModel = new \Ideal\Field\Url\Model();
+            $url = $urlModel->getUrlWithPrefix($element, $prefix . '/' . $this->tagParam);
+        }
+        return $url;
     }
 
 
@@ -70,28 +137,11 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function getCurrent()
     {
-        if (isset($this->current)) {
-            return $this->current;
+        if (isset($this->object)) {
+            return $this->object;
+        } else {
+            return false;
         }
-
-        $request = new Request();
-        $current = mysql_real_escape_string($request->tag);
-
-        $this->current = false;
-        $list = $this->readCategories();
-        foreach ($list as $v) {
-            if ($v['url'] == $current) {
-                $this->current = $v;
-                break;
-            }
-        }
-
-        if ($this->current) {
-            $this->path[] = $this->current;
-            $this->object = $this->current;
-        }
-
-        return $this->current;
     }
 
 }

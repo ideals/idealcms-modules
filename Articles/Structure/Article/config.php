@@ -8,8 +8,7 @@ return array(
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
         'field_sort'    => 'date_create ASC', // поле, по которому проводится сортировка в CMS
-        'field_list'    => array('name', 'is_active', 'date_create'),
-        'is_query_param'=> true    // категория определяется через QUERY_STRING
+        'field_list'    => array('name', 'is_active', 'date_create')
      ),
     'fields'   => array (
         'ID' => array(

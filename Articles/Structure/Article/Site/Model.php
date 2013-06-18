@@ -14,15 +14,16 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function detectPageByUrl($url, $path)
     {
-        $articleUrl = array_shift($url);
-
-        // TODO для определения названия тэга нужно создавать categoryModel
-
-        if (!$this->params['is_query_param'] AND ($articleUrl == 'tag')) {
-            $tag = array_shift($url);
-            $request = new Request();
-            $request->$articleUrl = $tag;
+        // Определяем, нет ли в URL категории
+        $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
+        $url = $this->categoryModel->detectPageByUrl($url, $path);
+        if (count($url) == 0) {
+            // Прошло успешно определение страницы категории, значит статью определять не надо
+            $this->path = $path;
+            return array();
         }
+
+        $articleUrl = array_shift($url);
 
         if (count($url) > 0) {
             // У статьи не может быть URL с несколькими уровнями вложенности
@@ -41,7 +42,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         $list[0]['structure'] = 'Articles_Article';
 
-        $this->path = $list;
+        $this->path = array_merge($path, $list);
         $this->object = end($list);
 
         $request = new Request();
@@ -51,15 +52,18 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     }
 
 
-    public function setPath($path)
+    public function detectCurrentCategory($path)
     {
-        parent::setPath($path);
-
         if (!isset($this->categoryModel)) {
-            $categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
-            $categoryModel->setPath($this->path);
-            $this->categoryModel = $categoryModel;
-            $this->object = $categoryModel->getCurrent();
+            // Если категория не была определена на этапе DetectPageByUrl, то нужно
+            // проверить, нет ли категории в query_string
+            $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
+            $this->categoryModel->detectPageByUrl(array(), $path);
+        }
+
+        $current = $this->categoryModel->getCurrent();
+        if ($current) {
+            $this->object = $current;
         }
     }
 
