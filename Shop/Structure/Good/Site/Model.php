@@ -22,7 +22,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         $list[0]['structure'] = 'Shop_Good';
 
-        $this->path = $list;
+        $this->path = array_merge($path, $list);
         $this->object = end($list);
 
         return array();
