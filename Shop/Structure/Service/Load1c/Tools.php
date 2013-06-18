@@ -184,17 +184,15 @@ class Tools
     {
         foreach ($changedGoods['update'] as $v) {
             $v['is_active'] = 1;
-            if ($loadImg) {
-                if ($v['img'] != null) {
-                    $img = $v['img'];
-                    /*$i = new Image($img, 50, 50, 'small');
-                    $v['img'] = $i->getName();*/
-                    $i2 = new Image($img, 1000, 1000, 'big', false);
-                    $v['img2'] = $i2->getName();
-                } else {
-                    $v['img'] = null;
-                    $v['img2'] = null;
+            if ($v['img'] != null) {
+                if ($loadImg) {
+                    $i = new Image($v['img'], 1000, 1000, 'big', false);
                 }
+                $image = basename($v['img']);
+                $dir = basename(str_replace('/' . $image, '', $v['img']));
+                $image = $dir . '/' . $image;
+                $v['img'] = $image;
+
             }
             if ($v['ID'] == 0) {
                 echo 'Невозможно обновить, т.к. нулевой ID.<br />';

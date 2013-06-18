@@ -29,7 +29,8 @@ class Image
         $this->minSizeWater = "140*140";
         $this->config['font'] = 'arial.ttf';
         $this->color1("e6e6e6");
-        $filename = "{$this->dirImage}/{$this->nameDir}/" . basename($this->img);
+
+        $filename = "{$this->dirImage}/{$this->nameDir}/" . $image;
 
 
         if (!file_exists($filename)) {
