@@ -11,6 +11,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
      * @var $categoryModel \Articles\Structure\Category\Site\Model
      */
     protected $categoryModel;
+    protected $currentCategory;
 
     public function detectPageByUrl($url, $path)
     {
@@ -61,9 +62,9 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             $this->categoryModel->detectPageByUrl(array(), $path);
         }
 
-        $current = $this->categoryModel->getCurrent();
-        if ($current) {
-            $this->object = $current;
+        $this->currentCategory = $this->categoryModel->getCurrent();
+        if ($this->currentCategory) {
+            $this->object = $this->currentCategory;
         }
     }
 
@@ -82,11 +83,11 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         $start = ($page < 2) ? 0 : ($page - 1) * $onPage;
 
-        $currentCategory = $this->categoryModel->getCurrent();
-        if (isset($currentCategory['ID'])) {
+        if ($this->currentCategory) {
             // Вывод статей только определённой категории
             $_sql = "SELECT * FROM i_articles_structure_article WHERE is_active=1
-                            AND ID IN (SELECT article_id FROM i_articles_category_article WHERE category_id={$currentCategory['ID']})
+                            AND ID IN (SELECT article_id FROM i_articles_category_article
+                                              WHERE category_id={$this->currentCategory['ID']})
                             ORDER BY date_create LIMIT {$start}, {$onPage}";
             $this->path[] = $currentCategory;
             $this->object = $currentCategory;
@@ -125,7 +126,11 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function getStructureElements()
     {
-        return $this->getArticles(0, 9999);
+        $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
+        $this->categoryModel->setPath($this->path);
+        $articles = $this->getArticles(0, 9999);
+        $categories = $this->getCategories();
+        return array_merge($categories, $articles);
     }
 
 

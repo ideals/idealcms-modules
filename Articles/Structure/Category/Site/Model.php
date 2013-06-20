@@ -78,6 +78,9 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function readCategories()
     {
+        if (!isset($this->tagParam)) {
+            $this->tagParam = $this->setTagParamName($this->path);
+        }
         if (!isset($this->categories)) {
             $db = Db::getInstance();
             $_sql = "SELECT * FROM {$this->_table} WHERE structure_path='{$this->structurePath}' AND is_active=1";
@@ -110,7 +113,10 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             $list[$k]['class'] = ($v['url'] == $tag) ? 'active' : '';
         }
 
-        array_unshift($list, $first);
+        if (strpos($_SERVER['REQUEST_URI'], $urlAll) === 0) {
+            // Первый элемент добавляем только когда категории запрашиваются со своего URL
+            array_unshift($list, $first);
+        }
 
         return $list;
     }
