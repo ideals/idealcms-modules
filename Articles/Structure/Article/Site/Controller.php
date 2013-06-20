@@ -57,7 +57,7 @@ class Controller extends \Ideal\Core\Site\Controller
 
     public function detailAction()
     {
-        $this->templateInit('Articles\Structure\Article\Site\detail.twig');
+        $this->templateInit('Articles/Structure/Article/Site/detail.twig');
 
         $this->view->article = $this->model->object;
     }
