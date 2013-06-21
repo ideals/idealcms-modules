@@ -2,133 +2,45 @@
 namespace Shop\Structure\Service\Load1c;
 
 
+/**
+ * Class ModGroups
+ * @package Shop\Structure\Service\Load1c
+ */
 class ModGroups
 {
     protected $groupsXML;
+    protected $xml;
 
-    public function __construct($groupsXML)
+    /**
+     * @param $groupsXML
+     * @param $xml
+     */
+    public function __construct($groupsXML, $xml)
     {
         $this->groupsXML = $groupsXML;
+        $this->xml = $xml;
 
         $rules = array(
             // Правила на создание групп
-            'insert' => array(
-                /*array(
+            'insert' => array( /*array(
                     'name' => 'TEST', Имя категории
                     'ID'   => 'insert-1', ID категории
                     'parent' => '', ID одителя
                 )*/
-                array(
-                    'name' => 'Металлоизделия',
-                    'ID' => 'qwerty-0001',
-                    'parent' => ''
-                ),
-                array(
-                    'name' => 'Металлические заборы',
-                    'ID' => 'qwerty-0002',
-                    'parent' => 'ceeb24b4-a0d5-11e2-aa72-1c6f65d9c788'
-                ),
-                array(
-                    'name' => 'Сетка для забора, ограждения',
-                    'ID' => 'qwerty-0003',
-                    'parent' => 'ceeb24b4-a0d5-11e2-aa72-1c6f65d9c788'
-                ),
-                array(
-                    'name' => 'Металлические ограждения',
-                    'ID' => 'qwerty-0004',
-                    'parent' => 'ceeb24b4-a0d5-11e2-aa72-1c6f65d9c788'
-                ),
-                array(
-                    'name' => 'Сетка пластиковая',
-                    'ID' => 'qwerty-0005',
-                    'parent' => ''
-                ),
-                array(
-                    'name' => 'Геосетка',
-                    'ID' => 'qwerty-0006',
-                    'parent' => 'qwerty-0005'
-                ),
-                array(
-                    'name' => 'Малярная сетка',
-                    'ID' => 'qwerty-0007',
-                    'parent' => 'qwerty-0005'
-                ),
-                array(
-                    'name' => 'Просечная сетка',
-                    'ID' => 'qwerty-0008',
-                    'parent' => '5bb2d5e8-2318-11dc-b828-001617bd4463'
-                ),
-                array(
-                    'name' => 'Сетка дорожная',
-                    'ID' => 'qwerty-0009',
-                    'parent' => '28134ade-2318-11dc-b828-001617bd4463'
-                ),
-                array(
-                    'name' => 'Нержавеющая сетка',
-                    'ID' => 'qwerty-0010',
-                    'parent' => '28134ade-2318-11dc-b828-001617bd4463'
-                ),
-                array(
-                    'name' => 'Cетка оцинкованная',
-                    'ID' => 'qwerty-0011',
-                    'parent' => '28134ade-2318-11dc-b828-001617bd4463'
-                ),
-                array(
-                    'name' => 'Арматурная сетка',
-                    'ID' => 'qwerty-0012',
-                    'parent' => '28134ade-2318-11dc-b828-001617bd4463'
-                ),
-                array(
-                    'name' => 'Кладочная сетка',
-                    'ID' => 'qwerty-0013',
-                    'parent' => '28134ade-2318-11dc-b828-001617bd4463'
-                ),
-                array(
-                    'name' => 'Cетка рабица',
-                    'ID' => 'qwerty-0014',
-                    'parent' => '28134ade-2318-11dc-b828-001617bd4463'
-                ),
-                array(
-                    'name' => 'Забор из рабицы',
-                    'ID' => 'qwerty-0015',
-                    'parent' => 'ceeb24b4-a0d5-11e2-aa72-1c6f65d9c788'
-                )
             ),
             // Правила на удаление групп
-            'delete' => array(
-                //'id_1c_element_for_delete' => 1
-                'a7e216ca-d4f4-11df-8493-001617a7c060' => 1, // Гидростеклоизол
-                // 'ceeb24b4-a0d5-11e2-aa72-1c6f65d9c788' => 1, // СИСТЕМЫ ОГРАЖДЕНИЙ
-                // 'c553344c-9dc5-11e2-bfb5-1c6f65d9c788' => 1  // ВНУТРЕННЯЯ (Шпуля, Ограждения/панели/столбы/хомуты и т.д.)
+            'delete' => array( //'id_1c_element_for_delete' => 1
 
             ),
             // Правила на перемещение групп
-            'move' => array(
-                /*array(
+            'move' => array( /*array(
                     // менять только значения
-                    'IDparent' => 'parent_id',
-                    'IDchild' => 'child_id'
-                ),*/
-                array(
-                    // Сетки полипропиленовые в Сетка пластиковая
-                    'IDparent' => 'qwerty-0005',
-                    'IDchild' => '65241e2d-4c0e-11de-87a8-001617a59345'
-                ),
-                array(
-                    // Клетки/кормушки в Металлоизделия
-                    'IDparent' => 'qwerty-0001',
-                    'IDchild' => '29144868-a267-11e2-b486-1c6f65d9c788'
-                ),
-                array(
-                    // Проволока в Металлопрокат
-                    'IDparent' => '54a39fc7-2318-11dc-b828-001617bd4463',
-                    'IDchild' => '54a39f26-2318-11dc-b828-001617bd4463'
-                ),
-                array(
-                    // Металлопрокат в Металлоизделия
-                    'IDparent' => 'qwerty-0001',
-                    'IDchild' => '54a39fc7-2318-11dc-b828-001617bd4463'
-                )
+                    'IDchild' => 'child_id', // ID категории которую переносим
+                    'IDparent' => 'parent_id' // ID категории куда переносим
+                )*/
+
+            ),
+            'plain' => array( // 'ID' // ID группы в которой все подгруппы переместятся в родительскую
             )
         );
 
@@ -199,6 +111,28 @@ class ModGroups
             $prnt->item(0)->appendChild($domChild);
         }
 
+        // Переносит товар в родительскую группу, а подгруппы удаляет
+        foreach ($rules['plain'] as $k => $v) {
+            // Родительская группа
+            $node = $this->groupsXML->xpath('//Группа[Ид="' . $v . '"]');
+            // Поиск подгрупп
+            $tmp = $this->getIdGroups($node);
+            $tmp = explode(',', $tmp);
+
+            foreach ($tmp as $k2 => $v2) {
+                // Поиск товаров подгрупп
+                $goods = $this->xml->xpath('Каталог/Товары/Товар/Группы[Ид="' . $v2 . '"]');
+                foreach ($goods as $good) {
+                    $good->{'Ид'} = $v; // Переносит товар в родителя
+                }
+            }
+            // Удаление подгрупп
+            $dom = dom_import_simplexml($node[0]);
+            $oldGroups = $dom->getElementsByTagName('Группы')->item(0);
+            $tmp = $dom->removeChild($oldGroups);
+
+        }
+
         // Удаление групп
         foreach ($rules['delete'] as $k => $v) {
             $node = $this->groupsXML->xpath('//Группа[Ид="' . $k . '"]');
@@ -206,6 +140,24 @@ class ModGroups
             $dom->parentNode->removeChild($dom);
 
         }
+    }
+
+    /**
+     * Возращает строку с ID всех подгрупп через ','
+     * @param $node
+     * @return string
+     */
+    private function getIdGroups($node)
+    {
+        $tmp = '';
+        foreach ($node as $k => $v) {
+            $tmp .= $v->{'Ид'} . ',';
+            $elem = $v->{'Группы'};
+            if ($elem->count() != 0) {
+                $tmp .= $this->getIdGroups($v->xpath('Группы/Группа')) . ',';
+            }
+        }
+        return substr($tmp, 0, strlen($tmp) - 1);;
     }
 
 

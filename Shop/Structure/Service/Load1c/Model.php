@@ -33,7 +33,7 @@ class Model
 
         // Считываем категории товара в массив $this->groups
         $groupsXML = $this->xml->xpath('Классификатор/Группы');
-        $modGroups = new ModGroups($groupsXML[0]);
+        $modGroups = new ModGroups($groupsXML[0], $this->xml);
 
         $this->groups = $this->loadGroups($groupsXML[0]);
         unset($groupsXML);
