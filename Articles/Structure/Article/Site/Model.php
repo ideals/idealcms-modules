@@ -89,8 +89,6 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
                             AND ID IN (SELECT article_id FROM i_articles_category_article
                                               WHERE category_id={$this->currentCategory['ID']})
                             ORDER BY date_create LIMIT {$start}, {$onPage}";
-            $this->path[] = $currentCategory;
-            $this->object = $currentCategory;
         } else {
             // Запрос для отображения всех статей
             $_sql = "SELECT * FROM {$this->_table} WHERE is_active = 1 ORDER BY date_create LIMIT {$start}, {$onPage}";
