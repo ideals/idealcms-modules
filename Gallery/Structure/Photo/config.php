@@ -3,7 +3,7 @@
 // Новости
 return array(
     'params' => array (
-        'in_modules' => array('Ideal_Part'), // в каких структурах можно создавать эту структуру
+        'in_structures' => array('Ideal_Part'), // в каких структурах можно создавать эту структуру
         'elements_cms'  => 24,            // количество элементов в списке в CMS
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
@@ -24,7 +24,7 @@ return array(
         'pos' => array(
             'label' => '№',
             'sql'   => 'int not null',
-            'type'  => 'Ideal_Hidden'
+            'type'  => 'Ideal_Text'
         ),
         'name' => array(
             'label' => 'Название',
@@ -32,11 +32,11 @@ return array(
             'type'  => 'Ideal_Text'
         ),
         'img' => array(
-            'label' => 'Фото маленькое',
+            'label' => 'Фото большое',
             'sql'   => 'varchar(255)',
             'type'  => 'Ideal_Text'
         ),
-        'img_big' => array(
+        'img_s' => array(
             'label' => 'Фото маленькое',
             'sql'   => 'varchar(255)',
             'type'  => 'Ideal_Text'

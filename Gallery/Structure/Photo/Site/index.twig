@@ -8,8 +8,8 @@
 
     {%if parts|length > 0 %}
     {% for part in parts %}
-        <a rel="highslide" target="_blank" href="{{ part.img_big }}">
-            <img border="0" style="border: 1px solid #333333;" alt="{{ part.cap }}" src="{{ part.img }}">
+        <a class="photoGallery" rel="prettyPhoto[img]" href="{{ part.img }}">
+            <img alt="{{ part.name }}" src="{{ part.img_s }}" />
         </a>
     {% endfor %}
     {% endif %}
