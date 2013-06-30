@@ -24,7 +24,7 @@ return array(
         'pos' => array(
             'label' => '№',
             'sql'   => 'int not null',
-            'type'  => 'Ideal_Text'
+            'type'  => 'Ideal_Pos'
         ),
         'name' => array(
             'label' => 'Название',
