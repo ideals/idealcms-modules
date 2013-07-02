@@ -2,17 +2,40 @@
 
 namespace Cabinet\Structure\Registration\Site;
 
-use Ideal\Core\Admin\Router;
+use Ideal\Core\Site\Router;
+use Ideal\Structure;
 use Ideal\Core\Config;
-use Ideal\Core\Db;
-use Ideal\Field;
 
 class Plugin {
 
-    public function onPostDispatch(Router $router)
+    public function onPreDispatch(Router $router)
     {
-        $pos = strpos($_SERVER['REQUEST_URI'], 'regPart2');
-        if($pos !== false){
+        $config = Config::getInstance();
+
+        if($_GET['url'] == 'cabinet'){
+            $id = $config->getStructureByName('Cabinet_Registration');
+            $id = $id['ID'];
+
+            $router->setPath(array(array('structure' => 'Cabinet_Registration', 'url'=>'cabinet', 'ID'=>$id)));
+            $router->setControllerName('\\Cabinet\\Structure\\Registration\\Site\\Controller');
+        }
+
+        if($_GET['url'] == 'logout'){
+            print 11;
+            $id = $config->getStructureByName('Cabinet_Registration');
+            $id = $id['ID'];
+            session_start();
+            unset($_SESSION['login']['user']);
+            unset($_SESSION['login']['input']);
+
+        }
+
+        if($_GET['url'] == 'spec-info'){
+
+            $id = $config->getStructureByName('Cabinet_Registration');
+            $id = $id['ID'];
+            $router->setPath(array(array('structure' => 'Cabinet_Registration', 'url'=>'cabinet', 'ID'=>$id)));
+            $router->setControllerName('\\Cabinet\\Structure\\Registration\\Site\\Controller');
 
         }
     }
