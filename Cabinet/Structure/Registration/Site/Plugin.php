@@ -21,12 +21,10 @@ class Plugin {
         }
 
         if($_GET['url'] == 'logout'){
-            print 11;
-            $id = $config->getStructureByName('Cabinet_Registration');
-            $id = $id['ID'];
             session_start();
             unset($_SESSION['login']['user']);
             unset($_SESSION['login']['input']);
+            header('Refresh: 0; url=/');;
 
         }
 
