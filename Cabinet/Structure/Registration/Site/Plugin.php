@@ -28,13 +28,5 @@ class Plugin
             header('Refresh: 0; url=/');;
 
         }
-
-        if ($_GET['url'] == 'spec-info') {
-
-            $id = $config->getStructureByName('Cabinet_Registration');
-            $id = $id['ID'];
-            $router->setPath(array(array('structure' => 'Cabinet_Registration', 'url' => 'cabinet', 'ID' => $id)));
-            $router->setControllerName('\\Cabinet\\Structure\\Registration\\Site\\Controller');
-        }
     }
 }

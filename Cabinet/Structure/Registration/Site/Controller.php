@@ -20,29 +20,8 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
         }
 
 
-        switch ($_GET['url']) {
-            case 'cabinet':
-                if (isset($_GET['email']) && isset($_GET['key'])) {
-                    $this->view->answer = $this->model->reg($_GET['email'], $_GET['key']);
-                }
-                break;
-            case 'spec-info':
-                session_start();
-                if ($_SESSION['login']['input']) {
-                    $this->view->answer = <<<EOT
-<a href='files/raschet-okupaemosti.xlsx' target="_blank">Excel файл</a>
-EOT;
-                } else {
-                    $this->view->answer = 'У вас нету доступа сюда';
-                }
-
-
-                break;
-            case 'logout':
-                break;
-            default:
-                break;
-        }
+        if ($_GET['url'] == 'cabinet' && isset($_GET['email']) && isset($_GET['key']))
+            $this->view->answer = $this->model->reg($_GET['email'], $_GET['key']);
 
         // Скрытый раздел
         session_start();

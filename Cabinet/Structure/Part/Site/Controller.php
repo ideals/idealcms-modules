@@ -18,7 +18,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
         session_start();
         if ($_SESSION['login']['input']) {
             $this->view->loginUser = $_SESSION['login']['user'];
-            if($_SESSION['login']['input'] == 2){
+            if($_SESSION['login']['input'] === 2){
                 $this->view->header = 'Вашу учетную запись еще не активировали';
                 return;
             }
