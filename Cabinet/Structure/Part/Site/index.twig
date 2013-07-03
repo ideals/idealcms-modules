@@ -1,0 +1,22 @@
+{% extends "site.twig" %}
+
+{% block content %}
+
+    {% if loginUser %}
+
+        <h1>{{ header }}</h1>
+
+        {{ template.content|raw }}
+
+        {% if parts|length > 0 %}
+            <ul>
+                {% for part in parts %}
+                    <li><a href="{{ part.link }}">{{ part.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% else %}
+        <h2>Вы не авторизованы</h2>
+    {% endif %}
+
+{% endblock %}

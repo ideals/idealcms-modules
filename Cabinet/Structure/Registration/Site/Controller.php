@@ -27,6 +27,16 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
                 }
                 break;
             case 'spec-info':
+                session_start();
+                if ($_SESSION['login']['input']) {
+                    $this->view->answer = <<<EOT
+<a href='files/raschet-okupaemosti.xlsx' target="_blank">Excel файл</a>
+EOT;
+                } else {
+                    $this->view->answer = 'У вас нету доступа сюда';
+                }
+
+
                 break;
             case 'logout':
                 break;
@@ -36,7 +46,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 
         // Скрытый раздел
         session_start();
-        if($_SESSION['login']['input']){
+        if ($_SESSION['login']['input']) {
             $this->view->loginUser = $_SESSION['login']['user'];
         }
 
