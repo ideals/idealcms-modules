@@ -15,6 +15,8 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function detectPageByUrl($url, $path)
     {
+        $config = Config::getInstance();
+        $tmp = $url;
         // Определяем, нет ли в URL категории
         $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
         $url = $this->categoryModel->detectPageByUrl($url, $path);
@@ -28,6 +30,12 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         if (count($url) > 0) {
             // У статьи не может быть URL с несколькими уровнями вложенности
+            return '404';
+        }
+        $page = explode('/', $_SERVER['REDIRECT_URL']);
+        $page = end($page);
+        $tmp = $articleUrl . $config->urlSuffix;
+        if ($page != $tmp) {
             return '404';
         }
 
