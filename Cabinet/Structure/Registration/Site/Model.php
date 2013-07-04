@@ -20,8 +20,8 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         if (count($arr) == 1) {
             if ($arr[0]['act_key'] != $key) {
-                if(!$arr[0]['act_key']) return 'Вы уже активировали свой аккаунт';
-                return 'Ошибка в проверочном коде';
+                if ($arr[0]['act_key']) return 'Ошибка в проверочном коде';
+                header('Refresh: 2; url=/');
             } else {
                 if ($arr[0]['act_key'])
                     $pass = crypt($pass);
@@ -39,10 +39,10 @@ EOT;
                 $to = $config->mailForm;
                 $headers = "From: {$config->robotEmail}\r\n"
                     . "Content-type: text/plain; charset=\"utf-8\"";
-                if (mail($to, $title, $message, $headers));
+                if (mail($to, $title, $message, $headers)) ;
             }
         } else {
-            return 'Ошибка!';
+            return 'Ошибка! Такой E-mail не зарегестрирован.';
         }
         return 'Вы успешно зарегистрированы';
     }
