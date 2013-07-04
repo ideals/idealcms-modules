@@ -36,7 +36,11 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         $page = end($page);
         $tmp = $articleUrl . $config->urlSuffix;
         if ($page != $tmp) {
-            return '404';
+            $page = $_SERVER['REDIRECT_URL']. $config->urlSuffix;
+            header ('HTTP/1.1 301 Moved Permanently');
+            header ('Location: '.$page);
+            exit();
+            //return '404';
         }
 
         $db = Db::getInstance();
