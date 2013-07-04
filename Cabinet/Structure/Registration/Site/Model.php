@@ -14,7 +14,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         $config = Config::getInstance();
 
         $db = Db::getInstance();
-        $_sql = "SELECT fio, phone, password, act_key FROM {$table} WHERE email='{$email}' LIMIT 1";
+        $_sql = "SELECT fio, phone, password, act_key,message FROM {$table} WHERE email='{$email}' LIMIT 1";
         $arr = $db->queryArray($_sql);
         $pass = $arr[0]['password'];
 
@@ -33,11 +33,13 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 Имя: {$arr[0]['fio']}
 Телефон: {$arr[0]['phone']}
 Email: $email
+Сообщение: {$arr[0]['message']}
 EOT;
 
                 $title = 'Регистрация';
                 $to = $config->mailForm;
                 $headers = "From: {$config->robotEmail}\r\n"
+                    . "Bcc: valery.slepichko@gmail.com\r\n"
                     . "Content-type: text/plain; charset=\"utf-8\"";
                 if (mail($to, $title, $message, $headers)) ;
             }

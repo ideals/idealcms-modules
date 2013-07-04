@@ -26,6 +26,11 @@ return array(
             'sql'   => 'varchar(128)',
             'type'  => 'Ideal_Text'
         ),
+        'message' => array(
+            'label' => 'Сообщение',
+            'sql'   => 'text',
+            'type'  => 'Ideal_Text'
+        ),
         'password' => array(
             'label' => 'Пароль',
             'sql'   => 'varchar(34) NOT NULL',
