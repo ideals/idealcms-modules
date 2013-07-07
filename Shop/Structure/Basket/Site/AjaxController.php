@@ -10,8 +10,8 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
         $amount = (int)$_POST['goodAmount'];
         $price = (int)$_POST['goodPrice'];
         $arr = json_decode($_POST['cookie'], true);
-        $arr['count'] += 1;
-        $arr['total_price'] += ($price * $amount);
+        $arr['amount'] += 1;
+        $arr['price'] += ($price * $amount);
         if (isset($arr[$id]['amount'])) {
             $arr[$id]['amount'] += $amount;
         } else {

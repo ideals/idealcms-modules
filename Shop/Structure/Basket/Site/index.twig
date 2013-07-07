@@ -18,20 +18,25 @@
         <div id="otvet">
 
         </div>
-
         <table id="basket_list">
+            <tr>
+                <th colspan="2">Название</th>
+                <th>Кол-во</th>
+                <th>Цена</th>
+                <th>Итого</th>
+                <th>Удалить</th>
+            </tr>
             {% for good in goods %}
                 {% if good.name %}
-
-                    <tr>
+                    <tr class="{{ good.ID }}">
                         <td><img src="{{ good.img }}" style="max-height: 90px; max-width: 90px;"></td>
                         <td><a href="/goods/{{ good.url }}">{{ good.name }}</a></td>
-                        <td>{{ good.amount }} шт</td>
-                        <td>{{ good.price }} руб</td>
-                        <td>{{ good.total_price }} руб</td>
-                        <td>
-                            <button id="{{ good.ID }}" class="delFromBasket">Удалить</button>
+                        <td style="text-align: center">
+                            <input value="{{ good.amount }}" style="width: 20px" name="n"/>
                         </td>
+                        <td>{{ good.price }} руб</td>
+                        <td id="tp">{{ good.total_price }} руб</td>
+                        <td style="text-align: center"><input type="checkbox" name="c"/></td>
                     </tr>
                 {% endif %}
             {% endfor %}
@@ -42,7 +47,9 @@
                 <td id="total_count">{{ goods['count'] }} шт</td>
                 <td id="total_price">{{ goods['total_price'] }} руб</td>
             </tr>
-        </table><br/><br/>
+        </table>
+        <button id="recheck" style="float: right">Пересчитать</button>
+        <br/><br/>
         <form class="form_order">
             <div class="form_basket">
                 <label for="address">Адрес:</label>
