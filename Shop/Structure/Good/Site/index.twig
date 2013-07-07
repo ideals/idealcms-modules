@@ -30,14 +30,14 @@
                     В корзину
                 </button>
                 <br>
-                {% if Basket[good.ID] %}
+                {% if basket[good.ID] %}
                 <span id="countBasket" style="font-size: 12px;">
             {% else %}
                     <span class="hide" id="countBasket" style="font-size: 12px;">
             {% endif %}
                         <span id="textBasket">Количество <a href="/basket">в корзине</a>: </span>
                 <span id="count" style="font-size: 12px;">
-                    {{ Basket[good.ID]['amount'] ? Basket[good.ID]['amount'] : 0 }}
+                    {{ basket[good.ID]['amount'] ? basket[good.ID]['amount'] : 0 }}
                 </span>
             </span>
             </div>
