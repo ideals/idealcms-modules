@@ -3,9 +3,10 @@ namespace Shop\Structure\Category\Widget;
 
 use Ideal\Core\Db;
 
-class Categories {
+class Categories extends \Ideal\Core\Widget
+{
 
-    public function getCategories()
+    public function getData()
     {
         $db = Db::getInstance();
         $_sql = "SELECT name, url, img FROM i_shop_structure_category";
