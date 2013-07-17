@@ -95,20 +95,27 @@ class ModGroups
         // Перемещение групп
         foreach ($rules['move'] as $v) {
             $child = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDchild'] . '"]');
-            $parent = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDparent'] . '"]');
+            if ($v['IDparent'] != '') {
+                $parent = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDparent'] . '"]');
+                // Проверяем, есть ли у нашего родителя ребёнки
+                $elem = $parent[0]->{'Группы'};
 
-            // Проверяем, есть ли у нашего родителя ребёнки
-            $elem = $parent[0]->{'Группы'};
+                // Если ребёнков нет, добавляем тэг Группы
+                if ($elem->count() == 0) {
+                    $elem = $parent[0]->addChild('Группы');
+                }
 
-            // Если ребёнков нет, добавляем тэг Группы
-            if ($elem->count() == 0) {
-                $elem = $parent[0]->addChild('Группы');
+                $domChild = dom_import_simplexml($child[0]);
+                $domParent = dom_import_simplexml($parent[0]);
+                $prnt = $domParent->getElementsByTagName('Группы');
+                $prnt->item(0)->appendChild($domChild);
+            } else {
+                $domChild = dom_import_simplexml($child[0]);
+                $domParent = dom_import_simplexml($this->groupsXML);
+                $domParent->appendChild($domChild);
             }
 
-            $domChild = dom_import_simplexml($child[0]);
-            $domParent = dom_import_simplexml($parent[0]);
-            $prnt = $domParent->getElementsByTagName('Группы');
-            $prnt->item(0)->appendChild($domChild);
+
         }
 
         // Переносит товар в родительскую группу, а подгруппы удаляет
