@@ -15,9 +15,9 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $this->categories = $db->queryArray($_sql);
 
         $request = new Request();
-        $currentCategory = $request->category;
+        $currentCategory = $request->toolbar['category'];
 
-        $select = '<select name="category"><option value="">Все статьи</option>';
+        $select = '<select name="toolbar[category]"><option value="">Все статьи</option>';
         foreach ($this->categories as $category) {
             $selected = '';
             if ($category['ID'] == $currentCategory) {
@@ -28,45 +28,6 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $select .= '</select>';
 
         return $select;
-    }
-
-
-    /**
-     * @param int $page Номер отображаемой страницы
-     * @param int $onPage Кол-во элементов на странице
-     * @return array Полученный список элементов
-     */
-    public function getList($page, $onPage)
-    {
-        $where = $this->getWhere("structure_path='{$this->structurePath}'");
-
-        if ($page == 0) $page = 1;
-        $start = ($page - 1) * $onPage;
-
-        $_sql = "SELECT * FROM {$this->_table} WHERE {$where}
-                          ORDER BY {$this->params['field_sort']} LIMIT {$start}, {$onPage}";
-        $db = Db::getInstance();
-        $list = $db->queryArray($_sql);
-
-        return $list;
-    }
-
-
-    /**
-     * Получить общее количество элементов в списке
-     * @return array Полученный список элементов
-     */
-    public function getListCount()
-    {
-        $db = Db::getInstance();
-
-        $where = $this->getWhere("structure_path='{$this->structurePath}'");
-
-        // Считываем все элементы первого уровня
-        $_sql = "SELECT COUNT(ID) FROM {$this->_table} WHERE {$where}";
-        $list = $db->queryArray($_sql);
-
-        return $list[0]['COUNT(ID)'];
     }
 
 
