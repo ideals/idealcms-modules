@@ -95,7 +95,7 @@ class ModGroups
         // Перемещение групп
         foreach ($rules['move'] as $v) {
             $child = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDchild'] . '"]');
-            if ($v['IDparent'] != '') {
+            if (isset($v['IDparent']) && $v['IDparent'] != '') {
                 $parent = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDparent'] . '"]');
                 // Проверяем, есть ли у нашего родителя ребёнки
                 $elem = $parent[0]->{'Группы'};
