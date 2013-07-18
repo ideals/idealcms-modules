@@ -10,7 +10,7 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
     {
         $db = Db::getInstance();
         $_table = 'i_shop_structure_category';
-        $structurePath = '11-2';
+        $structurePath = '1-22';
         $_sql = "SELECT * FROM {$_table} WHERE structure_path='{$structurePath}' AND is_active=1 ORDER BY cid";
         $this->categories = $db->queryArray($_sql);
 
