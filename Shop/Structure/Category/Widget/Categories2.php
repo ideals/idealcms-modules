@@ -14,40 +14,53 @@ class Categories2 extends \Ideal\Core\Widget
         $arr = array();
         $url = explode('/', $_GET['url']);
 
-        $_sql = 'SELECT url FROM i_ideal_structure_datalist WHERE parent_url = \'' . reset($url) . '\' LIMIT 1';
-        $catUrl = $db->queryArray($_sql);
-        $catUrl = $catUrl[0]['url'];
+        $_sql = 'SELECT * FROM i_shop_structure_category
+                    WHERE (lvl = 1 OR lvl = 2) AND structure_path="1-3" ORDER BY cid';
+        $menuList = $db->queryArray($_sql);
 
 
-        $_sql = 'SELECT * FROM i_shop_structure_category WHERE lvl = 1 ORDER BY cid';
-        $result = $db->queryArray($_sql);
-        $cid = '';
+        $num = 0;
+        $menu = array();
+        $parentUrl = '';
+        $isShowSubMenu = false;
+        foreach ($menuList as $v) {
+            if ($v['lvl'] == 1) {
+                if ($v['is_active'] == 1 && $v['is_not_menu'] == 0) {
+                    $num++;
+                    $parentUrl = $v['url'];
+                    $v['link'] = '/products/' . $v['url'] . '.html';
+                    $menu[$num] = $v;
+                    $isShowSubMenu = true;
+                } else {
+                    $isShowSubMenu = false;
+                }
+            } else {
+                if ($isShowSubMenu) {
+                    if ($v['is_active'] == 1 && $v['is_not_menu'] == 0) {
+                        $v['link'] = '/products/' . $parentUrl . '/' . $v['url'] . '.html';
+                        $menu[$num]['subMenu'][] = $v;
+                    }
+                }
+            }
+        }
 
         $path = $this->model->getPath();
-        end($path);
-        $parent = (count($path) > 3) ? prev($path) : array();
-        foreach ($result as $v) {
-            $k = $v['cid'];
-            if ($parent['cid'] == $v['cid']) {
-                $current = end($path);
-                $cid = rtrim($v['cid'], '0');
-                $_sql = 'SELECT * FROM i_shop_structure_category WHERE lvl=2 AND cid LIKE \'' . $cid . '%\' ORDER BY cid';
-                $result = $db->queryArray($_sql);
-                foreach ($result as $val) {
-                    if ($val['cid'] == $current['cid']) $arr[$k]['subMenu'][$val['cid']]['activeUrl'] = true;
-                    $val['link'] = '/' . reset($url) . '/' . $catUrl . '/' . $arr[$cid]['url'] . '/' . $v['url'] . $config->urlSuffix;
-                    $arr[$k]['subMenu'][$val['cid']] = $val;
+        $object = $this->model->object;
+
+        foreach ($menu as $k => $v) {
+            // Определяем активен ли данный пункт меню
+            $menu[$k]['activeUrl'] = 0;
+            if (isset($path[1]['ID']) and ($v['ID'] == $path[1]['ID'])) {
+                if (($object['ID'] == $v['ID']) AND ($object['lvl'] == 1)
+                    AND ($object['structure_path'] == $path[1]['structure_path'])) {
+                    $menu[$k]['link'] = '';
                 }
+                $menu[$k]['activeUrl'] = 1;
             }
-            if (end($url) == $v['url']) {
-                if ($v['lvl'] == 1 || $arr[$cid]['url'] == prev($url)) {
-                    $v['activeUrl'] = true;
-                }
-            }
-            $v['link'] = '/' . reset($url) . '/' . $catUrl . '/' . $v['url'] . $config->urlSuffix;
-            $arr[$k] = (isset($arr[$k])) ? array_merge($v, $arr[$k]) : $v;
         }
-        return $arr;
+
+        return $menu;
+
     }
 
 
