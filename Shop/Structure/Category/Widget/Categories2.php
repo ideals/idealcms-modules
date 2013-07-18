@@ -26,7 +26,7 @@ class Categories2 extends \Ideal\Core\Widget
         foreach ($menuList as $v) {
             if ($v['lvl'] == 1) {
                 if ($v['is_active'] == 1 && $v['is_not_menu'] == 0) {
-                    $num++;
+                    $num = rtrim($v['cid'], '0');
                     $parentUrl = $v['url'];
                     $v['link'] = '/products/' . $v['url'] . '.html';
                     $menu[$num] = $v;
@@ -46,16 +46,14 @@ class Categories2 extends \Ideal\Core\Widget
 
         $path = $this->model->getPath();
         $object = $this->model->object;
-
-        foreach ($menu as $k => $v) {
-            // Определяем активен ли данный пункт меню
-            $menu[$k]['activeUrl'] = 0;
-            if (isset($path[1]['ID']) and ($v['ID'] == $path[1]['ID'])) {
-                if (($object['ID'] == $v['ID']) AND ($object['lvl'] == 1)
-                    AND ($object['structure_path'] == $path[1]['structure_path'])) {
-                    $menu[$k]['link'] = '';
+        if ($object['structure_path'] == '1-3') {
+            $activeUrl = rtrim($object['cid'], '0');
+            $activeUrl = str_split($activeUrl, 3);
+            $menu[$activeUrl[0]]['activeUrl'] = 1;
+            foreach ($menu[$activeUrl[0]]['subMenu'] as $k => $elem) {
+                if($elem['cid'] == $object['cid']){
+                    $menu[$activeUrl[0]]['subMenu'][$k]['activeUrl'] = 1;
                 }
-                $menu[$k]['activeUrl'] = 1;
             }
         }
 
