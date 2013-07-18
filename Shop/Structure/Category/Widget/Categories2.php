@@ -23,26 +23,29 @@ class Categories2 extends \Ideal\Core\Widget
         $result = $db->queryArray($_sql);
         $cid = '';
 
-        $parent = end($this->model->getPath());
+        $path = $this->model->getPath();
+        end($path);
+        $parent = (count($path) > 3) ? prev($path) : array();
         foreach ($result as $v) {
             $k = $v['cid'];
+            if ($parent['cid'] == $v['cid']) {
+                $current = end($path);
+                $cid = rtrim($v['cid'], '0');
+                $_sql = 'SELECT * FROM i_shop_structure_category WHERE lvl=2 AND cid LIKE \'' . $cid . '%\' ORDER BY cid';
+                $result = $db->queryArray($_sql);
+                foreach ($result as $val) {
+                    if ($val['cid'] == $current['cid']) $arr[$k]['subMenu'][$val['cid']]['activeUrl'] = true;
+                    $val['link'] = '/' . reset($url) . '/' . $catUrl . '/' . $arr[$cid]['url'] . '/' . $v['url'] . $config->urlSuffix;
+                    $arr[$k]['subMenu'][$val['cid']] = $val;
+                }
+            }
             if (end($url) == $v['url']) {
-                if ($v['lvl'] == 1 || $arr[$cid]['url'] == prev($url)){
+                if ($v['lvl'] == 1 || $arr[$cid]['url'] == prev($url)) {
                     $v['activeUrl'] = true;
                 }
             }
-            if ($v['lvl'] == 2) {
-                if ($cid != substr($k, 0, 3)) {
-                    continue;
-                } else {
-                    $v['link'] = '/' . reset($url) . '/' . $catUrl . '/' . $arr[$cid]['url'] . '/' . $v['url'] . $config->urlSuffix;
-                    $arr[$cid]['subMenu'][] = $v;
-                    $arr[$cid]['activeUrl'] = true;
-                    continue;
-                }
-            }
             $v['link'] = '/' . reset($url) . '/' . $catUrl . '/' . $v['url'] . $config->urlSuffix;
-            $arr[$k] = $v;
+            $arr[$k] = (isset($arr[$k])) ? array_merge($v, $arr[$k]) : $v;
         }
         return $arr;
     }
