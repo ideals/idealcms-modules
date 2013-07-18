@@ -2,9 +2,12 @@
 namespace Shop\Structure\Service\Load1c;
 
 use Ideal;
+use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Field\Url;
 use Shop\Structure\Service\Load1c;
+use Shop\Structure\Type;
+use Shop\Structure\Category;
 
 class Tools
 {
@@ -50,15 +53,16 @@ class Tools
             'БазоваяЕдиница' => 'measure',
             'Картинка' => 'img',
             'ЗначенияСвойств' => array(
-                'Высота' => 'height',
-                'Диаметр' => 'diameter',
-                'Основное свойство' => 'general',
-                'Размер ячейки' => 'cell',
-                'Ширина' => 'width',
-                'Марка стали' => 'steel',
-                'Длина' => 'length',
+                'Артикул' => 'article',
+                'Кол-во в упаковке, шт' => 'quantity',
+                'Категория на сайте' => 'category',
+                'Мощность, Вт' => 'power_w',
+                'Размер' => 'size',
+                'Средний срок службы, ч' => 'average_life',
+                'Тип' => 'type',
+                'ДлЦветовая температура, Кина' => 'temperature',
+                'Цоколь' => 'socle',
                 'Цвет' => 'color',
-                'Количесто ребер жесткости' => 'rib',
             ),
             'ЗначенияРеквизитов' => array(
                 'Полное наименование' => 'full_name',
@@ -80,13 +84,27 @@ class Tools
 
         // Считываем категории из нашей БД
         $table = 'i_shop_structure_category';
-        $groups = $db->queryArray('SELECT ID, name, cid, lvl, id_1c, is_active, title FROM ' . $table . ' WHERE structure_path="1-96"');
+        $groups = $db->queryArray('SELECT ID, name, cid, lvl, id_1c, is_active, title FROM ' . $table . ' WHERE structure_path="1-3"');
 
         // Устанавливаем категории из БД
         $base->setOldGroups($groups);
         unset($groups);
 
         $txt = '';
+
+        // ОБРАБОТКА КАТЕГОРИЙ ТОВАРА
+
+        // Получаем изменённые категории
+        $changedGroups = $base->getLoadGroups();
+
+        echo '<h2>Категории</h2>';
+        echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
+        echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
+        echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
+
+        $table = 'i_shop_structure_category';
+        $txt = $this->updateCategories($db, $table, $txt, $changedGroups);
+        unset($changedGroups);
 
         // ОБРАБОТКА ТОВАРА
 
@@ -105,20 +123,6 @@ class Tools
         $txt = $this->updateGoods($db, $table, $txt, $changedGoods, $loadImg);
         unset($changedGoods);
 
-        // ОБРАБОТКА КАТЕГОРИЙ ТОВАРА
-
-        // Получаем изменённые категории
-        $changedGroups = $base->getLoadGroups();
-
-        echo '<h2>Категории</h2>';
-        echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
-        echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
-        echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
-
-        $table = 'i_shop_structure_category';
-        $txt = $this->updateCategories($db, $table, $txt, $changedGroups);
-        unset($changedGroups);
-
         // ПРИВЯЗКА ТОВАРА К КАТЕГОРИЯМ
 
         $this->updateGoodsToGroups($db, $base->getGoodsToGroups(), $base->status);
@@ -129,7 +133,11 @@ class Tools
 
     function updateCategories(Db $db, $table, $txt, $changedGroups)
     {
+
+        $modelType = new Type\Admin\Model('3-2');  //TODO нужно вынести
+        $modelType->loadType();
         foreach ($changedGroups['update'] as $v) {
+            if ($v['lvl'] == 1) $modelType->getIdType($v['name']);
             if ($v['Наименование'] != $v['name']) {
                 $txt .= 'Переименована категория &laquo;' . $v['name'] . '&raquo; в &laquo;'
                     . $v['Наименование'] . "\n";
@@ -150,13 +158,16 @@ class Tools
         $add = array(
             'date_create' => time(),
             'date_mod' => time(),
-            'structure_path' => '1-96',
+            'structure_path' => '1-3',
             'structure' => 'Shop_Category',
             'template' => 'Ideal_Page',
             'is_active' => 1
         );
 
         foreach ($changedGroups['add'] as $v) {
+            if ($v['lvl'] == 1) {
+                $modelType->getIdType($v['Наименование']);
+            }
             $v['id_1c'] = $v['Ид'];
             unset($v['Ид']);
             $v['name'] = $v['Наименование'];
@@ -182,6 +193,15 @@ class Tools
 
     function updateGoods(Db $db, $table, $txt, &$changedGoods, $loadImg = false)
     {
+        $modelType = new Type\Admin\Model('3-1'); //TODO нужно вынести
+        $modelBrand = new Type\Admin\Model('3-2'); //TODO нужно вынести
+        $modelCategory = new Category\Admin\Model('3-3'); //TODO нужно вынести
+        $modelCategory->loadCategory();
+        $par = array();
+
+
+        $modelType->loadType();
+        $modelBrand->loadType();
         foreach ($changedGoods['update'] as $v) {
             $v['is_active'] = 1;
             if ($v['img'] != null) {
@@ -199,19 +219,47 @@ class Tools
                 print_r($v);
                 exit;
             }
+            if (!isset($v['type'])) {
+                $v['idType'] = $modelType->getIdType('Не указан');
+            } else {
+                $v['idType'] = $modelType->getIdType($v['type']);
+            }
+            $par['id_1c'] = $v['id_1c'];
+            if ($v['category'] && $v['nameGroup']) {
+                $idCat = $modelCategory->getIdCategory($v['category'] . $modelCategory->getGlue() . $v['nameGroup'], $par);
+                $v['idCategory'] = $idCat['ID'];
+            }
+            $v['idBrand'] = $modelBrand->getIdType($v['nameGroup']);
+            unset($v['nameGroup']);
+            unset($v['category']);
             $db->update($table, $v['ID'], $v);
         }
 
         $add = array(
             'date_create' => time(),
             'date_mod' => time(),
-            'structure_path' => '4',
+            'structure_path' => '6',
             'is_active' => 1
         );
 
         foreach ($changedGoods['add'] as $v) {
             $v['url'] = Url\Model::translitUrl($v['name']);
             $v = array_merge($v, $add);
+
+            if (!isset($v['type'])) {
+                $v['idType'] = $modelType->getIdType('Не указан');
+            } else {
+                $v['idType'] = $modelType->getIdType($v['type']);
+            }
+
+            $par['id_1c'] = $v['id_1c'];
+            $v['idBrand'] = $modelBrand->getIdType($v['nameGroup']);
+            if ($v['category'] && $v['nameGroup']) {
+                $idCat = $modelCategory->getIdCategory($v['category'] . $modelCategory->getGlue() . $v['nameGroup'], $par);
+                $v['idCategory'] = $idCat['ID'];
+            }
+            unset($v['nameGroup']);
+            unset($v['category']);
             $db->insert($table, $v);
         }
 

@@ -52,13 +52,14 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             array_shift($url);
         }
 
-        if (count($url) == 1) {
+        // TODO исправить "хак" кеширования, ломает path для первого уровня справочника
+        //if (count($url) == 1) {
             // Для первого уровня категорий используем небольшой хак — кэширование категорий
-            $url = $this->detectPageByTag($url, $path);
-        } else {
+          //  $url = $this->detectPageByTag($url, $path);
+        //} else {
             // Для вложенных категорий используем стандартное средство обнаружения страницы
             $url = parent::detectPageByUrl($url, $path);
-        }
+        //}
 
         return $url;
     }

@@ -73,6 +73,7 @@ class Model
 
         $groups = array();
         foreach ($groupsXML->{'Группа'} as $child) {
+
             $id = (string)$child->{'Ид'};
             $groups[$id] = array(
                 'Ид' => $id,
@@ -419,6 +420,12 @@ class Model
 
             $id1c = (string)$child->{'Ид'};
 
+            $idGroup = $child->xpath('Группы/Ид');
+            $idGroup = (string)$idGroup[0];
+            $idGroup = $this->groups[$idGroup]['Наименование'];
+            $good['nameGroup'] = $idGroup;
+
+
             // Заполняем параметры товара
             foreach ($fields as $key => $value) {
                 if ($key == 'ЗначенияСвойств') {
@@ -436,6 +443,7 @@ class Model
                     echo 'Массив без парсера: ' . $key;
                     exit;
                 }
+
                 // Заполняем информацию о цене и количестве
                 if (isset($this->offers[$id1c]) AND isset($this->offers[$id1c][$key])) {
                     $good[$value] = $this->offers[$id1c][$key];
@@ -444,6 +452,12 @@ class Model
                 }
                 $good[$value] = (string)$child->$key;
             }
+
+            if(isset($good['article'])){
+                $good['name'] = str_replace($good['article'], "", $good['name']);
+                $good['name'] = trim($good['name']);
+            }
+
 
             if (!isset($this->offers[$id1c]) OR $this->offers[$id1c]['ЦенаЗаЕдиницу'] == 0) {
                 // В выгрузке цена нулевая, значит товар на сайте отображать не надо
@@ -465,6 +479,7 @@ class Model
             } else {
                 // Товара нет в БД сайта - добавляем
                 $goods['add'][] = $good;
+
             }
 
             // Считываем принадлежность товара к группам
