@@ -5,26 +5,30 @@ use Ideal\Core\Db;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
+    private $limit = 20;
+
     public function getGoods()
     {
         if (!isset($this->object['id_1c'])) {
             //return array();
         }
+        $page = ($_GET['page']) ? $_GET['page'] : 1;
+        $from = $this->limit * ($page - 1);
         $db = Db::getInstance();
         $categoryId = $this->object['ID'];
-        $_sql = "SELECT good_id FROM i_good_category WHERE category_id='{$categoryId}'";
-        $goodIdsArr = $db->queryArray($_sql);
-		if (count($goodIdsArr) == 0) {
-			return array();
-		}
-        $goodIs = array();
-        foreach ($goodIdsArr as $good) {
-            $goodIs[] = "'" . $good['good_id'] . "'";
-        }
-        $goodIs = implode(',', $goodIs);
-
-        $_sql = "SELECT * FROM i_shop_structure_good WHERE is_active=1 AND ID IN ({$goodIs}) ORDER BY name";
+        $_sql = "SELECT * FROM i_shop_structure_good WHERE idCategory='{$categoryId}' LIMIT {$from}, {$this->limit}";
         $goods = $db->queryArray($_sql);
+
         return $goods;
     }
+
+    public function pagginator(){
+        $db = Db::getInstance();
+        $categoryId = $this->object['ID'];
+        $_sql = "SELECT COUNT(*) FROM i_shop_structure_good WHERE idCategory='{$categoryId}'";
+        $count = $db->queryArray($_sql);
+        $count = reset($count[0]) / $this->limit;
+        return ceil($count);
+    }
+
 }
