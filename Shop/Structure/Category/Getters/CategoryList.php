@@ -35,7 +35,7 @@ class CategoryList
     {
         $db = Db::getInstance();
         $goodId = $this->obj->object['ID'];
-        $_sql = "SELECT category_id FROM i_good_category WHERE good_id='{$goodId}'";
+        $_sql = "SELECT category_id FROM i_shop_category_good WHERE good_id='{$goodId}'";
         $arr = $db->queryArray($_sql);
 
         $list = array();
@@ -49,8 +49,8 @@ class CategoryList
 
     public function getSqlAdd($newValue)
     {
-        $_sql = "DELETE FROM i_good_category WHERE good_id='{{ objectId }}';"
-              . "INSERT INTO i_good_category SET good_id='{{ objectId }}', category_id='{$newValue}';";
+        $_sql = "DELETE FROM i_shop_category_good WHERE good_id='{{ objectId }}';"
+              . "INSERT INTO i_shop_category_good SET good_id='{{ objectId }}', category_id='{$newValue}';";
         return $_sql;
     }
 

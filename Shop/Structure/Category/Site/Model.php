@@ -12,7 +12,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         $db = Db::getInstance();
         $categoryId = $this->object['ID'];
-        $_sql = "SELECT good_id FROM i_good_category WHERE category_id='{$categoryId}'";
+        $_sql = "SELECT good_id FROM i_shop_category_good WHERE category_id='{$categoryId}'";
         $goodIdsArr = $db->queryArray($_sql);
 		if (count($goodIdsArr) == 0) {
 			return array();
