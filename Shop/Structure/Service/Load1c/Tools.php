@@ -251,6 +251,16 @@ class Tools
             } else {
                 $v['idType'] = $modelType->getIdType($v['type']);
             }
+            if ($v['img'] != null) {
+                if ($loadImg) {
+                    $i = new Image($v['img'], 132, 132, 'big', false);
+                }
+                $image = basename($v['img']);
+                $dir = basename(str_replace('/' . $image, '', $v['img']));
+                $image = $dir . '/' . $image;
+                $v['img'] = $image;
+
+            }
 
             $par['id_1c'] = $v['id_1c'];
             $v['idBrand'] = $modelBrand->getIdType($v['nameGroup']);

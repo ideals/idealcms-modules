@@ -16,7 +16,9 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         $from = $this->limit * ($page - 1);
         $db = Db::getInstance();
         $categoryId = $this->object['ID'];
-        $_sql = "SELECT * FROM i_shop_structure_good WHERE idCategory='{$categoryId}' LIMIT {$from}, {$this->limit}";
+        $_sql = "SELECT t1.*,t2.name AS brand FROM i_shop_structure_good AS t1, i_shop_structure_type AS t2
+                    WHERE t2.id=t1.idBrand AND idCategory='{$categoryId}' LIMIT {$from}, {$this->limit}";
+        //$_sql = "SELECT * FROM i_shop_structure_good WHERE idCategory='{$categoryId}' LIMIT {$from}, {$this->limit}";
         $goods = $db->queryArray($_sql);
 
         return $goods;

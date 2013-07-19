@@ -19,20 +19,22 @@
                 <div class="catalog_item_inside">
                     <div class="img">
                         <a href="{{ good.url }}" title="{{ good.name }}">
-                            <img src="{{ good.img }}">
+                            <img src="/images/1c/big/{{ good.img }}">
                         </a>
                     </div>
-                    <div class="name">
+                    <div style="height: 50px">
                         <a href="{{ good.url }}">{{ good.name }}</a>
                     </div>
-                    <div class="brand"></div>
-                    <div class="txt"></div>
+                    <div class="brand">{{ good.brand }}</div>
                     <div class="price">
-                        {{ good.price }}
+                        {{ good.price }} руб
                     </div>
                 </div>
             </div>
         {% endfor %}
+        <div style="clear: both"></div>
+
+        
     {% endif %}
 
 {% endblock %}
