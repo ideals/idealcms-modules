@@ -25,6 +25,7 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
         $pass = crypt($pass, $tmp[0]['password']);
         if ($pass === $tmp[0]['password']) {
             $_SESSION['login']['user'] = $email;
+            $_SESSION['login']['ID'] = $tmp[0]['ID'];
             if ($tmp[0]['is_active'] == 1) {
                 $_SESSION['login']['input'] = true;
             } else {
