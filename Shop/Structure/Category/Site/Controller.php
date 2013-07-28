@@ -9,6 +9,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
     public function indexAction()
     {
         parent::indexAction();
-        $this->view->goods = $this->model->getGoods();
+        $this->view->goods = $this->view->parts;
+        unset($this->view->parts);
     }
 }

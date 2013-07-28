@@ -7,7 +7,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
     private $limit = 20;
 
-    public function getGoods()
+    public function getList($page, $onPage)
     {
         if (!isset($this->object['id_1c'])) {
             //return array();
@@ -23,6 +23,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         return $goods;
     }
+
 
     public function pagginator(){
         $db = Db::getInstance();
