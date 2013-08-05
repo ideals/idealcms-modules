@@ -5,25 +5,17 @@
 
     {{ template.content|raw }}
 
-    {% if parts|length > 0 %}
-        <ul>
-            {% for part in parts %}
-                <li><a href="{{ part.url }}.html">{{ part.name }}</a></li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
     {% if goods|length > 0 %}
         {% for good in goods %}
             <div class="catalog_item">
                 <div class="catalog_item_inside">
                     <div class="img">
-                        <a href="{{ good.url }}" title="{{ good.name }}">
+                        <a href="{{ good.link }}" title="{{ good.name }}">
                             <img src="/images/1c/big/{{ good.img }}">
                         </a>
                     </div>
                     <div style="height: 50px">
-                        <a href="{{ good.url }}">{{ good.name }}</a>
+                        <a href="{{ good.link }}">{{ good.name }}</a>
                     </div>
                     <div class="brand">{{ good.brand }}</div>
                     <div class="price">

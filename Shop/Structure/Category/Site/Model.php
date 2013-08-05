@@ -2,6 +2,7 @@
 namespace Shop\Structure\Category\Site;
 
 use Ideal\Core\Db;
+use Ideal\Core\Config;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
@@ -9,8 +10,14 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function getList($page, $onPage)
     {
+        $config = Config::getInstance();
         if (!isset($this->object['id_1c'])) {
             //return array();
+        }
+        $link = '';
+        foreach ($this->getPath() as $k => $v) {
+            if ($v['url'] == '' || $v['is_active'] == 0) continue;
+            $link .= '/' . $v['url'];
         }
         $page = ($_GET['page']) ? $_GET['page'] : 1;
         $from = $this->limit * ($page - 1);
@@ -20,6 +27,9 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
                     WHERE t2.id=t1.idBrand AND idCategory='{$categoryId}' LIMIT {$from}, {$this->limit}";
         //$_sql = "SELECT * FROM i_shop_structure_good WHERE idCategory='{$categoryId}' LIMIT {$from}, {$this->limit}";
         $goods = $db->queryArray($_sql);
+        foreach ($goods as $k => $v) {
+            $goods[$k]['link'] = $link . '/' . $v['url'] . $config->urlSuffix;
+        }
 
         return $goods;
     }

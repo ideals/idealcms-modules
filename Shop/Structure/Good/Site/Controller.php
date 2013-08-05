@@ -12,7 +12,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
     {
         $this->templateInit();
 
-        $this->model->detectCurrentCategory($this->path);
+        //$this->model->detectCurrentCategory($this->path);
 
         $header = '';
         $templatesVars = $this->model->getTemplatesVars();
@@ -28,7 +28,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 
         $this->view->header = $this->model->getHeader($header);
 
-        //$this->view->good = $this->model->object;
+        $this->view->good = $this->model->object;
     }
 
 }
