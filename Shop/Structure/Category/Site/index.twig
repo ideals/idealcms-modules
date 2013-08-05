@@ -25,6 +25,20 @@
             </div>
         {% endfor %}
         <div style="clear: both"></div>
+        {%if pages|length > 0 %}
+            <div class="pages_nums">
+                <ul>
+                    {% for page in pages %}
+                        {% if page.current == 1 %}
+                            <li class="active"><a>{{ page.num }}</a></li>
+                        {% else %}
+                            <li><a href="{{ page.url }}">{{ page.num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <div style="clear: both"></div>
 
         
     {% endif %}

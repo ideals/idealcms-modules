@@ -33,15 +33,4 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         return $goods;
     }
-
-
-    public function pagginator(){
-        $db = Db::getInstance();
-        $categoryId = $this->object['ID'];
-        $_sql = "SELECT COUNT(*) FROM i_shop_structure_good WHERE idCategory='{$categoryId}'";
-        $count = $db->queryArray($_sql);
-        $count = reset($count[0]) / $this->limit;
-        return ceil($count);
-    }
-
 }
