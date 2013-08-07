@@ -22,7 +22,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
         $this->view->goods = $this->view->parts;
         $request = new Request();
         $page = intval($request->page);
-        $onPage = $this->model->params['elements_cms'];
+        $onPage = 20;
 
         $pagination = new Pagination();
         $this->view->pages = $pagination->getPages($countList,
@@ -30,5 +30,8 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
         $this->view->pagePrev = $pagination->getPrev();
         $this->view->pageNext = $pagination->getNext();
         unset($this->view->parts);
+        if($this->model->object['lvl'] == 1){
+            $this->view->showMainSubMenu = 1;
+        }
     }
 }

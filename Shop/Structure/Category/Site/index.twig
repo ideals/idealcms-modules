@@ -3,6 +3,22 @@
 {% block content %}
     <h1>{{ header }}</h1>
 
+    {% if showMainSubMenu %}
+        {% for item in categoryShop %}
+            {% if item.activeUrl %}
+                {% for subMenu in item.subMenu %}
+                    <div style="width: 150px; text-align: center; float: left; margin: 0 15px 10px 0">
+                        <div style="height: 100px">
+                            {% if subMenu.img %}<img src="{{ subMenu.img }}"
+                                                     style="border: 1px solid #000000;">{% endif %}
+                        </div>
+                        <a href="{{ subMenu.link }}">{{ subMenu.name }}</a>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     {{ template.content|raw }}
 
     {% if goods|length > 0 %}
@@ -25,7 +41,7 @@
             </div>
         {% endfor %}
         <div style="clear: both"></div>
-        {%if pages|length > 0 %}
+        {% if pages|length > 0 %}
             <div class="pages_nums">
                 <ul>
                     {% for page in pages %}
@@ -40,7 +56,7 @@
         {% endif %}
         <div style="clear: both"></div>
 
-        
+
     {% endif %}
 
 {% endblock %}
