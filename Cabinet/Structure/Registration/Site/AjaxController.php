@@ -42,7 +42,6 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
 
     public function registrationAction()
     {
-        session_start();
         $answer = array();
         $answer['error'] = 0;
         $answer['text'] = '';
@@ -59,38 +58,29 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
             $answer['error'] = 1;
         }
 
-        // Check captcha
-        $c = $_POST['captcha'];
-        $c = md5($c);
-        if ($c != $_SESSION['cryptcode']) {
-            $answer['text'] .= "Не верная captcha";
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $table = $config->db['prefix'] . 'cabinet_structure_registration';
+        $tmp = $db->queryArray("SELECT ID FROM {$table} WHERE email='{$_POST['email']}' LIMIT 1");
+        if (count($tmp) > 0) {
+            $answer['text'] = 'Такой Email зарегестрирован';
             $answer['error'] = 1;
-        }
-        if (!$answer['error']) {
+        } else {
+            $structure_path = $config->getStructureByName('Cabinet_Registration');
+            $structure_path = $structure_path['ID'];
 
-            $db = Db::getInstance();
-            $config = Config::getInstance();
-            $table = $config->db['prefix'] . 'cabinet_structure_registration';
-            $tmp = $db->queryArray("SELECT ID FROM {$table} WHERE email='{$_POST['email']}' LIMIT 1");
-            if (count($tmp) > 0) {
-                $answer['text'] = 'Такой Email зарегестрирован';
-                $answer['error'] = 1;
-            } else {
-                $structure_path = $config->getStructureByName('Cabinet_Registration');
-                $structure_path = $structure_path['ID'];
-
-                $key = md5(time());
-                $db->insert($config->db['prefix'] . 'cabinet_structure_registration', array(
-                    'email' => $_POST['email'],
-                    'password' => $_POST['pass'],
-                    'fio' => $fio,
-                    'phone' => $phone,
-                    'is_active' => 0,
-                    'structure_path' => $structure_path,
-                    'act_key' => $key,
-                    'reg_date' => time()
-                ));
-                $message = <<<EOT
+            $key = md5(time());
+            $db->insert($config->db['prefix'] . 'cabinet_structure_registration', array(
+                'email' => $_POST['email'],
+                'password' => $_POST['pass'],
+                'fio' => $fio,
+                'phone' => $phone,
+                'is_active' => 0,
+                'structure_path' => $structure_path,
+                'act_key' => $key,
+                'reg_date' => time()
+            ));
+            $message = <<<EOT
 Для продолжение регистрации перейдите по ссылке http://{$config->domain}/cabinet.html?email=$email&key=$key
 
 Имя: $fio
@@ -100,16 +90,15 @@ Email: $email
 Сообщение: $mess
 EOT;
 
-                $title = 'Регистрация';
-                $to = $email;
-                $headers = "From: {$config->robotEmail}\r\n"
-                    . "Content-type: text/plain; charset=\"utf-8\"";
-                if (mail($to, $title, $message, $headers)) {
-                    $answer['text'] = 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
-                } else {
-                    $answer['text'] = 'Ошибка. Попробуйте чуть позже';
-                    $answer['error'] = 1;
-                }
+            $title = 'Регистрация';
+            $to = $email;
+            $headers = "From: {$config->robotEmail}\r\n"
+                . "Content-type: text/plain; charset=\"utf-8\"";
+            if (mail($to, $title, $message, $headers)) {
+                $answer['text'] = 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
+            } else {
+                $answer['text'] = 'Ошибка. Попробуйте чуть позже';
+                $answer['error'] = 1;
             }
         }
 
