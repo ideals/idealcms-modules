@@ -21,6 +21,7 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
             list($header, $text) = $this->model->extractHeader($templatesVars['template']['content']);
             $templatesVars['template']['content'] = $text;
         }
+        $this->view->properties = unserialize($this->model->object['properties']);
 
         foreach($templatesVars as $k => $v) {
             $this->view->$k = $v;

@@ -12,8 +12,9 @@
                     <div class="price">{{ good.price }} руб.</div>
                     <h3>Технические характеристики</h3>
                     <ul class="param">
-                        <li><b>Артикул:</b> {{ good.article }}</li>
-                        <li><b>Тип:</b> {{ good.type }}</li>
+                        {% for key, value in properties %}
+                            <li><b>{{ key }}:</b> {{ value }}</li>
+                        {% endfor %}
                     </ul>
                 </div>
             </div>
