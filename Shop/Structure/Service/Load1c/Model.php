@@ -4,6 +4,7 @@ namespace Shop\Structure\Service\Load1c;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Field\Cid;
+use Ideal\Field\Url;
 
 class Model
 {
@@ -18,6 +19,7 @@ class Model
     // full | update — выгружается весь каталог или только изменения
     public $status;
     protected $oldGroups;
+    protected $fields;
 
 
     /**
@@ -59,6 +61,20 @@ class Model
         } else {
             $this->status = 'update';
         }
+    }
+
+    protected function loadFields($fields = array()){
+        $arr = array();
+        foreach($this->props as $k => $v){
+            if($fields[$v]){
+                $tmp = $fields[$v];
+            }else{
+                $tmp = Url\Model::translitUrl($v);
+            }
+            $arr[$k]['eng'] = $tmp;
+            $arr[$k]['ori'] = $v;
+        }
+        $this->fields = $arr;
     }
 
 
@@ -150,8 +166,8 @@ class Model
         }
         foreach ($node->children() as $item) {
             $itemId = (string)$item->{'Ид'};
-            if (!isset($fields[$this->props[$itemId]])) continue;
-            $fieldName = $fields[$this->props[$itemId]];
+            if (!isset($fields[$itemId])) continue;
+            $fieldName = $fields[$itemId]['ori']; // TODO ori or eng
             $props[$fieldName] = (string)$item->{'Значение'};
         }
         return $props;
@@ -414,6 +430,8 @@ class Model
             'update' => array(),
             'delete' => array()
         );
+
+        $this->loadFields($fields['ЗначенияСвойств']);
         foreach ($goodsXML as $child) {
             //print_r($child);
             $good = array();
@@ -430,8 +448,9 @@ class Model
             foreach ($fields as $key => $value) {
                 if ($key == 'ЗначенияСвойств') {
                     // Считываем свойства
-                    $properties = $this->getGoodProperties($child->{$key}, $fields[$key]);
-                    $good = array_merge($good, $properties);
+                    $properties = $this->getGoodProperties($child->{$key}, $this->fields);
+                    $properties = serialize($properties);
+                    $good['properties'] = $properties;
                     continue;
                 } elseif ($key == 'ЗначенияРеквизитов') {
                     // Считываем реквизиты
