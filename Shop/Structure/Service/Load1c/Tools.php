@@ -110,7 +110,8 @@ class Tools
 
         // Считываем товар из нашей БД
         $table = 'i_shop_structure_good';
-        $goods = $db->queryArray('SELECT ID, name, id_1c, is_active FROM ' . $table . ' WHERE structure_path="4"');
+        //$_sql = 'SELECT ID, name, id_1c, is_active FROM ' . $table . ' WHERE structure_path="6"';
+        $goods = $db->queryArray('SELECT ID, name, id_1c, is_active FROM ' . $table . ' WHERE structure_path="6"'); //TODO нужно вынести
 
         $changedGoods = $base->getGoods($fields, $goods);
 
@@ -165,6 +166,7 @@ class Tools
         );
 
         foreach ($changedGroups['add'] as $v) {
+            $v['name'] = trim($v['name']);
             if ($v['lvl'] == 1) {
                 $modelType->getIdType($v['Наименование']);
             }
@@ -181,7 +183,7 @@ class Tools
         }
 
         foreach ($changedGroups['delete'] as $v) {
-            $par = array('is_active' => 0);
+            $par = array('is_active' => 1);
             $db->update($table, $v['ID'], $par);
             $txt .= 'Удалена категория: ' . $v['name'] . "\n";
 
@@ -243,7 +245,8 @@ class Tools
         );
 
         foreach ($changedGoods['add'] as $v) {
-            $v['url'] = Url\Model::translitUrl($v['name']);
+            $v['name'] = trim($v['name']);
+            $v['url'] = Url\Model::translitUrl(preg_replace('/ {2,}/',' ',$v['name']));
             $v = array_merge($v, $add);
 
             if (!isset($v['type'])) {

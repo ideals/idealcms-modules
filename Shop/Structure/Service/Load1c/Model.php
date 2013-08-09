@@ -449,6 +449,7 @@ class Model
                 if ($key == 'ЗначенияСвойств') {
                     // Считываем свойства
                     $properties = $this->getGoodProperties($child->{$key}, $this->fields);
+                    $good['category'] = $properties['Категория на сайте'];
                     $properties = serialize($properties);
                     $good['properties'] = $properties;
                     continue;
