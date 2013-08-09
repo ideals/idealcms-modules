@@ -19,8 +19,6 @@
         {% endfor %}
     {% endif %}
 
-    {{ template.content|raw }}
-
     {% if goods|length > 0 %}
         {% for good in goods %}
             <div class="catalog_item">
@@ -40,23 +38,28 @@
                 </div>
             </div>
         {% endfor %}
-        <div style="clear: both"></div>
-        {% if pages|length > 0 %}
-            <div class="pages_nums">
-                <ul>
-                    {% for page in pages %}
-                        {% if page.current == 1 %}
-                            <li class="active"><a>{{ page.num }}</a></li>
-                        {% else %}
-                            <li><a href="{{ page.url }}">{{ page.num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
-        <div style="clear: both"></div>
+
 
 
     {% endif %}
+
+    {% if pages|length > 1 %}
+        <div class="pages_nums">
+            <ul>
+                {% for page in pages %}
+                    {% if page.current == 1 %}
+                        <li class="active"><a>{{ page.num }}</a></li>
+                    {% else %}
+                        <li><a href="{{ page.url }}">{{ page.num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <div style="margin-bottom: 60px;"></div>
+
+    {{ template.content|raw }}
+
+
 
 {% endblock %}

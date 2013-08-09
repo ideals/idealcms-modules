@@ -27,10 +27,8 @@ class Categories2 extends \Ideal\Core\Widget
                 $v['link'] = '/products/' . $v['url'] . $config->urlSuffix;
                 $menu[$num] = $v;
             } else {
-                if ($v['is_active'] == 1 && $v['is_not_menu'] == 0) {
-                    $v['link'] = '/products/' . $parentUrl . '/' . $v['url'] . $config->urlSuffix;
-                    $menu[$num]['subMenu'][] = $v;
-                }
+                $v['link'] = '/products/' . $parentUrl . '/' . $v['url'] . $config->urlSuffix;
+                $menu[$num]['subMenu'][] = $v;
             }
         }
         unset($menuList);
