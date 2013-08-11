@@ -4,6 +4,7 @@ namespace Shop\Structure\Service\Load1c;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Field\Cid;
+use Ideal\Field\Url;
 
 class Model
 {
@@ -18,6 +19,7 @@ class Model
     // full | update — выгружается весь каталог или только изменения
     public $status;
     protected $oldGroups;
+    protected $fields;
 
 
     /**
@@ -61,6 +63,20 @@ class Model
         }
     }
 
+    protected function loadFields($fields = array()){
+        $arr = array();
+        foreach($this->props as $k => $v){
+            if($fields[$v]){
+                $tmp = $fields[$v];
+            }else{
+                $tmp = Url\Model::translitUrl($v);
+            }
+            $arr[$k]['eng'] = $tmp;
+            $arr[$k]['ori'] = $v;
+        }
+        $this->fields = $arr;
+    }
+
 
     /**
      * Превращение групп товаров из SimpleXML объекта в многомерный массив
@@ -73,6 +89,7 @@ class Model
 
         $groups = array();
         foreach ($groupsXML->{'Группа'} as $child) {
+
             $id = (string)$child->{'Ид'};
             $groups[$id] = array(
                 'Ид' => $id,
@@ -149,8 +166,8 @@ class Model
         }
         foreach ($node->children() as $item) {
             $itemId = (string)$item->{'Ид'};
-            if (!isset($fields[$this->props[$itemId]])) continue;
-            $fieldName = $fields[$this->props[$itemId]];
+            if (!isset($fields[$itemId])) continue;
+            $fieldName = $fields[$itemId]['ori']; // TODO ori or eng
             $props[$fieldName] = (string)$item->{'Значение'};
         }
         return $props;
@@ -413,18 +430,28 @@ class Model
             'update' => array(),
             'delete' => array()
         );
+
+        $this->loadFields($fields['ЗначенияСвойств']);
         foreach ($goodsXML as $child) {
             //print_r($child);
             $good = array();
 
             $id1c = (string)$child->{'Ид'};
 
+            $idGroup = $child->xpath('Группы/Ид');
+            $idGroup = (string)$idGroup[0];
+            $idGroup = $this->groups[$idGroup]['Наименование'];
+            $good['nameGroup'] = $idGroup;
+
+
             // Заполняем параметры товара
             foreach ($fields as $key => $value) {
                 if ($key == 'ЗначенияСвойств') {
                     // Считываем свойства
-                    $properties = $this->getGoodProperties($child->{$key}, $fields[$key]);
-                    $good = array_merge($good, $properties);
+                    $properties = $this->getGoodProperties($child->{$key}, $this->fields);
+                    $good['category'] = $properties['Категория на сайте'];
+                    $properties = serialize($properties);
+                    $good['properties'] = $properties;
                     continue;
                 } elseif ($key == 'ЗначенияРеквизитов') {
                     // Считываем реквизиты
@@ -436,6 +463,7 @@ class Model
                     echo 'Массив без парсера: ' . $key;
                     exit;
                 }
+
                 // Заполняем информацию о цене и количестве
                 if (isset($this->offers[$id1c]) AND isset($this->offers[$id1c][$key])) {
                     $good[$value] = $this->offers[$id1c][$key];
@@ -444,6 +472,12 @@ class Model
                 }
                 $good[$value] = (string)$child->$key;
             }
+
+            if(isset($good['article'])){
+                $good['name'] = str_replace($good['article'], "", $good['name']);
+                $good['name'] = trim($good['name']);
+            }
+
 
             if (!isset($this->offers[$id1c]) OR $this->offers[$id1c]['ЦенаЗаЕдиницу'] == 0) {
                 // В выгрузке цена нулевая, значит товар на сайте отображать не надо
@@ -465,6 +499,7 @@ class Model
             } else {
                 // Товара нет в БД сайта - добавляем
                 $goods['add'][] = $good;
+
             }
 
             // Считываем принадлежность товара к группам

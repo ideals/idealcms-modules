@@ -53,7 +53,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         foreach ($list as $k => $v) {
             if ($v['lvl'] > $lvl) {
                 if ($v['url'] != '/') {
-                    $url[] = $list[$k-1];
+                    $url[] = $list[$k - 1];
                 }
                 $urlModel->setParentUrl($url);
             } elseif ($v['lvl'] < $lvl) {

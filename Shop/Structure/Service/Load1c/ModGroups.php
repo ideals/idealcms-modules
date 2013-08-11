@@ -30,17 +30,23 @@ class ModGroups
             ),
             // Правила на удаление групп
             'delete' => array( //'id_1c_element_for_delete' => 1
+                'b8d1a5a7-7fab-11e1-9984-002354786c00' => 1
 
             ),
             // Правила на перемещение групп
             'move' => array( /*array(
                     // менять только значения
                     'IDchild' => 'child_id', // ID категории которую переносим
-                    'IDparent' => 'parent_id' // ID категории куда переносим
+                    'IDparent' => 'parent_id' // ID категории куда переносим если оставить пустым или не указать его, то перемещение состоится в главный каталог
                 )*/
+                array(
+                    'IDchild' => 'b8d1a5a8-7fab-11e1-9984-002354786c00',
+                    'IDparent' => ''
+                )
 
             ),
             'plain' => array( // 'ID' // ID группы в которой все подгруппы переместятся в родительскую
+                'badaa0e8-6b69-11e2-918b-c86000e1c601','b8d1a5a8-7fab-11e1-9984-002354786c00'
             )
         );
 
@@ -94,6 +100,7 @@ class ModGroups
 
         // Перемещение групп
         foreach ($rules['move'] as $v) {
+
             $child = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDchild'] . '"]');
             if (isset($v['IDparent']) && $v['IDparent'] != '') {
                 $parent = $this->groupsXML->xpath('//Группа[Ид="' . $v['IDparent'] . '"]');
