@@ -5,11 +5,8 @@ use Ideal\Core\Db;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
-    public function getGoods()
+    public function getWhere($where)
     {
-        if (!isset($this->object['id_1c'])) {
-            //return array();
-        }
         $db = Db::getInstance();
         $categoryId = $this->object['ID'];
         $_sql = "SELECT good_id FROM i_shop_category_good WHERE category_id='{$categoryId}'";
@@ -23,8 +20,10 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         $goodIs = implode(',', $goodIs);
 
-        $_sql = "SELECT * FROM i_shop_structure_good WHERE is_active=1 AND ID IN ({$goodIs}) ORDER BY name";
-        $goods = $db->queryArray($_sql);
-        return $goods;
+        $where .= "AND is_active=1 AND ID IN ({$goodIs})";
+
+        $this->params['field_sort'] = 'name';
+
+        return $where;
     }
 }

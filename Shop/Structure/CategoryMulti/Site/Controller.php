@@ -9,27 +9,12 @@ class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 {
     /* @var $model Model */
     protected $model;
+    protected $isPager = true;
 
     public function indexAction()
     {
+        $this->model->params['elements_site'] = 20;
         parent::indexAction();
-        $db = Db::getInstance();
-        $id = end($this->path);
-        $id = $id['ID'];
-        $_sql = "SELECT COUNT(*) AS r FROM i_shop_structure_good WHERE idCategory={$id}";
-        $countList = $db->queryArray($_sql);
-        $countList = $countList[0]['r'] or 1;
-        $this->view->goods = $this->view->parts;
-        $request = new Request();
-        $page = intval($request->page);
-        $onPage = 20;
-
-        $pagination = new Pagination();
-        $this->view->pages = $pagination->getPages($countList,
-            $onPage, $page, $request->getQueryWithout('page'), 'page');
-        $this->view->pagePrev = $pagination->getPrev();
-        $this->view->pageNext = $pagination->getNext();
-        unset($this->view->parts);
         if($this->model->object['lvl'] == 1){
             $this->view->showMainSubMenu = 1;
         }
