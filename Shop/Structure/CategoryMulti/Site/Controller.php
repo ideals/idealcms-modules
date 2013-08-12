@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Category\Site;
+namespace Shop\Structure\CategoryMulti\Site;
 
 use Ideal\Core\Pagination;
 use Ideal\Core\Request;
