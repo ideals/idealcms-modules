@@ -17,7 +17,8 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $page = intval($request->page);
 
         $goods = new \Shop\Structure\Good\Site\Model($this->goodsStructurePath);
-        $this->view->goods = $goods->getListByCategory($page, $this->model->object['ID']);
+        $goods->setCategoryId($this->model->object['ID']);
+        $this->view->goods = $goods->getList($page);
 
         $this->view->pager = $goods->getPager($page, $request->getQueryWithout('page'));
     }

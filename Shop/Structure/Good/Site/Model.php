@@ -4,46 +4,33 @@ namespace Shop\Structure\Good\Site;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Field\Url;
-use Ideal\Core\Pagination;
 
-class Model extends \Ideal\Structure\Part\Site\ModelAbstract
+class Model extends \Ideal\Core\Site\Model
 {
+    /** @var  ID категории для которой нужно отобразить список товаров */
+    protected $categoryId;
 
-    public function getListByCategory($page, $categoryId)
+    public function setCategoryId($categoryId)
     {
-        $onPage = $this->params['elements_site'];
-
-        $page = ($page == 0) ? 1 : $page;
-        $from = $onPage * ($page - 1);
-        $db = Db::getInstance();
-
-        if (isset($this->fields['category_id'])) {
-            $_sql = "SELECT * FROM {$this->_table} WHERE structure_path={$this->structurePath}
-                        AND category_id={$categoryId}";
-        } else {
-            $_sql = "SELECT * FROM {$this->_table} AS g LEFT JOIN i_shop_category_good AS cg ON cg.good_id = g.ID
-                    WHERE cg.category_id = '{$categoryId}'";
-        }
-        $_sql .= " AND is_active=1 ORDER BY {$this->params['field_sort']} LIMIT {$from}, {$onPage}";
-        $goods = $db->queryArray($_sql);
-
-        return $goods;
+        $this->categoryId = $categoryId;
     }
 
 
-    public function getPager($page, $query)
+    public function getWhere($where)
     {
-        $page = ($page == 0) ? 1 : $page;
-        $onPage = $this->params['elements_site'];
-        $countList = $this->getListCount();
+        if (isset($this->fields['category_id'])) {
+            // Для случая, когда товар привязан к одной категории
+            $where = "WHERE {$where} AND category_id={$this->categoryId}";
+        } else {
+            // Для случая, когда товар привязан к разным категориям
+            $config = Config::getInstance();
+            $prefix = $config->db['prefix'];
+            $where = " LEFT JOIN {$prefix}shop_category_good AS cg ON cg.good_id = e.ID
+                    WHERE {$where} AND cg.category_id = '{$this->categoryId}'";
+        }
+        $where .= ' AND is_active=1';
 
-        $pagination = new Pagination();
-        $pager['pages'] = $pagination->getPages($countList,
-            $onPage, $page, $query, 'page');
-        $pager['prev'] = $pagination->getPrev();
-        $pager['next'] = $pagination->getNext();
-
-        return $pager;
+        return $where;
     }
 
 
@@ -65,16 +52,6 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         $this->object = end($list);
 
         return array();
-    }
-
-
-    public function getTitle()
-    {
-        if (isset($this->object['title']) AND $this->object['title'] != '') {
-            return $this->object['title'];
-        } else {
-            return $this->object['name'];
-        }
     }
 
 
