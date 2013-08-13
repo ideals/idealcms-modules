@@ -4,8 +4,11 @@ namespace Shop\Structure\Category\Site;
 use Ideal\Core\Request;
 use Ideal\Core\Db;
 
-class ControllerAbstract extends \Ideal\Structure\Part\Site\ControllerAbstract
+class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
+    /** @var structure_path для товаров, связанных с этими категориями */
+    protected $goodsStructurePath;
+
     public function indexAction()
     {
         parent::indexAction();

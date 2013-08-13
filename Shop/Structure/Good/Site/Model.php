@@ -43,6 +43,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         $pager['prev'] = $pagination->getPrev();
         $pager['next'] = $pagination->getNext();
 
+        return $pager;
     }
 
 
