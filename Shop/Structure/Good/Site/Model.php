@@ -4,23 +4,47 @@ namespace Shop\Structure\Good\Site;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Field\Url;
+use Ideal\Core\Pagination;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
 
-    public function getList($page, $onPage)
+    public function getListByCategory($page, $categoryId)
     {
-        $config = Config::getInstance();
+        $onPage = $this->params['elements_site'];
 
-        $page = ($_GET['page']) ? $_GET['page'] : 1;
-        $from = $this->limit * ($page - 1);
+        $page = ($page == 0) ? 1 : $page;
+        $from = $onPage * ($page - 1);
         $db = Db::getInstance();
-        $categoryId = $this->object['ID'];
-        $_sql = "SELECT * FROM i_shop_structure_good AS ssg LEFT JOIN i_shop_category_good AS scg ON scg.good_id = ssg.id WHERE scg.category_id = '{$categoryId}' LIMIT {$from}, {$this->limit}";
+
+        if (isset($this->fields['category_id'])) {
+            $_sql = "SELECT * FROM {$this->_table} WHERE structure_path={$this->structurePath}
+                        AND category_id={$categoryId}";
+        } else {
+            $_sql = "SELECT * FROM {$this->_table} AS g LEFT JOIN i_shop_category_good AS cg ON cg.good_id = g.ID
+                    WHERE cg.category_id = '{$categoryId}'";
+        }
+        $_sql .= " AND is_active=1 ORDER BY {$this->params['field_sort']} LIMIT {$from}, {$onPage}";
         $goods = $db->queryArray($_sql);
 
         return $goods;
     }
+
+
+    public function getPager($page, $query)
+    {
+        $page = ($page == 0) ? 1 : $page;
+        $onPage = $this->params['elements_site'];
+        $countList = $this->getListCount();
+
+        $pagination = new Pagination();
+        $pager['pages'] = $pagination->getPages($countList,
+            $onPage, $page, $query, 'page');
+        $pager['prev'] = $pagination->getPrev();
+        $pager['next'] = $pagination->getNext();
+
+    }
+
 
     public function detectPageByUrl($url, $path)
     {
