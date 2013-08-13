@@ -28,7 +28,7 @@ class Categories2 extends \Ideal\Core\Widget
     public function getData()
     {
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM i_shop_structure_categorymulti
+        $_sql = "SELECT * FROM i_shop_structure_category
                     WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0 AND structure_path='{$this->structurePath}' ORDER BY cid";
         $menuList = $db->queryArray($_sql);
 

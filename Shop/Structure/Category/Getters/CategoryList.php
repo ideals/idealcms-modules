@@ -19,7 +19,7 @@ class CategoryList
     public function  getList()
     {
         $db = Db::getInstance();
-        $_sql = 'SELECT ID, name FROM i_shop_structure_categorymulti';
+        $_sql = 'SELECT ID, name FROM i_shop_structure_category';
         $arr = $db->queryArray($_sql);
 
         $list = array();

@@ -9,7 +9,7 @@ class Categories extends \Ideal\Core\Widget
     public function getData()
     {
         $db = Db::getInstance();
-        $_sql = "SELECT name, url, img FROM i_shop_structure_categorymulti";
+        $_sql = "SELECT name, url, img FROM i_shop_structure_category";
         $goodGroup = $db->queryArray($_sql);
 
         return $goodGroup;
