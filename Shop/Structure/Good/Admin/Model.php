@@ -52,6 +52,10 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
                 . mysql_real_escape_string($currentCategory) . ')';
         }
 
+        if ($where != '') {
+            $where = 'WHERE ' . $where;
+        }
+
         return $where;
     }
 }
