@@ -8,7 +8,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
     private $limit = 20;
 
-    public function getList($page, $onPage)
+   /* public function getList($page, $onPage)
     {
         $config = Config::getInstance();
         if (!isset($this->object['id_1c'])) {
@@ -32,5 +32,5 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
 
         return $goods;
-    }
+    }*/
 }

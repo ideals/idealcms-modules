@@ -8,6 +8,20 @@ use Ideal\Field\Url;
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
 
+    public function getList($page, $onPage)
+    {
+        $config = Config::getInstance();
+
+        $page = ($_GET['page']) ? $_GET['page'] : 1;
+        $from = $this->limit * ($page - 1);
+        $db = Db::getInstance();
+        $categoryId = $this->object['ID'];
+        $_sql = "SELECT * FROM i_shop_structure_good AS ssg LEFT JOIN i_shop_category_good AS scg ON scg.good_id = ssg.id WHERE scg.category_id = '{$categoryId}' LIMIT {$from}, {$this->limit}";
+        $goods = $db->queryArray($_sql);
+
+        return $goods;
+    }
+
     public function detectPageByUrl($url, $path)
     {
         $db = Db::getInstance();
