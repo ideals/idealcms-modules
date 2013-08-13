@@ -13,8 +13,10 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         $db = Db::getInstance();
         $categoryId = $this->object['ID'];
        // $_sql = "SELECT * FROM i_shop_structure_categorymulti AS ssc WHERE ssc.ID IN (SELECT  scg.good_id FROM i_shop_category_good AS scg WHERE scg.category_id ='{$categoryId}')";
-        $_sql = "SELECT * FROM i_shop_structure_categorymulti AS ssc
-                    LEFT JOIN i_shop_category_good AS scg ON ssc.ID = scg.good_id WHERE scg.category_id = '{$categoryId}' LIMIT {$from}, {$this->limit}";
+        /*$_sql = "SELECT * FROM i_shop_structure_categorymulti AS ssc
+                    JOIN i_shop_category_good AS scg ON ssc.ID = scg.good_id WHERE scg.category_id = '{$categoryId}' LIMIT {$from}, {$this->limit}";*/
+
+        $_sql = "SELECT * FROM i_shop_structure_good AS ssg LEFT JOIN i_shop_category_good AS scg ON scg.good_id = ssg.id WHERE scg.category_id = '{$categoryId}' LIMIT {$from}, {$this->limit}";
         $goods = $db->queryArray($_sql);
         return $goods;
     }
