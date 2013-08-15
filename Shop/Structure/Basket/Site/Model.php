@@ -25,6 +25,11 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             if ($key == 'count' OR $key == 'total_price') continue;
             if (!empty($value['price'])) $in[] = $key;
         }
+
+        if (count($in) === 0) {
+            return $in;
+        }
+
         $in = '(' . implode(',', $in) . ')';
 
         $_sql = "SELECT * FROM i_shop_structure_good WHERE ID IN {$in}";
