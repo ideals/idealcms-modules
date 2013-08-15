@@ -19,7 +19,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $goods = new \Shop\Structure\Good\Site\Model($this->goodsStructurePath);
         $goods->setCategoryId($this->model->object['ID']);
         $goods->setCategoryCid($this->model->object['cid']);
-        \FB::log($this->model->object);
+        $goods->setCategoryLvl($this->model->object['lvl']);
         $this->view->goods = $goods->getList($page);
 
         $this->view->pager = $goods->getPager($page, $request->getQueryWithout('page'));
