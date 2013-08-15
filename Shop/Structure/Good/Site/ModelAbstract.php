@@ -7,12 +7,12 @@ use Ideal\Field\Url;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
-    /** @var  ID категории для которой нужно отобразить список товаров */
-    protected $categoryId;
+    /** @var  категория для которой нужно отобразить список товаров */
+    protected $category;
 
-    public function setCategoryId($categoryId)
+    public function setCategory($category)
     {
-        $this->categoryId = $categoryId;
+        $this->category = $category;
     }
 
 
@@ -20,13 +20,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         if (isset($this->fields['category_id'])) {
             // Для случая, когда товар привязан к одной категории
-            $where = "WHERE {$where} AND category_id={$this->categoryId}";
+            $where = "WHERE {$where} AND category_id={$this->category['id']}";
         } else {
             // Для случая, когда товар привязан к разным категориям
             $config = Config::getInstance();
             $prefix = $config->db['prefix'];
             $where = " LEFT JOIN {$prefix}shop_category_good AS cg ON cg.good_id = e.ID
-                    WHERE {$where} AND cg.category_id = '{$this->categoryId}'";
+                    WHERE {$where} AND cg.category_id = '{$this->category['id']}'";
         }
         $where .= ' AND is_active=1';
 
