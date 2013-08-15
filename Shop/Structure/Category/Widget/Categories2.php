@@ -38,17 +38,17 @@ class Categories2 extends \Ideal\Core\Widget
         $url = new \Ideal\Field\Url\Model();
         foreach ($menuList as $v) {
             if ($v['lvl'] == 1) {
-                $num = $v['cid'];
+                // todo заменить цифру 3 на params['digit']
+                $num = substr($v['cid'], 0, 3);
                 $parentUrl = $v['url'];
                 $v['link'] = $url->getUrlWithPrefix($v, $this->prefix);
+                $v['subMenu'] = array();
                 $menu[$num] = $v;
             }
             if ($v['lvl'] == 2) {
-                if ($v['is_active'] == 1 && $v['is_not_menu'] == 0) {
-                    $prefix = $this->prefix . '/' . $parentUrl;
-                    $v['link'] = $url->getUrlWithPrefix($v, $prefix);
-                    $menu[$num]['subMenu'][] = $v;
-                }
+                $prefix = $this->prefix . '/' . $parentUrl;
+                $v['link'] = $url->getUrlWithPrefix($v, $prefix);
+                $menu[$num]['subMenu'][] = $v;
             }
         }
         unset($menuList);
