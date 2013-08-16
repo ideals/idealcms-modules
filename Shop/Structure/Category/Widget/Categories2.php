@@ -61,6 +61,7 @@ class Categories2 extends \Ideal\Core\Widget
         if ($object['structure_path'] == $this->structurePath) {
             $activeUrl = substr($object['cid'], 0, $digits);
             $menu[$activeUrl]['activeUrl'] = 1;
+            $menu[$activeUrl]['classActiveUrl'] = 'activeMenu';
             foreach ($menu[$activeUrl]['subMenu'] as $k => $elem) {
                 if ($elem['cid'] == $object['cid']) {
                     $menu[$activeUrl]['subMenu'][$k]['activeUrl'] = 1;
