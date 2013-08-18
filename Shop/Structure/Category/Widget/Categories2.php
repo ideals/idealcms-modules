@@ -17,11 +17,7 @@ class Categories2 extends \Ideal\Core\Widget
 
     public function setPrefix($prefix)
     {
-        $prefix = explode('/', $prefix);
-        foreach ($prefix as $v) {
-            $path['url'] = $v;
-        }
-        $this->prefix = $path;
+        $this->prefix = $prefix;
     }
 
 
