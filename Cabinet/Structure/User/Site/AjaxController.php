@@ -1,5 +1,5 @@
 <?php
-namespace Cabinet\Structure\Registration\Site;
+namespace Cabinet\Structure\User\Site;
 
 use Ideal\Core\Config;
 use Ideal\Core\Db;
@@ -18,7 +18,7 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
 
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'cabinet_structure_registration';
+        $table = $config->db['prefix'] . 'cabinet_structure_user';
 
         $tmp = $db->queryArray("SELECT ID,password,last_visit,is_active FROM {$table} WHERE email='{$email}' LIMIT 1");
 
@@ -60,17 +60,17 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
 
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'cabinet_structure_registration';
+        $table = $config->db['prefix'] . 'cabinet_structure_user';
         $tmp = $db->queryArray("SELECT ID FROM {$table} WHERE email='{$_POST['email']}' LIMIT 1");
         if (count($tmp) > 0) {
             $answer['text'] = 'Такой Email зарегестрирован';
             $answer['error'] = 1;
         } else {
-            $structure_path = $config->getStructureByName('Cabinet_Registration');
+            $structure_path = $config->getStructureByName('Cabinet_User');
             $structure_path = $structure_path['ID'];
 
             $key = md5(time());
-            $db->insert($config->db['prefix'] . 'cabinet_structure_registration', array(
+            $db->insert($config->db['prefix'] . 'cabinet_structure_user', array(
                 'email' => $_POST['email'],
                 'password' => $_POST['pass'],
                 'fio' => $fio,

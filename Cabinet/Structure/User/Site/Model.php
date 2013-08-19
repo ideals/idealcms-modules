@@ -1,6 +1,6 @@
 <?php
 
-namespace Cabinet\Structure\Registration\Site;
+namespace Cabinet\Structure\User\Site;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;

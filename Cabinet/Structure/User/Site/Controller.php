@@ -1,6 +1,6 @@
 <?php
 
-namespace Cabinet\Structure\Registration\Site;
+namespace Cabinet\Structure\User\Site;
 
 class Controller extends \Ideal\Structure\Part\Site\ControllerAbstract
 {

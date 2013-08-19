@@ -1,6 +1,6 @@
 <?php
 
-namespace Cabinet\Structure\Registration\Site;
+namespace Cabinet\Structure\User\Site;
 
 use Ideal\Core\Site\Router;
 use Ideal\Structure;
@@ -14,11 +14,11 @@ class Plugin
         $config = Config::getInstance();
 
         if ($_GET['url'] == 'cabinet') {
-            $id = $config->getStructureByName('Cabinet_Registration');
+            $id = $config->getStructureByName('Cabinet_User');
             $id = $id['ID'];
 
-            $router->setPath(array(array('structure' => 'Cabinet_Registration', 'url' => 'cabinet', 'ID' => $id)));
-            $router->setControllerName('\\Cabinet\\Structure\\Registration\\Site\\Controller');
+            $router->setPath(array(array('structure' => 'Cabinet_User', 'url' => 'cabinet', 'ID' => $id)));
+            $router->setControllerName('\\Cabinet\\Structure\\User\\Site\\Controller');
         }
 
         if ($_GET['url'] == 'logout') {
