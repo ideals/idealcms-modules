@@ -41,13 +41,13 @@ class Categories2 extends \Ideal\Core\Widget
             if ($v['lvl'] == 1) {
                 $num = substr($v['cid'], 0, $digits);
                 $parentUrl = $v['url'];
-                $v['link'] = $url->getUrlWithPrefix($v, $this->prefix);
+                $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $this->prefix) . '"';
                 $v['subMenu'] = array();
                 $menu[$num] = $v;
             }
             if ($v['lvl'] == 2) {
                 $prefix = $this->prefix . '/' . $parentUrl;
-                $v['link'] = $url->getUrlWithPrefix($v, $prefix);
+                $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $prefix) . '"';
                 $menu[$num]['subMenu'][] = $v;
             }
         }
@@ -56,6 +56,7 @@ class Categories2 extends \Ideal\Core\Widget
         $object = $this->model->object;
         if ($object['structure_path'] == $this->structurePath) {
             $activeUrl = substr($object['cid'], 0, $digits);
+            if(!isset($menuList[$activeUrl])) return $menu;
             $menu[$activeUrl]['activeUrl'] = 1;
             $menu[$activeUrl]['classActiveUrl'] = 'activeMenu';
             foreach ($menu[$activeUrl]['subMenu'] as $k => $elem) {
