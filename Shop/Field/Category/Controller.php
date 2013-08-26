@@ -34,8 +34,20 @@ class Controller extends \Ideal\Field\AbstractController
 
     public function parseInputValue($isCreate)
     {
-        $this->newValue = null;
+        if (isset($this->model->fields['category_id'])) {
+            // Если товар связан с категорией напрямую через поле category_id
+            $this->newValue = $this->pickupNewValue();
+            $item = array(
+                'fieldName' => $this->htmlName,
+                'value' => $this->newValue,
+                'message' => '',
+            );
+            return $item;
+        }
 
+        // Если товар связан с категорией через промежуточную таблицу
+
+        $this->newValue = null;
         $newValue = $this->pickupNewValue();
 
         $item = array(

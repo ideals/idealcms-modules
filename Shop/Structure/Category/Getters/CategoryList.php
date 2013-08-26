@@ -34,6 +34,12 @@ class CategoryList
     public function getVariants()
     {
         $db = Db::getInstance();
+
+        if (isset($this->obj->fields['category_id'])) {
+            // Если связь товара с категорией через поле в таблице товара
+            $arr = (isset($this->obj->object['category_id'])) ? array($this->obj->object['category_id']) : array();
+            return $arr;
+        }
         $goodId = $this->obj->object['ID'];
         $_sql = "SELECT category_id FROM i_shop_category_good WHERE good_id='{$goodId}'";
         $arr = $db->queryArray($_sql);
