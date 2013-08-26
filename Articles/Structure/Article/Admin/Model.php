@@ -49,6 +49,9 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
             $where .= 'ID IN (SELECT article_id FROM i_articles_category_article WHERE category_id='
                 . mysql_real_escape_string($currentCategory) . ')';
         }
+        if($where != ''){
+            $where = 'WHERE '.$where;
+        }
 
         return $where;
     }
