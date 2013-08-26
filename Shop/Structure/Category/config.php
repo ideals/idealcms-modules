@@ -29,11 +29,6 @@ return array(
             'sql'   => 'int(8) unsigned not null auto_increment primary key',
             'type'  => 'Ideal_Hidden'
         ),
-        'id_1c' => array(
-            'label' => 'ID в 1С',
-            'sql'   => 'char(37)',
-            'type'  => 'Ideal_Text'
-        ),
         'structure_path' => array(
             'label' => 'ID родительских структур',
             'sql'   => 'char(15)',
@@ -57,7 +52,7 @@ return array(
         ),
         'template' => array(
             'label'     => 'Тип документа',
-            'sql'       => "varchar(20) not null default 'Page'",
+            'sql'       => "varchar(20) not null default 'Ideal_Page'",
             'type'      => 'Ideal_Template',
             'class'     => '\\Ideal\\Structure\\Part\\Getters\\TemplateList',
             'templates' =>  array('Ideal_Page', 'Ideal_PhpFile'),
@@ -76,11 +71,6 @@ return array(
             'label' => 'Описание',
             'sql'   => 'text',
             'type'  => 'Ideal_Area'
-        ),
-        'num' => array(
-            'label' => 'Количество товаров в категории',
-            'sql'   => 'int(11) NOT NULL DEFAULT 0',
-            'type'  => 'Ideal_Text'
         ),
         'img' => array(
             'label' => 'Картинка',
@@ -116,12 +106,6 @@ return array(
             'label' => 'Пропускать уровень',
             'sql'   => "bool DEFAULT '0' NOT NULL",
             'type'  => 'Ideal_Checkbox'
-        ),
-        'url_full' => array(
-            'tab'   => 'SEO',
-            'label' => 'URL FULL',
-            'sql'   => 'varchar(255)',
-            'type'  => 'Ideal_Text'
         ),
         'title' => array(
             'tab'   => 'SEO',

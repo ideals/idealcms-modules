@@ -8,7 +8,7 @@ return array(
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
         'field_sort'    => 'name ASC', // поле, по которому проводится сортировка в CMS
-        'field_list'    => array('name', 'is_active', 'date_create')
+        'field_list'    => array('name', 'price', 'url', 'is_active', 'date_create')
      ),
     'fields'   => array (
         'ID' => array(
@@ -21,9 +21,9 @@ return array(
             'sql'   => 'char(15)',
             'type'  => 'Ideal_Hidden'
         ),
-        'category' => array(
+        'category_id' => array(
             'label' => 'Категория',
-            'sql'   => '',
+            'sql'   => 'int(11) not null',
             'type'  => 'Shop_Category',
             'class' => '\\Shop\\Structure\\Category\\Getters\\CategoryList'
         ),
@@ -39,11 +39,6 @@ return array(
         ),
         'price' => array(
             'label' => 'Цена за единицу',
-            'sql'   => 'int',
-            'type'  => 'Shop_Price'
-        ),
-        'alt_price' => array(
-            'label' => 'Цена по акции',
             'sql'   => 'int',
             'type'  => 'Shop_Price'
         ),
