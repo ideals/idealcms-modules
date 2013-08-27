@@ -20,7 +20,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $goods->setCategory($this->model->object);
 
         $this->view->goods = $goods->getList($page);
-        $this->view->pager = $goods->getPager($page, $request->getQueryWithout('page'));
+        $this->view->pager = $goods->getPager('page');
     }
 
 }
