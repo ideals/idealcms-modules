@@ -41,26 +41,36 @@ class Categories2 extends \Ideal\Core\Widget
             if ($v['lvl'] == 1) {
                 $num = substr($v['cid'], 0, $digits);
                 $parentUrl = $v['url'];
-                $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $this->prefix) . '"';
+                if (isset($v['url_full']) && strlen($v['url_full']) > 1) {
+                    $v['link'] = 'href="' . $v['url_full'] . $config->urlSuffix . '"';
+                } else {
+                    $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $this->prefix) . $config->urlSuffix . '"';
+                }
                 $v['subMenu'] = array();
                 $menu[$num] = $v;
             }
             if ($v['lvl'] == 2) {
                 $prefix = $this->prefix . '/' . $parentUrl;
-                $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $prefix) . '"';
+                if (isset($v['url_full']) && strlen($v['url_full']) > 1) {
+                    $v['link'] = 'href="' . $v['url_full'] . $config->urlSuffix . '"';
+                } else {
+                    $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $prefix) . $config->urlSuffix . '"';
+                }
                 $menu[$num]['subMenu'][] = $v;
             }
         }
         unset($menuList);
 
         $object = $this->model->object;
-        if ($object['structure_path'] == $this->structurePath) {
+        if (isset($object['structure_path']) &&$object['structure_path'] == $this->structurePath) {
             $activeUrl = substr($object['cid'], 0, $digits);
-            if(!isset($menuList[$activeUrl])) return $menu;
+            if (!isset($menu[$activeUrl])) return $menu;
             $menu[$activeUrl]['activeUrl'] = 1;
             $menu[$activeUrl]['classActiveUrl'] = 'activeMenu';
             foreach ($menu[$activeUrl]['subMenu'] as $k => $elem) {
-                if ($elem['cid'] == $object['cid']) {
+                $elem['cid'] = rtrim($elem['cid'], '0');
+                $cid = substr($object['cid'], 0, strlen($elem['cid']));
+                if ($elem['cid'] == $cid) {
                     $menu[$activeUrl]['subMenu'][$k]['activeUrl'] = 1;
                 }
             }
