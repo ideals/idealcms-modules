@@ -1,0 +1,108 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <div class="catalog">
+        <h1>{{ header }}</h1>
+
+
+        {% if parts|length > 0 %}
+            <ul>
+                {% for part in parts %}
+                    <li><a href="{{ part.link }}">{{ part.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <div class="clear"></div>
+
+        {% if goods|length > 0 %}
+            <div class="goods">
+                <ul>
+                    {% for good in goods %}
+                        <li>
+                            {% if good.new %}
+                                <div class="new"></div>{% endif %}
+                            <a {{ good.link|raw }} title="{{ good.name }}">
+                                <img src="/images/1c/big/{{ good.img }}" alt="{{ good.name }}">
+                            </a>
+
+
+                            <p class="name"><a {{ good.link|raw }}>{{ good.name }}</a></p>
+
+                            <p class="product_s_desc">
+                            </p>
+
+                            <p class="price">
+                                {{ good.price }} р. </p>
+                            <!-- popup -->
+
+                            <div class="popup {% if not(loop.index%4) %}popupR{% endif %}">
+                                <p class="h">{{ good.name }}</p>
+                                <dl>
+                                    {% for key,value in good.properties %}
+                                        <dt>{{ key }}:</dt>
+                                        <dd>{{ value }}</dd>
+                                    {% endfor %}
+                                </dl>
+                            </div>
+                            <!-- /popup -->
+                        </li>
+
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <div class="clear"></div>
+
+        {% if pages|length > 1 %}
+            <div class="pages_nums">
+                <ul>
+                    {% for page in pages %}
+                        {% if page.current == 1 %}
+                            <li class="active"><a>{{ page.num }}</a></li>
+                        {% else %}
+                            <li><a href="{{ page.url }}">{{ page.num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <div style="margin-bottom: 60px;"></div>
+
+        {{ template.content|raw }}
+    </div>
+
+
+{% endblock %}
+
+{% macro outputList(list) %}
+    <li {% if list.isActivePage %} class="active" {% endif %}><a {{ list.link|raw }}>{{ list.name }}</a>
+        {% if list.isActivePage %}
+            {% if list.subCategoryList|length > 0 %}
+                <ul>
+                    {% for list in list.subCategoryList %}
+                        {{ _self.outputList(list) }}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+    </li>
+{% endmacro %}
+
+{% block slider %}
+    {% import _self as tools %}
+    <div class="sidebar">
+        <ul>
+            {% for item in listCat %}
+                <li {% if item.isActivePage %} class="active" {% endif %}><a {{ item.link|raw }}>{{ item.name }}</a>
+                    {% if item.isActivePage %}
+                        <ul class="menu">
+                            {% for subItem in item.subCategoryList %}
+                                {{ tools.outputList(subItem) }}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

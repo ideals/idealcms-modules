@@ -1,0 +1,163 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <div>
+
+        <h1>{{ good.name }}</h1>
+
+        <div id="photo-hidden">
+            <div class="main-image" style="float:left;" onclick="hidePhoto();">
+                <img id="photo-detail" src="/images/1c/big/{{ good.img }}" alt="{{ good.name }}"
+                     title="Нажмите, чтобы вернуться к описанию">
+            </div>
+            <div class="additional-images">
+                {% for item in good.imgs %}
+                    <div onclick="detailPhoto('{{ loop.index }}', '/images/1c/big/{{ item }}');"
+                         id="photo-detail-small-{{ loop.index }}" class="photo-detail-small
+                         {% if loop.first %}active-detail-photo{% endif %}">
+                        <img class="product-image" alt="{{ good.name }}"
+                             src="/images/1c/little/{{ item }}">
+                    </div>
+                {% endfor %}
+                <div class="clear"></div>
+            </div>
+        </div>
+        <div class="productdetails-view">
+            <div class="width50 floatleft">
+                <div class="main-image" onclick="showPhoto()">
+                    <div id="wrap" style="top:0px;z-index:9999;position:relative;">
+                        <a class="cloud-zoom" id="zoom1" href="/images/1c/original/{{ good.img }}"
+                           style="position: relative; display: block;">
+                            <img id="big-photo" src="/images/1c/medium/{{ good.img }}" alt="{{ good.name }}"
+                                 style="display: block;">
+                        </a>
+                    </div>
+                </div>
+                <div class="additional-images">
+                    {% for item in good.imgs %}
+                        <a onclick="clickPhoto({{ loop.index }}); return false;" id="small-photo-{{ loop.index }}"
+                           class="small-photo cloud-zoom-gallery {% if loop.first %}active-photo{% endif %}"
+                           href="/images/1c/original/{{ item }}"
+                           rel="useZoom: 'zoom1', smallImage: '/images/1c/medium/{{ item }}'">
+                            <img class="product-image" alt="{{ good.name }}"
+                                 src="/images/1c/little/{{ item }}">
+                        </a>
+                    {% endfor %}
+
+
+                    <div class="clear"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="width50 floatright">
+                    <div class="product-price">
+                        <div>Цена:</div>
+                        <div class="product-detail-price">
+                            <div class="PricesalesPrice" style="display : block;">
+                                <span class="PricesalesPrice"><span class="price">{{ good.price }}</span> руб</span>
+                                <span class="mod hide">{{ good.mod }}</span>
+                            </div>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                    <div class="product-size">
+                        <p>Размер:</p>
+                        {% for size in good.offers %}
+                            <input value="{{ size.price }}" onclick="changePrice(this,{{ size.count }})" type="radio" name="size"
+                                   {% if loop.first %}checked="checked"{% endif %} data-mod="{{ size.ID }}">
+                            {{ size.size }} = {{ size.price }}
+                            <br>
+                        {% endfor %}
+                    </div>
+                    <div class="addtocart-area">
+                        <div class="quantity-row">
+                            <script type="text/javascript">
+                            </script>
+                            Количество:
+	                        <span class="quantity-box">
+                                <img src="/i/arr-l.png" onclick="changeQuntity(-1)" class="minus"/>
+		                        <input type="text" class="quantity-input js-recalculate quantity-goods"
+                                       name="quantity[]" data-mx="{{ good.stock|number_format }}" value="1" onchange="changeQuntity(0)">
+                                <img src="/i/arr-r.png" onclick="changeQuntity(1)" class="plus"/>
+	                        </span>
+
+                            <span class="addtocart-button addToCart">
+                                <img id="{{ good.ID }}" src="/i/cart.png" title="Добавить в корзину"
+                                     class="cart-goods addBasket"/>
+                            </span>
+
+                        </div>
+
+                        <div class="clear"></div>
+                    </div>
+
+                    <table class="description-product-detail">
+                        <tr>
+                            <th class="left">Описание товара</th>
+                            <th class="right">&nbsp;</th>
+                        </tr>
+                        {% for key,option in good.properties %}
+                            <tr>
+                                <td class="left">{{ key|raw }}</td>
+                                <td class="right">{{ option|raw }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td class="right bottom" colspan="2">
+                                <p><font color="#413003">{{ good.content|raw }}</font></p>
+                            </td>
+                        </tr>
+                    </table>
+
+
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
+
+
+    </div>
+
+{% endblock %}
+
+{% block scriptsHead %}
+    <script type="text/javascript">
+        function hidePhoto() {
+            $('#photo-hidden').hide();
+            $('.productdetails-view').show();
+        }
+        function detailPhoto(id, url) {
+            $('.photo-detail-small').removeClass('active-detail-photo');
+            $('#photo-detail-small-' + id).addClass('active-detail-photo');
+            $('#photo-detail').attr('src', url);
+        }
+        function showPhoto() {
+            $('.productdetails-view').hide();
+            $('#photo-hidden').show();
+        }
+        function clickPhoto(id) {
+            $('.small-photo').removeClass('active-photo');
+            $('#small-photo-' + id).addClass('active-photo');
+            $('#photo-detail-small-' + id).click();
+        }
+        function changeQuntity(qunt) {
+            var tmp = parseInt($('.quantity-input').val());
+            if (qunt < 0 && tmp < 2) return false;
+            $('.quantity-input').val(tmp + qunt);
+            var count = parseInt($('.quantity-input').attr('data-mx'));
+            console.log(count);
+            console.log(qunt);
+            if(tmp+qunt > count){
+                alert("На данный момент на складе не достаточно кол-во товара, но Вы можете заказать. Наш менеджер с Вами свяжиться для уточнения.");
+            }
+        }
+        function changePrice(e,count) {
+            $('.price').html($(e).val());
+            $('.quantity-input').attr('data-mx',count);
+        }
+    </script>
+{% endblock %}
+
+{% block styleHead %}
+{% endblock %}

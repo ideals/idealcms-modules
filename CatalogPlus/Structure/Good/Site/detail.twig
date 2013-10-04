@@ -1,0 +1,48 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <h1>{{ good.name }}</h1>
+
+    {{ template.content|raw }}
+
+    <div style="display: block; padding: 30px;">
+        <div id="left" style="width: 500px; float: left">
+            <img src="{{ good.img }}"/><br/>
+
+            <div style="text-align: center; margin: 10px 0 17px 0;">
+                <form id="basket">
+                    <input type="hidden" name="ID" value="{{ good.ID }}">
+                    {% if good.alt_price > 0 %}
+                        <input type="hidden" name="price" value="{{ good.alt_price }}">
+                    {% else %}
+                        <input type="hidden" name="price" value="{{ good.price }}">
+                    {% endif %}
+                </form>
+                {% if good.alt_price > 0 %}
+                    <span style="font-size: 24px; color: red; text-decoration: line-through;">{{ good.price }}
+                        руб </span>
+                    &nbsp;&nbsp;&nbsp;
+                    <span style="font-size: 24px;">{{ good.alt_price }}</span> руб
+                {% else %}
+                    <span style="font-size: 24px;">{{ good.price }}</span> руб
+                {% endif %}
+                <button class="shk-but" type="submit">
+                    В корзину
+                </button>
+                <br>
+                {% if basket[good.ID] %}
+                <span id="countBasket" style="font-size: 12px;">
+            {% else %}
+                    <span class="hide" id="countBasket" style="font-size: 12px;">
+            {% endif %}
+                        <span id="textBasket">Количество <a href="/basket">в корзине</a>: </span>
+                <span id="count" style="font-size: 12px;">
+                    {{ basket[good.ID]['amount'] ? basket[good.ID]['amount'] : 0 }}
+                </span>
+            </span>
+            </div>
+        </div>
+        {{ good.content|raw }}
+    </div>
+
+{% endblock %}
