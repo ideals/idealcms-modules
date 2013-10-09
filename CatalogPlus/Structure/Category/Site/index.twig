@@ -32,6 +32,7 @@
                             </p>
 
                             <p class="price">
+                                {% if good.oldPrice %}<span class="oldPrice">{{ good.oldPrice }} р.</span>{% endif %}
                                 {{ good.price }} р. </p>
                             <!-- popup -->
 

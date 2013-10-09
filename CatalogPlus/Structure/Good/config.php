@@ -71,6 +71,18 @@ return array(
             'sql'   => 'varchar(255) not null',
             'type'  => 'Ideal_Text'
         ),
+        'sell' => array(
+            'tab'   => 'info',
+            'label' => 'Скидка',
+            'sql'   => 'int(11) null',
+            'type'  => 'Ideal_Text'
+        ),
+        'sell_date' => array(
+            'tab'   => 'info',
+            'label' => 'Дата действия скидки',
+            'sql'   => 'int(11) null',
+            'type'  => 'Ideal_Text'
+        ),
         'stock' => array(
             'tab'   => 'info',
             'label' => 'Кол-во',

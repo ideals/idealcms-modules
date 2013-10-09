@@ -4,19 +4,27 @@ namespace CatalogPlus\Structure\Good\Site;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
+use Ideal\Field\Url;
 
 class Model extends ModelAbstract{
 
     public function getAboutGood(){
         $db = Db::getInstance();
+        $config = Config::getInstance();
         $good = $this->path;
         $good = end($good);
         $good['properties'] = unserialize($good['properties']);
+        $good['properties']['Бренд'] = '<a href="/catalog/brand/' . Url\Model::translitUrl($good['properties']['Бренд']) . $config->urlSuffix . '">'
+            . $good['properties']['Бренд'] . '</a>';
         $good['properties']['Артикул'] = $good['articul'];
         $good['imgs'] = explode('|:|', $good['imgs']);
         array_unshift($good['imgs'],$good['img']);
         $_sql = "SELECT * FROM i_offers_good WHERE good_id='{$good['id_1c']}' ORDER BY price,size";
         $good['offers'] = $db->queryArray($_sql);
+        if (isset($good['sell']) && $good['sell'] != null) {
+            $good['oldPrice'] = $good['price'];
+            $good['price'] = ceil($good['price'] - $good['price'] / 100 * $good['sell']);
+        }
         return $good;
     }
     public function detectPath1()

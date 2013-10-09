@@ -51,15 +51,23 @@
 
             <div>
                 <div class="width50 floatright">
+                    <div class="hide infoProd">
+                        <span class="price">{{ good.oldPrice?good.oldPrice:good.price }}</span>
+                        <span class="sell">{{ good.sell?(good.oldPrice-good.price):0 }}</span>
+                    </div>
                     <div class="product-price">
                         <div>Цена:</div>
                         <div class="product-detail-price">
                             <div class="PricesalesPrice" style="display : block;">
-                                <span class="PricesalesPrice"><span class="price">{{ good.price }}</span> руб</span>
+                                <span class="PricesalesPrice">{{ good.price }} руб</span>
                                 <span class="mod hide">{{ good.mod }}</span>
                             </div>
                         </div>
+                        {% if good.sell %}
+                            <div class="product-detail-discount">({{ good.sell }}%)</div>{% endif %}
                         <div class="clear"></div>
+                        {% if good.oldPrice %}
+                            <div class="product-detail-base-price">{{ good.oldPrice }} руб.</div>{% endif %}
                     </div>
                     <div class="product-size">
                         <p>Размер:</p>
