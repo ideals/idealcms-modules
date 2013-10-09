@@ -8,5 +8,9 @@ class Controller extends \Ideal\Core\Site\Controller
         parent::indexAction();
 
         $this->view->goods = $this->model->getGoods();
+
+        $basket = $_COOKIE['basket'];
+        $basket = json_decode($basket, true);
+        $this->view->basket = $basket;
     }
 }
