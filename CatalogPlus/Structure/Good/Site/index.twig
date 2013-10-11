@@ -54,12 +54,13 @@
                     <div class="hide infoProd">
                         <span class="price">{{ good.oldPrice?good.oldPrice:good.price }}</span>
                         <span class="sell">{{ good.sell?(good.oldPrice-good.price):0 }}</span>
+                        <span class="mod">{{ good.mod }}</span>
                     </div>
                     <div class="product-price">
                         <div>Цена:</div>
                         <div class="product-detail-price">
                             <div class="PricesalesPrice" style="display : block;">
-                                <span class="PricesalesPrice">{{ good.price }} руб</span>
+                                <span class="PricesalesPrice">{{ good.price }}</span> руб
                                 <span class="mod hide">{{ good.mod }}</span>
                             </div>
                         </div>
@@ -72,7 +73,7 @@
                     <div class="product-size">
                         <p>Размер:</p>
                         {% for size in good.offers %}
-                            <input value="{{ size.price }}" onclick="changePrice(this,{{ size.count }})" type="radio" name="size"
+                            <input value="{{ size.price }}" onclick="changePrice(this,{{ size.ID }})" type="radio" name="size"
                                    {% if loop.first %}checked="checked"{% endif %} data-mod="{{ size.ID }}">
                             {{ size.size }} = {{ size.price }}
                             <br>
@@ -160,9 +161,10 @@
                 alert("На данный момент на складе не достаточно кол-во товара, но Вы можете заказать. Наш менеджер с Вами свяжиться для уточнения.");
             }
         }
-        function changePrice(e,count) {
-            $('.price').html($(e).val());
-            $('.quantity-input').attr('data-mx',count);
+        function changePrice(e, id) {
+            $('.PricesalesPrice > span').html($(e).val());
+            $('.infoProd > .mod').html(id);
+            $('.infoProd > .price').html($(e).val());
         }
     </script>
 {% endblock %}
