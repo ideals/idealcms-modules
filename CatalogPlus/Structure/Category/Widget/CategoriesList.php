@@ -38,6 +38,7 @@ class CategoriesList extends \Ideal\Core\Widget
         $url = new Field\Url\Model();
         $object = $this->model->getPath();
         $object = end($object);
+        $digits = $this->model->params['digits'];
         if(!isset($object['cid'])) return;
 
         // Считываем список категорий продукции
@@ -50,7 +51,7 @@ class CategoriesList extends \Ideal\Core\Widget
 
         $lvl = 1;
         $menuUrl = array('0' => array('url' => $config->structures[0]['url']));
-        $smallCidActive = rtrim($object['cid'], '0');
+        $smallCidActive = substr($object['cid'], 0,$digits*$object['lvl']);
 
         $menu = array();
         foreach ($menuList as $k => $v) {
@@ -75,7 +76,7 @@ class CategoriesList extends \Ideal\Core\Widget
 
             // Определяем активен ли данный пункт меню
             $menu[$k]['isActivePage'] = 0;
-            $currentCid = rtrim($v['cid'], '0');
+            $currentCid = substr($v['cid'], 0, $v['lvl']*$digits);
             if (isset($object['lvl']) && $object['lvl'] >= $lvl
                 && substr($smallCidActive, 0, strlen($currentCid)) == $currentCid) {
                 $menu[$k]['isActivePage'] = 1;
