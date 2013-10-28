@@ -39,7 +39,6 @@ EOT;
                 $title = 'Регистрация';
                 $to = $config->mailForm;
                 $headers = "From: {$config->robotEmail}\r\n"
-                    . "Bcc: valery.slepichko@gmail.com\r\n"
                     . "Content-type: text/plain; charset=\"utf-8\"";
                 if (mail($to, $title, $message, $headers)) ;
             }
