@@ -72,6 +72,7 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
             $key = md5(time());
             $db->insert($config->db['prefix'] . 'cabinet_structure_user', array(
                 'email' => $_POST['email'],
+                'message' => $mess,
                 'password' => $_POST['pass'],
                 'fio' => $fio,
                 'phone' => $phone,
