@@ -1,0 +1,59 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <div id="container" xmlns="http://www.w3.org/1999/html">
+        <div class="block">
+            <div class="holder">
+                <div id="content">
+                    <div class="forum">
+                        {% if Authorized == true %}
+                            <script> loadForm.isAuthorized = true; </script>
+                        {% endif %}
+                            <div class = 'post-line' name = "post-line-{{ mainPost.ID }}" id = "post-line-{{ mainPost.ID }}" style="background-color: #fff9f0">
+                            <div class="post-message">
+                               <h1>{{ header|raw }}</h1> <span style="font-size: 16px;">{{ mainPost.content|raw }}</span>
+                            </div>
+                                <div> <div class="post-author post-author-answer">{{ mainPost.author }}</div> <div class="post-date">{{ mainPost.date_create }}</div></div>
+                            <div class="post-links">
+                                <strong><a href="#" onclick="addPostAnswer('{{ mainPost.ID }}', '{{ mainPost.ID }}', '{{ structurePath }}'); return false"> <span class="post-link-answer"> Ответить </span></a></strong>
+                             {% if Authorized == true %}
+                                 &nbsp;<strong><a href="#" onclick="updatePost('{{ mainPost.ID}}', '{{ mainPost.email}}'); return false">Изменить</a></strong>
+                                 &nbsp;<strong><a href="#" onclick="deletePost('{{ mainPost.ID}}', '{{mainPost.main_parent_id}}', '{{mainPost.parent_id }}'); return false">Удалить</a></strong>
+                             {% endif %}
+                            </div>
+                            <div class="form-add-post" id="form-add-post-{{ mainPost.ID }}"></div>
+                            <div class="news-line"></div>
+                        </div>
+
+                        {% for k,post in posts %}
+                                <div class = 'post-line' name = "post-line-{{ post.ID }}" id = "post-line-{{ post.ID }}" style="margin-left: {{ post.margin }}px">
+                                <div class="post-author post-author-main">{{ post.author }}</div>
+                                <div class="post-date">{{ post.date_create }}</div>
+                                <div class="post-message">
+                                    {{ post.content|raw }}
+                                </div>
+                                <div class="post-links">
+                                <strong><a href="#" onclick="addPostAnswer('{{ post.ID }}', '{{ post.main_parent_id }}', '{{ structurePath }}'); return false"><span class="post-link-answer"> Ответить </span></a></strong>
+                                {% if Authorized == true %}
+                                    &nbsp;<strong><a href="#" onclick="updatePost('{{ post.ID}}', '{{ post.email}}'); return false">Изменить</a></strong>
+                                    &nbsp;<strong><a href="#" onclick="deletePost('{{ post.ID}}', '{{post.main_parent_id}}', '{{post.parent_id }}'); return false">Удалить</a></strong>
+                                {% endif %}
+                                </div>
+                                <div class="form-add-post" id="form-add-post-{{ post.ID }}"></div>
+                                <div class="news-line"></div>
+                            </div>
+                        {% endfor %}
+
+                        <p><strong>
+                                {% if parentPart %}
+                                <a href="{{ parentPart }}">К статье</a>
+                                {% endif %}
+                                &nbsp;&nbsp;&nbsp;<a href="{{ forumLink }}">К списку сообщений форума</a>
+                            </strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

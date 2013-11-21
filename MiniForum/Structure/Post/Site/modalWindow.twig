@@ -1,0 +1,114 @@
+<div id="modalWinPost">
+    <div id="wrapPostForm">
+        <form method="post" id="postForm" action="javascript: void(0)">
+            Ваше имя(псевдоним): <br /> <input id="authorPF" value="" name="author" type="text"><br />
+            E-mail: <br /> <input id="emailPF" name="email" value="" type="text"><br />
+            Сообщение: <br /> <textarea id="contentPF" name="content"></textarea>
+            <br />
+            {% if Authorized == true %}
+                <div style="display: none" id="isPosterBlock">
+                    Ответ от постера: <input type="checkbox" id="isPoster" name="is_poster" value="true">
+                </div>
+            {% endif %}
+            <input type="hidden" id="postID" name="ID" value="0">
+            <input type="hidden" id="parentPostID" name="parent_id" value="0">
+            <input type="hidden" id="mainParentPostID" name="main_parent_id" value="0">
+            <button name="sendPost" id="sendPost" type="submit">Отправить</button>
+            <button type="submit" onclick="modalWindow.close();">Закрыть</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function addPost(parentId, mainParentId) {
+    var parentPostID = document.getElementById('parentPostID');
+    parentPostID.value = parentId;
+    var mainParentPostID = document.getElementById('mainParentPostID');
+    mainParentPostID.value = mainParentId;
+    var button = document.getElementById('sendPost');
+    button.setAttribute('onclick', 'ajaxAddNewPost();');
+    $('#isPosterBlock').css({'display': 'block'});
+    var form = document.getElementById('modalWinPost').innerHTML;
+
+    modalWindow.show(360, form);
+}
+
+function deletePost(id, mainParentId, parentId) {
+    if (confirm('Вы подтверждаете удаление?')) {
+        ajaxDeletePost(id, mainParentId, parentId);
+    }
+}
+
+function updatePost(id, email) {
+    var form = document.getElementById('modalWinPost').innerHTML;
+    modalWindow.show(360, form);
+    var postLine = '#post-line-' + id;
+    $('#authorPF').val($(postLine).children('h3').html());
+    $('#emailPF').val(email);
+    $('#postID').val(id);
+    $('#isPosterBlock').css({'display': 'none'});
+
+    var content = jQuery.trim($(postLine).children('.post-message').text());
+
+    $('#contentPF').text(content);
+    var button = document.getElementById('sendPost');
+    button.setAttribute('onclick', 'ajaxUpdatePost();');
+}
+
+function ajaxAddNewPost() {
+    var form = $('#postForm').serialize();
+    $('#postForm').show();
+    $.post(
+        "/?mode=ajax&module=MiniForum&controller=Post&action=inset",
+        {
+            form: form
+        },
+        message
+    )
+}
+
+{% if Authorized == true %}
+function ajaxDeletePost(id, mainParentId, parentId) {
+    $.post(
+        "/?mode=ajax&module=MiniForum&controller=Post&action=delete",
+        {
+            ID: id,
+            parent_id: parentId,
+            main_parent_id: mainParentId
+        },
+        function delMsg(msg) {
+            if (mainParentId == '0') {
+                alert(msg);
+                window.location.href = '/forum.html';
+            } else {
+                message(msg);
+            }
+        }
+    )
+}
+
+function ajaxUpdatePost() {
+    var form = $('#postForm').serialize();
+    $('#postForm').show();
+    $.post(
+        "/?mode=ajax&module=MiniForum&controller=Post&action=update",
+        {
+            form: form
+        },
+        message
+    )
+}
+
+function message (msg) {
+    if (msg.substr(0, 14) == 'MSG_Validation') {
+        msg = msg.substr(15, msg.length);
+        alert(msg);
+    } else {
+        if (modalWindow.isShow === true) modalWindow.close();
+        alert(msg);
+        window.location.reload();
+    }
+    if (modalWindow.isShow !== null) $('#postForm').show();
+}
+{% endif %}
+</script>
