@@ -7,7 +7,7 @@ use Ideal\Core\Config;
 class AjaxController extends \Ideal\Core\Site\AjaxController
 {
     protected $model;
-    protected $structurePath = '1-31';
+    protected $structurePath = '1-13';
 
     function insetAction() {
         $form = $_POST['form'];
@@ -23,7 +23,8 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
         $this->model->setPost($post);
         $result = $this->model->addNewPost();
 
-        $this->sendMail($post);
+        $post['ID'] = $result;
+        $this->model->sendMessages($post);
 
 
         echo $result;
@@ -115,38 +116,4 @@ class AjaxController extends \Ideal\Core\Site\AjaxController
             return true;
         }
     }
-
-
-    function sendMail($post)
-    {
-        $config = Config::getInstance();
-
-
-       	$topic = 'Автор: &nbsp;' . $post['author'];
-        $topic .= '<br />E-mail: &nbsp; <a href="mailto:' . $post['email'] . '">'. $post['email'] . '</a>';
-        $topic .= '<br />Сообщение: &nbsp;' . $post['content'];
-
-        if ($post['main_parent_id'] == 0) {
-            $subject = 'Вопрос на форуме';
-            $to = $config->mailForm;
-            $from  = $post['author'] . ' <'. $post['email'] . '>';
-        } else {
-            $subject = 'Ответ на форуме';
-
-            //Получаем корневой пост для отправки ему ответа
-            $this->model = new Model($this->structurePath);
-            $mainParent = $this->model->getPost($post['ID']);
-            $to = '<' . $post['email'] . '>, <' . $mainParent[0]['email'] . '>';
-            $from  = 'Mcpoz.ru' . ' <'. $config->robotEmail . '>';
-        }
-
-        /* Для отправки HTML-почты вы можете установить шапку Content-type. */
-        $headers = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-        /* дополнительные шапки */
-        $headers .= "From: $from\r\n";
-
-       	mail($to, $subject, $topic, $headers);
-	}
-
 }

@@ -5,6 +5,19 @@ use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Core\Request;
 use Ideal\Core\Util;
+use Mail\Sender;
+
+/*
+ * Отправка сообщений всем участникам темы, за исключением тех, которые отписались от получения сообщений
+ * 1. Внести изменения в форму отправки ответа, чтобы можно было указывать получать сообщения или нет
+ * 1.1 В бд создать поле, обозначающее необходимость отправки письма с форума данному
+ * 1.2 В случае отказа от получения сообщений, выставить в соответствующее поле в БД отметку об отключении отправки сообщений для всех постов в этом разделе форума
+ * 2. Рассылка сообщений
+ * 2.1 После записи в бд нового сообщения на форуме получать список почтовых ящиков всех с такимже mainParentID
+ * 2.2 Получить почтовый ящик пользователя с ID равным mainParentID (почта пользователя, создавшего тему)
+ * 2.3 Получить только уникальные почтовые ящики
+ * 2.3 Выслать всем сообщение
+ * */
 
 class Model extends \Ideal\Core\Site\Model
 {
@@ -12,7 +25,7 @@ class Model extends \Ideal\Core\Site\Model
     protected $post;
     protected $where;
     protected $pageStructure = false;
-    protected $structurePath = '1-31';
+    protected $structurePath = '1-13';
 
       public function getWhere($where)
       {
@@ -112,7 +125,7 @@ class Model extends \Ideal\Core\Site\Model
                 $content = $content['content'];
                 $content = strip_tags($content);
                 $content = Util::smartTrim($content, 50);
-                $this->object['title'] = 'Онкология форум - ' . $content;
+                $this->object['title'] = 'Форум об аутизме и проблемах обучения - ' . $content;
             } else {
                 $this->object['title'] = $title;
             }
@@ -275,8 +288,15 @@ class Model extends \Ideal\Core\Site\Model
        $values['content'] = $this->post['content'];
        $values['date_create'] = $time;
        $values['is_active'] = 1;
+       $values['get_mail'] = $this->post['get_mail'] ? 1 : 0;
 
        $result = $db->insert($this->_table, $values);
+
+       // При создании новой темы, устанавливаем отправку почты
+       if ($values['main_parent_id'] == "0") {
+           $values['get_mail'] = 1;
+       }
+       $this->subscribe(array($this->post['email']),  $this->post['main_parent_id'], $this->post['get_mail']);
 
        return $result; //ID нового ответа || false
    }
@@ -311,4 +331,92 @@ class Model extends \Ideal\Core\Site\Model
        return $result; //true || false
    }
 
+    /*
+     * Отключение рассылки
+     * $emails - почтовые ящики тех, кому требуется отлючить рассылку
+     * $mainPost - указывает на раздел, в от которого мы отписываем
+     * $subscribe - если false, то отписываем, если true, то подписываем
+     * */
+    public function subscribe(array $emails, int $mainPost, boolean $subscribe) {
+        foreach ($emails as $k => $email) {
+            if ($k == 0) {
+                $where =  "email = '" . $email . "'";
+                continue;
+            }
+            $where .= " OR email = '" . $email . "'";
+        }
+        // Если отписываемся, то ищем те поля, где подписка включена и наоборот
+        if ($subscribe == false){
+            $setGetMail = 0;
+            $whereGetMail = 1;
+        } else {
+            $setGetMail = 1;
+            $whereGetMail = 0;
+        }
+        $_sql = "UPDATE i_miniforum_structure_post SET get_mail = {$setGetMail}  WHERE get_mail = {$whereGetMail} AND main_parent_id = {$mainPost} AND " . $where;
+        $db = Db::getInstance();
+        return $result = $db->query($_sql); //true || false
+    }
+
+    /*
+     * Рассылка сообщения всем подписчикам данного поста
+     * $mainParentID - ID корневого сообщения*/
+    public function sendMessages($post) {
+        $mail = new Sender();
+        $config = Config::getInstance();
+        $db = Db::getInstance();
+
+        if ($post['main_parent_id'] == "0") {
+            $mail->setSubj('Новая тема на форуме');
+            // TODO сделать адекватное получение url раздела
+            $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['ID'] . $config->urlSuffix;
+            $message = "<a href=\"{$href}\">Вы создали тему на форуме</a> <br /><br />";
+            $mail->setBody('',$message);
+            $mail->sent($config->robotEmail, $post['email']);
+            return true;
+        }
+
+        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE ID = {$post['main_parent_id']} OR main_parent_id = {$post['main_parent_id']} GROUP BY email";
+        $postsDB = $db->queryArray($_sql);
+        // Если нет почтовых ящиков, возвращаем false
+        if (!$postsDB) return false;
+
+        $mail->setSubj('Новое сообщение на форуме');
+        $href = $_SERVER['HTTP_REFERER'];
+
+        $message = '<strong>Оставил сообщение:</strong> ' . $post['author'] . '<br />';
+        $message .= "<a href=\"{$href}\">Сообщение на форуме</a> <br /><br />";
+
+
+        foreach ($postsDB as $k => $postDB) {
+            // Создаём хеш на основе данных поста
+            $hash = (string)$postDB['email'] . (string)$postDB['main_parent_id'] . (string)$postDB['ID'] . (string)$postDB['date_create'];
+            $hash = crypt((string)$hash, (string)$postDB['ID']);
+            // Создаём ссылку для отписки
+            $hrefUnsubscribe = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['main_parent_id'] .'.html' . '?email=' . urlencode($postDB['email']) . '&post=' . urlencode($postDB['main_parent_id']) . '&id=' . urlencode($postDB['ID']) . '&hash=' . urlencode($hash);
+            $unsubscribe = "Еслы вы хотите отписаться от данного поста перейдите по ссылке: <a href=\"{$hrefUnsubscribe}\">{$hrefUnsubscribe}</a></br>";
+            // Не даём отписаться создателю темы
+            if ($postDB['ID'] === $post['main_parent_id']) $unsubscribe = '';
+            $mail->setBody('',$message . $unsubscribe);
+            $mail->sent($config->robotEmail, $postDB['email']);
+        }
+    }
+
+    function unsubjectLink($email, $id, $mainParentID, $hash) {
+        $email = mysql_real_escape_string((urldecode($email)));
+        $id = mysql_real_escape_string((urldecode($id)));
+        $mainParentID = mysql_real_escape_string((urldecode($mainParentID)));
+        $hash = mysql_real_escape_string((urldecode($hash)));
+
+        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE ID = {$id}";
+        $db = Db::getInstance();
+        $post = $db->queryArray($_sql);
+        $trueHash = (string)$post[0]['email'] . (string)$post[0]['main_parent_id'] . (string)$post[0]['ID'] . (string)$post[0]['date_create'];
+        $trueHash = crypt((string)$trueHash, (string)$post[0]['ID']);
+        if ($trueHash === $hash) {
+            $this->subscribe(array($email), $mainParentID, false);
+            return true;
+        }
+        return false;
+    }
 }

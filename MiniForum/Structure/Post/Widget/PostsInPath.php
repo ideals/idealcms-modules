@@ -11,13 +11,9 @@ class PostsInPath extends \Ideal\Core\Widget
 {
     public  $path;
     public function getData() {
-        $model = new Site\Model('1-31');
+        $model = new Site\Model('1-13');
         $model->setWhere(" AND page_structure = '{$this->pageStructure}' ");
         $posts = $model->getList(0);
-
-        foreach ($posts as $k => $value) {
-            $posts[$k]['link'] .= "?pageStructure=" . $this->pageStructure;
-        }
 
         return $posts;
     }

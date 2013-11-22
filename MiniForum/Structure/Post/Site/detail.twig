@@ -9,7 +9,7 @@
                         {% if Authorized == true %}
                             <script> loadForm.isAuthorized = true; </script>
                         {% endif %}
-                            <div class = 'post-line' name = "post-line-{{ mainPost.ID }}" id = "post-line-{{ mainPost.ID }}" style="background-color: #fff9f0">
+                            <div class = 'post-line' name = "post-line-{{ mainPost.ID }}" id = "post-line-{{ mainPost.ID }}" style="background-color: #eff0f0">
                             <div class="post-message">
                                <h1>{{ header|raw }}</h1> <span style="font-size: 16px;">{{ mainPost.content|raw }}</span>
                             </div>
@@ -56,4 +56,8 @@
             </div>
         </div>
     </div>
+    <script id="script">
+        {{ script | raw }}
+        $('#script').empty();
+    </script>
 {% endblock %}

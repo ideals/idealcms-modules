@@ -13,7 +13,7 @@
             <div class="input-line" style="display: none" id="isPosterBlock">
             <?php
             if (isset($_REQUEST['isAuthorized']) && $_REQUEST['isAuthorized'] == "true") {
-                echo '<label for="authorPF">Ответ от постера: </label><input type="checkbox" id="isPoster" name="is_poster" value="true">';
+                echo '<label for="isPoster">Ответ от постера: </label><input type="checkbox" id="isPoster" name="is_poster" value="true">';
             }
             ?>
             </div>

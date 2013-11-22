@@ -46,9 +46,8 @@ return array(
         ),
         'structure' => array(
             'label' => 'Тип раздела',
-            'sql'   => 'varchar(20) not null',
-            'type'  => 'Ideal_Select',
-            'class' => '\\Ideal\\Structure\\Part\\Getters\\StructureList'
+            'sql'   => "varchar(20) default 'CatalogPlus_Category'",
+            'type'  => 'Ideal_Hidden',
         ),
         'template' => array(
             'label'     => 'Тип документа',

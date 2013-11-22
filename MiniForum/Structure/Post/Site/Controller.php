@@ -5,7 +5,7 @@ use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Core\Pagination;
 use Ideal\Core\Util;
-use Ideal\Structure\User;
+use Ideal\Structure;
 
 class Controller extends \Ideal\Structure\News\Site\ControllerAbstract
 {
@@ -19,8 +19,16 @@ class Controller extends \Ideal\Structure\News\Site\ControllerAbstract
         $request = new Request();
         $page = intval($request->page);
         if ($page !== 0) {
-            $title = 'Онкология форум - Страница ' . $page;
+            $title = 'Форум об аутизме и проблемах обучения - Страница ' . $page;
             $this->model->setTitle($title);
+        }
+
+        // Регистрируем объект пользователя
+        $user = Structure\User\Model::getInstance();
+        $_SESSION['IsAuthorized'] = false;
+        // Если пользователь залогинен
+        if ($user->checkLogin()) {
+            $_SESSION['IsAuthorized'] = true;
         }
     }
 
@@ -28,21 +36,8 @@ class Controller extends \Ideal\Structure\News\Site\ControllerAbstract
     {
         $this->templateInit('MiniForum/Structure/Post/Site/detail.twig');
 
-        // Регистрируем объект пользователя
-        $user = User\Model::getInstance();
-
-        $_SESSION['IsAuthorized'] = false;
-        // Если пользователь залогинен
-        if ($user->checkLogin()) {
-            $_SESSION['IsAuthorized'] = true;
-        }
-
         $this->view->structurePath = 0;
         //если есть pageStructure (открыты ответы со страницы отличной от форума), выводим только ответы оставленные состраницы
-        if (isset($_GET['pageStructure'])) {
-            $this->model->setStructurePath($_GET['pageStructure']);
-            $this->view->structurePath = $_GET['pageStructure'];
-        }
 
         $text = $this->model->splitSimbols($this->model->object['content'], 30, 0);
         $this->view->header = strip_tags($text[0]);
@@ -60,9 +55,15 @@ class Controller extends \Ideal\Structure\News\Site\ControllerAbstract
             $_SESSION['HTTP_REFERER'] = $_SERVER['HTTP_REFERER'];
         }
         $this->view->forumLink = '/forum' . $config->urlSuffix;
-        if (isset($_GET['pageStructure']))
-        if ($_GET['pageStructure'] != '0') {
+        if (isset($_GET['pageStructure'])) {
             $this->view->parentPart = $_SESSION['HTTP_REFERER'];
+        }
+
+        if (isset($_GET['email']) && isset($_GET['hash'])) {
+            $unsubject = $this->model->unsubjectLink($_GET['email'], $_GET['id'], $_GET['post'], $_GET['hash']);
+            if ($unsubject) {
+                $this->view->script = "alert('Вы успешно отписались от сообщений с данного раздела форума.')";
+            }
         }
 
         //Устанавливаем мета теги description и keywords
