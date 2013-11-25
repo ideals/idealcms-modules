@@ -373,6 +373,13 @@ class Model extends \Ideal\Core\Site\Model
             $message = "<a href=\"{$href}\">Вы создали тему на форуме</a> <br /><br />";
             $mail->setBody('',$message);
             $mail->sent($config->robotEmail, $post['email']);
+
+            $message = "<a href=\"{$href}\">Новая тема на форуме</a> <br /><br />"
+                . 'Автор: ' . $post['author'] . "<br />"
+                . 'Email: ' . $post['email'] . "<br />"
+                . 'Сообщение: ' . "<br />" . $post['content'];
+            $mail->setBody('',$message);
+            $mail->sent($config->robotEmail, $config->mailForm);
             return true;
         }
 
