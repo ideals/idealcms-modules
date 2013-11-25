@@ -383,7 +383,7 @@ class Model extends \Ideal\Core\Site\Model
             return true;
         }
 
-        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE ID = {$post['main_parent_id']} OR main_parent_id = {$post['main_parent_id']} GROUP BY email";
+        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE get_mail = 1 AND (ID = {$post['main_parent_id']} OR main_parent_id = {$post['main_parent_id']}) GROUP BY email";
         $postsDB = $db->queryArray($_sql);
         // Если нет почтовых ящиков, возвращаем false
         if (!$postsDB) return false;
