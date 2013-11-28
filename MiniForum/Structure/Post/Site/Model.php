@@ -361,6 +361,7 @@ class Model extends \Ideal\Core\Site\Model
     /*
      * Рассылка сообщения всем подписчикам данного поста
      * $mainParentID - ID корневого сообщения*/
+    // TODO функция требует оптимизации
     public function sendMessages($post) {
         $mail = new Sender();
         $config = Config::getInstance();
@@ -383,19 +384,38 @@ class Model extends \Ideal\Core\Site\Model
             return true;
         }
 
-        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE get_mail = 1 AND (ID = {$post['main_parent_id']} OR main_parent_id = {$post['main_parent_id']}) GROUP BY email";
+        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE (get_mail = 1 AND main_parent_id = {$post['main_parent_id']}) OR ID = {$post['main_parent_id']} GROUP BY email";
         $postsDB = $db->queryArray($_sql);
         // Если нет почтовых ящиков, возвращаем false
         if (!$postsDB) return false;
 
+        // Задаём тему для всех отправляемых сообщений
         $mail->setSubj('Новое сообщение на форуме');
         $href = $_SERVER['HTTP_REFERER'];
+
+        // Сообщение для менеджера сайта
+        $message = "<a href=\"{$href}\">Новая тема на форуме</a> <br /><br />"
+            . 'Автор: ' . $post['author'] . "<br />"
+            . 'Email: ' . $post['email'] . "<br />"
+            . 'Сообщение: ' . "<br />" . $post['content'];
+        $mail->setBody('',$message);
+        $mail->sent($config->robotEmail, $config->mailForm);
+
+
+        // Получаем массив почтовых ящиков менеджеров сайта пригодный для сравнения
+        $emailManager = explode(',', $config->mailForm);
+        foreach($emailManager as $k => $email) {
+            $emailManager[$k] = str_replace('<', '', $email);
+            $emailManager[$k] = str_replace('>', '', $emailManager[$k]);
+            $emailManager[$k] = trim($emailManager[$k]);
+        }
 
         $message = '<strong>Оставил сообщение:</strong> ' . $post['author'] . '<br />';
         $message .= "<a href=\"{$href}\">Сообщение на форуме</a> <br /><br />";
 
-
         foreach ($postsDB as $k => $postDB) {
+            // Не отправляем повторно письмо менеджерам сайта
+            if (array_search($postDB['email'], $emailManager) !== false) continue;
             // Создаём хеш на основе данных поста
             $hash = (string)$postDB['email'] . (string)$postDB['main_parent_id'] . (string)$postDB['ID'] . (string)$postDB['date_create'];
             $hash = crypt((string)$hash, (string)$postDB['ID']);
@@ -408,6 +428,7 @@ class Model extends \Ideal\Core\Site\Model
             $mail->sent($config->robotEmail, $postDB['email']);
         }
     }
+
 
     function unsubjectLink($email, $id, $mainParentID, $hash) {
         $email = mysql_real_escape_string((urldecode($email)));
