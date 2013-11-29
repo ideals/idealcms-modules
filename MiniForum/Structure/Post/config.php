@@ -8,6 +8,7 @@ return array(
         'elements_site'     => 10,                      // количество элементов в списке на сайте
         'field_sort'        => 'date_create',           // поле, по которому проводится сортировка в CMS
         'field_name'        => 'content',               // поля для вывода информации по объекту
+        'structure_path'    => '',                      // необходимо переопределять для каждого сайта
         'field_list'        => array('author', 'email', 'date_create', 'is_active')
      ),
     'fields'   => array (
