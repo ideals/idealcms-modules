@@ -354,42 +354,6 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
     public function sendMessages($post) {
         $mail = new Sender();
         $config = Config::getInstance();
-        $db = Db::getInstance();
-
-        if ($post['main_parent_id'] == "0") {
-            $mail->setSubj('Новая тема на форуме');
-            // TODO сделать адекватное получение url раздела
-            $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['ID'] . $config->urlSuffix;
-            $message = "<a href=\"{$href}\">Вы создали тему на форуме</a> <br /><br />";
-            $mail->setBody('',$message);
-            $mail->sent($config->robotEmail, $post['email']);
-
-            $message = "<a href=\"{$href}\">Новая тема на форуме</a> <br /><br />"
-                . 'Автор: ' . $post['author'] . "<br />"
-                . 'Email: ' . $post['email'] . "<br />"
-                . 'Сообщение: ' . "<br />" . $post['content'];
-            $mail->setBody('',$message);
-            $mail->sent($config->robotEmail, $config->mailForm);
-            return true;
-        }
-
-        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE (get_mail = 1 AND main_parent_id = {$post['main_parent_id']}) OR ID = {$post['main_parent_id']} GROUP BY email";
-        $postsDB = $db->queryArray($_sql);
-        // Если нет почтовых ящиков, возвращаем false
-        if (!$postsDB) return false;
-
-        // Задаём тему для всех отправляемых сообщений
-        $mail->setSubj('Новое сообщение на форуме');
-        $href = $_SERVER['HTTP_REFERER'];
-
-        // Сообщение для менеджера сайта
-        $message = "<a href=\"{$href}\">Новая тема на форуме</a> <br /><br />"
-            . 'Автор: ' . $post['author'] . "<br />"
-            . 'Email: ' . $post['email'] . "<br />"
-            . 'Сообщение: ' . "<br />" . $post['content'];
-        $mail->setBody('',$message);
-        $mail->sent($config->robotEmail, $config->mailForm);
-
 
         // Получаем массив почтовых ящиков менеджеров сайта пригодный для сравнения
         $emailManager = explode(',', $config->mailForm);
@@ -399,8 +363,49 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
             $emailManager[$k] = trim($emailManager[$k]);
         }
 
-        $message = '<strong>Оставил сообщение:</strong> ' . $post['author'] . '<br />';
-        $message .= "<a href=\"{$href}\">Сообщение на форуме</a> <br /><br />";
+        if ($post['main_parent_id'] == "0") {
+            $mail->setSubj($config->domain . ': новая тема на форуме');
+            // TODO сделать адекватное получение url раздела
+            $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['ID'] . $config->urlSuffix;
+
+            $message = "<a href=\"{$href}\">Новая тема на форуме</a> <br /><br />"
+                . 'Автор: ' . $post['author'] . "<br />"
+                . 'Email: ' . $post['email'] . "<br />"
+                . 'Сообщение: ' . "<br />" . $post['content'];
+            $mail->setBody('',$message);
+            foreach($emailManager as $k => $email) {
+                // Не отправляем сообщение менеджеру сайта, в случае если он создал новую тему
+                if ($email == $post['email']) continue;
+                $mail->sent($config->robotEmail, $email);
+            }
+            return true;
+        }
+
+        $db = Db::getInstance();
+        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE (get_mail = 1 AND main_parent_id = {$post['main_parent_id']}) OR ID = {$post['main_parent_id']} GROUP BY email";
+        $postsDB = $db->queryArray($_sql);
+        // Если нет почтовых ящиков, возвращаем false
+        if (!$postsDB) return false;
+
+        // Задаём тему для всех отправляемых сообщений
+        $mail->setSubj($config->domain . ': новый ответ на сообщение');
+        $href = $_SERVER['HTTP_REFERER'];
+        if (isset($post['ID'])) {
+            $href = $href . '#post-line-' . $post['ID'];
+        };
+
+        // Сообщение для менеджера сайта
+        $message = "<a href=\"{$href}\">На форуме сайта {$config->domain} появился новый ответ</a> <br /><br />"
+            . 'Автор: ' . $post['author'] . "<br />"
+            . 'Email: ' . $post['email'] . "<br />"
+            . 'Сообщение: ' . "<br />" . $post['content'] . "<br />";
+        $mail->setBody('',$message);
+        $mail->sent($config->robotEmail, $config->mailForm);
+
+        $message = "Здравствуйте! <br />
+                    На форуме сайта {$config->domain} появился новый ответ на Ваше сообщение, <br />
+                    Автор ответа : {$post['author']} <br />";
+        $message .= "Прочитать ответ: <a href=\"{$href}\">\"{$href}\"</a> <br /><br />";
 
         foreach ($postsDB as $k => $postDB) {
             // Не отправляем повторно письмо менеджерам сайта
@@ -410,7 +415,7 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
             $hash = crypt((string)$hash, (string)$postDB['ID']);
             // Создаём ссылку для отписки
             $hrefUnsubscribe = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['main_parent_id'] .'.html' . '?email=' . urlencode($postDB['email']) . '&post=' . urlencode($postDB['main_parent_id']) . '&id=' . urlencode($postDB['ID']) . '&hash=' . urlencode($hash);
-            $unsubscribe = "Еслы вы хотите отписаться от данного поста перейдите по ссылке: <a href=\"{$hrefUnsubscribe}\">{$hrefUnsubscribe}</a></br>";
+            $unsubscribe = "Чтобы больше не получать уведомления об ответах на Ваше сообщение нажмите сюда: <a href=\"{$hrefUnsubscribe}\">{$hrefUnsubscribe}</a></br>";
             // Не даём отписаться создателю темы
             if ($postDB['ID'] === $post['main_parent_id']) $unsubscribe = '';
             $mail->setBody('',$message . $unsubscribe);

@@ -18,7 +18,7 @@
         }
         ?>
         </div>
-        <label for="getMail">Получать рассылку с раздела форума: </label><input type="checkbox" id="getMail" name="get_mail" checked  value="true">
+        <label for="getMail">Получить уведомление об ответе: </label><input type="checkbox" id="getMail" name="get_mail" checked  value="true">
         <div class="post-btn input-line">
             <button name="sendPost" type="submit" onclick='<?php echo $formValues['buttonMethod'] ;?>(<?php
                                                                                                                 if (isset($formValues['ajaxAddNewPost'])) echo 'true,'; else echo 'true,';
