@@ -12,7 +12,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     protected $current;
     protected $tagParam;
 
-    public function detectPageByUrl($url, $path)
+    public function detectPageByUrl($path, $url)
     {
         $this->tagParam = $this->setTagParamName($path);
         if ($this->params['is_query_param']) {
@@ -39,7 +39,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             $url = $this->detectPageByTag($url, $path);
         } else {
             // Для вложенных категорий используем стандартное средство обнаружения страницы
-            $url = parent::detectPageByUrl($url, $path);
+            $url = parent::detectPageByUrl($path, $url);
         }
 
         return $url;
@@ -48,11 +48,11 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function detectPageByTag($url, $path)
     {
-        $this->object = false;
+        $this->pageData = false;
         $list = $this->readCategories();
         foreach ($list as $v) {
             if ($v['url'] == $url[0]) {
-                $this->object = $v;
+                $this->pageData = $v;
                 $this->path[] = $v;
                 break;
             }
@@ -66,11 +66,11 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
     {
         $config = Config::getInstance();
         $structure = $config->getStructureByName('Ideal_DataList');
-        $dataList = new \Ideal\Structure\DataList\Admin\ModelAbstract($structure['ID']);
+        $dataList = new \Ideal\Structure\DataList\Admin\ModelAbstract('0-' . $structure['ID']);
         $end = end($path);
         $spravochnik = $dataList->getByParentUrl($end['url']);
         $this->tagParamName = $spravochnik['url'];
-        $this->structurePath = $structure['ID'] . '-' . $spravochnik['ID'];
+        $this->prevStructure = $structure['ID'] . '-' . $spravochnik['ID'];
         $this->path = array($structure, $spravochnik);
         return $this->tagParamName;
     }
@@ -83,7 +83,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         if (!isset($this->categories)) {
             $db = Db::getInstance();
-            $_sql = "SELECT * FROM {$this->_table} WHERE structure_path='{$this->structurePath}' AND is_active=1";
+            $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure='{$this->prevStructure}' AND is_active=1";
             $this->categories = $db->queryArray($_sql);
         }
         return $this->categories;
@@ -100,12 +100,12 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
             'class' => ''
         );
 
-        if ($this->object == null) {
+        if ($this->pageData == null) {
             // Не выбрана ни одна категория
             $first['class'] = 'active';
             $tag = '';
         } else {
-            $tag = $this->object['url'];
+            $tag = $this->pageData['url'];
         }
 
         foreach ($list as $k => $v) {
@@ -143,8 +143,8 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function getCurrent()
     {
-        if (isset($this->object)) {
-            return $this->object;
+        if (isset($this->pageData)) {
+            return $this->pageData;
         } else {
             return false;
         }

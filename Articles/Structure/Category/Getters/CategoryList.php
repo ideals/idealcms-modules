@@ -34,8 +34,8 @@ class CategoryList
     public function getVariants()
     {
         $db = Db::getInstance();
-        $articleId = $this->obj->object['ID'];
-        $_sql = "SELECT category_id FROM i_articles_category_article WHERE article_id='{$articleId}'";
+        $article = $this->obj->getPageData();
+        $_sql = "SELECT category_id FROM i_articles_category_article WHERE article_id='{$article['ID']}'";
         $arr = $db->queryArray($_sql);
 
         $list = array();

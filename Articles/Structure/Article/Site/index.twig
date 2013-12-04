@@ -7,15 +7,15 @@
         <div class="clear"></div>
         <div class="pagination">
             <ul>
-            {% for part in parts %}
-                <li class="{{ part.class }}"><a href="{{ part.link }}">{{ part.name }}</a></li>
+            {% for category in categories %}
+                <li class="{{ category.class }}"><a href="{{ category.link }}">{{ category.name }}</a></li>
             {% endfor %}
             </ul>
         </div>
         <div class="clear"></div>
         <div class="articles">
-            {% if articles|length > 0 %}
-                {% for article in articles %}
+            {% if parts|length > 0 %}
+                {% for article in parts %}
                     <div class="name">
                         <a href="{{ article.link }}">{{ article.name }}</a>
                     </div>
