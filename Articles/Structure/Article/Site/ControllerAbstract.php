@@ -22,7 +22,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $page = intval($request->page);
         $this->view->parts = $this->model->getList($page);
 
-        $this->view->pager = $this->model->getPager($page, $request->getQueryWithout('page'));
+        $this->view->pager = $this->model->getPager('page');
 
         $this->view->categories = $this->model->getCategories();;
     }
