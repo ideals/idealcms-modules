@@ -4,6 +4,7 @@ namespace Articles\Structure\Article\Site;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
+use Ideal\Core\Util;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
@@ -141,4 +142,41 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $where;
     }
 
+    public function detectPath()
+    {
+        $config = Config::getInstance();
+        $db = Db::getInstance();
+
+        $article = $this->pageData;
+        list($parentStructure, $parentId) = explode('-', $article['prev_structure']);
+        $structure = $config->getStructureById($parentStructure);
+
+        // Находим предка — структуру статей
+        $parentClassName = Util::getClassName($structure['structure'], 'Structure') . '\\Site\\Model';
+        $parentModel = new $parentClassName($article['structure']);
+        $parentModel->setPageDataById($parentId);
+
+        $path = $parentModel->detectPath();
+
+        $this->path = $path;
+        $this->path[] = $article;
+
+        return $this->path;
+    }
+
+    public function getHeader()
+    {
+        $header = '';
+        if (isset($this->pageData['content'])) {
+            // Если есть шаблон с контентом, пытаемся из него извлечь заголовок H1
+            list($header, $text) = $this->extractHeader($this->pageData['content']);
+            $this->pageData['content'] = $text;
+        }
+
+        if ($header == '') {
+            // Если заголовка H1 в тексте нет, берём его из названия name
+            $header = $this->pageData['name'];
+        }
+        return $header;
+    }
 }
