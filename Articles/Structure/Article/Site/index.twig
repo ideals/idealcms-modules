@@ -24,10 +24,10 @@
             {% endif %}
 
         </div>
-        {%if pages|length > 0 %}
+        {% if pager.pages|length > 0 %}
             <div class="pagination pagination-left">
                 <ul>
-                    {% for page in pages %}
+                    {% for page in pager.pages %}
                         {% if page.current == 1 %}
                             <li class="active"><a>{{ page.num }}</a></li>
                         {% else %}
