@@ -38,7 +38,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $url = substr($url,0,-strlen($config->urlSuffix));
+        if (strlen($config->urlSuffix) > 0 && stripos($url, $config->urlSuffix))
+            $url = substr($url, 0, -strlen($config->urlSuffix));
 
         $url = mysql_real_escape_string($url);
         $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
@@ -93,7 +94,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $good = $this->object;
 
         $category = new \CatalogPlus\Structure\Category\Site\Model('');
-        $category->setObjectById($good['category_id']);
+        $category->setPageDataById($good['category_id']);
         $path = $category->detectPath();
 
         $this->path = $path;
