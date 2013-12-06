@@ -2,12 +2,13 @@
 namespace CatalogPlus\Structure\Category\Widget;
 
 use Ideal\Core\Db;
+use Ideal\Core\Config;
 
 class Categories extends \Ideal\Core\Widget
 {
-    public function setStructurePath($structurePath)
+    public function setStructurePath($prevStructure)
     {
-        $this->structurePath = $structurePath;
+        $this->prevStructurePath = $prevStructure;
     }
 
     public function setPrefix($prefix)
@@ -18,8 +19,10 @@ class Categories extends \Ideal\Core\Widget
     public function getData()
     {
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM i_catalogplus_structure_category
-                    WHERE lvl=1 AND is_active=1 AND is_not_menu=0 AND structure_path='{$this->structurePath}'
+        $config = Config::getInstance();
+        $table = $config->db['prefix'].'catalogplus_structure_category';
+        $_sql = "SELECT * FROM {$table}
+                    WHERE lvl=1 AND is_active=1 AND is_not_menu=0 AND prev_structure='{$this->prevStructure}'
                     ORDER BY cid";
         $menuList = $db->queryArray($_sql);
 
@@ -32,7 +35,7 @@ class Categories extends \Ideal\Core\Widget
         unset($menuList);
 
         $object = $this->model->object;
-        if ($object['structure_path'] == $this->structurePath) {
+        if ($object['prev_structure'] == $this->prevStructure) {
             $menu[$object['cid']]['isActivePage'] = 1;
         }
         return $menu;

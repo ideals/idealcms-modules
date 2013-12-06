@@ -9,9 +9,9 @@ class Categories2 extends \Ideal\Core\Widget
     protected $structurePath;
     protected $prefix;
 
-    public function setStructurePath($structurePath)
+    public function setPrevStructure($prevStructure)
     {
-        $this->structurePath = $structurePath;
+        $this->prevStructure = $prevStructure;
     }
 
 
@@ -27,10 +27,11 @@ class Categories2 extends \Ideal\Core\Widget
         $config = Config::getInstance();
         $category = $config->getStructureByName('CatalogPlus_Category');
         $digits = $category['params']['digits'];
+        $table = $config->db['prefix'].'catalogplus_structure_category';
 
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM i_catalogplus_structure_category
-                    WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0 AND prev_structure='{$this->structurePath}' ORDER BY cid";
+        $_sql = "SELECT * FROM {$table}
+                    WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0 AND prev_structure='{$this->prevStructure}' ORDER BY cid";
         $menuList = $db->queryArray($_sql);
 
         // Раскладываем считанное меню во вложенные массивы по cid и lvl
@@ -61,8 +62,8 @@ class Categories2 extends \Ideal\Core\Widget
         }
         unset($menuList);
 
-        $object = end($this->model->path);
-        if (isset($object['structure_path']) && $object['structure_path'] == $this->structurePath) {
+        $object = $this->model->getPageData();
+        if (isset($object['prev_structure']) && $object['prev_structure'] == $this->prevStructure) {
             $activeUrl = substr($object['cid'], 0, $digits);
             if (!isset($menu[$activeUrl])) return $menu;
             $menu[$activeUrl]['activeUrl'] = 1;

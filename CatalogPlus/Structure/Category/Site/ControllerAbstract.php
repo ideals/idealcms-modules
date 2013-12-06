@@ -6,7 +6,7 @@ use Ideal\Core\Db;
 
 class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
-    /** @var structure_path для товаров, связанных с этими категориями */
+    /** @var prev_structure для товаров, связанных с этими категориями */
     protected $goodsPrevStructure;
 
     public function indexAction()

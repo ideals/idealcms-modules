@@ -66,13 +66,6 @@ class CategoriesList extends \Ideal\Core\Widget
                 $url->setParentUrl($menuUrl);
             }
             $lvl = $v['lvl'];
-            if (isset($v['is_skip']) && $v['is_skip'] == 0) {
-                if (isset($v['url_full']) && $v['url_full'] != '') {
-                    $menu[$k]['link'] = 'href="' . $v['url_full'] . '"';
-                } else {
-                    $menu[$k]['link'] = 'href="' . $this->prefix . $url->getUrl($v) . '"';
-                }
-            }
 
             // Определяем активен ли данный пункт меню
             $menu[$k]['isActivePage'] = 0;
@@ -80,6 +73,13 @@ class CategoriesList extends \Ideal\Core\Widget
             if (isset($object['lvl']) && $object['lvl'] >= $lvl
                 && substr($smallCidActive, 0, strlen($currentCid)) == $currentCid) {
                 $menu[$k]['isActivePage'] = 1;
+            }
+            if (isset($v['is_skip']) && $v['is_skip'] == 0) {
+                if (isset($v['url_full']) && $v['url_full'] != '') {
+                    $menu[$k]['link'] = 'href="' . $v['url_full'] . '"';
+                } else {
+                    $menu[$k]['link'] = 'href="' . $this->prefix . $url->getUrl($v) . '"';
+                }
             }
         }
         $categoryList = $this->getSubCategories($menu);
