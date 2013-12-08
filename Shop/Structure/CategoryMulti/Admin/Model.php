@@ -1,7 +1,6 @@
 <?php
-namespace Shop\Structure\Category\Admin;
+namespace Shop\Structure\CategoryMulti\Admin;
 
-class Model extends \Ideal\Structure\Part\Admin\ModelAbstract
+class Model extends ModelAbstract
 {
-
 }

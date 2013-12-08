@@ -82,9 +82,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function getStructureElements()
     {
-        $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
+        $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->prevStructure);
         $this->categoryModel->setPath($this->path);
-        $articles = $this->getArticles(0, 9999);
+        $this->params['elements_site'] = 9999;
+        $articles = $this->getList(1);
         $categories = $this->getCategories();
         return array_merge($categories, $articles);
     }
