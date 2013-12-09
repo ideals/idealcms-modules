@@ -6,12 +6,12 @@ use Ideal\Core\Config;
 
 class Categories2 extends \Ideal\Core\Widget
 {
-    protected $structurePath;
+    protected $prevStructure;
     protected $prefix;
 
-    public function setStructurePath($structurePath)
+    public function setPrevStructure($prevStructure)
     {
-        $this->structurePath = $structurePath;
+        $this->prevStructure = $prevStructure;
     }
 
 
@@ -29,7 +29,7 @@ class Categories2 extends \Ideal\Core\Widget
     {
         $db = Db::getInstance();
         $_sql = "SELECT * FROM i_shop_structure_categorymulti
-                    WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0 AND structure_path='{$this->structurePath}' ORDER BY cid";
+                    WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0 AND prev_structure='{$this->prevStructure}' ORDER BY cid";
         $menuList = $db->queryArray($_sql);
 
         // Раскладываем считанное меню во вложенные массивы по cid и lvl
@@ -53,13 +53,13 @@ class Categories2 extends \Ideal\Core\Widget
         }
         unset($menuList);
 
-        $object = $this->model->object;
-        if ($object['structure_path'] == $this->structurePath) {
+        $page = $this->model->getPageData;
+        if ($page['prev_structure'] == $this->prevStructure) {
             // todo заменить цифру 3 на params['digit']
-            $activeUrl = substr($object['cid'], 0, 3);
+            $activeUrl = substr($page['cid'], 0, 3);
             $menu[$activeUrl]['activeUrl'] = 1;
             foreach ($menu[$activeUrl]['subMenu'] as $k => $elem) {
-                if ($elem['cid'] == $object['cid']) {
+                if ($elem['cid'] == $page['cid']) {
                     $menu[$activeUrl]['subMenu'][$k]['activeUrl'] = 1;
                 }
             }
