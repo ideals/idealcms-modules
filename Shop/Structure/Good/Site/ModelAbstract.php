@@ -34,9 +34,20 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     }
 
 
-    public function detectPageByUrl($url, $path)
+    public function detectPageByUrl($path, $url)
     {
+        if(count($url) == 0) return '404';
         $db = Db::getInstance();
+        if (count($url) > 1) {
+            $tmp = '';
+            foreach ($url as $k => $v) {
+                if($k != 1) $tmp .= ' OR ';
+                $tmp .= 'url="'.$v.'"';
+            }
+            $url = '('.$tmp.')';
+        } else {
+            $url = $url[0];
+        }
 
         $url = mysql_real_escape_string($url);
         $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
@@ -50,9 +61,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $list[0]['structure'] = 'Shop_Good';
 
         $this->path = array_merge($path, $list);
-        $this->object = end($list);
+        $this->pageData = end($list);
 
-        return array();
+        return $this;
     }
 
 
