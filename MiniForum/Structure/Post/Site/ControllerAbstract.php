@@ -1,82 +1,55 @@
 <?php
 namespace MiniForum\Structure\Post\Site;
+
 use Ideal\Core\Config;
 use Ideal\Core\Request;
-use Ideal\Core\Pagination;
-use Ideal\Core\Util;
-use Ideal\Structure\User;
 
-class ControllerAbstract extends \Ideal\Structure\News\Site\ControllerAbstract
+class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
+    /** @var  $model Model */
     protected $model;
-
-
-    public function parentIndexAction()
-    {
-        parent::indexAction();
-    }
+    protected $title; // Отвечает за титле на сайте
 
     public function indexAction()
     {
+        session_start();
         parent::indexAction();
         $this->view->Authorized = $_SESSION['IsAuthorized'];
-        $this->view->posts = $this->view->parts;
         $request = new Request();
         $page = intval($request->page);
-        $onPage = $this->model->params['elements_site'];
+        $this->view->posts = $this->model->getList($page);
 
         if ($page !== 0) {
-            $title = 'Онкология форум - Страница ' . $page;
+            $title = $this->title. ' - Страница ' . $page;
             $this->model->setTitle($title);
         }
 
-        // Регистрируем объект пользователя
-        $user = User\Model::getInstance();
-        $_SESSION['IsAuthorized'] = false;
-        // Если пользователь залогинен
-        if ($user->checkLogin()) {
-            $_SESSION['IsAuthorized'] = true;
-        }
-
         // Отображение листалки
-        $pagination = new Pagination();
-        $this->view->pages = $pagination->getPages($this->model->getListCount(),
-            $onPage, $page, $request->getQueryWithout('page'), 'page');
+        $this->view->pager = $this->model->getPager($page, $request->getQueryWithout('page'));
     }
 
     public function detailAction()
     {
+        session_start();
         $this->templateInit('MiniForum/Structure/Post/Site/detail.twig');
 
-        // Регистрируем объект пользователя
-        $user = User\Model::getInstance();
+        $this->view->prevStructure = 0;
+        $pageData = $this->model->getPageData();
 
-        $_SESSION['IsAuthorized'] = false;
-        // Если пользователь залогинен
-        if ($user->checkLogin()) {
-            $_SESSION['IsAuthorized'] = true;
-        }
-
-        $this->view->structurePath = 0;
-
-        $text = $this->model->splitSimbols($this->model->object['content'], 30, 0);
+        $text = $this->model->splitSimbols($pageData['content'], 30, 0);
         $this->view->header = strip_tags($text[0]);
-        $this->model->object['content'] = $text[1];
-        $this->view->mainPost =  $this->model->object;
+        $pageData['content'] = $text[1];
+        $this->view->mainPost =  $pageData;
 
         $this->view->posts = $this->model->getChildPosts();
-        //$this->view->posts = array_merge(array('mainPost' => $this->model->object),  $this->model->getChildPosts());
         $this->view->Authorized = $_SESSION['IsAuthorized'];
 
         $config = Config::getInstance();
 
-        session_start();
         if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] !== '')) {
             $_SESSION['HTTP_REFERER'] = $_SERVER['HTTP_REFERER'];
         }
         $this->view->forumLink = '/forum' . $config->urlSuffix;
-
-        //$this->view->parentPart = $_SESSION['HTTP_REFERER'];
 
         if (isset($_GET['email']) && isset($_GET['hash'])) {
             $unsubject = $this->model->unsubjectLink($_GET['email'], $_GET['id'], $_GET['post'], $_GET['hash']);

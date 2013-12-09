@@ -7,12 +7,12 @@ use Ideal\Core\Config;
 class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
 {
     protected $model;
-    protected $structurePath;
+    protected $prevStructure;
 
     public function __construct() {
         $config = Config::getInstance();
         $forum = $config->getStructureByName('MiniForum_Post');
-        $this->structurePath = $forum['params']['structure_path'];
+        $this->prevStructure = $forum['params']['prev_structure'];
     }
 
     function insetAction() {
@@ -25,7 +25,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
             return;
         }
 
-        $this->model = new Model($this->structurePath);
+        $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
         $result = $this->model->addNewPost();
 
@@ -42,7 +42,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         $post['ID'] = $_POST['ID'];
         $post['main_parent_id'] = $_POST['main_parent_id'];
         $post['parent_id'] = $_POST['parent_id'];
-        $this->model = new Model($this->structurePath);
+        $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
         $result = $this->model->deletePost();
         if ($result) {
@@ -63,7 +63,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
             return;
         }
 
-        $this->model = new Model($this->structurePath);
+        $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
         $result = $this->model->updatePost();
         if ($result) {
@@ -77,7 +77,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         parse_str($_GET['formValues'], $formValues);
 
         if ($formValues['ID'] !== '0') {
-            $this->model = new Model($this->structurePath);
+            $this->model = new Model($this->prevStructure);
             $post = $this->model->getPost($formValues['ID']);
             $post = $post[0];
             $formValues['content'] = $post['content'];

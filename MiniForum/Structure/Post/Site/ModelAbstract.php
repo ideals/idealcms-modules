@@ -8,25 +8,17 @@ use Ideal\Core\Util;
 use Mail\Sender;
 
 
-class ModelAbstract extends  \Ideal\Core\Site\Model
+class ModelAbstract extends \Ideal\Core\Site\Model
 {
     public $cid;
     protected $post;
     protected $where;
     protected $pageStructure = false;
-    protected $structurePath;
-
-    private function initStructurePath()
-    {
-        $config = Config::getInstance();
-        $forum = $config->getStructureByName('MiniForum_Post');
-        $this->structurePath = $forum['params']['structure_path'];
-    }
+    protected $prevStructure;
 
     public function getWhere($where)
     {
-        $where = 'WHERE ' . $where . $this->where . ' AND is_active=1 AND parent_id=0';
-        return $where;
+        return 'WHERE ' . $where . $this->where . ' AND is_active=1 AND parent_id=0';
     }
 
     public function setWhere($where)
@@ -40,9 +32,6 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
      */
     public function getList($page)
     {
-        // Задаём structure_part
-        $this->initStructurePath();
-
         $config = Config::getInstance();
 
         //Изменяем сортировку, так как новые сообщения должны быть в начале
@@ -65,8 +54,8 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
                 $posts[$k]['secondText'] .= '...';
             }
 
-            $posts[$k]['firstText']  = str_replace('\r\n', ' ', $posts[$k]['firstText']);
-            $posts[$k]['secondText']  = str_replace('\r\n', ' ', $posts[$k]['secondText']);
+            $posts[$k]['firstText'] = str_replace('\r\n', ' ', $posts[$k]['firstText']);
+            $posts[$k]['secondText'] = str_replace('\r\n', ' ', $posts[$k]['secondText']);
 
             $_sql = "SELECT COUNT(*) FROM {$this->_table} WHERE main_parent_id='{$v['ID']}'";
             $answerCount = $db->queryArray($_sql);
@@ -78,15 +67,12 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
 
     public function detectPageByUrl($url, $path)
     {
-        // Задаём structure_part
-        $this->initStructurePath();
-
         $db = Db::getInstance();
-
-        $url = mysql_real_escape_string($url[0]);
+        $url = mysql_real_escape_string($_SERVER['REQUEST_URI']);
+        $url = explode('/', $url);
+        $url = (int)end($url);
         $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND id='{$url}'";
         $post = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
-
 
         // Страницу не нашли, возвращаем 404
         if (!isset($post[0]['ID'])) {
@@ -104,7 +90,7 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
         $request = new Request();
         $request->action = 'detail';
 
-        return array();
+        return $this;
     }
 
     public function setTitle($title = '')
@@ -114,9 +100,9 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
             $content = $content['content'];
             $content = strip_tags($content);
             $content = Util::smartTrim($content, 50);
-            $this->object['title'] = 'Форум об аутизме и проблемах обучения - ' . $content;
+            $this->pageData['title'] = 'Форум об аутизме и проблемах обучения - ' . $content;
         } else {
-            $this->object['title'] = $title;
+            $this->pageData['title'] = $title;
         }
         return $title;
     }
@@ -138,7 +124,7 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
         if ($textSize < mb_strlen($text)) {
             if ($max !== 0) {
                 $rText[1] = mb_substr($text, $textSize, $max - $textSize);
-                $rText[1] = Util::smartTrim($rText[1] , $max - $textSize - 1);
+                $rText[1] = Util::smartTrim($rText[1], $max - $textSize - 1);
             } else {
                 $rText[1] = mb_substr($text, $textSize);
             }
@@ -150,18 +136,18 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
     public function setDescription($description = '')
     {
         if ($description == '') {
-            $this->object['description'] = Util::smartTrim($this->object['content'], 170);
+            $this->pageData['description'] = Util::smartTrim($this->pageData['content'], 170);
         } else {
-            $this->object['description'] = $description;
+            $this->pageData['description'] = $description;
         }
     }
 
     public function setKeywords($keywords = '')
     {
         if ($keywords == '') {
-            $this->object['keywords'] = Util::smartTrim($this->object['content'], 200);
+            $this->pageData['keywords'] = Util::smartTrim($this->pageData['content'], 200);
         } else {
-            $this->object['keywords'] = $keywords;
+            $this->pageData['keywords'] = $keywords;
         }
     }
 
@@ -169,15 +155,9 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
     public function getChildPosts()
     {
         $db = Db::getInstance();
-        $root = $this->object['ID'];
+        $root = $this->pageData['ID'];
 
-        /*$pageStructure = $this->pageStructure;
-        $where = '';
-        if ($pageStructure) {
-            $where = "AND page_structure = '{$pageStructure}'";
-        }*/
-
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND main_parent_id='{$root}' {$where}";
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND main_parent_id='{$root}'";
         $childPosts = $db->queryArray($_sql);
 
         $childPosts = $this->buildTree($childPosts, $root);
@@ -193,7 +173,6 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
     }
 
 
-
     public function getPost($ID)
     {
         $db = Db::getInstance();
@@ -205,8 +184,8 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
     }
 
 
-
-    public function  setStructurePath($pageStructure) {
+    public function  setPrevStructure($pageStructure)
+    {
         $this->pageStructure = $pageStructure;
     }
 
@@ -230,7 +209,7 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
         $list = array();
         foreach ($tree as $k => $v) {
             $v['indent'] = $indent;
-            $newList = $this->buildList($v['elements'], $indent+1);
+            $newList = $this->buildList($v['elements'], $indent + 1);
             unset($v['elements']);
             $list[] = $v;
             $list = array_merge($list, $newList);
@@ -238,11 +217,13 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
         return $list;
     }
 
-    public function setPost($post) {
+    public function setPost($post)
+    {
         $this->post = $post;
     }
 
-    public function addNewPost() {
+    public function addNewPost()
+    {
         $db = Db::getInstance();
         $time = time();
 
@@ -264,11 +245,11 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
                 $threeWeek = 21 * 24 * 60 * 60; // 21 days; 24 hours; 60 mins; 60secs
                 $time = mt_rand($date_create, $date_create + $threeWeek);
 
-            } else {	// Если создается тема
-                $time = $par['date_create'] = mt_rand(mktime(0,0,0,11,1,2012), mktime(0,0,0,10,31,2013));
+            } else { // Если создается тема
+                $time = $par['date_create'] = mt_rand(mktime(0, 0, 0, 11, 1, 2012), mktime(0, 0, 0, 10, 31, 2013));
             }
         }
-        $values['structure_path'] = $this->structurePath;
+        $values['prev_structure'] = $this->prevStructure;
         $values['parent_id'] = $this->post['parent_id'];
         $values['main_parent_id'] = $this->post['main_parent_id'];
         $values['page_structure'] = $this->post['page_structure'];
@@ -285,12 +266,13 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
         if ($values['main_parent_id'] == "0") {
             $values['get_mail'] = 1;
         }
-        $this->subscribe(array($this->post['email']),  $this->post['main_parent_id'], $this->post['get_mail']);
+        $this->subscribe(array($this->post['email']), $this->post['main_parent_id'], $this->post['get_mail']);
 
         return $result; //ID нового ответа || false
     }
 
-    public function updatePost() {
+    public function updatePost()
+    {
         $db = Db::getInstance();
         foreach ($this->post as $k => $v) {
             $this->post[$k] = mysql_real_escape_string($v);
@@ -301,7 +283,8 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
         return $result; //true || false
     }
 
-    public function deletePost() {
+    public function deletePost()
+    {
 
         $db = Db::getInstance();
         $_sql = "DELETE FROM $this->_table WHERE ID = {$this->post['ID']} ";
@@ -326,16 +309,17 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
      * $mainPost - указывает на раздел, в от которого мы отписываем
      * $subscribe - если false, то отписываем, если true, то подписываем
      * */
-    public function subscribe(array $emails, int $mainPost, boolean $subscribe) {
+    public function subscribe(array $emails, int $mainPost, boolean $subscribe)
+    {
         foreach ($emails as $k => $email) {
             if ($k == 0) {
-                $where =  "email = '" . $email . "'";
+                $where = "email = '" . $email . "'";
                 continue;
             }
             $where .= " OR email = '" . $email . "'";
         }
         // Если отписываемся, то ищем те поля, где подписка включена и наоборот
-        if ($subscribe == false){
+        if ($subscribe == false) {
             $setGetMail = 0;
             $whereGetMail = 1;
         } else {
@@ -351,13 +335,14 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
      * Рассылка сообщения всем подписчикам данного поста
      * $mainParentID - ID корневого сообщения*/
     // TODO функция требует оптимизации
-    public function sendMessages($post) {
+    public function sendMessages($post)
+    {
         $mail = new Sender();
         $config = Config::getInstance();
 
         // Получаем массив почтовых ящиков менеджеров сайта пригодный для сравнения
         $emailManager = explode(',', $config->mailForm);
-        foreach($emailManager as $k => $email) {
+        foreach ($emailManager as $k => $email) {
             $emailManager[$k] = str_replace('<', '', $email);
             $emailManager[$k] = str_replace('>', '', $emailManager[$k]);
             $emailManager[$k] = trim($emailManager[$k]);
@@ -372,8 +357,8 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
                 . 'Автор: ' . $post['author'] . "<br />"
                 . 'Email: ' . $post['email'] . "<br />"
                 . 'Сообщение: ' . "<br />" . $post['content'];
-            $mail->setBody('',$message);
-            foreach($emailManager as $k => $email) {
+            $mail->setBody('', $message);
+            foreach ($emailManager as $k => $email) {
                 // Не отправляем сообщение менеджеру сайта, в случае если он создал новую тему
                 if ($email == $post['email']) continue;
                 $mail->sent($config->robotEmail, $email);
@@ -399,7 +384,7 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
             . 'Автор: ' . $post['author'] . "<br />"
             . 'Email: ' . $post['email'] . "<br />"
             . 'Сообщение: ' . "<br />" . $post['content'] . "<br />";
-        $mail->setBody('',$message);
+        $mail->setBody('', $message);
         $mail->sent($config->robotEmail, $config->mailForm);
 
         $message = "Здравствуйте! <br />
@@ -414,17 +399,18 @@ class ModelAbstract extends  \Ideal\Core\Site\Model
             $hash = (string)$postDB['email'] . (string)$postDB['main_parent_id'] . (string)$postDB['ID'] . (string)$postDB['date_create'];
             $hash = crypt((string)$hash, (string)$postDB['ID']);
             // Создаём ссылку для отписки
-            $hrefUnsubscribe = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['main_parent_id'] .'.html' . '?email=' . urlencode($postDB['email']) . '&post=' . urlencode($postDB['main_parent_id']) . '&id=' . urlencode($postDB['ID']) . '&hash=' . urlencode($hash);
+            $hrefUnsubscribe = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['main_parent_id'] . '.html' . '?email=' . urlencode($postDB['email']) . '&post=' . urlencode($postDB['main_parent_id']) . '&id=' . urlencode($postDB['ID']) . '&hash=' . urlencode($hash);
             $unsubscribe = "Чтобы больше не получать уведомления об ответах на Ваше сообщение нажмите сюда: <a href=\"{$hrefUnsubscribe}\">{$hrefUnsubscribe}</a></br>";
             // Не даём отписаться создателю темы
             if ($postDB['ID'] === $post['main_parent_id']) $unsubscribe = '';
-            $mail->setBody('',$message . $unsubscribe);
+            $mail->setBody('', $message . $unsubscribe);
             $mail->sent($config->robotEmail, $postDB['email']);
         }
     }
 
 
-    function unsubjectLink($email, $id, $mainParentID, $hash) {
+    function unsubjectLink($email, $id, $mainParentID, $hash)
+    {
         $email = mysql_real_escape_string((urldecode($email)));
         $id = mysql_real_escape_string((urldecode($id)));
         $mainParentID = mysql_real_escape_string((urldecode($mainParentID)));
