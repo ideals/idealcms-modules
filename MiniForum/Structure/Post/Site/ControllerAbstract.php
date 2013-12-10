@@ -25,7 +25,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         }
 
         // Отображение листалки
-        $this->view->pager = $this->model->getPager($page, $request->getQueryWithout('page'));
+        $this->view->pager = $this->model->getPager('page');
     }
 
     public function detailAction()
@@ -36,7 +36,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->prevStructure = 0;
         $pageData = $this->model->getPageData();
 
-        $text = $this->model->splitSimbols($pageData['content'], 30, 0);
+        $text = $this->model->splitMessage($pageData['content'], 30, 0);
         $this->view->header = strip_tags($text[0]);
         $pageData['content'] = $text[1];
         $this->view->mainPost =  $pageData;

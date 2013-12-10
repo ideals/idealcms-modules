@@ -45,7 +45,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $posts[$k]['date_create'] = Util::dateReach($v['date_create']);
 
             //Резделяем текст в соответствии с условиями
-            $text = $this->splitSimbols($posts[$k]['content'], 30, 200);
+            $text = $this->splitMessage($posts[$k]['content'], 30, 200);
 
             $posts[$k]['firstText'] = $text[0];
             $posts[$k]['secondText'] = $text[1];
@@ -65,18 +65,17 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     }
 
 
-    public function detectPageByUrl($url, $path)
+    public function detectPageByUrl($path, $url)
     {
+        $url = mysql_real_escape_string($url[0]);
         $db = Db::getInstance();
-        $url = mysql_real_escape_string($_SERVER['REQUEST_URI']);
-        $url = explode('/', $url);
-        $url = (int)end($url);
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND id='{$url}'";
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND ID='{$url}'";
         $post = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
 
         // Страницу не нашли, возвращаем 404
         if (!isset($post[0]['ID'])) {
-            return '404';
+            $this->is404 = true;
+            return $this;
         }
 
         $post[0]['structure'] = 'MiniForum_Post';
@@ -107,7 +106,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $title;
     }
 
-    public function splitSimbols($text, $min, $max)
+    public function splitMessage($text, $min, $max)
     {
         $str = mb_substr($text, $min);
         preg_match_all('/(.*)[\.\?\!]/U', $str, $second, PREG_OFFSET_CAPTURE);
@@ -189,8 +188,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $this->pageStructure = $pageStructure;
     }
 
-
-    function buildTree(&$list, $root)
+    protected function buildTree(&$list, $root)
     {
         $tree = array();
         foreach ($list as $k => $v) {
@@ -204,7 +202,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     }
 
 
-    function buildList($tree, $indent = 0)
+    protected function buildList($tree, $indent = 0)
     {
         $list = array();
         foreach ($tree as $k => $v) {
