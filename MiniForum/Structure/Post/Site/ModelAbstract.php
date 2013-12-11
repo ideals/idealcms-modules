@@ -21,9 +21,15 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return 'WHERE ' . $where . $this->where . ' AND is_active=1 AND parent_id=0';
     }
 
-    public function setWhere($where)
+    public function getComments($pageStructure)
     {
-        $this->where = $where;
+        // todo сделать ограничение на количество комментариев на странице
+        $_sql = "SELECT * FROM i_miniforum_structure_post WHERE page_structure='{$pageStructure}' AND is_active=1 AND parent_id=0";
+        $db = Db::getInstance();
+        $posts = $db->queryArray($_sql);
+        $posts = $this->parsePosts($posts);
+
+        return $posts;
     }
 
     /**
@@ -40,6 +46,14 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $posts = parent::getList($page);
         $db = Db::getInstance();
 
+        $posts = $this->parsePosts($posts);
+
+        return $posts;
+    }
+
+    protected function parsePosts($posts)
+    {
+        $db = Db::getInstance();
         foreach ($posts as $k => $v) {
             $posts[$k]['link'] = '/forum' . '/' . $v['ID'] . $config->urlSuffix;
             $posts[$k]['date_create'] = Util::dateReach($v['date_create']);
@@ -61,9 +75,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $answerCount = $db->queryArray($_sql);
             $posts[$k]['answer_count'] = $answerCount[0]['COUNT(*)'];
         }
+
         return $posts;
     }
-
 
     public function detectPageByUrl($path, $url)
     {
