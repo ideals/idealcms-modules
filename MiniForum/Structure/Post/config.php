@@ -51,5 +51,10 @@ return array(
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),
+        'is_moderated' => array(
+            'label' => 'Прошло модерацию',
+            'sql'   => 'bool',
+            'type'  => 'Ideal_Checkbox'
+        ),
     ),
 );

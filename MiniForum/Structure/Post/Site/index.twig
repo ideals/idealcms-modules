@@ -24,6 +24,9 @@
                 {% endif %}
             <div class="post-info">
                 {{ post.author }}&nbsp;&nbsp;&nbsp;<span class="post-date">{{ post.date_create }}</span>
+                {% if ((Authorized == true) and (post.is_moderated == "0")) %}
+                    <span class="post-no-moderated">&nbsp;&nbsp;&nbsp;Не прошло модерацию</span>
+                {% endif %}
             </div>
             <div class="news-line"></div>
         </div>

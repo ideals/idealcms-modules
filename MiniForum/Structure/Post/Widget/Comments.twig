@@ -1,34 +1,38 @@
-{% if forum.isShow %}
-    <div class="form-part-post">
-        <div class="inform">
-            {% if Authorized == true %}
-                <script> loadForm.isAuthorized = true; </script>
-            {% endif %}
+{% extends "site.twig" %}
 
-            <div id="addNewPost" onclick="addPost(0, 0, '{{ pageStructure }}')"><span> Задать вопрос </span>
-            </div>
-            <br/>
-            {% for post in forum.posts %}
-                <div class='post-annonce' name="post-line-{{ post.ID }}" id="post-line-{{ post.ID }}">
-                    <strong>
-                        <a href="{{ post.link|raw }}">{{ post.firstText|raw }}</a>
-                    </strong>
-                    {{ post.secondText }}
-                    {% if post.answer_count != 0 %}
-                        <span title="Количество ответов">({{ post.answer_count }})</span>
-                    {% endif %}
-                    <div class="post-info">
-                        <span class="post-author">{{ post.author }}</span>&nbsp;&nbsp;&nbsp;<span
-                                class="post-date">{{ post.date_create }}</span>
-                    </div>
-                    <strong><a href="#"
-                               onclick="addPostAnswer('{{ post.ID }}', '{{ post.ID }}', '{{ post.page_structure }}'); return false">
-                            Ответить </a></strong>
+{% block forum %}
+    {% if forum.isShow %}
+        <div class="form-part-post">
+            <div class="inform">
+                {% if Authorized == true %}
+                    <script> loadForm.isAuthorized = true; </script>
+                {% endif %}
 
-                    <div class="form-add-post" id="form-add-post-{{ post.ID }}"></div>
-                    <div class="news-line"></div>
+                <div id="addNewPost" onclick="addPost(0, 0, '{{ forum.pageStructure }}')"><span> Задать вопрос </span>
                 </div>
-            {% endfor %}
+                <br/>
+                {% for post in forum.posts %}
+                    <div class='post-annonce' name="post-line-{{ post.ID }}" id="post-line-{{ post.ID }}">
+                        <strong>
+                            <a href="{{ post.link|raw }}">{{ post.firstText|raw }}</a>
+                        </strong>
+                        {{ post.secondText }}
+                        {% if post.answer_count != 0 %}
+                            <span title="Количество ответов">({{ post.answer_count }})</span>
+                        {% endif %}
+                        <div class="post-info">
+                            <span class="post-author">{{ post.author }}</span>&nbsp;&nbsp;&nbsp;<span
+                                    class="post-date">{{ post.date_create }}</span>
+                        </div>
+                        <strong><a href="#"
+                                   onclick="addPostAnswer('{{ post.ID }}', '{{ post.ID }}', '{{ post.page_structure }}'); return false">
+                                Ответить </a></strong>
+
+                        <div class="form-add-post" id="form-add-post-{{ post.ID }}"></div>
+                        <div class="news-line"></div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
-{% endif %}
+    {% endif %}
+{% endblock %}

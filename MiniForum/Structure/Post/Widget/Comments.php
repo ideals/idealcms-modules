@@ -41,6 +41,7 @@ class Comments extends \Ideal\Core\Widget
 
         $result = array(
             'isShow' => true,
+            'pageStructure' => $pageStructure,
             'posts' => $posts,
         );
 

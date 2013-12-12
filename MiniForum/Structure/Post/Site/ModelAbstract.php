@@ -16,6 +16,17 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     protected $pageStructure = false;
     protected $prevStructure;
 
+    public function __construct($prevStructure)
+    {
+        parent::__construct($prevStructure);
+
+        // Для авторизованного пользователя выводим все посты
+        session_start();
+        if (!$_SESSION['IsAuthorized']) {
+            $this->where = 'AND is_moderated=1';
+        }
+    }
+
     public function getWhere($where)
     {
         return 'WHERE ' . $where . $this->where . ' AND is_active=1 AND parent_id=0';
@@ -24,7 +35,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getComments($pageStructure)
     {
         // todo сделать ограничение на количество комментариев на странице
-        $_sql = "SELECT * FROM i_miniforum_structure_post WHERE page_structure='{$pageStructure}' AND is_active=1 AND parent_id=0";
+        $_sql = "SELECT * FROM i_miniforum_structure_post WHERE page_structure='{$pageStructure}' AND is_active=1 AND parent_id=0 {$this->where}";
         $db = Db::getInstance();
         $posts = $db->queryArray($_sql);
         $posts = $this->parsePosts($posts);
@@ -54,6 +65,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     protected function parsePosts($posts)
     {
         $db = Db::getInstance();
+        $config = Config::getInstance();
+
         foreach ($posts as $k => $v) {
             $posts[$k]['link'] = '/forum' . '/' . $v['ID'] . $config->urlSuffix;
             $posts[$k]['date_create'] = Util::dateReach($v['date_create']);
@@ -81,9 +94,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function detectPageByUrl($path, $url)
     {
+        // Условие отбора
+        $where = '';
         $url = mysql_real_escape_string($url[0]);
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND ID='{$url}'";
+
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND ID='{$url}' {$where}";
         $post = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
 
         // Страницу не нашли, возвращаем 404
@@ -170,7 +186,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
         $root = $this->pageData['ID'];
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND main_parent_id='{$root}'";
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND main_parent_id='{$root}' {$this->where}";
         $childPosts = $db->queryArray($_sql);
 
         $childPosts = $this->buildTree($childPosts, $root);
@@ -370,11 +386,14 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 . 'Email: ' . $post['email'] . "<br />"
                 . 'Сообщение: ' . "<br />" . $post['content'];
             $mail->setBody('', $message);
+            $emailSend = array();
             foreach ($emailManager as $k => $email) {
                 // Не отправляем сообщение менеджеру сайта, в случае если он создал новую тему
                 if ($email == $post['email']) continue;
-                $mail->sent($config->robotEmail, $email);
+                $emailSend[] = '<' . $email . '>';
             }
+            $emailSend = implode(", ", $emailSend);
+            $mail->sent($config->robotEmail, $emailSend);
             return true;
         }
 
