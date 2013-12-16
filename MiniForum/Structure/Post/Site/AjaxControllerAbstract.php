@@ -52,6 +52,18 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         }
     }
 
+    public function moderateAction()
+    {
+        $post['ID'] = $_POST['ID'];
+        $post['isModerated'] = $_POST['isModerated'];
+        $this->model = new Model($this->prevStructure);
+        $this->model->setPost($post);
+        $result = $this->model->moderatedPost();
+        if (!$result) {
+            echo 'Не удалось выполнить действие';
+        }
+    }
+
 
     function updateAction() {
         $form = $_POST['form'];

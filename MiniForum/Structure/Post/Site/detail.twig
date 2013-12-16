@@ -20,9 +20,9 @@
                                     &nbsp;<strong><a href="#" onclick="updatePost('{{ mainPost.ID}}', '{{ mainPost.email}}'); return false">Изменить</a></strong>
                                     &nbsp;<strong><a href="#" onclick="deletePost('{{ mainPost.ID}}', '{{mainPost.main_parent_id}}', '{{mainPost.parent_id }}'); return false">Удалить</a></strong>
                                     {% if post.is_moderated == "0" %}
-                                        &nbsp;<strong><a href="#" onclick="deletePost('{{ post.ID}}', '{{post.main_parent_id}}', '{{post.parent_id }}'); return false">Опубликовать</a></strong>
+                                        &nbsp;<span style="font-weight: bold;"><a href="#" onclick="ajaxModeratedPost('{{ mainPost.ID}}', 1); return false">Опубликовать</a></span>
                                     {% else %}
-                                        &nbsp;<strong><a href="#" onclick="deletePost('{{ post.ID}}'); return false">Скрыть</a></strong>
+                                        &nbsp;<span style="font-weight: bold;"><a href="#" onclick="ajaxModeratedPost('{{ mainPost.ID}}', 0); return false">Скрыть</a></span>
                                     {% endif %}
                                 {% endif %}
                             </div>
@@ -43,9 +43,9 @@
                                         &nbsp;<strong><a href="#" onclick="updatePost('{{ post.ID}}', '{{ post.email}}'); return false">Изменить</a></strong>
                                         &nbsp;<strong><a href="#" onclick="deletePost('{{ post.ID}}', '{{post.main_parent_id}}', '{{post.parent_id }}'); return false">Удалить</a></strong>
                                         {% if post.is_moderated == "0" %}
-                                            &nbsp;<strong><a href="#" onclick="deletePost('{{ post.ID}}', '{{post.main_parent_id}}', '{{post.parent_id }}'); return false">Опубликовать</a></strong>
+                                            &nbsp;<span style="font-weight: bold;"><a href="#" onclick="ajaxModeratedPost('{{ post.ID}}', 1); return false">Опубликовать</a></span>
                                         {% else %}
-                                            &nbsp;<strong><a href="#" onclick="deletePost('{{ post.ID}}'); return false">Скрыть</a></strong>
+                                            &nbsp;<span style="font-weight: bold;"><a href="#" onclick="ajaxModeratedPost('{{ post.ID}}', 0); return false">Скрыть</a></span>
                                         {% endif %}
 
                                     {% endif %}

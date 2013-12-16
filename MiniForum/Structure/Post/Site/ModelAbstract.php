@@ -288,6 +288,15 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $values['is_active'] = 1;
         $values['get_mail'] = $this->post['get_mail'] ? 1 : 0;
 
+        session_start();
+        // Сообщения и темы созданные зарегестрированным пользователем по умолчанию отображаются.
+        if ($_SESSION['IsAuthorized']) {
+            $values['is_moderated'] = 1;
+        } else {
+            $values['is_moderated'] = 0;
+        }
+
+
         $result = $db->insert($this->_table, $values);
 
         // При создании новой темы, устанавливаем отправку почты
@@ -328,6 +337,18 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $_sql = "UPDATE $this->_table SET parent_id={$this->post['parent_id']} WHERE parent_id={$this->post['ID']}";
             $db->query($_sql);
         }
+        return $result; //true || false
+    }
+
+    /*
+     * Установка отметки том что сообщение было опубликовано или было снято с публикации
+     * */
+    public function moderatedPost()
+    {
+        $db = Db::getInstance();
+        $_sql = "UPDATE {$this->_table} SET is_moderated = {$this->post['isModerated']} WHERE ID = {$this->post['ID']} ";
+        $result = $db->query($_sql);
+
         return $result; //true || false
     }
 
