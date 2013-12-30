@@ -142,7 +142,7 @@ class Model extends \Ideal\Structure\Part\Admin\ModelAbstract
             //'structure_path' => $structurePath,
             'cid' => $newCid,
             'lvl' => $newLvl,
-            'structure' => 'Shop_Category',
+            'structure' => 'CatalogPlus_Category',
             'template' => 'Ideal_Page',
             'name' => $child,
             'url' => Url\Model::translitUrl($child),

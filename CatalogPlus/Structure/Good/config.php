@@ -3,7 +3,7 @@
 // Новости
 return array(
     'params' => array (
-        'in_structures'    => array(), // в каких структурах можно создавать эту структуру
+        'in_structures'    => array('Ideal_Part'), // в каких структурах можно создавать эту структуру
         'elements_cms'  => 10,            // количество элементов в списке в CMS
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
@@ -16,7 +16,7 @@ return array(
             'sql'   => 'int(4) unsigned not null auto_increment primary key',
             'type'  => 'Ideal_Hidden'
         ),
-        'structure_path' => array(
+        'prev_structure' => array(
             'label' => 'ID родительских структур',
             'sql'   => 'char(15)',
             'type'  => 'Ideal_Hidden'
@@ -24,8 +24,8 @@ return array(
         'category_id' => array(
             'label' => 'Категория',
             'sql'   => 'int(11)',
-            'type'  => 'Shop_Category',
-            'class' => '\\Shop\\Structure\\Category\\Getters\\CategoryList'
+            'type'  => 'CatalogPlus_Category',
+            'class' => '\\CatalogPlus\\Structure\\Category\\Getters\\CategoryList'
         ),
         'name' => array(
             'label' => 'Название',
@@ -40,7 +40,7 @@ return array(
         'price' => array(
             'label' => 'Цена за единицу',
             'sql'   => 'int',
-            'type'  => 'Shop_Price'
+            'type'  => 'CatalogPlus_Price'
         ),
         'annot' => array(
             'label' => 'Описание',

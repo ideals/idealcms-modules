@@ -3,8 +3,8 @@
 // Страницы сайта
 return array(
     'params' => array(
-        'in_structures' => array('Ideal_Part'),
-        'structures'    => array('Shop_Category'), // типы, которые можно создавать в этом разделе
+        'in_structures' => array('Ideal_DataList'),
+        'structures'    => array('CatalogPlus_Category'), // типы, которые можно создавать в этом разделе
         'elements_cms'  => 10, // количество элементов в списке в CMS
         'elements_site' => 15, // количество элементов в списке на сайте
         'field_name'    => 'name', // поля для вывода информации по объекту
