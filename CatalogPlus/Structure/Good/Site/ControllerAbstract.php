@@ -30,12 +30,12 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function detailAction()
     {
-        $this->templateInit('Articles/Structure/Article/Site/detail.twig');
+        $this->templateInit('CatalogPlus/Structure/Good/Site/detail.twig');
 
         // Выдёргиваем заголовок из template['content']
         $this->view->header = $this->model->getHeader();
 
-        $this->view->article = $this->model->getPageData();
+        $this->view->good = $this->model->getPageData();
     }
 
 }

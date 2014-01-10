@@ -34,14 +34,18 @@ class CategoryList
     public function getVariants()
     {
         $db = Db::getInstance();
+        $config = Config::getInstance();
+        $pageData = $this->obj->getPageData();
+
+        $_table = $config->db['prefix'] . 'catalogplus_good';
 
         if (isset($this->obj->fields['category_id'])) {
             // Если связь товара с категорией через поле в таблице товара
-            $arr = (isset($this->obj->object['category_id'])) ? array($this->obj->object['category_id']) : array();
+            $arr = (isset($pageData['category_id'])) ? array($pageData['category_id']) : array();
             return $arr;
         }
-        $goodId = $this->obj->object['ID'];
-        $_sql = "SELECT category_id FROM i_catalogplus_category_good WHERE good_id='{$goodId}'";
+        $goodId = $pageData['ID'];
+        $_sql = "SELECT category_id FROM {$_table} WHERE good_id='{$goodId}'";
         $arr = $db->queryArray($_sql);
 
         $list = array();
@@ -55,8 +59,8 @@ class CategoryList
 
     public function getSqlAdd($newValue)
     {
-        $_sql = "DELETE FROM i_catalogplus_category_good WHERE good_id='{{ objectId }}';"
-              . "INSERT INTO i_catalogplus_category_good SET good_id='{{ objectId }}', category_id='{$newValue}';";
+        $_sql = "DELETE FROM i_catalogplus_good WHERE good_id='{{ objectId }}';"
+              . "INSERT INTO i_catalogplus_good SET good_id='{{ objectId }}', category_id='{$newValue}';";
         return $_sql;
     }
 

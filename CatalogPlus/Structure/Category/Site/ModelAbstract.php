@@ -6,6 +6,7 @@ use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Field;
+use Ideal\Core\Util;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
 {

@@ -10,13 +10,13 @@ class Plugin
 {
     public function onPreDispatch($router)
     {
-        if (!isset($_GET['url'])) return $router;
+        if (!isset($_SERVER['REQUEST_URI'])) return $router;
 
-        $url = explode('/', $_GET['url']);
+        $url = explode('/', $_SERVER['REQUEST_URI']);
         if ($url[0] != 'tovar') return $router;
 
 
-        $url = basename($_GET['url']);
+        $url = basename($_SERVER['REQUEST_URI']);
 
         $good = new \CatalogPlus\Structure\Good\Site\Model('6');
         $result = $good->detectPageByUrl($url, array());

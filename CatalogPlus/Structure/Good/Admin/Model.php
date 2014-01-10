@@ -1,7 +1,7 @@
 <?php
-namespace Articles\Structure\Article\Admin;
+namespace CatalogPlus\Structure\Good\Admin;
 
 class Model extends ModelAbstract
 {
     protected $categoryPrevStructure;
-            }
+}

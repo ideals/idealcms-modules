@@ -27,13 +27,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             return $this;
         }
 
-        $url = array_shift($url);
-
-        if (count($url) > 0) {
+        if (count($url) > 1) {
             // У статьи не может быть URL с несколькими уровнями вложенности
             $this->is404 = true;
             return $this;
         }
+
+        $url = array_shift($url);
 
         $db = Db::getInstance();
 
@@ -57,7 +57,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this;
     }
 
-
     public function detectCurrentCategory()
     {
         if (!isset($this->categoryModel)) {
@@ -72,7 +71,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $this->pageData = $this->currentCategory;
         }
     }
-
 
     public function getCategories()
     {
@@ -145,6 +143,16 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function detectPath()
     {
+        if (isset($this->categoryModel)) {
+            // Установлена категория, значит определять товар не нужно, определяем предков структуры товара
+            $path = parent::detectPath();
+            // todo определить вложенные категории
+            $this->categoryModel->detectPath();
+            $this->path = $path;
+            return $this->path;
+        }
+
+        // Определение пути из товара
         $config = Config::getInstance();
         $db = Db::getInstance();
 
@@ -165,6 +173,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this->path;
     }
 
+    protected function getLocalPath()
+    {
+        return array();
+    }
+
     public function getHeader()
     {
         $header = '';
@@ -179,5 +192,22 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $header = $this->pageData['name'];
         }
         return $header;
+    }
+
+    public function setCategoryModel($model)
+    {
+        $this->categoryModel = $model;
+    }
+
+    public function getAllGoods(){
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $tableLink = $config->db['prefix'] . 'catalogplus_good';
+        $cid = substr($this->pageData['cid'], 0, $this->pageData['lvl'] * 3);
+        $tableCat = $config->db['prefix'] . 'catalogplus_structure_category';
+        $_sql = "SELECT * FROM {$this->_table} WHERE ID IN (SELECT good_id FROM {$tableLink} WHERE category_id IN (
+                    SELECT ID FROM {$tableCat} WHERE cid LIKE '{$cid}%')) AND is_active = 1";
+        $goods = $db->queryArray($_sql);
+        return $goods;
     }
 }

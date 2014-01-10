@@ -18,7 +18,7 @@ class Controller extends \Ideal\Field\AbstractController
     public function getInputText()
     {
         $list = $this->getter->getList();
-        $variants = $this->getter->getValue();
+        $variants = $this->getter->getVariants();
         $html = '<select class="' . $this->widthEditField . '" name="' . $this->htmlName .'" id="' . $this->htmlName .'">';
         foreach ($list as $k => $v) {
             $selected = '';
