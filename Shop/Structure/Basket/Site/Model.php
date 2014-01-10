@@ -32,7 +32,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         $in = '(' . implode(',', $in) . ')';
 
-        $_sql = "SELECT * FROM i_shop_structure_good WHERE ID IN {$in}";
+        $_sql = "SELECT * FROM i_catalogplus_structure_good WHERE ID IN {$in}";
         $goodIdsArr = $db->queryArray($_sql);
         //$basket = (array)$basket;
         foreach ($goodIdsArr as $good) {
