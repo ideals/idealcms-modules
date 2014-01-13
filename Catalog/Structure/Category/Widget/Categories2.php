@@ -29,7 +29,9 @@ class Categories2 extends \Ideal\Core\Widget
         $digits = $category['params']['digits'];
 
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM i_shop_structure_category
+        $config = Config::getInstance();
+        $_table = $config->db['prefix'] . 'catalog_structure_category';
+        $_sql = "SELECT * FROM {$_table}
                     WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0 AND structure_path='{$this->structurePath}' ORDER BY cid";
         $menuList = $db->queryArray($_sql);
 
@@ -61,15 +63,15 @@ class Categories2 extends \Ideal\Core\Widget
         }
         unset($menuList);
 
-        $object = $this->model->object;
-        if (isset($object['structure_path']) &&$object['structure_path'] == $this->structurePath) {
-            $activeUrl = substr($object['cid'], 0, $digits);
+        $pageData = $this->model->getPageData();
+        if (isset($pageData['structure_path']) && $pageData['structure_path'] == $this->structurePath) {
+            $activeUrl = substr($pageData['cid'], 0, $digits);
             if (!isset($menu[$activeUrl])) return $menu;
             $menu[$activeUrl]['activeUrl'] = 1;
             $menu[$activeUrl]['classActiveUrl'] = 'activeMenu';
             foreach ($menu[$activeUrl]['subMenu'] as $k => $elem) {
                 $elem['cid'] = rtrim($elem['cid'], '0');
-                $cid = substr($object['cid'], 0, strlen($elem['cid']));
+                $cid = substr($pageData['cid'], 0, strlen($elem['cid']));
                 if ($elem['cid'] == $cid) {
                     $menu[$activeUrl]['subMenu'][$k]['activeUrl'] = 1;
                 }

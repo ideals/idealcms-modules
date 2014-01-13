@@ -29,7 +29,9 @@ class Categories2 extends \Ideal\Core\Widget
         $digits = $category['params']['digits'];
 
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM i_shop_structure_category
+        $config = Config::getInstance();
+        $_table = $config->db['prefix'] . 'catalog_structure_category';
+        $_sql = "SELECT * FROM {$_table}
                     WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0 AND structure_path='{$this->structurePath}' ORDER BY cid";
         $menuList = $db->queryArray($_sql);
 

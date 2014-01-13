@@ -19,7 +19,9 @@ class CategoryList
     public function  getList()
     {
         $db = Db::getInstance();
-        $_sql = 'SELECT ID, name FROM i_shop_structure_category';
+        $config = Config::getInstance();
+        $_table = $config->db['prefix'] . 'catalog_structure_category';
+        $_sql = 'SELECT ID, name FROM ' . $_table;
         $arr = $db->queryArray($_sql);
 
         $list = array();
@@ -35,13 +37,16 @@ class CategoryList
     {
         $db = Db::getInstance();
 
+        $pageData = $this->obj->getPageData();
         if (isset($this->obj->fields['category_id'])) {
             // Если связь товара с категорией через поле в таблице товара
-            $arr = (isset($this->obj->object['category_id'])) ? array($this->obj->object['category_id']) : array();
+            $arr = (isset($pageData['category_id'])) ? array($pageData['category_id']) : array();
             return $arr;
         }
-        $goodId = $this->obj->object['ID'];
-        $_sql = "SELECT category_id FROM i_shop_category_good WHERE good_id='{$goodId}'";
+        $goodId = $pageData['ID'];
+        $config = Config::getInstance();
+        $_table = $config->db['prefix'] . 'shop_category_good';
+        $_sql = "SELECT category_id FROM {$_table} WHERE good_id='{$goodId}'";
         $arr = $db->queryArray($_sql);
 
         $list = array();

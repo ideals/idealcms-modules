@@ -2,6 +2,7 @@
 namespace Catalog\Structure\Good\Admin;
 
 use Ideal\Core\Db;
+use Ideal\Core\Config;
 use Ideal\Core\Request;
 
 class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
@@ -14,9 +15,10 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
     public function getToolbar()
     {
         $db = Db::getInstance();
-        $_table = 'i_shop_structure_category';
+        $config = Config::getInstance();
+        $_table = $config->db['prefix'] . 'catalog_structure_category';
         $_sql = "SELECT * FROM {$_table}
-                 WHERE structure_path='{$this->categoryStructurePath}' AND is_active=1 ORDER BY cid";
+                 WHERE prev_structure = '{$this->categoryStructurePath}' AND is_active=1 ORDER BY cid";
         $this->categories = $db->queryArray($_sql);
 
         $request = new Request();

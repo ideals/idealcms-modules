@@ -3,7 +3,7 @@
 // Страницы сайта
 return array(
     'params' => array(
-        'in_structures' => array('Ideal_Part'),
+        'in_structures' => array('Ideal_DataList'),
         'structures'    => array('Catalog_Category'), // типы, которые можно создавать в этом разделе
         'elements_cms'  => 10, // количество элементов в списке в CMS
         'elements_site' => 15, // количество элементов в списке на сайте
@@ -29,7 +29,7 @@ return array(
             'sql'   => 'int(8) unsigned not null auto_increment primary key',
             'type'  => 'Ideal_Hidden'
         ),
-        'structure_path' => array(
+        'prev_structure' => array(
             'label' => 'ID родительских структур',
             'sql'   => 'char(15)',
             'type'  => 'Ideal_Hidden'

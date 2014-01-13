@@ -12,7 +12,8 @@ class Controller extends \Ideal\Core\Site\Controller
     {
         parent::indexAction();
 
-        $this->view->good = $this->model->object;
+        $pageData = $this->model->getPageData();
+        $this->view->good = $pageData;
     }
 
 }

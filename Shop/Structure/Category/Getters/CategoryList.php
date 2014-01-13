@@ -19,7 +19,9 @@ class CategoryList
     public function  getList()
     {
         $db = Db::getInstance();
-        $_sql = 'SELECT ID, name FROM i_shop_structure_category';
+        $config = Config::getInstance();
+        $_table = $config->db['prefix'] . 'catalog_structure_category';
+        $_sql = 'SELECT ID, name FROM {$_table}';
         $arr = $db->queryArray($_sql);
 
         $list = array();

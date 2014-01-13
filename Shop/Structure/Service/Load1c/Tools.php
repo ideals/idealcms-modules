@@ -83,8 +83,9 @@ class Tools
         // УСТАНОВКА КАТЕГОРИЙ ТОВАРА ИЗ БД
 
         // Считываем категории из нашей БД
-        $table = 'i_shop_structure_category';
-        $groups = $db->queryArray('SELECT ID, name, cid, lvl, id_1c, is_active, title FROM ' . $table . ' WHERE structure_path="1-3"');
+        $config = Config::getInstance();
+        $_table = $config->db['prefix'] . 'catalog_structure_category';
+        $groups = $db->queryArray('SELECT ID, name, cid, lvl, id_1c, is_active, title FROM ' . $_table . ' WHERE structure_path="1-3"');
 
         // Устанавливаем категории из БД
         $base->setOldGroups($groups);
@@ -102,7 +103,8 @@ class Tools
         echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
         echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
 
-        $table = 'i_shop_structure_category';
+        $config = Config::getInstance();
+        $table = $config->db['prefix'] . 'catalog_structure_category';
         $txt = $this->updateCategories($db, $table, $txt, $changedGroups);
         unset($changedGroups);
 
@@ -305,13 +307,15 @@ class Tools
             $db->query($_sql);
             $db->create($table, $fields);
             print 'Count goods to groups: ' . count($goodsToGroups) . '<br />';
+            $config = Config::getInstance();
+            $table = $config->db['prefix'] . 'catalog_structure_category';
             foreach ($goodsToGroups as $groupId => $goodIds) {
                 foreach ($goodIds as $goodId) {
                     if ($groupId == '') continue;
-                    $_sql = "SELECT ID FROM i_shop_structure_category AS t1 WHERE t1.id_1c='{$groupId}' LIMIT 1";
+                    $_sql = "SELECT ID FROM {$table} AS t1 WHERE t1.id_1c='{$groupId}' LIMIT 1";
                     $id = $db->queryArray($_sql);
                     $id = $id[0]['ID'];
-                    $_sql = "SELECT ID FROM i_shop_structure_good AS t1 WHERE t1.id_1c='{$goodId}' LIMIT 1";
+                    $_sql = "SELECT ID FROM {$table} AS t1 WHERE t1.id_1c='{$goodId}' LIMIT 1";
                     $id2 = $db->queryArray($_sql);
                     $id2 = $id2[0]['ID'];
                     $row = array(

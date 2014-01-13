@@ -18,8 +18,10 @@ class Categories extends \Ideal\Core\Widget
     public function getData()
     {
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM i_shop_structure_category
-                    WHERE lvl=1 AND is_active=1 AND is_not_menu=0 AND structure_path='{$this->structurePath}'
+        $config = Config::getInstance();
+        $_table = $config->db['prefix'] . 'catalog_structure_category';
+        $_sql = "SELECT * FROM {$_table}
+                    WHERE lvl=1 AND is_active=1 AND is_not_menu=0 AND prev_structure='{$this->structurePath}'
                     ORDER BY cid";
         $menuList = $db->queryArray($_sql);
 
@@ -31,9 +33,9 @@ class Categories extends \Ideal\Core\Widget
         }
         unset($menuList);
 
-        $object = $this->model->object;
-        if ($object['structure_path'] == $this->structurePath) {
-            $menu[$object['cid']]['isActivePage'] = 1;
+        $pageData = $this->model->getPageData;
+        if ($pageData['structure_path'] == $this->structurePath) {
+            $menu[$pageData['cid']]['isActivePage'] = 1;
         }
         return $menu;
     }

@@ -89,7 +89,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function detectPath()
     {
-        $good = $this->object;
+        $good = $this->getPageData();
 
         $category = new \Catalog\Structure\Category\Site\Model('');
         $category->setPageDataById($good['category_id']);
