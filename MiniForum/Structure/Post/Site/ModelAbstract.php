@@ -492,7 +492,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $config = Config::getInstance();
         $urlModel = new Url\Model();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND parent_id=0";
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND parent_id=0 AND is_moderated=1";
         $list = $db->queryArray($_sql);
 
         if (count($this->path) == 0 ) {
