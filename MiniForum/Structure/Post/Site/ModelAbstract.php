@@ -6,6 +6,7 @@ use Ideal\Core\Db;
 use Ideal\Core\Request;
 use Ideal\Core\Util;
 use Mail\Sender;
+use Ideal\Field\Url;
 
 
 class ModelAbstract extends \Ideal\Core\Site\Model
@@ -15,6 +16,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     protected $where;
     protected $pageStructure = false;
     protected $prevStructure;
+    protected $parentUrl = '/forum';
 
     public function __construct($prevStructure)
     {
@@ -478,5 +480,45 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             return true;
         }
         return false;
+    }
+
+    /**
+     * Функция для генерации карты сайта в формате html
+     * @return array
+     */
+    public function getStructureElements()
+    {
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $urlModel = new Url\Model();
+
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND parent_id=0";
+        $list = $db->queryArray($_sql);
+
+        if (count($this->path) == 0 ) {
+            $url = array('0' => array('url' => $config->structures[0]['url']));
+        } else {
+            $url = $this->path;
+        }
+
+        $lvl = 0;
+        foreach ($list as $k => $v) {
+            if ($v['lvl'] > $lvl) {
+                if (($v['url'] != '/') AND ($k > 0)) {
+                    $url[] = $list[$k-1];
+                }
+                $urlModel->setParentUrl($url);
+            } elseif ($v['lvl'] < $lvl) {
+                // Если двойной или тройной выход добавляем соответствующий мультипликатор
+                $c = $lvl - $v['lvl'];
+                $url = array_slice($url, 0, -$c);
+                $urlModel->setParentUrl($url);
+            }
+            $list[$k]['name']  = $this->splitMessage($v['content'], 10, 80);
+            $list[$k]['name'] = $list[$k]['name'][0] . $list[$k]['name'][1];
+            $lvl = $v['lvl'];
+            $list[$k]['link'] = $this->parentUrl . '/' . $v['ID'] . $config->urlSuffix;
+        }
+        return $list;
     }
 } 
