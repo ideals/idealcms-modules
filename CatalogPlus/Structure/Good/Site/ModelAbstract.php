@@ -147,7 +147,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // Установлена категория, значит определять товар не нужно, определяем предков структуры товара
             $path = parent::detectPath();
             // todo определить вложенные категории
-            $this->categoryModel->detectPath();
+            $this->categoryModel->getLocalPath();
             $this->path = $path;
             return $this->path;
         }
