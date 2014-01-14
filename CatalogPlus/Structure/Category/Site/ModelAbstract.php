@@ -156,6 +156,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         // Определение таблицы из которой нужно производить загрузку контента
         $table = explode('_', $this->pageData['template']);
         $table = end($table);
+        $table = strtolower($table);
         $table = $config->db['prefix'] . 'ideal_template_' . $table;
         // Запрос на получение контента
         $_sql = "SELECT * FROM {$table} WHERE prev_structure='{$prev_structure}' LIMIT 1";
