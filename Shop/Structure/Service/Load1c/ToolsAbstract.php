@@ -6,15 +6,26 @@ use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Field\Url;
 use Shop\Structure\Service\Load1c;
-use Shop\Structure\Type;
-use Shop\Structure\Category;
+use Shop\Structure\Data;
 
-class Tools
+class ToolsAbstract
 {
     private $test;
 
+    // Таблицы указываются без префекса
+    protected $tableLink = ''; // таблица для связи категории и товара
+    protected $tableGood = ''; // таблица товаров
+    protected $tableCat  = ''; // таблица категорий
+
+    protected $prevGood = ''; // prev_structure товаров
+    protected $prevCat  = ''; // prev_structure категорий
+
     public function __construct()
     {
+        $config = Config::getInstance();
+        $this->tableLink = $config->db['prefix'] . $this->tableLink;
+        $this->tableGood = $config->db['prefix'] . $this->tableGood;
+        $this->tableCat = $config->db['prefix'] . $this->tableCat;
         $this->test = "load";
     }
 
@@ -83,9 +94,9 @@ class Tools
         // УСТАНОВКА КАТЕГОРИЙ ТОВАРА ИЗ БД
 
         // Считываем категории из нашей БД
-        $config = Config::getInstance();
-        $_table = $config->db['prefix'] . 'catalog_structure_category';
-        $groups = $db->queryArray('SELECT ID, name, cid, lvl, id_1c, is_active, title FROM ' . $_table . ' WHERE structure_path="1-3"');
+        $_sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title FROM {$this->tableCat}
+                    WHERE prev_structure='{$this->prevCat}'";
+        $groups = $db->queryArray($_sql);
 
         // Устанавливаем категории из БД
         $base->setOldGroups($groups);
@@ -103,17 +114,15 @@ class Tools
         echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
         echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
 
-        $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'catalog_structure_category';
-        $txt = $this->updateCategories($db, $table, $txt, $changedGroups);
+        $txt = $this->updateCategories($db, $this->tableCat, $txt, $changedGroups);
         unset($changedGroups);
 
         // ОБРАБОТКА ТОВАРА
 
-        // Считываем товар из нашей БД
-        $table = 'i_shop_structure_good';
-        //$_sql = 'SELECT ID, name, id_1c, is_active FROM ' . $table . ' WHERE structure_path="6"';
-        $goods = $db->queryArray('SELECT ID, name, id_1c, is_active FROM ' . $table . ' WHERE structure_path="6"'); //TODO нужно вынести
+        // Считываем товар из нашей БД;
+        $_sql = "SELECT ID, name, id_1c, is_active FROM {$this->tableGood}
+                    WHERE prev_structure='{$this->prevGood}'";
+        $goods = $db->queryArray($_sql);
 
         $changedGoods = $base->getGoods($fields, $goods);
 
@@ -123,7 +132,7 @@ class Tools
         echo 'Обновлено: ' . count($changedGoods['update']) . '<br />';
         echo 'Удалено: ' . count($changedGoods['delete']) . '<br />';
 
-        $txt = $this->updateGoods($db, $table, $txt, $changedGoods, $loadImg);
+        $txt = $this->updateGoods($db, $this->tableGood, $txt, $changedGoods, $loadImg);
         unset($changedGoods);
 
         // ПРИВЯЗКА ТОВАРА К КАТЕГОРИЯМ
@@ -137,10 +146,10 @@ class Tools
     function updateCategories(Db $db, $table, $txt, $changedGroups)
     {
 
-        $modelType = new Type\Admin\Model('3-2');  //TODO нужно вынести
-        $modelType->loadType();
+        $modelType = new Data\Admin\Model('3-2');  //TODO нужно вынести
+        $modelType->loadData();
         foreach ($changedGroups['update'] as $v) {
-            if ($v['lvl'] == 1) $modelType->getIdType($v['name']);
+            if ($v['lvl'] == 1) $modelType->getIdData($v['name']);
             if ($v['Наименование'] != $v['name']) {
                 $txt .= 'Переименована категория &laquo;' . $v['name'] . '&raquo; в &laquo;'
                     . $v['Наименование'] . "\n";
@@ -197,8 +206,8 @@ class Tools
 
     function updateGoods(Db $db, $table, $txt, &$changedGoods, $loadImg = false)
     {
-        $modelType = new Type\Admin\Model('3-1'); //TODO нужно вынести
-        $modelBrand = new Type\Admin\Model('3-2'); //TODO нужно вынести
+        $modelType = new Data\Admin\Model('3-1'); //TODO нужно вынести
+        $modelBrand = new Data\Admin\Model('3-2'); //TODO нужно вынести
         $modelCategory = new Category\Admin\Model('3-3'); //TODO нужно вынести
         $modelCategory->loadCategory();
         $par = array();
@@ -224,14 +233,14 @@ class Tools
                 exit;
             }
             if (!isset($v['type'])) {
-                $v['idType'] = $modelType->getIdType('Не указан');
+                $v['idType'] = $modelType->getIdData('Не указан');
             } else {
-                $v['idType'] = $modelType->getIdType($v['type']);
+                $v['idType'] = $modelType->getIdData($v['type']);
             }
             $par['id_1c'] = $v['id_1c'];
             if ($v['category'] && $v['nameGroup']) {
                 $idCat = $modelCategory->getIdCategory($v['category'] . $modelCategory->getGlue() . $v['nameGroup'], $par);
-                $v['idCategory'] = $idCat['ID'];
+                $v['category_id'] = $idCat['ID'];
             }
             $v['idBrand'] = $modelBrand->getIdType($v['nameGroup']);
             unset($v['nameGroup']);
@@ -252,9 +261,9 @@ class Tools
             $v = array_merge($v, $add);
 
             if (!isset($v['type'])) {
-                $v['idType'] = $modelType->getIdType('Не указан');
+                $v['idType'] = $modelType->getIdData('Не указан');
             } else {
-                $v['idType'] = $modelType->getIdType($v['type']);
+                $v['idType'] = $modelType->getIdData($v['type']);
             }
             if ($v['img'] != null) {
                 if ($loadImg) {
@@ -268,10 +277,10 @@ class Tools
             }
 
             $par['id_1c'] = $v['id_1c'];
-            $v['idBrand'] = $modelBrand->getIdType($v['nameGroup']);
+            $v['idBrand'] = $modelBrand->getIdData($v['nameGroup']);
             if ($v['category'] && $v['nameGroup']) {
                 $idCat = $modelCategory->getIdCategory($v['category'] . $modelCategory->getGlue() . $v['nameGroup'], $par);
-                $v['idCategory'] = $idCat['ID'];
+                $v['category_id'] = $idCat['ID'];
             }
             unset($v['nameGroup']);
             unset($v['category']);
@@ -328,14 +337,14 @@ class Tools
             }
         } else {
             $goods = array();
-            // РџРµСЂРµСЃС‚СЂР°РёРІР°РµРј РјР°СЃСЃРёРІ РїСЂРёРІСЏР·РѕРє СЃ РіСЂСѓРїРїР°->С‚РѕРІР°СЂ РЅР° С‚РѕРІР°СЂ->РіСЂСѓРїРїС‹
+            // Перестраиваем массив привязок с группа->товар на товар->группы
             foreach ($goodsToGroups as $groupId => $goodIds) {
                 foreach ($goodIds as $goodId) {
                     $goods[$goodId] = $groupId;
                 }
             }
 
-            // РџСЂРѕС…РѕРґРёРјСЃСЏ РїРѕ РјР°СЃСЃРёРІСѓ С‚РѕРІР°СЂРѕРІ: СѓРґР°Р»СЏРµРј РІСЃРµ РїСЂРёРІСЏР·РєРё С‚РѕРІР°СЂР° РёР· Р‘Р”, РґРѕР±Р°РІР»СЏРµРј РёР· XML
+            // Проходимся по массиву товаров: удаляем все привязки товара из БД, добавляем из XML
             foreach ($goods as $goodId => $groupsId) {
                 $_sql = "DELETE FROM {$table} WHERE good_id = '{$goodId}'";
                 $db->query($_sql);
