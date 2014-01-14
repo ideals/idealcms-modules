@@ -1,2 +1,4 @@
-CatalogPlus v. 1.0
+CatalogPlus v. 1.1
 =========
+
+После подключения выполнить запрос из файлы table.sql

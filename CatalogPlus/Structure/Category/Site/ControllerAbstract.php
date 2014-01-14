@@ -2,7 +2,6 @@
 namespace CatalogPlus\Structure\Category\Site;
 
 use Ideal\Core\Request;
-use Ideal\Core\Db;
 
 class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
