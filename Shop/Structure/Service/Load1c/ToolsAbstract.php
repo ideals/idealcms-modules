@@ -20,6 +20,11 @@ class ToolsAbstract
     protected $prevGood = ''; // prev_structure товаров
     protected $prevCat  = ''; // prev_structure категорий
 
+    protected $fields = array();
+
+    private $category = array();
+    private $treeCat = array();
+
     public function __construct()
     {
         $config = Config::getInstance();
@@ -58,38 +63,7 @@ class ToolsAbstract
 
         $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
 
-        $fields = array(
-            'Ид' => 'id_1c',
-            'Наименование' => 'name',
-            'БазоваяЕдиница' => 'measure',
-            'Картинка' => 'img',
-            'ЗначенияСвойств' => array(
-                'Артикул' => 'article',
-                'Кол-во в упаковке, шт' => 'quantity',
-                'Категория на сайте' => 'category',
-                'Мощность, Вт' => 'power_w',
-                'Размер' => 'size',
-                'Средний срок службы, ч' => 'average_life',
-                'Тип' => 'type',
-                'ДлЦветовая температура, Кина' => 'temperature',
-                'Цоколь' => 'socle',
-                'Цвет' => 'color',
-            ),
-            'ЗначенияРеквизитов' => array(
-                'Полное наименование' => 'full_name',
-                'Вес' => 'weight'
-            ),
-            /*
-            'ХарактеристикиТовара' => array(
-                'Размер' => 'size'
-            ),
-            */
-            'Количество' => 'stock',
-            'ЦенаЗаЕдиницу' => 'price',
-            'Валюта' => 'currency',
-            'Единица' => 'item',
-            'Коэффициент' => 'coefficient'
-        );
+        $fields = $this->fields;
 
         // УСТАНОВКА КАТЕГОРИЙ ТОВАРА ИЗ БД
 
@@ -179,7 +153,7 @@ class ToolsAbstract
         foreach ($changedGroups['add'] as $v) {
             $v['name'] = trim($v['name']);
             if ($v['lvl'] == 1) {
-                $modelType->getIdType($v['Наименование']);
+                $modelType->getIdData($v['Наименование']);
             }
             $v['id_1c'] = $v['Ид'];
             unset($v['Ид']);
@@ -213,8 +187,8 @@ class ToolsAbstract
         $par = array();
 
 
-        $modelType->loadType();
-        $modelBrand->loadType();
+        $modelType->loadData();
+        $modelBrand->loadData();
         foreach ($changedGoods['update'] as $v) {
             $v['is_active'] = 1;
             if ($v['img'] != null) {
@@ -242,7 +216,7 @@ class ToolsAbstract
                 $idCat = $modelCategory->getIdCategory($v['category'] . $modelCategory->getGlue() . $v['nameGroup'], $par);
                 $v['category_id'] = $idCat['ID'];
             }
-            $v['idBrand'] = $modelBrand->getIdType($v['nameGroup']);
+            $v['idBrand'] = $modelBrand->getIdData($v['nameGroup']);
             unset($v['nameGroup']);
             unset($v['category']);
             $db->update($table, $v['ID'], $v);
@@ -251,7 +225,7 @@ class ToolsAbstract
         $add = array(
             'date_create' => time(),
             'date_mod' => time(),
-            'structure_path' => '6',
+            'structure_path' => $this->prevGood,
             'is_active' => 1
         );
 
@@ -305,26 +279,23 @@ class ToolsAbstract
 
     function updateGoodsToGroups(Db $db, $goodsToGroups, $status)
     {
-        $table = 'i_good_category';
         $fields = array(
             'category_id' => array('sql' => 'int(11)'),
             'good_id' => array('sql' => 'int(11)')
         );
 
         if ($status == 'full') {
-            $_sql = "DROP TABLE IF EXISTS {$table}";
+            $_sql = "DROP TABLE IF EXISTS {$this->tableLink}";
             $db->query($_sql);
-            $db->create($table, $fields);
+            $db->create($this->tableLink, $fields);
             print 'Count goods to groups: ' . count($goodsToGroups) . '<br />';
-            $config = Config::getInstance();
-            $table = $config->db['prefix'] . 'catalog_structure_category';
             foreach ($goodsToGroups as $groupId => $goodIds) {
                 foreach ($goodIds as $goodId) {
                     if ($groupId == '') continue;
-                    $_sql = "SELECT ID FROM {$table} AS t1 WHERE t1.id_1c='{$groupId}' LIMIT 1";
+                    $_sql = "SELECT ID FROM {$this->tableCat} AS t1 WHERE t1.id_1c='{$groupId}' LIMIT 1";
                     $id = $db->queryArray($_sql);
                     $id = $id[0]['ID'];
-                    $_sql = "SELECT ID FROM {$table} AS t1 WHERE t1.id_1c='{$goodId}' LIMIT 1";
+                    $_sql = "SELECT ID FROM {$this->tableCat} AS t1 WHERE t1.id_1c='{$goodId}' LIMIT 1";
                     $id2 = $db->queryArray($_sql);
                     $id2 = $id2[0]['ID'];
                     $row = array(
@@ -332,7 +303,7 @@ class ToolsAbstract
                         'good_id' => $id2
                     );
                     if ($row['category_id'] == '') continue;
-                    $db->insert($table, $row);
+                    $db->insert($this->tableCat, $row);
                 }
             }
         } else {
@@ -346,19 +317,52 @@ class ToolsAbstract
 
             // Проходимся по массиву товаров: удаляем все привязки товара из БД, добавляем из XML
             foreach ($goods as $goodId => $groupsId) {
-                $_sql = "DELETE FROM {$table} WHERE good_id = '{$goodId}'";
+                $_sql = "DELETE FROM {$this->tableLink} WHERE good_id = '{$goodId}'";
                 $db->query($_sql);
                 foreach ($groupsId as $groupId) {
                     $row = array(
                         'category_id' => $groupId,
                         'good_id' => $goodId
                     );
-                    $db->insert($table, $row);
+                    $db->insert($this->tableLink, $row);
                 }
 
             }
 
         }
 
+    }
+
+    /**
+     * TODO создание категории если ее нет
+     * @param $id
+     * @return mixed
+     */
+    private function createCategory($id)
+    {
+        $parentId = $this->treeCat[$id]['parent_id'];
+        $cid = new \Ideal\Field\Cid\Model(6, 3);
+        $lvl = 1;
+        if($parentId !== false){
+        } else{
+            //$newCid = $cid->setBlock($nextParentCid, $newLvl, $newCid, true);
+
+            $db = Db::getInstance();
+
+            $insert = array(
+                //'id_1c',
+                'prev_structure' => $this->prevCat,
+                'cid' => $cid,
+                'lvl' => $lvl,
+                'structure' => 'Shop_Category',
+                'template' => 'Ideal_Page',
+                //'name' => $child,
+                //'url' => Url\Model::translitUrl($child),
+                'num' => 1,
+                'date_create' => time(),
+                'date_mod' => time()
+            );
+        }
+        return $id;
     }
 }
