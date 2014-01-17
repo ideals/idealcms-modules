@@ -12,10 +12,13 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     public function __construct() {
         $config = Config::getInstance();
         $forum = $config->getStructureByName('MiniForum_Post');
-        $this->prevStructure = $forum['params']['prev_structure'];
+        $this->prevStructure = $forum['prevStructure'];
     }
 
-    function insetAction() {
+    /**
+     * Добавление сообщение на форум
+     */
+    public function insetAction() {
         $form = $_POST['form'];
         parse_str($form, $post);
 
@@ -32,11 +35,14 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         $post['ID'] = $result;
         $this->model->sendMessages($post);
 
-
         echo $result;
+        exit();
 
     }
 
+    /**
+     * Удаление сообщения
+     */
     public function deleteAction()
     {
         $post['ID'] = $_POST['ID'];
@@ -52,6 +58,9 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         }
     }
 
+    /**
+     * Подтверждение на публикацию сообщения модератором
+     */
     public function moderateAction()
     {
         $post['ID'] = $_POST['ID'];
@@ -65,6 +74,9 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     }
 
 
+    /**
+     * Редактирование сообщения
+     */
     function updateAction() {
         $form = $_POST['form'];
         parse_str($form, $post);
@@ -85,7 +97,10 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         }
     }
 
-    function getModalFormAction() {
+    /**
+     * Вывод формы для создания темы на форуме
+     */
+    public function getModalFormAction() {
         parse_str($_GET['formValues'], $formValues);
 
         if ($formValues['ID'] !== '0') {
@@ -99,12 +114,15 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         //$formValues['content'] = str_replace('<br />', '\r\n', $formValues['content']);
         //$formValues['content'] = str_replace('<br>', '\r\n', $formValues['content']);
 
-        $modalForm = stream_resolve_include_path('MiniForum/Structure/Post/Site/modalForm.php');
+        $modalForm = stream_resolve_include_path('modalForm.php');
         include($modalForm);
         exit;
     }
 
-    function getAnswerFormAction() {
+    /**
+     * Вывод формы для ответа
+     */
+    public function getAnswerFormAction() {
         parse_str($_GET['formValues'], $formValues);
         if (($formValues['mainParentId'] != '0') && ($formValues['pageStructurePostId'] != '0')) {
             $goToPost = true;
@@ -112,11 +130,15 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
             $goToPost = false;
         }
         //parse_str($_GET['formValues'], $formValues);
-        $answerForm = stream_resolve_include_path('MiniForum/Structure/Post/Site/answerForm.php');
+        $answerForm = stream_resolve_include_path('answerForm.php');
         include($answerForm);
     }
 
-    function validation($post) {
+    /**
+     * @param $post
+     * @return bool|string
+     */
+    protected function validation($post) {
         $msgValidation = '';
         foreach ($post as $key  => $value) {
             if (strlen($value) === 0) {
@@ -134,4 +156,4 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
             return true;
         }
     }
-} 
+}

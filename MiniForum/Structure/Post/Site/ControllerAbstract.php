@@ -12,7 +12,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function indexAction()
     {
-        session_start();
         parent::indexAction();
         $this->view->Authorized = $_SESSION['IsAuthorized'];
         $request = new Request();
@@ -30,7 +29,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function detailAction()
     {
-        session_start();
         $this->templateInit('MiniForum/Structure/Post/Site/detail.twig');
 
         $this->view->prevStructure = 0;

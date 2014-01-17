@@ -51,13 +51,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     public function getList($page)
     {
-        $config = Config::getInstance();
-
-        //Изменяем сортировку, так как новые сообщения должны быть в начале
-        $this->params['field_sort'] .= ' DESC';
-
         $posts = parent::getList($page);
-        $db = Db::getInstance();
 
         $posts = $this->parsePosts($posts);
 
@@ -127,11 +121,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function setTitle($title = '')
     {
         if ($title == '') {
+            $tmp = count($this->path) - 2;
             $content = end($this->path);
             $content = $content['content'];
             $content = strip_tags($content);
             $content = Util::smartTrim($content, 50);
-            $this->pageData['title'] = 'Форум об аутизме и проблемах обучения - ' . $content;
+            $this->pageData['title'] = $this->path[$tmp]['name'] . ' - ' . $content;
         } else {
             $this->pageData['title'] = $title;
         }
@@ -208,7 +203,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $db = Db::getInstance();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE ID = {$ID}";
+        $_sql = "SELECT * FROM {$this->_table} WHERE ID = {$ID} LIMIT 1";
         $post = $db->queryArray($_sql);
 
         return $post;
@@ -257,9 +252,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
         $time = time();
 
+        /*
+         * Если тема или сообщение пишет подставной человек
+         * то создается имитация активности форума с давних времен
+         */
         if ((isset($this->post['is_poster']) && $this->post['is_poster'] == 'true') || ($this->post['email'] == 'zzz@zzz.zz')) {
             if ($this->post['main_parent_id'] !== '0') { // Если добавляется ответ
-                $_sql = "SELECT date_create FROM $this->_table WHERE parent_id = {$this->post['parent_id']}  ORDER BY date_create";
+                $_sql = "SELECT date_create FROM {$this->_table} WHERE parent_id = {$this->post['parent_id']} ORDER BY date_create";
                 $dates = $db->queryArray($_sql);
 
                 if (count($dates) > 0) { // Если на родительское сообщение уже были ответы
@@ -278,6 +277,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             } else { // Если создается тема
                 $time = $par['date_create'] = mt_rand(mktime(0, 0, 0, 11, 1, 2012), mktime(0, 0, 0, 10, 31, 2013));
             }
+            // Имитация завершена
         }
         $values['prev_structure'] = $this->prevStructure;
         $values['parent_id'] = $this->post['parent_id'];
@@ -290,13 +290,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $values['is_active'] = 1;
         $values['get_mail'] = $this->post['get_mail'] ? 1 : 0;
 
-        session_start();
         // Сообщения и темы созданные зарегестрированным пользователем по умолчанию отображаются.
-        if ($_SESSION['IsAuthorized']) {
-            $values['is_moderated'] = 1;
-        } else {
-            $values['is_moderated'] = 0;
-        }
+        $values['is_moderated'] = intval($_SESSION['IsAuthorized']);
 
 
         $result = $db->insert($this->_table, $values);
@@ -324,19 +319,18 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function deletePost()
     {
-
         $db = Db::getInstance();
-        $_sql = "DELETE FROM $this->_table WHERE ID = {$this->post['ID']} ";
+        $_sql = "DELETE FROM {$this->_table} WHERE ID = {$this->post['ID']} ";
         $result = $db->query($_sql);
 
         if ($this->post['main_parent_id'] == 0) {
             // Это первое сообщение, удаляем всё подчистую
-            $_sql = "DELETE FROM $this->_table WHERE main_parent_id = {$this->post['ID']} ";
+            $_sql = "DELETE FROM {$this->_table} WHERE main_parent_id = {$this->post['ID']} ";
             $db->query($_sql);
 
         } else {
             // Заменяем у всех потомков родительский id
-            $_sql = "UPDATE $this->_table SET parent_id={$this->post['parent_id']} WHERE parent_id={$this->post['ID']}";
+            $_sql = "UPDATE {$this->_table} SET parent_id={$this->post['parent_id']} WHERE parent_id={$this->post['ID']}";
             $db->query($_sql);
         }
         return $result; //true || false

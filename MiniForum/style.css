@@ -1,0 +1,134 @@
+#blockscreen, #modalwindow {
+    position: fixed;
+}
+#blockscreen {
+    background: rgba(0, 0, 0, .5);
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+}
+#modalwindow {
+    z-index: 101;
+    background: #fff;
+    border-radius: 5px;
+    border: 1px solid #a1a1a1;
+    box-shadow: 0 0 10px #444;
+
+}
+
+#addNewPost {
+    background: #11924d;
+    border-radius: 9px;
+    color: #FFFFFF;
+    cursor: pointer;
+    font: bold 17px Arial;
+    margin: 20px auto;
+    padding: 9px 15px 9px 16px;
+    text-align: center;
+    width: 200px;
+}
+
+.post-annonce {
+    font: 14px/20px Arial,sans-serif;
+    margin: 10px 0 15px;
+}
+
+.post-annonce .post-info {
+    font-size: 13px;
+    margin: 7px 0 9px;
+}
+
+.post-annonce .post-date {
+    color: #726F6F;
+}
+
+.news-line {
+    background: url("/i/bullet.gif") repeat-x scroll 0 100% rgba(0, 0, 0, 0);
+    clear: both;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+}
+
+.post-line {
+    padding: 10px 10px 0;
+}
+
+.post-line .post-message {
+    font: 14px/20px Arial,sans-serif;
+    margin: 8px 0;
+}
+
+
+.post-line .post-author-answer {
+    float: left;
+    margin-right: 10px;
+}
+
+.post-line .post-author {
+    color: #DA6301;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.forum .post-date {
+    color: #726F6F;
+    font-size: 14px;
+}
+
+.post-line .post-links {
+    font-size: 12px;
+    padding-top: 5px;
+    text-align: right;
+}
+
+.post-link-answer {
+    background: url("/i/line.gif") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+    padding: 1px 0 1px 19px;
+}
+
+.postAnswer .input-line {
+    margin: 10px 0;
+}
+
+.postAnswer .post-btn {
+    text-align: center;
+}
+
+.postAnswer .post-btn button {
+    width: 90px;
+}
+
+.postAnswer input[type="text"] {
+    width: 200px;
+}
+
+.postAnswer textarea {
+    height: 100px;
+    width: 100%;
+}
+
+#wrapPostForm .postForm {
+    padding: 15px 30px 10px;
+}
+
+#wrapPostForm .input-line {
+    margin: 10px 0;
+}
+
+#wrapPostForm textarea, #wrapPostForm input[type="text"] {
+    width: 296px;
+}
+
+#wrapPostForm textarea {
+    height: 250px;
+}
+
+#wrapPostForm .post-btn {
+    text-align: center;
+}
+
+#wrapPostForm .post-btn button {
+    width: 90px;
+}

@@ -6,7 +6,7 @@ return array(
         'in_structures' => array('Ideal_Part', 'MiniForum_Post'), // в каких структурах можно создавать эту структуру
         'elements_cms'      => 10,                      // количество элементов в списке в CMS
         'elements_site'     => 10,                      // количество элементов в списке на сайте
-        'field_sort'        => 'date_create',           // поле, по которому проводится сортировка в CMS
+        'field_sort'        => 'date_create DESC',      // поле, по которому проводится сортировка в CMS
         'field_name'        => 'content',               // поля для вывода информации по объекту
         'field_list'        => array('author', 'email', 'date_create', 'is_active')
      ),
@@ -14,6 +14,16 @@ return array(
         'ID' => array(
             'label' => 'Идентификатор',
             'sql'   => 'int(4) unsigned not null auto_increment primary key',
+            'type'  => 'Ideal_Hidden'
+        ),
+        'main_parent_id' => array(
+            'label' => 'Идентификатор главного сообщения(названия темы)',
+            'sql'   => 'int(4) unsigned',
+            'type'  => 'Ideal_Hidden'
+        ),
+        'page_structure' => array(
+            'label' => 'С какой страницы было отправлено сообщение',
+            'sql'   => 'varchar(15)',
             'type'  => 'Ideal_Hidden'
         ),
         'prev_structure' => array(
@@ -53,6 +63,11 @@ return array(
         ),
         'is_moderated' => array(
             'label' => 'Прошло модерацию',
+            'sql'   => 'bool',
+            'type'  => 'Ideal_Checkbox'
+        ),
+        'get_mail' => array(
+            'label' => 'Подписка на обновление темы. Только для всех кроме автора темы',
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),
