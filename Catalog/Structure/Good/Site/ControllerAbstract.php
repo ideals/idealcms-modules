@@ -1,19 +1,39 @@
 <?php
 namespace Catalog\Structure\Good\Site;
 
-class Controller extends \Ideal\Core\Site\Controller
+use Ideal\Core\Request;
+
+class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
     /**
      * @var $model Model
      */
-    protected $model;
+    public $model;
+    protected $categoryPrevStructure;
 
     public function indexAction()
     {
+        $this->model->detectCurrentCategory();
+
         parent::indexAction();
 
-        $pageData = $this->model->getPageData();
-        $this->view->good = $pageData;
+        $request = new Request();
+        $page = intval($request->page);
+        $this->view->parts = $this->model->getList($page);
+
+        $this->view->pager = $this->model->getPager('page');
+
+        $this->view->categories = $this->model->getCategories();;
+    }
+
+    public function detailAction()
+    {
+        $this->templateInit('Catalog/Structure/Good/Site/detail.twig');
+
+        // Выдёргиваем заголовок из template['content']
+        $this->view->header = $this->model->getHeader();
+
+        $this->view->good = $this->model->getPageData();
     }
 
 }

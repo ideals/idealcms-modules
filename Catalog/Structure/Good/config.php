@@ -5,7 +5,7 @@ return array(
     'params' => array (
         'in_structures'    => array('Ideal_Part'), // в каких структурах можно создавать эту структуру
         'elements_cms'  => 10,            // количество элементов в списке в CMS
-        'elements_site' => 15,            // количество элементов в списке на сайте
+        'elements_site' => 105,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
         'field_sort'    => 'name ASC', // поле, по которому проводится сортировка в CMS
         'field_list'    => array('name', 'price', 'url', 'is_active', 'date_create')
@@ -41,6 +41,11 @@ return array(
             'label' => 'Цена за единицу',
             'sql'   => 'int',
             'type'  => 'Shop_Price'
+        ),
+        'count' => array(
+            'label' => 'Количество',
+            'sql'   => 'varchar(100) default 0',
+            'type'  => 'Ideal_Text'
         ),
         'annot' => array(
             'label' => 'Описание',
