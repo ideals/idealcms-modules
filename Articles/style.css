@@ -1,0 +1,48 @@
+.art .clear {
+    border-bottom: 2px solid #DEEDFD;
+    clear: both;
+    margin: 0 0 5px;
+    padding-top: 4px;
+}
+
+.art .pagination ul {
+    list-style: none outside none;
+    margin: 0;
+    padding: 0;
+}
+
+.art .pagination li {
+    float: left;
+}
+
+.art .pagination a {
+    display: block;
+    padding: 5px 15px;
+    text-decoration: none;
+}
+
+.art .pagination a:hover {
+    background: none repeat scroll 0 0 #ff7f00;
+    color: #FFFFFF;
+}
+
+.art .pagination .active a {
+    background: none repeat scroll 0 0 #ff7f00;
+    color: #FFFFFF;
+}
+
+.art .articles {
+    padding: 0 15px;
+}
+
+.art .articles a {
+    text-decoration: none;
+}
+
+.art .articles .name {
+    margin: 25px 0 10px;
+}
+
+.art .articles .annot {
+    margin-bottom: 25px;
+}

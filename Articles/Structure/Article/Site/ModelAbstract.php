@@ -139,6 +139,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $where .= $and . "e.ID IN (SELECT article_id FROM {$table}
                                               WHERE category_id={$this->currentCategory['ID']})";
         }
+        $time = time();
+        $where .= " AND is_active=1 AND date_create < {$time}";
 
         return $where;
     }
