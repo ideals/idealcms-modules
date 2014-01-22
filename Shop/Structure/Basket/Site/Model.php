@@ -5,6 +5,8 @@ use Ideal\Core\Db;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
+    protected $table = 'i_catalogplus_structure_good';
+
     public function getGoods()
     {
         if (isset($_COOKIE)) {
@@ -32,12 +34,14 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 
         $in = '(' . implode(',', $in) . ')';
 
-        $_sql = "SELECT * FROM i_catalogplus_structure_good WHERE ID IN {$in}";
+        $_sql = "SELECT * FROM {$this->table} WHERE ID IN {$in}";
         $goodIdsArr = $db->queryArray($_sql);
         //$basket = (array)$basket;
         foreach ($goodIdsArr as $good) {
             $id = $good['ID'];
             $basket[$id]['name'] = $good['name'];
+            $basket[$id]['price'] = $good['price'];
+            $basket[$id]['amount'] = $basket['good'][$id]['count'];
             $basket[$id]['total_price'] = $basket[$id]['price'] * $basket[$id]['amount'];
             $basket[$id]['img'] = $good['img'];
             $basket[$id]['url'] = $good['url'];
