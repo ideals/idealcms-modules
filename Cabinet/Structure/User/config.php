@@ -3,12 +3,13 @@
 // Таблица пользователей
 return array(
     'params' => array(
+        'in_structures' => array('Ideal_Part'),
         'structures'    => array('Ideal_User'), // типы, которые можно создавать в этом разделе
-        'elements_cms'  => 3, // количество элементов в списке в CMS
-        'elements_site' => 3, // количество элементов в списке на сайте
+        'elements_cms'  => 50, // количество элементов в списке в CMS
+        'elements_site' => 15, // количество элементов в списке на сайте
         'field_sort'    => 'reg_date', // поле, по которому проводится сортировка в CMS
         'field_name'    => '', // поле для входа в список потомков
-        'field_list'    => array('email', 'fio', 'reg_date', 'last_visit')
+        'field_list'    => array('email', 'fio', 'reg_date', 'last_visit', 'is_active')
     ),
     'fields'   => array (
         'ID' => array(
@@ -16,7 +17,7 @@ return array(
             'sql'   => 'int(8) unsigned NOT NULL auto_increment primary key',
             'type'  => 'Ideal_Hidden'
         ),
-        'structure_path' => array(
+        'prev_structure' => array(
             'label' => 'ID родительских структур',
             'sql'   => 'char(15)',
             'type'  => 'Ideal_Hidden'
@@ -26,14 +27,19 @@ return array(
             'sql'   => 'varchar(128)',
             'type'  => 'Ideal_Text'
         ),
-        'message' => array(
-            'label' => 'Сообщение',
+        'comment' => array(
+            'label' => 'Комментарий',
+            'sql'   => 'text',
+            'type'  => 'Ideal_Text'
+        ),
+        'address' => array(
+            'label' => 'Адрес',
             'sql'   => 'text',
             'type'  => 'Ideal_Text'
         ),
         'password' => array(
             'label' => 'Пароль',
-            'sql'   => 'varchar(34) NOT NULL',
+            'sql'   => 'varchar(100) NOT NULL',
             'type'  => 'Ideal_Password'
         ),
         'reg_date' => array(
@@ -48,11 +54,6 @@ return array(
         ),
         'act_key' => array(
             'label' => 'Ключ активации',
-            'sql'   => 'varchar(32)',
-            'type'  => 'Ideal_Hidden'
-        ),
-        'new_password' => array(
-            'label' => 'Новый пароль',
             'sql'   => 'varchar(32)',
             'type'  => 'Ideal_Hidden'
         ),
