@@ -91,4 +91,8 @@ EOT;
         return $result[0];
     }
 
+    public function getStructureElements()
+    {
+    }
+
 }
