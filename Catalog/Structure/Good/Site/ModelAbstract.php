@@ -83,10 +83,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $this->categoryModel = new \Catalog\Structure\Category\Site\Model($this->prevStructure);
         $this->categoryModel->setPath($this->path);
-        $this->params['elements_site'] = 9999;
-        $articles = $this->getList(1);
-        $categories = $this->getCategories();
-        return array_merge($categories, $articles);
+        $this->params['elements_site'] = 1;
+        $good = $this->getList(1);
+        $category = $this->categoryModel->getAllCategory($good[0]['category_id']);
+        return $category;
+        //$categories = $this->getCategories();
+        //return array_merge($categories, $goods);
     }
 
     public function getTemplatesVars()
@@ -96,6 +98,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         } else {
             return parent::getTemplatesVars();
         }
+
     }
 
 
@@ -147,6 +150,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // Вывод статей только определённой категории
             $where = "WHERE {$where} AND e.category_id={$this->currentCategory['ID']}";
             $where .= ' AND e.is_active=1';
+        }else{
+            $where = 'WHERE ' . $where;
         }
         return $where;
     }

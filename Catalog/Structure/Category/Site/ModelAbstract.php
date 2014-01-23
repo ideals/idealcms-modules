@@ -71,7 +71,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         $rpath = $path;
         array_pop($rpath);
         rsort($rpath);
-        foreach($rpath as $rp) {
+        foreach ($rpath as $rp) {
             if ($rp['structure'] = 'Catalog_Catalog') {
                 $spravochnicUrl = $rp['url'];
                 break;
@@ -156,6 +156,29 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         } else {
             return false;
         }
+    }
+
+
+    /**
+     * Получение всех категорий
+     * @ param int $idCategory ID группы для определения prev_structure
+     */
+    public function getAllCategory($idCategory)
+    {
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $table = $config->db['prefix'] . 'catalog_structure_category';
+        $_sql = "SELECT * FROM {$table} WHERE prev_structure=(SELECT prev_structure FROM {$table} WHERE ID={$idCategory} LIMIT 1) AND is_active=1";
+        $cat = $db->queryArray($_sql);
+        // Построение правильных URL
+        $url = new \Ideal\Field\Url\Model();
+        $url->setParentUrl($this->path);
+        if (is_array($cat) and count($cat) != 0 ) {
+            foreach ($cat as $k => $v) {
+                $cat[$k]['link'] = $url->getUrl($v);
+            }
+        }
+        return $cat;
     }
 
 }
