@@ -7,18 +7,18 @@ use Ideal\Core\Request;
 
 class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
 {
-    /**
-     * @var string Путь к категориям связанным с этим товаром
-     */
-    protected $categoryStructurePath = '1-22';
-
     public function getToolbar()
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'catalog_structure_category';
+        $_sql = "SELECT prev_structure FROM {$_table} WHERE ID = (
+                    SELECT category_id FROM {$this->_table} WHERE prev_structure='{$this->prevStructure}' LIMIT 1
+                 ) LIMIT 1";
+        $prevStructure = $db->queryArray($_sql);
+        $prevStructure = $prevStructure[0]['prev_structure'];
         $_sql = "SELECT * FROM {$_table}
-                 WHERE prev_structure = '{$this->categoryStructurePath}' AND is_active=1 ORDER BY cid";
+                 WHERE prev_structure = '{$prevStructure}' AND is_active=1 ORDER BY cid";
         $this->categories = $db->queryArray($_sql);
 
         $request = new Request();
@@ -41,7 +41,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
 
     /**
      * Добавление к where-запросу фильтра по category_id
-     * @param $where Исходная WHERE-часть
+     * @param string $where Исходная WHERE-часть
      * @return string Модифицированная WHERE-часть, с расширенным запросом, если установлена GET-переменная category
      */
     protected function getWhere($where)
@@ -55,8 +55,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
                 $where .= ' AND ';
             }
             // Выборка статей, принадлежащих этой категории
-            $where .= 'ID IN (SELECT good_id FROM i_shop_category_good WHERE category_id='
-                . mysql_real_escape_string($currentCategory) . ')';
+            $where .= 'category_id=' . mysql_real_escape_string($currentCategory);
         }
 
         if ($where != '') {
