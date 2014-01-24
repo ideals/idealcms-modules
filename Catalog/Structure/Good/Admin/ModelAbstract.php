@@ -12,13 +12,12 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $db = Db::getInstance();
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'catalog_structure_category';
-        $_sql = "SELECT prev_structure FROM {$_table} WHERE ID = (
-                    SELECT category_id FROM {$this->_table} WHERE prev_structure='{$this->prevStructure}' LIMIT 1
-                 ) LIMIT 1";
-        $prevStructure = $db->queryArray($_sql);
-        $prevStructure = $prevStructure[0]['prev_structure'];
         $_sql = "SELECT * FROM {$_table}
-                 WHERE prev_structure = '{$prevStructure}' AND is_active=1 ORDER BY cid";
+                 WHERE prev_structure = (
+                     SELECT prev_structure FROM {$_table} WHERE ID = (
+                        SELECT category_id FROM {$this->_table} WHERE prev_structure='{$this->prevStructure}' LIMIT 1
+                     ) LIMIT 1
+                 ) AND is_active=1 ORDER BY name";
         $this->categories = $db->queryArray($_sql);
 
         $request = new Request();
