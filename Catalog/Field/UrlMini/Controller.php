@@ -28,10 +28,12 @@ class Controller extends AbstractController
             $path = substr($link, 0, strrpos($link, '/'));
             $addOn = '<span class="add-on">' . $path . '/</span>';
         }
-        return '<div class="input-prepend">' . $addOn
-             . '<input type="text" class="input span3" name="' . $this->htmlName . '" id="' . $this->htmlName
-             . '" value="' . $value['url'] . '">'
-             . '</div>';
+        return '<script type="text/javascript" src="Ideal/Field/UrlAuto/admin.js" />'
+        . '<div class="input-prepend input-append">' . $addOn
+        . '<input type="text" class="input span3" name="' . $this->htmlName . '" id="' . $this->htmlName
+        . '" value="' . $value['url'] . '">'
+        . '<button id="UrlAuto" type="button" class="btn btn-danger" onclick="javascript:setTranslit(this)">auto url off</button>'
+        . '</div>';
     }
 
 
