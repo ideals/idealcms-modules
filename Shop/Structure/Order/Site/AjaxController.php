@@ -2,6 +2,7 @@
 namespace Shop\Structure\Order\Site;
 
 use Ideal\Core\Db;
+use Ideal\Core\Config;
 
 class AjaxController extends \Ideal\Core\Site\AjaxController
 {
@@ -152,6 +153,269 @@ EOT;
         $tmp['is_active'] = 1;
         $db->update("i_shop_structure_order", $id, $tmp);
         print $mail;
+    }
+
+
+    public function orderAction()
+    {
+        $answer = array('error' => 0, 'text' => '');
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $email = @ htmlspecialchars($_POST['email']);
+        $fio = @ htmlspecialchars($_POST['fio']);
+        $emailPass = '';
+        $password = '';
+        session_start();
+        if (!isset($_SESSION['userChecked']))
+            if ($_SESSION['userChecked'] != true) {
+                $chars = "qazxswedcvfrtgbnhyujmkiolp1234567890QAZXSWEDCVFRTGBNHYUJMKIOLP";
+                $max = 10;
+                $size = strlen($chars) - 1;
+                while ($max--)
+                    $password .= $chars[rand(0, $size)];
+                $emailPass = "<span>Пароль: </span><span>{$password}</span><br/>";
+            } else {
+                unset($_SESSION['userChecked']);
+            }
+        unset($_SESSION['userChecked']);
+        $phone = @ htmlspecialchars($_POST['phone']);
+        $postcode = @ htmlspecialchars($_POST['postcode']);
+        $city = @ htmlspecialchars($_POST['city']);
+        $address = @ htmlspecialchars($_POST['address']);
+        $comment = @ htmlspecialchars($_POST['comment']);
+
+        $noneReg = false;
+        /*if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $answer['text'] .= "Не верный E-mail\n";
+            //$answer['error'] = 1;
+        }*/
+        if ($answer['error'] == 0) {
+            $basketModel = new Basket\Site\Model('');
+            $goods = $basketModel->getGoods();
+            $table = $config->db['prefix'] . 'cabinet_structure_user';
+            $tmp = $db->queryArray("SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1");
+            if (count($tmp) > 0) {
+                $id = $tmp[0]['ID'];
+                $noneReg = true;
+                //$answer['text'] = 'Данный E-mail уже ранее использовался, можете загрузить данные';
+            } else {
+                $prev_structure = $config->getStructureByName('Cabinet_User');
+                $prev_structure = '0-' . $prev_structure['ID'];
+                $id = $db->insert($config->db['prefix'] . 'cabinet_structure_user', array(
+                    'email' => $email,
+                    'fio' => $fio,
+                    'password' => md5($password),
+                    'phone' => $phone,
+                    'postcode' => $postcode,
+                    'city' => $city,
+                    'address' => $address,
+                    'is_active' => 1,
+                    'prev_structure' => $prev_structure,
+                    'reg_date' => time()
+                ));
+            }
+
+            $order = new Order\Site\Model('');
+            $idOrder = $order->createOrder($comment, $fio, $city . ', ' .$address);
+
+            $mailHeader = <<<HEADER
+    <head>
+	<style type="text/css">
+        body, td, span, p, th {padding:10px}
+        .mail-table {margin: auto;width:600px;}
+        .user-fields {width:50%;vertical-align:top;}
+        table.html-email-top {margin:10px auto;background:#fff;width:600px;}
+	    table.html-email {margin:10px auto;background:#fff;border-color: #dad8d8;border-width:1px;border-style:solid;width:600px;}
+	    .html-email tr{border-color: #eeeeee;border-width:1px;border-style:solid;}
+        .th-left, .th-center {border-color: #dad8d8;border-width:1px;border-style:solid;}
+        .td-left, .td-center {border-color: #dad8d8;border-width:1px;border-style:solid;}
+        .th-left {width:50%;}
+        .th-center {width:20%;}
+        .th-right {width:30%;}
+        .td-left, .td-center, .td-right {vertical-align:top;}
+        .order-info {width:50%;}
+	    span.grey {color:#666;}
+	    span.date {color:#666; }
+	    a.default:link, a.default:hover, a.default:visited {color:#666;line-height:25px;background: #f2f2f2;margin: 10px ;padding: 3px 8px 1px 8px;border: solid #CAC9C9 1px;border-radius: 4px;-webkit-border-radius: 4px;-moz-border-radius: 4px;text-shadow: 1px 1px 1px #f2f2f2;font-size: 12px;background-position: 0px 0px;display: inline-block;text-decoration: none;}
+	    a.default:hover {color:#888;background: #f8f8f8;}
+	    .cart-summary{ }
+	    .html-email th { background: #ccc;margin: 0px;padding: 10px;text-align:left;}
+	    .sectiontableentry2, .html-email th, .cart-summary th{ background: #ccc;margin: 0px;padding: 10px;}
+	    .sectiontableentry1, .html-email td, .cart-summary td {background: #fff;margin: 0px;padding: 10px;}
+	    .line-through{text-decoration:line-through}
+	</style>
+    </head>
+HEADER;
+
+
+            $orderMail = <<<LETTER
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    {$mailHeader}
+    <body>
+	<div class="mail-table">
+			<table width="100%" border="0" cellpadding="0" cellspacing="0" class="html-email">
+    <tr>
+    <td>
+        <strong>Здравствуйте!</strong><br/>
+</td></tr></table>
+<table cellpadding="5" cellspacing="0" class="html-email-top">
+
+  <tr>
+    <td class="order-info">
+		Номер заказа:<br />
+		<b>{$idOrder}</b>
+
+	</td>
+    <td class="order-info">
+	</td>
+  </tr>
+  <tr>
+  <td colspan="2">
+				Статус заказа: В обработке</td>
+  </tr>
+  <tr>
+  <td colspan="2">
+    Доставка: <span class="vmshipment_name">Курьерская доставка по Москве</span><br />
+    Оплата: <span class="vmpayment_name">Наличными курьеру</span><br /></td>
+  </tr>
+    </table>
+<table class="html-email" cellspacing="0" cellpadding="5" style="border: 1px solid #dad8d8;width:600px;margin:10px 0px 10px 0px;border-collapse: collapse;">
+    <tr>
+	<th class="th-left" style="border: 1px solid #dad8d8;background-color:#eeeeee;">
+	    Товар
+	</th>
+	<th class="th-center" style="border: 1px solid #dad8d8;background-color:#eeeeee;">
+        Цена за шт.
+	</th>
+    <th class="th-right" style="border: 1px solid #dad8d8;background-color:#eeeeee;">
+        Количество
+   	</th>
+    </tr>
+LETTER;
+            foreach ($goods['good'] as $k => $v) {
+                $orderMail .= <<<LETTER
+                <tr>
+	                <td class="td-left" valign="top" style="border: 1px solid #dad8d8;">
+                        {$v['name']}<br />
+                        <span style="font-size:10px;font-style:italic;">
+                            <span class="costumTitle">Артикул:</span>&nbsp;
+                            <span class="costumValue" >{$v['articul']}</span>&nbsp;
+                        </span>
+                        <br /><span style="font-size:10px;font-style:italic;">
+                            <span class="costumTitle">Размер</span>&nbsp;
+                            <span class="costumValue" >{$v['size']}</span>&nbsp;
+                        </span>
+                    </td>
+                    <td class="td-center" valign="top" style="border: 1px solid #dad8d8;">{$v['total_price']} руб.</td>
+                    <td class="td-right" valign="top" style="border: 1px solid #dad8d8;">{$v['count']}</td>
+                </tr>
+LETTER;
+            }
+            $price = (float)$goods['price'] + 300;
+            $orderMail .= <<<LETTER
+    </table>
+<p>
+		Доставка: 300.00 руб.</p>
+<p>
+		Итого: {$price} руб.</p>
+<table class="html-email" cellspacing="0" cellpadding="5" style="border: 1px solid #dad8d8;width:600px;margin:10px 0px 10px 0px;border-collapse: collapse;">  <tr  >
+	<th class="user-fields" style="border: 1px solid #dad8d8;background-color:#eeeeee;">
+	    Адрес доставки
+	</th>
+    </tr>
+    <tr>
+	<td class="user-fields" style="border: 1px solid #dad8d8;">
+        <span>Имя:</span>
+        <span>{$fio}</span><br />
+        <span class="titles">Индекс:</span>
+        <span class="values vm2-zip" >{$postcode}</span><br />
+		<span class="titles">Город:</span>
+		<span class="values vm2-city" >{$city}</span><br />
+		<span class="titles">Адрес:</span>
+		<span class="values vm2-address_1" >{$address}</span><br />
+		<span class="titles">Телефон:</span>
+		<span class="values vm2-phone_1" >{$phone}</span><br />
+		<span class="titles">email:</span>
+		<span class="values vm2-email" >{$email}</span><br />
+		<span class="titles">Комментарий:</span>
+		<span class="values vm2-phone_1" >{$comment}</span><br />
+		</td>
+    </tr>
+</table>
+
+<br/><br/>Спасибо за покупку в <a href="http://www.ciaokids.ru/">www.ciaokids.ru</a><br/>Ciaokids<br />	</div>
+    </body>
+</html>
+LETTER;
+
+
+            if ($emailPass !== '') {
+                $regMail = <<<LETTER
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    {$mailHeader}
+
+    <body>
+	<div class="mail-table">
+			<table width="100%" border="0" cellpadding="0" cellspacing="0" class="html-email">
+    <tr>
+    <td>
+        <strong>Здравствуйте!</strong><br/>
+</td></tr></table>
+    <table class="html-email" cellspacing="0" cellpadding="5" style="border: 1px solid #dad8d8;width:600px;margin:10px 0px 10px 0px;border-collapse: collapse;">  <tr  >
+	<th class="user-fields" style="border: 1px solid #dad8d8;background-color:#eeeeee;">
+	    Регистрационные данные нового покупателя
+	</th>
+    </tr>
+    <tr>
+	<td class="user-fields" style="border: 1px solid #dad8d8;">
+        <span>Имя:</span>
+        <span>{$fio}</span><br />
+        {$emailPass}
+        <span class="titles">Индекс:</span>
+        <span class="values vm2-zip" >{$postcode}</span><br />
+		<span class="titles">Город:</span>
+		<span class="values vm2-city" >{$city}</span><br />
+		<span class="titles">Адрес:</span>
+		<span class="values vm2-address_1" >{$address}</span><br />
+		<span class="titles">Телефон:</span>
+		<span class="values vm2-phone_1" >{$phone}</span><br />
+		<span class="titles">Комментарий:</span>
+		<span class="values vm2-phone_1" >{$comment}</span><br />
+		</td>
+    </tr>
+</table>
+
+<br/><br/>Спасибо за покупку в <a href="http://www.ciaokids.ru/">www.ciaokids.ru</a><br/>Ciaokids<br />	</div>
+    </body>
+</html>
+LETTER;
+            }
+
+            $order->updateOrder($orderMail, $idOrder, $price);
+            $orderTitle = 'Заказ';
+            $to = $email;
+            $headers = "From: {$config->robotEmail}\r\n"
+                . "Content-type: text/html; charset=\"utf-8\"";
+
+            $mailRegSend = true;
+            if (($emailPass !== '') && ($noneReg != true)) {
+                $regTitle = 'Регистрация';
+                $mailRegSend = mail($to, $regTitle, $regMail, $headers);
+                $answer['text'] = 'Ошибка регистрации. ';
+                $answer['error'] = 1;
+            }
+
+            if (mail($to, $orderTitle, $orderMail, $headers) && mail($config->mailForm, $orderTitle, $orderMail, $headers) && $mailRegSend) {
+                $answer['text'] = 'Ваш заказ принят в обработку. Наш менеджер скоро с вами свяжется.';
+            } else {
+                $answer['text'] .= 'Ошибка. Попробуйте чуть позже';
+                $answer['error'] = 1;
+            }
+        }
+        print json_encode($answer);
+        exit;
     }
 
 }

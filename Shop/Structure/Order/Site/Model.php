@@ -2,9 +2,11 @@
 namespace Shop\Structure\Order\Site;
 
 use Ideal\Core\Db;
+use Ideal\Core\Config;
 
 class Model extends \Ideal\Structure\Part\Site\ModelAbstract
 {
+    protected $table = 'shop_structure_good';
     public function getGoods()
     {
         if (isset($_COOKIE)) {
@@ -21,14 +23,16 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
         $db = Db::getInstance();
 
         $in = "(";
-        foreach ($basket as $key => $value) {
+        foreach ($basket['good'] as $key => $value) {
             if ($key == 'count' OR $key == 'total_price') continue;
             $in .= $key . ',';
         }
         $in = substr($in, 0, strlen($in) - 1);
         $in .= ")";
 
-        $_sql = "SELECT * FROM i_shop_structure_good WHERE ID IN {$in}";
+        $config = Config::getInstance();
+        $table = $config->db['prefix'] . $this->table;;
+        $_sql = "SELECT * FROM {$table} WHERE ID IN {$in}";
         $goodIdsArr = $db->queryArray($_sql);
         foreach ($goodIdsArr as $good) {
             $id = $good['ID'];
