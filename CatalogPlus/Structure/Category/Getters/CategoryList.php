@@ -59,8 +59,10 @@ class CategoryList
 
     public function getSqlAdd($newValue)
     {
-        $_sql = "DELETE FROM i_catalogplus_good WHERE good_id='{{ objectId }}';"
-              . "INSERT INTO i_catalogplus_good SET good_id='{{ objectId }}', category_id='{$newValue}';";
+        $_sql = "DELETE FROM i_catalogplus_good WHERE good_id='{{ objectId }}';";
+        foreach ($newValue as $v) {
+            $_sql .= "INSERT INTO i_catalogplus_good SET good_id='{{ objectId }}', category_id='{$v}';";
+        }
         return $_sql;
     }
 

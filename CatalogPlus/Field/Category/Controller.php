@@ -19,7 +19,7 @@ class Controller extends \Ideal\Field\AbstractController
     {
         $list = $this->getter->getList();
         $variants = $this->getter->getVariants();
-        $html = '<select class="' . $this->widthEditField . '" name="' . $this->htmlName .'" id="' . $this->htmlName .'">';
+        $html = '<select multiple="multiple" class="' . $this->widthEditField . '" name="' . $this->htmlName .'[]" id="' . $this->htmlName .'">';
         foreach ($list as $k => $v) {
             $selected = '';
             if (in_array($k, $variants)) {
