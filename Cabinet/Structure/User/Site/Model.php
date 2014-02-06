@@ -1,6 +1,7 @@
 <?php
 namespace Cabinet\Structure\User\Site;
 
-class Model extends ModelAbstract {
+class Model extends ModelAbstract
+{
 
-} 
+}

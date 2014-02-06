@@ -3,6 +3,7 @@
 namespace Cabinet\Structure\User\Site;
 
 
-class Controller extends ControllerAbstract {
+class Controller extends ControllerAbstract
+{
 
-} 
+}

@@ -6,6 +6,13 @@ use Ideal\Core\Db;
 
 class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
 {
+    /**
+     * TODO
+     * Нужна ли после регистрации активация через e-mail
+     * @var bool
+     */
+    protected $needActive = true;
+
     public function loginAction()
     {
         session_start();
@@ -119,7 +126,7 @@ Email: $email
 Пароль: {$clearPass}
 EOT;
 
-                $title = 'Регистрация';
+                $title = 'Регистрация' . $config->domain;
                 $to = $email;
                 $headers = "From: {$config->robotEmail}\r\n"
                     . "Content-type: text/plain; charset=\"utf-8\"";
@@ -150,7 +157,7 @@ EOT;
         if (!$answer['error']) {
             $clearPass = $this->randPassword();
             $pass = crypt($clearPass);
-            $title = 'Восстановление пароля';
+            $title = 'Восстановление пароля на ' . $config->domain;
             $headers = "From: {$config->robotEmail}\r\n"
                 . "Content-type: text/plain; charset=\"utf-8\"";
             $to = $email;

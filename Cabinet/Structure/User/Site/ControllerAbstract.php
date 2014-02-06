@@ -55,7 +55,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         session_start();
         unset($_SESSION['login']);
         $url = explode('?', $_SERVER['HTTP_REFERER']);
-        header('Location: '.$url[0]);
+        header('Location: ' . $url[0]);
         exit;
     }
 
