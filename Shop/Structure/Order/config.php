@@ -52,6 +52,7 @@ return array(
             'type'  => 'Ideal_DateAuto'
         ),
         'content' => array(
+            'tab'   => 'Заказ',
             'label' => 'Заказ',
             'sql'   => 'mediumtext',
             'type'  => 'Ideal_RichEdit'

@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <style type="text/css">
+        body, td, span, p, th {
+            padding: 10px
+        }
+
+        .mail-table {
+            margin: auto;
+            width: 600px;
+        }
+
+        .user-fields {
+            width: 50%;
+            vertical-align: top;
+        }
+
+        table.html-email-top {
+            margin: 10px auto;
+            background: #fff;
+            width: 600px;
+        }
+
+        table.html-email {
+            margin: 10px auto;
+            background: #fff;
+            border-color: #dad8d8;
+            border-width: 1px;
+            border-style: solid;
+            width: 600px;
+        }
+
+        .html-email tr {
+            border-color: #eeeeee;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .th-left, .th-center, .th-right {
+            border-color: #dad8d8;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .td-left, .td-center {
+            border-color: #dad8d8;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .th-left {
+            width: 50%;
+            background-color: #eeeeee;
+        }
+
+        .th-center {
+            width: 20%;
+            background-color: #eeeeee;
+        }
+
+        .th-right {
+            width: 30%;
+            background-color: #eeeeee;
+        }
+
+        .td-left, .td-center, .td-right {
+            vertical-align: top;
+        }
+
+        .order-info {
+            width: 50%;
+        }
+
+        .html-email th {
+            background: #ccc;
+            margin: 0;
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<div class="mail-table">
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" class="html-email">
+        <tr>
+            <td>
+                <strong>Здравствуйте!</strong><br/>
+            </td>
+        </tr>
+    </table>
+    <table cellpadding="5" cellspacing="0" class="html-email-top">
+
+        <tr>
+            <td class="order-info">
+                Номер заказа:<br/>
+                <b>{{ idOrder }}</b>
+
+            </td>
+            <td class="order-info">
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                Статус заказа: В обработке
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                Доставка: <span>{{ delivery }}</span><br/>
+                Оплата: <span>{{ payMethod }}</span><br/></td>
+        </tr>
+    </table>
+    <table class="html-email" cellspacing="0" cellpadding="5"
+           style="border: 1px solid #dad8d8;width:600px;margin:10px 0px 10px 0px;border-collapse: collapse;">
+        <tr>
+            <th class="th-left">
+                Товар
+            </th>
+            <th class="th-center">
+                Цена за шт.
+            </th>
+            <th class="th-right">
+                Количество
+            </th>
+        </tr>
+
+        {% for good in goods %}
+            <tr>
+                <td class="td-left" valign="top" style="border: 1px solid #dad8d8;">
+                    {{ good.name }}
+                </td>
+                <td class="td-center" valign="top" style="border: 1px solid #dad8d8;">{{ good.total_price }} руб.</td>
+                <td class="td-right" valign="top" style="border: 1px solid #dad8d8;">{{ good.count }}</td>
+            </tr>
+        {% endfor %}
+
+
+    </table>
+    <p>
+        Доставка: {{ deliveryMoney }}.00 руб.</p>
+
+    <p>
+        Итого: {{ price }} руб.</p>
+    <table class="html-email" cellspacing="0" cellpadding="5"
+           style="border: 1px solid #dad8d8;width:600px;margin:10px 0px 10px 0px;border-collapse: collapse;">
+        <tr>
+            <th class="user-fields" style="border: 1px solid #dad8d8;background-color:#eeeeee;">
+                Адрес доставки
+            </th>
+        </tr>
+        <tr>
+            <td class="user-fields" style="border: 1px solid #dad8d8;">
+                <span>Имя:</span>
+                <span>{{ fio }}</span><br/>
+                <span>Индекс:</span>
+                <span>{{ postcode }}</span><br/>
+                <span>Город:</span>
+                <span>{{ city }}</span><br/>
+                <span>Адрес:</span>
+                <span>{{ address }}</span><br/>
+                <span>Телефон:</span>
+                <span>{{ phone }}</span><br/>
+                <span>E-mail:</span>
+                <span>{{ email }}</span><br/>
+                <span>Комментарий:</span>
+                <span>{{ comment }}</span><br/>
+            </td>
+        </tr>
+    </table>
+
+    <br/><br/>Спасибо за покупку в <a href="http://{{ domain }}">{{ domain }}</a></div>
+</body>
+</html>
