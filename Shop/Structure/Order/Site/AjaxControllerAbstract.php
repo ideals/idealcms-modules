@@ -69,7 +69,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
             /**
              * Генерация письма
              */
-            $this->templateInit('Shop\Structure\Order\Site\letter.twig');
+            $this->templateInit('Shop/Structure/Order/Site/letter.twig');
             $this->view->idOrder = $idOrder;
             $this->view->delivery = $delivery;
             $this->view->payMethod = $payMethod;
