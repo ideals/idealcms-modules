@@ -58,6 +58,12 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
      */
     public function createOrder($comment = null, $fio = null, $address = null)
     {
+        if (strlen($this->prevStructure) < 2) {
+            $config = Config::getInstance();
+            $prevStructure = $config->getStructureByName('Shop_Order');
+            $prevStructure = '0-' . $prevStructure['ID'];
+            $this->prevStructure = $prevStructure;
+        }
         $db = Db::getInstance();
         $id = $db->insert($this->_table, array(
             'date_create' => time(),
