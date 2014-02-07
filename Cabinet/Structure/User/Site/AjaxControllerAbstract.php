@@ -150,9 +150,18 @@ EOT;
         $db = Db::getInstance();
         $config = Config::getInstance();
         $email = mysql_real_escape_string($_POST['login']);
-        if (strlen($email) < 1) {
-            $answer['text'] = 'не указан email';
+        if (strlen($email) < 1 || strpos($email, '@') == false) {
+            $answer['text'] = 'Не указан E-mail';
             $answer['error'] = true;
+            print json_encode($answer);
+            exit;
+        }
+        $table = $config->db['prefix'] . 'cabinet_structure_user';
+        $_sql = "SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1";
+        $user = $db->queryArray($_sql);
+        if (count($user) == 0) {
+            $answer['error'] = true;
+            $answer['text'] = 'Данный E-mail еще не зарегистрирован';
         }
         if (!$answer['error']) {
             $clearPass = $this->randPassword();
@@ -170,7 +179,6 @@ EOT;
                 $answer['text'] = 'Ошибка. Попробуйте чуть позже';
                 $answer['error'] = 1;
             }
-            $table = $config->db['prefix'] . 'cabinet_structure_user';
             $_sql = "UPDATE {$table} SET password='{$pass}' WHERE email='{$email}'";
             $db->query($_sql);
         }
