@@ -135,7 +135,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $config = Config::getInstance();
             $table = $config->db['prefix'] . 'catalogplus_good';
             $where .= $and . "e.ID IN (SELECT good_id FROM {$table}
-                                              WHERE category_id={$this->currentCategory['ID']})";
+                                              WHERE category_id={$this->currentCategory['ID']} AND is_active=1)";
         }
 
         return $where;
