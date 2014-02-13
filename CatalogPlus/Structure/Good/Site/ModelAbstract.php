@@ -111,7 +111,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $url->setParentUrl($this->path);
         if (is_array($list) and count($list) != 0 ) {
             foreach ($list as $k => $v) {
-                $list[$k]['link'] = 'href="' . $url->getUrl($v) . '"';
+                $list[$k]['link'] = $url->getUrl($v);
             }
         }
 
