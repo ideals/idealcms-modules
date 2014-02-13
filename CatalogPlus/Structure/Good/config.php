@@ -113,7 +113,7 @@ return array(
             'type'  => 'Ideal_Image'
         ),
         'imgs' => array(
-            'label' => 'Прочии картинки',
+            'label' => 'Прочие картинки',
             'sql'   => 'text',
             'type'  => 'Ideal_Text'
         ),

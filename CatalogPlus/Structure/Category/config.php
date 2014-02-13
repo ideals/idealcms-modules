@@ -11,7 +11,8 @@ return array(
         'field_sort'    => 'cid', // поле, по которому проводится сортировка в CMS
         'field_list'    => array('cid!40', 'ID', 'name', 'date_mod', 'url'),
         'levels'        => 6, // количество уровней вложенности
-        'digits'        => 3 // //кол-во разрядов
+        'digits'        => 3, // кол-во разрядов
+        'is_query_param' => false, // идентификатор категории находится в query string
     ),
     'fields' => array(
         // label - название поля в админке

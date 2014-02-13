@@ -59,7 +59,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
                 break;
             }
         }
-        // TODO \/ надо бы продумать этот момент \/
+        if ($this->pageData === false) return array('нет','такой','категории');
         return array();
     }
 
