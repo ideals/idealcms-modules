@@ -19,11 +19,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $config = Config::getInstance();
         $tmp = $url;
         // Определяем, нет ли в URL категории
-        $this->categoryModel = new \CatalogPlus\Structure\Category\Site\Model($this->structurePath);
+        $this->categoryModel = new \CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
         $url = $this->categoryModel->detectPageByUrl($path, $url);
         if (count($url) == 0) {
             // Прошло успешно определение страницы категории, значит статью определять не надо
-            $this->path = $path;
+            $this->path = array_merge($path, $this->categoryModel->getPath());
             return $this;
         }
 
@@ -58,21 +58,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this;
     }
 
-    public function detectCurrentCategory()
-    {
-        if (!isset($this->categoryModel)) {
-            // Если категория не была определена на этапе DetectPageByUrl, то нужно
-            // проверить, нет ли категории в query_string
-            $this->categoryModel = new \CatalogPlus\Structure\Category\Site\Model('');
-            $this->categoryModel->detectPageByUrl($this->path, array());
-        }
-
-        $this->currentCategory = $this->categoryModel->getCurrent();
-        if ($this->currentCategory) {
-            $this->pageData = $this->currentCategory;
-        }
-    }
-
     public function getCategories()
     {
         $parentUrl = $this->getParentUrl();
@@ -87,15 +72,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $articles = $this->getList(1);
         $categories = $this->getCategories();
         return array_merge($categories, $articles);
-    }
-
-    public function getTemplatesVars()
-    {
-        if ($this->categoryModel->getCurrent()) {
-            return $this->categoryModel->getTemplatesVars();
-        } else {
-            return parent::getTemplatesVars();
-        }
     }
 
     /**
@@ -131,12 +107,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $and = ' AND ';
         }
 
-        if ($this->currentCategory) {
+        $category = $this->categoryModel->getPageData();
+        if (isset($category['ID'])) {
             // Вывод статей только определённой категории
             $config = Config::getInstance();
             $table = $config->db['prefix'] . 'catalogplus_good';
             $where .= $and . "e.ID IN (SELECT good_id FROM {$table}
-                                              WHERE category_id={$this->currentCategory['ID']} AND is_active=1)";
+                                              WHERE category_id={$category['ID']} AND is_active=1)";
         }
 
         return $where;
@@ -148,8 +125,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // Установлена категория, значит определять товар не нужно, определяем предков структуры товара
             $path = parent::detectPath();
             // todo определить вложенные категории
-            $this->categoryModel->getLocalPath();
-            $this->path = $path;
+            $catPath = $this->categoryModel->getLocalPath();
+            $this->path = array_merge($path, $catPath);
             return $this->path;
         }
 
@@ -159,6 +136,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $good = $this->pageData;
         list($parentStructure, $parentId) = explode('-', $good['prev_structure']);
+        if ($parentStructure == 0) {
+            // Частный случай - определение пути не из конкретного товара, а из уровня выше
+            return parent::detectPath();
+        }
         $structure = $config->getStructureById($parentStructure);
 
         // Находим предка — структуру статей
@@ -200,15 +181,24 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $this->categoryModel = $model;
     }
 
-    public function getAllGoods(){
-        $db = Db::getInstance();
-        $config = Config::getInstance();
-        $tableLink = $config->db['prefix'] . 'catalogplus_good';
-        $cid = substr($this->pageData['cid'], 0, $this->pageData['lvl'] * 3);
-        $tableCat = $config->db['prefix'] . 'catalogplus_structure_category';
-        $_sql = "SELECT * FROM {$this->_table} WHERE ID IN (SELECT good_id FROM {$tableLink} WHERE category_id IN (
-                    SELECT ID FROM {$tableCat} WHERE cid LIKE '{$cid}%')) AND is_active = 1";
-        $goods = $db->queryArray($_sql);
-        return $goods;
+    /**
+     * Установка свойств объекта по данным из массива $model
+     *
+     * Вызывается при копировании данных из одной модели в другую
+     * @param Model $model Массив переменных объекта
+     * @return $this Либо ссылка на самого себя, либо новый объект модели
+     */
+    public function setVars($model)
+    {
+        $category = new \CatalogPlus\Structure\Category\Site\Model('');
+        $path = $model->getPath();
+        $end = array_pop($path);
+        $end['structure'] = 'CatalogPlus_Category';
+        $path[] = $end;
+        $model->setPath($path);
+        $category->setVars($model);
+        $category->setGoods($this);
+        return $category;
     }
+
 }

@@ -5,8 +5,8 @@ use Ideal\Core\Request;
 
 class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
-    /** @var prev_structure для товаров, связанных с этими категориями */
-    protected $goodsPrevStructure;
+    /* @var $model Model Модель соответствующая этому контроллеру */
+    protected $model;
 
     public function indexAction()
     {
@@ -15,12 +15,10 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $request = new Request();
         $page = intval($request->page);
 
-        $goods = new \CatalogPlus\Structure\Good\Site\Model($this->goodsPrevStructure);
-        $path = $this->model->getPath();
-        $goods->setCategory(end($path));
-
-        $this->view->goods = $goods->getList($page);
-        $this->view->pager = $goods->getPager('page');
+        if ($this->model->isNotIndex()) {
+            $goods = $this->model->getGoods();
+            $this->view->parts = $goods->getList($page);
+            $this->view->pager = $goods->getPager('page');
+        }
     }
-
 }

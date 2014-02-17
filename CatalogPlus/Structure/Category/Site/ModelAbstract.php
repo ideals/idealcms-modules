@@ -14,6 +14,10 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     protected $current;
     protected $tagParam;
 
+    /** @var  \CatalogPlus\Structure\Good\Site\Model */
+    protected $goods;
+
+
     public function detectPageByUrl($path, $url)
     {
         $this->tagParam = $this->setTagParamName($path);
@@ -54,6 +58,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         $list = $this->readCategories();
         foreach ($list as $v) {
             if ($v['url'] == $url[0]) {
+                $v['structure'] = 'CatalogPlus_Category';
                 $this->pageData = $v;
                 $this->path[] = $v;
                 break;
@@ -73,7 +78,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         $spravochnik = $dataList->getByParentUrl($end['url']);
         $this->tagParamName = $spravochnik['url'];
         $this->prevStructure = $structure['ID'] . '-' . $spravochnik['ID'];
-        $this->path = array($structure, $spravochnik);
+        //$this->path = array($structure, $spravochnik);
         return $this->tagParamName;
     }
 
@@ -143,37 +148,40 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     }
 
 
-    /**
-     * Функция получения контенда для страницы
-     */
-    protected function getTemplate(){
-        $config = Config::getInstance();
-        $db = Db::getInstance();
-        // Определение prev_structure для поиска в таблице с данными
-        $prev_structure = $config->getStructureByName($this->pageData['structure']);
-        $prev_structure = $prev_structure['ID'];
-        $prev_structure = $prev_structure . '-' . $this->pageData['ID'];
-        // Определение таблицы из которой нужно производить загрузку контента
-        $table = explode('_', $this->pageData['template']);
-        $table = end($table);
-        $table = strtolower($table);
-        $table = $config->db['prefix'] . 'ideal_template_' . $table;
-        // Запрос на получение контента
-        $_sql = "SELECT * FROM {$table} WHERE prev_structure='{$prev_structure}' LIMIT 1";
-        $result = $db->queryArray($_sql);
-        // Запись в данные о страницы самого контента
-        $this->pageData['template'] = $result[0];
+    public function setGoods($model)
+    {
+        $this->goods = $model;
     }
 
-
-    public function getCurrent()
+    public function getGoods()
     {
-        if (isset($this->pageData)) {
-            $this->getTemplate();
-            return $this->pageData;
-        } else {
+        return $this->goods;
+    }
+
+    /**
+     * Установка свойств объекта по данным из объекта $model
+     *
+     * Вызывается при копировании данных из одной модели в другую
+     * @param array $model Массив переменных объекта
+     * @return $this Либо ссылка на самого себя, либо новый объект модели
+     */
+    public function setVars($model)
+    {
+        $this->setGoods($model);
+        $model = parent::setVars($model);
+        return $model;
+    }
+
+    /**
+     * Определение главная ли эта страница товара или внутренняя
+     * @return bool Возвращает true если это не главная страница товара
+     */
+    public function isNotIndex()
+    {
+        $end = end($this->getPath());
+        if ($end['structure'] != $this->pageData['structure']) {
             return false;
         }
+        return true;
     }
-
 }
