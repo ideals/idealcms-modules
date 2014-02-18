@@ -5,6 +5,7 @@ use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Core\Util;
+use Ideal\Field\Cid;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
@@ -13,6 +14,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     protected $categoryModel;
     protected $currentCategory;
+    /** @var bool Отображать в категории товары из подкатегорий */
+    protected $showNestedElements = true;
 
     public function detectPageByUrl($path, $url)
     {
@@ -109,11 +112,19 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $category = $this->categoryModel->getPageData();
         if (isset($category['ID'])) {
-            // Вывод статей только определённой категории
+            // Вывод товара только определённой категории
             $config = Config::getInstance();
             $table = $config->db['prefix'] . 'catalogplus_good';
+            $categoryWhere = 'category_id = ' . $category['ID'];
+            if ($this->showNestedElements) {
+                $catTable = $config->db['prefix'] . 'catalogplus_structure_category';
+                $params = $this->categoryModel->params;
+                $cidModel = new Cid\Model($params['levels'], $params['digits']);
+                $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
+                $categoryWhere = "category_id IN (SELECT ID FROM {$catTable} WHERE cid LIKE '{$cid}%' AND is_active=1)";
+            }
             $where .= $and . "e.ID IN (SELECT good_id FROM {$table}
-                                              WHERE category_id={$category['ID']} AND is_active=1)";
+                                              WHERE {$categoryWhere} AND is_active=1)";
         }
 
         return $where;
