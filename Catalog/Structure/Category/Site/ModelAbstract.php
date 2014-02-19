@@ -148,32 +148,10 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         return array();
     }
 
-    /**
-     * Функция получения контенда для страницы
-     */
-    protected function getTemplate(){
-        $config = Config::getInstance();
-        $db = Db::getInstance();
-        // Определение prev_structure для поиска в таблице с данными
-        $prev_structure = $config->getStructureByName($this->pageData['structure']);
-        $prev_structure = $prev_structure['ID'];
-        $prev_structure = $prev_structure . '-' . $this->pageData['ID'];
-        // Определение таблицы из которой нужно производить загрузку контента
-        $table = explode('_', $this->pageData['template']);
-        $table = end($table);
-        $table = strtolower($table);
-        $table = $config->db['prefix'] . 'ideal_template_' . $table;
-        // Запрос на получение контента
-        $_sql = "SELECT * FROM {$table} WHERE prev_structure='{$prev_structure}' LIMIT 1";
-        $result = $db->queryArray($_sql);
-        // Запись в данные о страницы самого контента
-        $this->pageData['template'] = $result[0];
-    }
 
     public function getCurrent()
     {
         if (isset($this->pageData)) {
-            $this->getTemplate();
             return $this->pageData;
         } else {
             return false;
