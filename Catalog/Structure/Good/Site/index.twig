@@ -1,47 +1,25 @@
 {% extends "site.twig" %}
 
 {% block content %}
-    <h1>{{ header }}</h1>
 
-    <div class="art">
-        <div class="clear"></div>
-        <div class="pagination">
-            <ul>
-                {% for category in categories %}
-                    <li class="{{ category.class }}"><a {{ category.link|raw }}>{{ category.name }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="clear"></div>
-        <div class="articles">
-            {% if parts|length > 0 %}
-                {% for good in parts %}
-                    <div class="name">
-                        <a {{ good.link|raw }}>{{ good.name }}</a>
-                    </div>
-                    <div class="annot">{{ good.annot }}</div>
-                {% endfor %}
-            {% endif %}
+    <div class="card">
+        <h1>{{ good.name }}</h1>
 
-        </div>
-        {% if pager.pages|length > 0 %}
-            <div class="pagination pagination-left">
-                <ul>
-                    {% for page in pager.pages %}
-                        {% if page.current == 1 %}
-                            <li class="active"><a>{{ page.num }}</a></li>
-                        {% else %}
-                            <li><a href="{{ page.url }}">{{ page.num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
+        <div class="img_prew">
+            <div class="img_prew_inside">
+                <div class="img"><a href="#"><img src="/images/1c/big/{{ good.img }}" alt=""></a></div>
+                <div class="prew">
+                    <div class="price">{{ good.price }} руб.</div>
+                    <h3>Технические характеристики</h3>
+                    <ul class="param">
+                        {% for key, value in properties %}
+                            <li><b>{{ key }}:</b> {{ value }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
-        {% endif %}
-
-        <div style="clear: left;">
-            {{ template.content|raw }}
         </div>
-
     </div>
+
 
 {% endblock %}
