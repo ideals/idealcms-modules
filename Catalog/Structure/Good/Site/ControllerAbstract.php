@@ -1,19 +1,30 @@
 <?php
 namespace Catalog\Structure\Good\Site;
 
-class Controller extends \Ideal\Core\Site\Controller
+use Ideal\Core\Request;
+
+class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
     /**
-     * @var $model Model
+     * Отображение списка товаров из одной категории
      */
-    protected $model;
-
     public function indexAction()
     {
+        $this->setTemplate('Catalog/Structure/Category/Site/index.twig');
         parent::indexAction();
 
-        $pageData = $this->model->getPageData();
-        $this->view->good = $pageData;
+        $request = new Request();
+        $page = intval($request->page);
+        $this->view->goods = $this->model->getList($page);
+        $this->view->pager = $this->model->getPager('page');
     }
 
+    /**
+     * Отображение карточки товара (подробного описания)
+     */
+    public function detailAction()
+    {
+        $this->setTemplate('Catalog/Structure/Good/Site/detail.twig');
+        parent::indexAction();
+    }
 }

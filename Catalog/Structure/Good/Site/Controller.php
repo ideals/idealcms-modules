@@ -1,7 +1,6 @@
 <?php
-
 namespace Catalog\Structure\Good\Site;
 
-class Model extends ModelAbstract
+class Controller extends ControllerAbstract
 {
 }

@@ -7,38 +7,22 @@ use Ideal\Field\Url;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
-    /** @var  категория для которой нужно отобразить список товаров */
-    protected $category;
-
-    public function setCategory($category)
-    {
-        $this->category = $category;
-    }
-
-
     public function getWhere($where)
     {
-        if (isset($this->fields['category_id'])) {
-            // Для случая, когда товар привязан к одной категории
-            $where = "WHERE {$where} AND e.category_id={$this->category['ID']}";
-        } else {
-            // Для случая, когда товар привязан к разным категориям
-            $config = Config::getInstance();
-            $prefix = $config->db['prefix'];
-            $where = " LEFT JOIN {$prefix}good_category AS cg ON cg.good_id = e.ID
-                    WHERE {$where} AND cg.category_id = '{$this->category['ID']}'";
-        }
-        $where .= ' AND e.is_active=1';
-
+        $where = parent::getWhere($where . ' AND e.is_active=1');
         return $where;
     }
 
-
-    public function detectPageByUrl($url, $path)
+    public function detectPageByUrl($path, $url)
     {
+        if (count($url) > 1) {
+            $this->is404 = true;
+            return $this;
+        }
+
         $db = Db::getInstance();
 
-        $url = mysql_real_escape_string($url);
+        $url = mysql_real_escape_string($url[0]);
         $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
 
         $list = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
@@ -53,7 +37,25 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $this->path = array_merge($path, $list);
 
+        $_REQUEST['action'] = 'detail'; // раз до сюда добрались - это подробное описание товара
+
         return $this;
+    }
+
+    public function getList($page)
+    {
+        $list = parent::getList($page);
+
+        // Построение правильных URL
+        $url = new \Ideal\Field\Url\Model();
+        $url->setParentUrl($this->path);
+        if (is_array($list) && count($list) != 0 ) {
+            foreach ($list as $k => $v) {
+                $list[$k]['link'] = $url->getUrl($v);
+            }
+        }
+
+        return $list;
     }
 
 

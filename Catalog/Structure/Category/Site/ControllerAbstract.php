@@ -1,26 +1,32 @@
 <?php
 namespace Catalog\Structure\Category\Site;
 
+use Catalog\Structure\Good;
+use Ideal\Core\Config;
 use Ideal\Core\Request;
-use Ideal\Core\Db;
 
 class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
-    /** @var string prev_structure для товаров, связанных с этими категориями */
-    protected $goodsPrevStructure;
-
+    /**
+     * В этот экшен мы попадаем, когда в категории есть вложенные категории,
+     * а не сразу же идёт список товара
+     */
     public function detailAction()
     {
         parent::indexAction();
 
+        $page = $this->model->getPageData();
+        $config = Config::getInstance();
+        $structure = $config->getStructureByClass(get_class($this));
+
+        // Определяем модель товаров этой категории
+        $prevStructure = $structure['ID'] . '-' . $page['ID'];
+        $goods = new Good\Site\Model($prevStructure);
+        $goods->setPath($this->model->getPath());
+
         $request = new Request();
         $page = intval($request->page);
-
-        $goods = new \Catalog\Structure\Good\Site\Model($this->goodsPrevStructure);
-        $goods->setCategory($this->model->getPageData());
-
         $this->view->goods = $goods->getList($page);
         $this->view->pager = $goods->getPager('page');
     }
-
 }
