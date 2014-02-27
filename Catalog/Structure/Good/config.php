@@ -35,7 +35,7 @@ return array(
         'url' => array(
             'label' => 'URL',
             'sql'   => 'varchar(255) not null',
-            'type'  => 'Catalog_UrlMini'
+            'type'  => 'Ideal_UrlAuto'
         ),
         'price' => array(
             'label' => 'Цена за единицу',
