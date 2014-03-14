@@ -1,7 +1,64 @@
 {% extends "site.twig" %}
 
 {% block content %}
-    <h1>{{ header }}</h1>
 
-    {{ article.content|raw }}
+    <div class="row">
+        <div class="col-md-4">
+            <p><img src="{{ img }}" alt="{{ name }}" class="img-rounded"></p>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Цена:</strong></p>
+
+                    <p>{{ price }} {{ currency }}</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="countGood">Количество</label>
+
+                        <div class="input-group">
+                            <span class="input-group-btn">
+                                <button class="btn btn-danger" type="button"
+                                        onclick="if(parseInt($('#countGood').val()) < 2){
+                                            $('#countGood').val(1);
+                                            return false;
+                                        }
+                                        $('#countGood').val(parseInt($('#countGood').val()) - 1)">
+                                    <span class="glyphicon glyphicon glyphicon-minus"></span>
+                                </button>
+                            </span>
+                            <input type="count" class="form-control" id="countGood" value="1">
+                            <span class="input-group-btn">
+                                <button class="btn btn-success" type="button"
+                                        onclick="$('#countGood').val(parseInt($('#countGood').val()) + 1)">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-7">
+            <h1>{{ header }}</h1>
+
+            {{ template.content|raw }}
+
+            {% if data|length > 0 %}
+                <p>
+                <table class="table table-hover">
+                    {% for prop in data %}
+                        <tr>
+                            <td><strong>{{ prop.name }}</strong></td>
+                            <td>{{ prop.value }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
 {% endblock %}

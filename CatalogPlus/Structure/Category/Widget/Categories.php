@@ -6,9 +6,9 @@ use Ideal\Core\Config;
 
 class Categories extends \Ideal\Core\Widget
 {
-    public function setStructurePath($prevStructure)
+    public function setPrevStructure($prevStructure)
     {
-        $this->prevStructurePath = $prevStructure;
+        $this->prevStructure = $prevStructure;
     }
 
     public function setPrefix($prefix)
@@ -16,14 +16,14 @@ class Categories extends \Ideal\Core\Widget
         $this->prefix = $prefix;
     }
 
-    public function getData()
+    public function getData($limit = 5)
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
         $table = $config->db['prefix'].'catalogplus_structure_category';
         $_sql = "SELECT * FROM {$table}
                     WHERE lvl=1 AND is_active=1 AND is_not_menu=0 AND prev_structure='{$this->prevStructure}'
-                    ORDER BY cid";
+                    ORDER BY cid LIMIT {$limit}";
         $menuList = $db->queryArray($_sql);
 
         $menu = array();
@@ -34,7 +34,7 @@ class Categories extends \Ideal\Core\Widget
         }
         unset($menuList);
 
-        $object = $this->model->object;
+        $object = $this->model->getPageData();
         if ($object['prev_structure'] == $this->prevStructure) {
             $menu[$object['cid']]['isActivePage'] = 1;
         }

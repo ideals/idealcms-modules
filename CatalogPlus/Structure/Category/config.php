@@ -48,6 +48,7 @@ return array(
         'structure' => array(
             'label' => 'Тип раздела',
             'sql'   => "varchar(20) default 'CatalogPlus_Category'",
+            'default'=> 'CatalogPlus_Category',
             'type'  => 'Ideal_Hidden',
         ),
         'template' => array(

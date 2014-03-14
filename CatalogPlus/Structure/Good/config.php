@@ -47,62 +47,51 @@ return array(
             'sql'   => 'text',
             'type'  => 'Ideal_Area'
         ),
-        'measure' => array(
-            'tab'   => 'info',
-            'label' => 'Базовая Единица',
-            'sql'   => 'varchar(255) not null',
-            'type'  => 'Ideal_Text'
+        'template' => array(
+            'label'     => 'Тип документа',
+            'sql'       => "varchar(20) not null default 'Page'",
+            'type'      => 'Ideal_Template',
+            'class'     => '\\Ideal\\Structure\\Part\\Getters\\TemplateList',
+            'templates' =>  array('Ideal_Page'),
         ),
-        'id_1c' => array(
-            'tab'   => 'info',
-            'label' => 'id 1c',
-            'sql'   => 'varchar(255) not null',
-            'type'  => 'Ideal_Text'
-        ),
-        'properties' => array(
-            'tab'   => 'info',
-            'label' => 'Параметры',
-            'sql'   => 'text',
-            'type'  => 'Ideal_Text'
-        ),
-        'full_name' => array(
-            'tab'   => 'info',
-            'label' => 'Полное имя',
-            'sql'   => 'varchar(255) not null',
-            'type'  => 'Ideal_Text'
+        'data' => array(
+            'label'     => 'Тип товара',
+            'sql'       => "varchar(20) not null default 'CatalogPlus_Data'",
+            'type'      => 'Ideal_Template',
+            'class'     => '\\Ideal\\Structure\\Part\\Getters\\TemplateList',
+            'templates' =>  array('CatalogPlus_Data'),
         ),
         'sell' => array(
-            'tab'   => 'info',
+            'tab'   => 'Данные',
             'label' => 'Скидка',
-            'sql'   => 'int(11) null',
-            'type'  => 'Ideal_Text'
+            'sql'   => "int(11) null default '0'",
+            'default'=> 0,
+            'type'  => 'Ideal_Integer'
         ),
         'sell_date' => array(
-            'tab'   => 'info',
+            'tab'   => 'Данные',
             'label' => 'Дата действия скидки',
             'sql'   => 'int(11) null',
-            'type'  => 'Ideal_Text'
+            'type'  => 'Ideal_DateAuto'
         ),
         'stock' => array(
-            'tab'   => 'info',
+            'tab'   => 'Данные',
             'label' => 'Кол-во',
             'sql'   => 'varchar(255)',
             'type'  => 'Ideal_Text'
         ),
         'currency' => array(
-            'tab'   => 'info',
+            'tab'   => 'Данные',
             'label' => 'Валюта',
             'sql'   => 'varchar(255)',
-            'type'  => 'Ideal_Text'
-        ),
-        'item' => array(
-            'tab'   => 'info',
-            'label' => 'Item',
-            'sql'   => 'varchar(255)',
-            'type'  => 'Ideal_Text'
+            'type'  => 'Ideal_Select',
+            'values'=> array(
+                'руб' => 'руб',
+                'usd' => 'usd'
+            )
         ),
         'coefficient' => array(
-            'tab'   => 'info',
+            'tab'   => 'Данные',
             'label' => 'Item',
             'sql'   => 'varchar(255)',
             'type'  => 'Ideal_Text'
@@ -111,11 +100,6 @@ return array(
             'label' => 'Картинка',
             'sql'   => 'varchar(255)',
             'type'  => 'Ideal_Image'
-        ),
-        'imgs' => array(
-            'label' => 'Прочие картинки',
-            'sql'   => 'text',
-            'type'  => 'Ideal_Text'
         ),
         'date_create' => array(
             'tab'   => 'SEO',
@@ -146,11 +130,6 @@ return array(
             'label' => 'Description tag',
             'sql'   => 'text',
             'type'  => 'Ideal_Area'
-        ),
-        'content' => array(
-            'label' => 'Текст',
-            'sql'   => 'mediumtext',
-            'type'  => 'Ideal_RichEdit'
         ),
         'is_active' => array(
             'label' => 'Отображать на сайте',

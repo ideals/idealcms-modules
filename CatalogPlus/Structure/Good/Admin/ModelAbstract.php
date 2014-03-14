@@ -33,7 +33,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $request = new Request();
         $currentCategory = $request->toolbar['category'];
 
-        $select = '<select name="toolbar[category]"><option value="">Не фильтровать</option>';
+        $select = '<select class="form-control" name="toolbar[category]"><option value="">Не фильтровать</option>';
         foreach ($this->categories as $category) {
             $selected = '';
             if ($category['ID'] == $currentCategory) {

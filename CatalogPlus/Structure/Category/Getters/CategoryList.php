@@ -38,12 +38,6 @@ class CategoryList
         $pageData = $this->obj->getPageData();
 
         $_table = $config->db['prefix'] . 'catalogplus_good';
-
-        if (isset($this->obj->fields['category_id'])) {
-            // Если связь товара с категорией через поле в таблице товара
-            $arr = (isset($pageData['category_id'])) ? array($pageData['category_id']) : array();
-            return $arr;
-        }
         $goodId = $pageData['ID'];
         $_sql = "SELECT category_id FROM {$_table} WHERE good_id='{$goodId}'";
         $arr = $db->queryArray($_sql);

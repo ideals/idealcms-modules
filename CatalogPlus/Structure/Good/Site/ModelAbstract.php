@@ -77,6 +77,21 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return array_merge($categories, $articles);
     }
 
+    public function getData()
+    {
+        $data = $this->pageData['data'];
+        $configTemplate = new \CatalogPlus\Template\Data\Model('');
+        if ($data['ID']) unset($data['ID']);
+        if ($data['prev_structure']) unset($data['prev_structure']);
+        foreach ($data as $k => $v) {
+            unset($data[$k]);
+            if ((is_string($v) && strlen($v) < 1) || (is_null($v))) continue;
+            $data[$k]['name'] = $configTemplate->fields[$k]['label'];
+            $data[$k]['value'] = $v;
+        }
+        return $data;
+    }
+
     /**
      * @param int $page Номер отображаемой страницы
      * @return array Полученный список элементов
@@ -208,7 +223,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $path[] = $end;
         $model->setPath($path);
         $category->setVars($model);
-        $category->setGoods($this);
+        //$category->setGoods($this);
         return $category;
     }
 

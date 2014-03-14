@@ -17,6 +17,39 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     /** @var  \CatalogPlus\Structure\Good\Site\Model */
     protected $goods;
 
+    public function __construct($prevStructure)
+    {
+        parent::__construct($prevStructure);
+        $this->goods = new \CatalogPlus\Structure\Good\Site\Model('');
+    }
+
+    /**
+     * Получить общее количество элементов в списке
+     * @return array Полученный список элементов
+     */
+    public function getListCount()
+    {
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        if ($this->pageData['structure'] == 'CatalogPlus_Good') {
+            $table = $config->db['prefix'] . 'catalogplus_structure_good';
+            $prevStructure = explode('-', $this->pageData['prev_structure']);
+            $prevStructure = end($prevStructure);
+            $prevStructure = $prevStructure . '-' . $this->pageData['ID'];
+            $_sql = "SELECT COUNT(ID) FROM {$table} WHERE is_active = 1 AND prev_structure = '{$prevStructure}'";
+        } else {
+            $tableLink = $config->db['prefix'] . 'catalogplus_good';
+            $tableGood = $config->db['prefix'] . 'catalogplus_structure_good';
+            $cid = rtrim($this->pageData['cid'], '0');
+            $_sql = "SELECT ID FROM {$this->_table} WHERE is_active = 1 AND cid LIKE '{$cid}%'";
+            $_sql = "SELECT good_id FROM {$tableLink} WHERE category_id IN ({$_sql})";
+            $_sql = "SELECT COUNT(ID) FROM {$tableGood} WHERE is_active=1 AND ID IN ({$_sql})";
+        }
+        $list = $db->queryArray($_sql);
+
+        return $list[0]['COUNT(ID)'];
+    }
+
 
     public function detectPageByUrl($path, $url)
     {
@@ -64,7 +97,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
                 break;
             }
         }
-        if ($this->pageData === false) return array('нет','такой','категории');
+        if ($this->pageData === false) return array('нет', 'такой', 'категории');
         return array();
     }
 
@@ -147,15 +180,95 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         return array();
     }
 
-
-    public function setGoods($model)
+    /**
+     * Получение листалки
+     * @param string $page
+     * @return mixed
+     */
+    public function getPager($page)
     {
-        $this->goods = $model;
+        $onPage = $this->params['elements_site'];
+        $this->params['elements_site'] = $this->goods->params['elements_site'];
+        $list = parent::getPager($page);
+        $this->params['elements_site'] = $onPage;
+        return $list;
     }
 
-    public function getGoods()
+    /**
+     * Получение списка товаров
+     * @param int $page
+     * @return array
+     */
+    public function getGoods($page = 1)
     {
-        return $this->goods;
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $tableLink = $config->db['prefix'] . 'catalogplus_good';
+        $tableGood = $config->db['prefix'] . 'catalogplus_structure_good';
+        $onPage = $this->goods->params['elements_site'];
+        $limitStart = ($page - 1) * $onPage;
+        if ($this->pageData['structure'] != 'CatalogPlus_Category') {
+            $_sql = "SELECT * FROM {$tableGood} WHERE is_active=1 LIMIT {$limitStart}, {$onPage}";
+        } else {
+            $cid = rtrim($this->pageData['cid'], '0');
+            $_sql = "SELECT ID FROM {$this->_table} WHERE is_active = 1 AND cid LIKE '{$cid}%'";
+            $_sql = "SELECT good_id FROM {$tableLink} WHERE category_id IN ({$_sql})";
+            $_sql = "SELECT * FROM {$tableGood} WHERE is_active=1 AND ID IN ({$_sql}) LIMIT {$limitStart}, {$onPage}";
+        }
+        $goods = $db->queryArray($_sql);
+        // Построение правильных URL
+        $url = new Field\Url\Model();
+        $pathGood = array();
+        foreach($this->path as $v){
+            $pathGood[] = $v;
+            if ($v['structure'] == 'CatalogPlus_Good') break;
+        }
+        $url->setParentUrl($pathGood);
+        if (is_array($goods) and count($goods) != 0) {
+            foreach ($goods as $k => $v) {
+                $goods[$k]['link'] = $url->getUrl($v);
+            }
+        }
+        return $goods;
+    }
+
+    public function getListCategory()
+    {
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        if ($this->pageData['structure'] == 'CatalogPlus_Good') {
+            $prevStructure = explode('-', $this->pageData['prev_structure']);
+            $prevStructure = end($prevStructure);
+            $prevStructure = $this->pageData['ID'] . '-' . $prevStructure;
+            $active = false;
+        } else {
+            $prevStructure = $this->pageData['prev_structure'];
+        }
+        $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure = '{$prevStructure}' AND is_active = 1 ORDER BY cid";
+        $list = $db->queryArray($_sql);
+        $arr = array();
+        foreach($list as $v){
+            $this->getMenu($v, $arr, 0,0);
+        }
+
+    }
+
+    private function getMenu($value, &$list, $tag, $urlParent)
+    {
+        $ceil = &$list;
+        $cidKey = str_split($value['cid'], $this->params['digits']);
+        foreach ($cidKey as $k => $v) {
+            if ($v == '000') break;
+            if (!isset($ceil[$v])) {
+                $ceil[$v] = array('cat' => array(), 'subcat' => array());
+            }
+            if (!isset($cidKey[$k + 1]) || $cidKey[$k + 1] == '000') {
+                $ceil = & $ceil[$v];
+            } else {
+                $ceil = & $ceil['subcat'];
+            }
+        }
+        $ceil['cat'] = $value;
     }
 
     /**
@@ -167,7 +280,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
      */
     public function setVars($model)
     {
-        $this->setGoods($model);
+        //$this->setGoods($model);
         $model = parent::setVars($model);
         return $model;
     }
@@ -178,7 +291,8 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
      */
     public function isNotIndex()
     {
-        $end = end($this->getPath());
+        $path = $this->getPath();
+        $end = end($path);
         if ($end['structure'] != $this->pageData['structure']) {
             return false;
         }

@@ -19,7 +19,7 @@ class Controller extends \Ideal\Field\AbstractController
     {
         $list = $this->getter->getList();
         $variants = $this->getter->getVariants();
-        $html = '<select multiple="multiple" class="' . $this->widthEditField . '" name="' . $this->htmlName .'[]" id="' . $this->htmlName .'">';
+        $html = '<select multiple="multiple" class="form-control ' . $this->widthEditField . '" name="' . $this->htmlName . '[]" id="' . $this->htmlName . '">';
         foreach ($list as $k => $v) {
             $selected = '';
             if (in_array($k, $variants)) {
@@ -34,17 +34,6 @@ class Controller extends \Ideal\Field\AbstractController
 
     public function parseInputValue($isCreate)
     {
-        if (isset($this->model->fields['category_id'])) {
-            // Если товар связан с категорией напрямую через поле category_id
-            $this->newValue = $this->pickupNewValue();
-            $item = array(
-                'fieldName' => $this->htmlName,
-                'value' => $this->newValue,
-                'message' => '',
-            );
-            return $item;
-        }
-
         // Если товар связан с категорией через промежуточную таблицу
 
         $this->newValue = null;

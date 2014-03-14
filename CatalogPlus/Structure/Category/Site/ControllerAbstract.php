@@ -14,11 +14,11 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
         $request = new Request();
         $page = intval($request->page);
-
-        if ($this->model->isNotIndex()) {
-            $goods = $this->model->getGoods();
-            $this->view->parts = $goods->getList($page);
-            $this->view->pager = $goods->getPager('page');
-        }
+        if ($page == 0) $page = 1;
+        $goods = $this->model->getGoods($page);
+        $this->view->goods = $goods;
+        // TODO реализация вывода списка групп и подгруппы текущей активной группы
+        //$this->view->listCat = $this->model->getListCategory();
+        $this->view->pager = $this->model->getPager('page');
     }
 }

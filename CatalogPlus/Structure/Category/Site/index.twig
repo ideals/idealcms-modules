@@ -5,68 +5,70 @@
         <h1>{{ header }}</h1>
 
 
-        {% if parts|length > 0 %}
+        {% if pager.parts|length > 0 %}
             <ul>
-                {% for part in parts %}
+                {% for part in pager.parts %}
                     <li><a href="{{ part.link }}">{{ part.name }}</a></li>
                 {% endfor %}
             </ul>
         {% endif %}
         <div class="clear"></div>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">Каталог</div>
+                    <ul class="list-group">
+                        <li class="list-group-item">Cras justo odio</li>
+                        <li class="list-group-item">Dapibus ac facilisis in</li>
+                        <li class="list-group-item">Morbi leo risus</li>
+                        <li class="list-group-item">Porta ac consectetur ac</li>
+                        <li class="list-group-item">Vestibulum at eros</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-9">
 
-        {% if goods|length > 0 %}
-            <div class="goods">
-                <ul>
-                    {% for good in goods %}
-                        <li>
-                            {% if good.new %}
-                                <div class="new"></div>{% endif %}
-                            <a {{ good.link|raw }} title="{{ good.name }}">
-                                <img src="/images/1c/big/{{ good.img }}" alt="{{ good.name }}">
-                            </a>
+                {% if goods|length > 0 %}
+                    <div class="goods row">
+                        {% for good in goods %}
+                            <div class="col-md-4">
+                                <div class="thumbnail">
+                                    <a href="{{ good.link }}" class="thumbnail">
+                                        <img src="{{ good.img }}" alt="{{ good.name }}">
+                                    </a>
 
+                                    <div class="caption">
+                                        <h3 style="overflow: hidden; white-space: nowrap">{{ good.name }}</h3>
 
-                            <p class="name"><a {{ good.link|raw }}>{{ good.name }}</a></p>
+                                        <p>{{ good.price }} {{ good.currency }}</p>
 
-                            <p class="product_s_desc">
-                            </p>
-
-                            <p class="price">
-                                {% if good.oldPrice %}<span class="oldPrice">{{ good.oldPrice }} р.</span>{% endif %}
-                                {{ good.price }} р. </p>
-                            <!-- popup -->
-
-                            <div class="popup {% if not(loop.index%4) %}popupR{% endif %}">
-                                <p class="h">{{ good.name }}</p>
-                                <dl>
-                                    {% for key,value in good.properties %}
-                                        <dt>{{ key }}:</dt>
-                                        <dd>{{ value }}</dd>
-                                    {% endfor %}
-                                </dl>
+                                        <p>
+                                            <a href="#" class="btn btn-primary" role="button">Заказать</a>
+                                            <a href="{{ good.link }}" class="btn btn-default"
+                                               role="button">Подробнее</a></p>
+                                    </div>
+                                </div>
                             </div>
-                            <!-- /popup -->
-                        </li>
+                        {% endfor %}
 
-                    {% endfor %}
-                </ul>
+                    </div>
+                {% endif %}
+                {% if pager.pages|length > 1 %}
+                    <div>
+                        <ul class="pagination">
+                            {% for page in pager.pages %}
+                                {% if page.current == 1 %}
+                                    <li class="active"><a>{{ page.num }}</a></li>
+                                {% else %}
+                                    <li><a href="{{ page.url|raw }}">{{ page.num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
             </div>
-        {% endif %}
-        <div class="clear"></div>
+        </div>
 
-        {% if pages|length > 1 %}
-            <div class="pages_nums">
-                <ul>
-                    {% for page in pages %}
-                        {% if page.current == 1 %}
-                            <li class="active"><a>{{ page.num }}</a></li>
-                        {% else %}
-                            <li><a href="{{ page.url }}">{{ page.num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
         <div style="margin-bottom: 60px;"></div>
 
         {{ template.content|raw }}
@@ -107,3 +109,5 @@
         </ul>
     </div>
 {% endblock %}
+
+
