@@ -24,8 +24,8 @@ return array(
         'category_id' => array(
             'label' => 'Категория',
             'sql'   => 'int(11) not null',
-            'type'  => 'Shop_Category',
-            'class' => '\\Catalog\\Structure\\Category\\Getters\\CategoryList'
+            'type'  => 'Ideal_Select',
+            'medium' => 'Catalog\\Medium\\CategoryList',
         ),
         'name' => array(
             'label' => 'Название',
@@ -40,7 +40,7 @@ return array(
         'price' => array(
             'label' => 'Цена за единицу',
             'sql'   => 'int',
-            'type'  => 'Shop_Price'
+            'type'  => 'Catalog_Price'
         ),
         'annot' => array(
             'label' => 'Описание',
