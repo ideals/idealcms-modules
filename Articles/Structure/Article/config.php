@@ -25,7 +25,7 @@ return array(
             'label' => 'Категория',
             'sql'   => '',
             'type'  => 'Articles_Category',
-            'class' => '\\Articles\\Structure\\Category\\Getters\\CategoryList'
+            'medium'=> 'Articles\\Medium\\CategoryList'
         ),
         'name' => array(
             'label' => 'Название',
