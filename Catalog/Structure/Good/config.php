@@ -25,7 +25,7 @@ return array(
             'label' => 'Категория',
             'sql'   => 'int(11) not null',
             'type'  => 'Ideal_Select',
-            'medium' => 'Catalog\\Medium\\CategoryList',
+            'medium' => '\\Catalog\\Medium\\CategoryList\\Model',
         ),
         'name' => array(
             'label' => 'Название',

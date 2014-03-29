@@ -7,22 +7,16 @@
  */
 return array(
     'params' => array(
-        'create_table' => false
+        'has_table' => false
     ),
     'fields' => array(
-        'id_parent' => array(
+        'good_id' => array(
             'label' => 'Идентификатор родителя',
             'sql'   => 'int(11)',
-            'type'  => 'Ideal_Hidden',
-            'from'  => 'table_name',
-            'field' => 'ID'
         ),
-        'id_children' => array(
+        'category_id' => array(
             'label' => 'Идентификатор потомка',
             'sql'   => 'int(11)',
-            'type'  => 'Ideal_Hidden',
-            'from'  => 'table_name',
-            'field' => 'ID'
         )
     )
 );
