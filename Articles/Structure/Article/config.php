@@ -24,8 +24,8 @@ return array(
         'category' => array(
             'label' => 'Категория',
             'sql'   => '',
-            'type'  => 'Articles_Category',
-            'medium'=> 'Articles\\Medium\\CategoryList'
+            'type'  => 'Ideal_SelectMulti',
+            'medium' => '\\Articles\\Medium\\CategoryList\\Model'
         ),
         'name' => array(
             'label' => 'Название',

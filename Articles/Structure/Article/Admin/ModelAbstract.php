@@ -20,7 +20,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $request = new Request();
         $currentCategory = $request->toolbar['category'];
 
-        $select = '<select name="toolbar[category]"><option value="">Все статьи</option>';
+        $select = '<select name="toolbar[category]" class="form-control"><option value="">Все статьи</option>';
         foreach ($this->categories as $category) {
             $selected = '';
             if ($category['ID'] == $currentCategory) {
@@ -45,19 +45,15 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $currentCategory = $request->toolbar['category'];
 
         $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'articles_category_article';
+        $table = $config->db['prefix'] . 'articles_medium_categorylist';
 
         if ($currentCategory != '') {
-            if ($where != '') {
-                $where .= ' AND ';
-            }
             // Выборка статей, принадлежащих этой категории
-            $where .= 'ID IN (SELECT article_id FROM ' . $table . ' WHERE category_id='
+            $where .= ' AND e.ID IN (SELECT article_id FROM ' . $table . ' WHERE category_id='
                 . mysql_real_escape_string($currentCategory) . ')';
         }
-        if($where != ''){
-            $where = 'WHERE '.$where;
-        }
+
+        $where = parent::getWhere($where);
 
         return $where;
     }
