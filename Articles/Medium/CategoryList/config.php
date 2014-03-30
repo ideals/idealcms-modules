@@ -10,7 +10,6 @@
 return array(
     'params' => array(
         'has_table' => true
-        // ALTER TABLE `i_articles_category_article` RENAME AS `i_articles_medium_categorylist`;
     ),
     'fields' => array(
         'article_id' => array(
