@@ -16,8 +16,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function detectPageByUrl($path, $url)
     {
-        $config = Config::getInstance();
-        $tmp = $url;
         // Определяем, нет ли в URL категории
         $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
         $url = $this->categoryModel->detectPageByUrl($path, $url);
@@ -43,6 +41,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // Страницу не нашли, возвращаем 404
         if (!isset($list[0]['ID'])) {
+            $this->path = $path;
             $this->is404 = true;
             return $this;
         }
