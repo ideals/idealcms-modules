@@ -1,4 +1,11 @@
 <?php
+/**
+ * Ideal CMS (http://idealcms.ru/)
+ *
+ * @link      http://github.com/ideals/idealcms репозиторий исходного кода
+ * @copyright Copyright (c) 2012-2014 Ideal CMS (http://idealcms.ru)
+ * @license   http://idealcms.ru/license.html LGPL v3
+ */
 namespace Catalog\Structure\Category\Widget;
 
 use Ideal\Core\Config;
@@ -7,6 +14,10 @@ use Ideal\Field\Url;
 
 class Categories extends \Ideal\Core\Widget
 {
+    /**
+     * Получение списка категорий на первом уровне
+     * @return array
+     */
     public function getData()
     {
         $db = Db::getInstance();
@@ -18,6 +29,7 @@ class Categories extends \Ideal\Core\Widget
         $menuList = $db->queryArray($_sql);
 
         $menu = array();
+        // Построение правильных url
         $url = new Url\Model();
         foreach ($menuList as $v) {
             $v['link'] = $url->getUrlWithPrefix($v, $this->prefix);
@@ -27,7 +39,9 @@ class Categories extends \Ideal\Core\Widget
 
         $path = $this->model->getPath();
         foreach ($path as $v) {
-            if ($v['prev_structure'] == $this->prevStructure && $v['ID'] == $menu[$v['cid']]['ID']) {
+            if (isset($v['prev_structure']) && ($v['prev_structure'] == $this->prevStructure)
+                && ($v['ID'] == $menu[$v['cid']]['ID'])
+            ) {
                 $menu[$v['cid']]['isActivePage'] = 1;
                 break;
             }

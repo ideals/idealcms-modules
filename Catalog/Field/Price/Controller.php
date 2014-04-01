@@ -9,6 +9,8 @@
 
 namespace Catalog\Field\Price;
 
+use Ideal\Core\Request;
+
 /**
  * Class Controller
  */
@@ -23,8 +25,8 @@ class Controller extends \Ideal\Field\AbstractController
     {
         $value = htmlspecialchars($this->getValue());
         return '<input type="text" class="form-control" name="' . $this->htmlName
-            . '" id="' . $this->htmlName
-            .'" value="' . $value .'">';
+        . '" id="' . $this->htmlName
+        . '" value="' . $value . '">';
     }
 
     /**
@@ -45,4 +47,16 @@ class Controller extends \Ideal\Field\AbstractController
     }
 
 
+    /**
+     * Получение нового значения поля из данных, введённых пользователем
+     *
+     * @return string
+     */
+    public function pickupNewValue()
+    {
+        $request = new Request();
+        $fieldName = $this->groupName . '_' . $this->name;
+        $this->newValue = $request->$fieldName * 100;
+        return $this->newValue;
+    }
 }
