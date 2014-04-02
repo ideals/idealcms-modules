@@ -55,7 +55,7 @@ return array(
             'label'     => 'Тип документа',
             'sql'       => "varchar(20) not null default 'Ideal_Page'",
             'type'      => 'Ideal_Template',
-            'class'     => '\\Ideal\\Structure\\Part\\Getters\\TemplateList',
+            'medium'    => '\\Ideal\\Medium\\TemplateList\\Model',
             'templates' =>  array('Ideal_Page', 'Ideal_PhpFile'),
         ),
         'name' => array(

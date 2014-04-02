@@ -3,22 +3,22 @@ namespace CatalogPlus\Field\Category;
 
 class Controller extends \Ideal\Field\AbstractController
 {
-    protected $getter; // объект доступа к редактируемым данным
+    protected $medium; // объект доступа к редактируемым данным
 
     public function setModel($model, $fieldName, $groupName = 'general')
     {
         parent::setModel($model, $fieldName, $groupName);
 
         // Загоняем в $this->list список значений select
-        $className = $this->field['class'];
-        $this->getter = new $className($this->model, $fieldName);
+        $className = $this->field['medium'];
+        $this->medium = new $className($this->model, $fieldName);
     }
 
 
     public function getInputText()
     {
-        $list = $this->getter->getList();
-        $variants = $this->getter->getVariants();
+        $list = $this->medium->getList();
+        $variants = $this->medium->getVariants();
         $html = '<select multiple="multiple" class="form-control ' . $this->widthEditField . '" name="' . $this->htmlName . '[]" id="' . $this->htmlName . '">';
         foreach ($list as $k => $v) {
             $selected = '';
@@ -43,7 +43,7 @@ class Controller extends \Ideal\Field\AbstractController
             'fieldName' => $this->htmlName,
             'value' => null,
             'message' => '',
-            'sqlAdd' => $this->getter->getSqlAdd($newValue)
+            'sqlAdd' => $this->medium->getSqlAdd($newValue)
         );
 
         return $item;
