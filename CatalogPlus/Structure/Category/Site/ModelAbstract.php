@@ -38,7 +38,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             $prevStructure = $prevStructure . '-' . $this->pageData['ID'];
             $_sql = "SELECT COUNT(ID) FROM {$table} WHERE is_active = 1 AND prev_structure = '{$prevStructure}'";
         } else {
-            $tableLink = $config->db['prefix'] . 'catalogplus_good';
+            $tableLink = $config->db['prefix'] . 'catalogplus_medium_categorylist';
             $tableGood = $config->db['prefix'] . 'catalogplus_structure_good';
             $cid = rtrim($this->pageData['cid'], '0');
             $_sql = "SELECT ID FROM {$this->_table} WHERE is_active = 1 AND cid LIKE '{$cid}%'";
@@ -203,7 +203,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $tableLink = $config->db['prefix'] . 'catalogplus_good';
+        $tableLink = $config->db['prefix'] . 'catalogplus_medium_categorylist';
         $tableGood = $config->db['prefix'] . 'catalogplus_structure_good';
         $onPage = $this->goods->params['elements_site'];
         $limitStart = ($page - 1) * $onPage;

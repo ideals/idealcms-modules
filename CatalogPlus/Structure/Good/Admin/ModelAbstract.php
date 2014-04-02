@@ -58,7 +58,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $currentCategory = $request->toolbar['category'];
 
         $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'catalogplus_good';
+        $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
 
         if ($currentCategory != '') {
             if ($where != '') {
