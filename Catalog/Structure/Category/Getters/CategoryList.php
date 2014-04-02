@@ -38,11 +38,7 @@ class CategoryList
         $db = Db::getInstance();
 
         $pageData = $this->obj->getPageData();
-        if (isset($this->obj->fields['category_id'])) {
-            // Если связь товара с категорией через поле в таблице товара
-            $arr = (isset($pageData['category_id'])) ? array($pageData['category_id']) : array();
-            return $arr;
-        }
+
         $goodId = $pageData['ID'];
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'shop_category_good';

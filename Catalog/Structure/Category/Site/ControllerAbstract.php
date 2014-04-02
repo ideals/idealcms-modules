@@ -11,7 +11,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
      * В этот экшен мы попадаем, когда в категории есть вложенные категории,
      * а не сразу же идёт список товара
      */
-    public function detailAction()
+    public function indexAction()
     {
         parent::indexAction();
 
@@ -23,6 +23,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $prevStructure = $structure['ID'] . '-' . $page['ID'];
         $goods = new Good\Site\Model($prevStructure);
         $goods->setPath($this->model->getPath());
+        $goods->setCategoryModel($this->model);
 
         $request = new Request();
         $page = intval($request->page);

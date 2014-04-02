@@ -7,8 +7,23 @@ use Ideal\Field\Url;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
+    protected $categoryModel = null;
+
+    public function setCategoryModel($categoryModel)
+    {
+        $this->categoryModel = $categoryModel;
+    }
+
     public function getWhere($where)
     {
+        $config = Config::getInstance();
+        $endPart = end($this->path);
+        $structure = $config->getStructureByName($endPart['structure']);
+        if (!is_null($this->categoryModel)) {
+            $cid = $this->categoryModel->getCidSegment();
+            $where = "e.prev_structure IN (SELECT CONCAT('{$structure['ID']}-', ID) FROM i_catalog_structure_category WHERE cid LIKE '{$cid}%')";
+        }
+
         $where = parent::getWhere($where . ' AND e.is_active=1');
         return $where;
     }
@@ -44,16 +59,28 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function getList($page)
     {
+        $config = Config::getInstance();
         $list = parent::getList($page);
 
-        // Построение правильных URL
-        $url = new \Ideal\Field\Url\Model();
-        $url->setParentUrl($this->path);
-        if (is_array($list) && count($list) != 0 ) {
-            foreach ($list as $k => $v) {
-                $list[$k]['link'] = $url->getUrl($v);
+        $categories = $this->categoryModel->getCategories();
+
+        if (is_null($this->categoryModel)) {
+            // Построение правильных URL
+            $url = new \Ideal\Field\Url\Model();
+            $url->setParentUrl($this->path);
+            if (is_array($list) && count($list) != 0 ) {
+                foreach ($list as $k => $v) {
+                    $list[$k]['link'] = $url->getUrl($v);
+                }
+            }
+        } else {
+            foreach($list as $k => $v) {
+                $category_id = explode('-', $v['prev_structure']);
+                $category_id = end($category_id);
+                $list[$k]['link'] = $categories[$categories['keyIdMedium'][$category_id]]['full_url'] . '/' . $list[$k]['url'] . $config->urlSuffix;
             }
         }
+
 
         return $list;
     }
@@ -65,7 +92,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $config = Config::getInstance();
         $urlModel = new Url\Model();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY cid";
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY name";
         $list = $db->queryArray($_sql);
 
         $lvl = 0;
@@ -94,7 +121,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $good = $this->getPageData();
 
         $category = new \Catalog\Structure\Category\Site\Model('');
-        $category->setPageDataById($good['category_id']);
+        $category_id = explode('-', $good['prev_structure']);
+        $category_id = end($category_id);
+        $category->setPageDataById($category_id);
         $path = $category->detectPath();
 
         return $path;
