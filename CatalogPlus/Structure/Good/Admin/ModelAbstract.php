@@ -13,16 +13,15 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        // Поиск всех категорий для состовления фильтра
+        // Поиск всех категорий для составления фильтра
         $_table = $config->db['prefix'] . 'ideal_structure_datalist';
         $where = $this->pageData['url'];
         $_sql = "SELECT * FROM {$_table} WHERE parent_url='{$where}' LIMIT 1";
         $tmp = $db->queryArray($_sql);
         if(count($tmp) > 0){
             // Построение prevStructure
-            $tmp = $tmp[0];
-            $this->categoryPrevStructure = explode('-', $tmp['prev_structure']);
-            $this->categoryPrevStructure = end($this->categoryPrevStructure) . '-' . $tmp['ID'];
+            $categoryPrevStructure = explode('-', $tmp[0]['prev_structure']);
+            $categoryPrevStructure = end($categoryPrevStructure) . '-' . $tmp[0]['ID'];
         } else{
             \FB::error($this, 'CatalogPlus');
         }

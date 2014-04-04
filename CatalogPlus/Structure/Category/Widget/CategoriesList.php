@@ -76,9 +76,9 @@ class CategoriesList extends \Ideal\Core\Widget
             }
             if (isset($v['is_skip']) && $v['is_skip'] == 0) {
                 if (isset($v['url_full']) && $v['url_full'] != '') {
-                    $menu[$k]['link'] = 'href="' . $v['url_full'] . '"';
+                    $menu[$k]['link'] = $v['url_full'];
                 } else {
-                    $menu[$k]['link'] = 'href="' . $this->prefix . $url->getUrl($v) . '"';
+                    $menu[$k]['link'] = $this->prefix . $url->getUrl($v);
                 }
             }
         }

@@ -18,7 +18,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $goods = $this->model->getGoods($page);
         $this->view->goods = $goods;
         // TODO реализация вывода списка групп и подгруппы текущей активной группы
-        //$this->view->listCat = $this->model->getListCategory();
+        $this->view->listCat = $this->model->getListCategory();
         $this->view->pager = $this->model->getPager('page');
     }
 }
