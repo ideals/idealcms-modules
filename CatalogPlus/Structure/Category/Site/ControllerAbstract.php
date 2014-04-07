@@ -15,10 +15,14 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $request = new Request();
         $page = intval($request->page);
         if ($page == 0) $page = 1;
-        $goods = $this->model->getGoods($page);
-        $this->view->goods = $goods;
+
+        $goodModel = new \CatalogPlus\Structure\Good\Site\Model('');
+        $goodModel->setCategoryModel($this->model);
+        $this->view->goods = $goodModel->getList($page);
+        $this->view->pager = $goodModel->getPager('page');
+
         // TODO реализация вывода списка групп и подгруппы текущей активной группы
         $this->view->listCat = $this->model->getListCategory();
-        $this->view->pager = $this->model->getPager('page');
+
     }
 }
