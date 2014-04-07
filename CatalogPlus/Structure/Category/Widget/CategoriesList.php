@@ -35,11 +35,6 @@ class CategoriesList extends \Ideal\Core\Widget
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $url = new Field\Url\Model();
-        $object = $this->model->getPath();
-        $object = end($object);
-        $digits = $this->model->params['digits'];
-        if(!isset($object['cid'])) return;
 
         // Считываем список категорий продукции
         $table = $config->db['prefix'] . 'catalogplus_structure_category';
@@ -49,9 +44,18 @@ class CategoriesList extends \Ideal\Core\Widget
                  ORDER BY cid";
         $menuList = $db->queryArray($_sql);
 
+        $path = $this->model->getPath();
+        $object = array_pop($path);
+        $prev = array_pop($path);
+        $digits = $this->model->params['digits'];
+        $smallCidActive = '';
+        if ($prev['structure'] == 'CatalogPlus_Category') {
+            $smallCidActive = substr($object['cid'], 0, $digits * $object['lvl']);
+        }
+
         $lvl = 1;
+        $url = new Field\Url\Model();
         $menuUrl = array('0' => array('url' => $config->structures[0]['url']));
-        $smallCidActive = substr($object['cid'], 0,$digits*$object['lvl']);
 
         $menu = array();
         foreach ($menuList as $k => $v) {

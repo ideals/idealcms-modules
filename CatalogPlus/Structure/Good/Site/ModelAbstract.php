@@ -96,7 +96,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      * @param int $page Номер отображаемой страницы
      * @return array Полученный список элементов
      */
-    public function getList($page)
+    public function getList($page = null)
     {
         $list = parent::getList($page);
 
@@ -119,28 +119,26 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     protected function getWhere($where)
     {
-        $and = '';
-        if ($where != '') {
-            $where = 'WHERE ' . $where;
-            $and = ' AND ';
+        if (isset($this->categoryModel)) {
+            $category = $this->categoryModel->getPageData();
+            if (isset($category['ID'])) {
+                // Вывод товара только определённой категории
+                $config = Config::getInstance();
+                $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
+                $categoryWhere = 'category_id = ' . $category['ID'];
+                if ($this->showNestedElements) {
+                    $catTable = $config->db['prefix'] . 'catalogplus_structure_category';
+                    $params = $this->categoryModel->params;
+                    $cidModel = new Cid\Model($params['levels'], $params['digits']);
+                    $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
+                    $categoryWhere = "category_id IN (SELECT ID FROM {$catTable} WHERE cid LIKE '{$cid}%' AND is_active=1)";
+                }
+                $where .= "AND e.ID IN (SELECT good_id FROM {$table}
+                                                  WHERE {$categoryWhere} AND is_active=1)";
+            }
         }
 
-        $category = $this->categoryModel->getPageData();
-        if (isset($category['ID'])) {
-            // Вывод товара только определённой категории
-            $config = Config::getInstance();
-            $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
-            $categoryWhere = 'category_id = ' . $category['ID'];
-            if ($this->showNestedElements) {
-                $catTable = $config->db['prefix'] . 'catalogplus_structure_category';
-                $params = $this->categoryModel->params;
-                $cidModel = new Cid\Model($params['levels'], $params['digits']);
-                $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
-                $categoryWhere = "category_id IN (SELECT ID FROM {$catTable} WHERE cid LIKE '{$cid}%' AND is_active=1)";
-            }
-            $where .= $and . "e.ID IN (SELECT good_id FROM {$table}
-                                              WHERE {$categoryWhere} AND is_active=1)";
-        }
+        $where = parent::getWhere($where);
 
         return $where;
     }
