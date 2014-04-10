@@ -12,7 +12,7 @@ return array(
         'field_list'    => array('cid!40', 'ID', 'name', 'date_mod', 'url'),
         'levels'        => 6, // количество уровней вложенности
         'digits'        => 3, // кол-во разрядов
-        'is_query_param' => false, // идентификатор категории находится в query string
+        'url'           => 'separate', // как будет строится url категории: query, child, separate
     ),
     'fields' => array(
         // label - название поля в админке

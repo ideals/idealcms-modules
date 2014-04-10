@@ -19,19 +19,16 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function detectPageByUrl($path, $url)
     {
-        $config = Config::getInstance();
-        $tmp = $url;
         // Определяем, нет ли в URL категории
         $this->categoryModel = new \CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
-        $url = $this->categoryModel->detectPageByUrl($path, $url);
-        if (count($url) == 0) {
-            // Прошло успешно определение страницы категории, значит статью определять не надо
-            $this->path = array_merge($path, $this->categoryModel->getPath());
-            return $this;
+        $model = $this->categoryModel->detectPageByUrl($path, $url);
+        if (!$model->is404) {
+            // Прошло успешно определение страницы категории, значит товар определять не надо
+            return $model;
         }
 
         if (count($url) > 1) {
-            // У статьи не может быть URL с несколькими уровнями вложенности
+            // У товара не может быть URL с несколькими уровнями вложенности
             $this->is404 = true;
             $this->path = $path;
             return $this;
@@ -39,24 +36,23 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $url = array_shift($url);
 
+        // Ищем товар по URL в базе
         $db = Db::getInstance();
-
         $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
+        $list = $db->queryArray($_sql);
 
-        $list = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
-
-        // Страницу не нашли, возвращаем 404
+        // Товар не нашли, возвращаем 404
         if (!isset($list[0]['ID'])) {
             $this->is404 = true;
             return $this;
         }
+
+        // Товар найден, проводим необходимую инициализацию свойств
+
         $list[0]['structure'] = 'CatalogPlus_Good';
 
         $this->path = array_merge($path, $list);
         $this->pageData = end($list);
-
-        $request = new Request();
-        $request->action = 'detail';
 
         return $this;
     }
