@@ -33,16 +33,7 @@ class CategoriesList extends \Ideal\Core\Widget
      */
     public function getData()
     {
-        $db = Db::getInstance();
-        $config = Config::getInstance();
-
-        // Считываем список категорий продукции
-        $table = $config->db['prefix'] . 'catalogplus_structure_category';
-        $_sql = "SELECT *
-                 FROM {$table}
-                 WHERE is_active=1 AND is_not_menu=0 AND lvl<{$this->lvl}
-                 ORDER BY cid";
-        $menuList = $db->queryArray($_sql);
+        $menuList = $this->getList();
 
         $path = $this->model->getPath();
         $object = array_pop($path);
@@ -122,5 +113,29 @@ class CategoriesList extends \Ideal\Core\Widget
     public function getModel()
     {
         return $this->model;
+    }
+
+    /**
+     * Выполняет запрос к БД для получения списка категорий
+     *
+     * Метод сделан максимально просто, чтобы было легче модифицировать получение
+     * категорий в наследниках виджета.
+     *
+     * @return array Список категорий из БД
+     */
+    public function getList()
+    {
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+
+        // Считываем список категорий продукции
+        $table = $config->db['prefix'] . 'catalogplus_structure_category';
+        $_sql = "SELECT *
+                 FROM {$table}
+                 WHERE is_active=1 AND is_not_menu=0 AND lvl<{$this->lvl}
+                 ORDER BY cid";
+        $menuList = $db->queryArray($_sql);
+
+        return $menuList;
     }
 }
