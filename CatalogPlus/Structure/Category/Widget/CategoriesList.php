@@ -45,8 +45,9 @@ class CategoriesList extends \Ideal\Core\Widget
         }
 
         $lvl = 1;
-        $url = new Field\Url\Model();
+        $config = Config::getInstance();
         $menuUrl = array('0' => array('url' => $config->structures[0]['url']));
+        $url = new Field\Url\Model();
 
         $menu = array();
         foreach ($menuList as $k => $v) {
