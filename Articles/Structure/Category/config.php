@@ -49,13 +49,13 @@ return array(
             'label' => 'Тип раздела',
             'sql'   => 'varchar(20) not null',
             'type'  => 'Ideal_Select',
-            'medium'=> 'Ideal\\Medium\\StructureList'
+            'medium'=> 'Ideal\\Medium\\StructureList\\Model'
         ),
         'template' => array(
             'label'     => 'Тип документа',
             'sql'       => "varchar(20) not null default 'Page'",
             'type'      => 'Ideal_Template',
-            'medium'    => 'Ideal\\Medium\\TemplateList',
+            'medium'    => 'Ideal\\Medium\\TemplateList\\Model',
             'templates' =>  array('Ideal_Page', 'Ideal_PhpFile'),
         ),
         'name' => array(

@@ -24,7 +24,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
         $this->view->pager = $this->model->getPager('page');
 
-        $this->view->categories = $this->model->getCategories();;
+        $this->view->categories = $this->model->getCategories();
     }
 
 
