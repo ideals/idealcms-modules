@@ -31,7 +31,6 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     public function getUserAction()
     {
         session_start();
-        unset($_SESSION['login']['data']); // TODO delete
         if (!isset($_SESSION['login']['user'])) {
             $this->answer['error'] = true;
             $this->answer['text'] = "Вы не авторизованы";
