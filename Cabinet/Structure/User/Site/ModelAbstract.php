@@ -94,7 +94,7 @@ Email: {$arr['email']}
 Пароль: {$password}
 EOT;
         $title = 'Регистрация на ' . $config->domain;
-        $to = $config->mailForm;
+        $to = $arr['email'];
         $headers = "From: {$config->robotEmail}\r\n"
             . "Content-type: text/plain; charset=\"utf-8\"";
         mail($to, $title, $message, $headers);
