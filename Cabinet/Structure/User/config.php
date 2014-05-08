@@ -32,11 +32,6 @@ return array(
             'sql'   => 'text',
             'type'  => 'Ideal_Text'
         ),
-        'address' => array(
-            'label' => 'Адрес',
-            'sql'   => 'text',
-            'type'  => 'Ideal_Text'
-        ),
         'password' => array(
             'label' => 'Пароль',
             'sql'   => 'varchar(100) NOT NULL',
@@ -65,6 +60,21 @@ return array(
         'phone' => array(
             'label' => 'Телефон',
             'sql'   => 'varchar(250)',
+            'type'  => 'Ideal_Text'
+        ),
+        'city' => array(
+            'label' => 'Город',
+            'sql'   => 'varchar(250)',
+            'type'  => 'Ideal_Text'
+        ),
+        'postcode' => array(
+            'label' => 'Индекс',
+            'sql'   => 'varchar(250)',
+            'type'  => 'Ideal_Text'
+        ),
+        'address' => array(
+            'label' => 'Адрес',
+            'sql'   => 'text',
             'type'  => 'Ideal_Text'
         ),
         'is_active' => array(
