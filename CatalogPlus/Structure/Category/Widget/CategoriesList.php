@@ -7,34 +7,25 @@ use \Ideal\Field;
 
 class CategoriesList extends \Ideal\Core\Widget
 {
-    protected $structurePath;
-    protected $prefix;
     protected $lvl = 4;
     protected $model;
 
-    public function setStructurePath($structurePath)
+
+    public function setLvl($lvl)
     {
-        $this->structurePath = $structurePath;
-    }
-
-
-    public function setPrefix($prefix)
-    {
-        $this->prefix = $prefix;
-    }
-
-    public function setLvl($lvl){
         $this->lvl = $lvl;
     }
 
     /**
      * Получение списка категорий продукции
+     * @param bool $menuList
      * @return array
      */
-    public function getData()
+    public function getData($menuList = false)
     {
-        $menuList = $this->getList();
-
+        if ($menuList === false) {
+            $menuList = $this->getList();
+        }
         $path = $this->model->getPath();
         $object = array_pop($path);
         $prev = array_pop($path);
@@ -74,7 +65,7 @@ class CategoriesList extends \Ideal\Core\Widget
                 if (isset($v['url_full']) && $v['url_full'] != '') {
                     $menu[$k]['link'] = $v['url_full'];
                 } else {
-                    $menu[$k]['link'] = $this->prefix . $url->getUrl($v);
+                    $menu[$k]['link'] = $this->prefix . $url->getUrl($v) . $this->postfix;
                 }
             }
         }
@@ -82,7 +73,7 @@ class CategoriesList extends \Ideal\Core\Widget
         return $categoryList;
     }
 
-    function getSubCategories(&$menu)
+    protected function getSubCategories(&$menu)
     {
         // Записываем в массив первый элемент
         $categoryList = array(
