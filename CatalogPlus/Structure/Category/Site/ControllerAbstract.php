@@ -7,6 +7,8 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
     /* @var $model Model Модель соответствующая этому контроллеру */
     protected $model;
+    /** @var $goodModel \CatalogPlus\Structure\Good\Site\Model Модель товаров */
+    protected $goodModel;
 
     public function indexAction()
     {
@@ -16,10 +18,10 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $page = intval($request->page);
         if ($page == 0) $page = 1;
 
-        $goodModel = new \CatalogPlus\Structure\Good\Site\Model('');
-        $goodModel->setCategoryModel($this->model);
-        $this->view->goods = $goodModel->getList($page);
-        $this->view->pager = $goodModel->getPager('page');
+        $this->goodModel = new \CatalogPlus\Structure\Good\Site\Model('');
+        $this->goodModel->setCategoryModel($this->model);
+        $this->view->goods = $this->goodModel->getList($page);
+        $this->view->pager = $this->goodModel->getPager('page');
 
         // TODO реализация вывода списка групп и подгруппы текущей активной группы
         $this->view->listCat = $this->model->getListCategory();
