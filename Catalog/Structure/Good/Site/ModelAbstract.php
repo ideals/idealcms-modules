@@ -59,28 +59,16 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function getList($page)
     {
-        $config = Config::getInstance();
         $list = parent::getList($page);
 
-        $categories = $this->categoryModel->getCategories();
-
-        if (is_null($this->categoryModel)) {
-            // Построение правильных URL
-            $url = new \Ideal\Field\Url\Model();
-            $url->setParentUrl($this->path);
-            if (is_array($list) && count($list) != 0 ) {
-                foreach ($list as $k => $v) {
-                    $list[$k]['link'] = $url->getUrl($v);
-                }
-            }
-        } else {
-            foreach($list as $k => $v) {
-                $category_id = explode('-', $v['prev_structure']);
-                $category_id = end($category_id);
-                $list[$k]['link'] = $categories[$categories['keyIdMedium'][$category_id]]['full_url'] . '/' . $list[$k]['url'] . $config->urlSuffix;
+        // Построение правильных URL
+        $url = new \Ideal\Field\Url\Model();
+        $url->setParentUrl($this->path);
+        if (is_array($list) && count($list) != 0 ) {
+            foreach ($list as $k => $v) {
+                $list[$k]['link'] = $url->getUrl($v);
             }
         }
-
 
         return $list;
     }
