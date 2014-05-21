@@ -1,6 +1,10 @@
 {% extends "site.twig" %}
 
 {% block content %}
+    <h1>{{ header }}</h1>
+    <div>
+        {{ template.content|raw }}
+    </div>
     <script>
         $(function () {
             $(".fancybox-button").fancybox({
