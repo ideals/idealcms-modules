@@ -1,0 +1,59 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <script>
+        $(function () {
+            $(".fancybox-button").fancybox({
+                prevEffect: 'none',
+                nextEffect: 'none',
+                closeBtn: false,
+                helpers: {
+                    title: {type: 'inside'},
+                    buttons: {}
+                }
+            });
+        })
+    </script>
+    <style>
+        #gal ul{
+            list-style: none;
+        }
+        #gal ul li{
+            display: inline-block;
+            margin: 5px;
+            width: 160px;
+            height: 190px;
+            text-align: center;
+        }
+        #gal ul li div{
+            width: 100%;
+            font-weight: bold;
+        }
+        #gal ul li a{
+            text-decoration: none;
+        }
+
+    </style>
+    <div id="gal">
+
+        {% for cat, item in foto %}
+            <h2>{{ cat }}</h2>
+            <ul>
+                {% for v in item %}
+                    <li>
+                        <div>{{ v.name }}</div>
+                        {% for f in v.images %}
+                            <a class="fancybox-button" rel="gal{{ v.ID }}" href="{{ f.src }}" title="{{ f.title }}">
+                                {% if loop.first %}
+                                    <img src="/images/resized/144x119{{ f.src }}" alt=""/>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                        <span>Фотографий: {{ v.amount }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
+
+{% endblock %}
