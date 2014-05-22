@@ -21,6 +21,7 @@ class ModelAbstract extends News\Site\Model
                 $title[trim($tmp2[0])] = trim($tmp2[1]);
             }
             $v['images'] = glob($v['dir_img'] . '/*.{jpg,png,gif}', GLOB_BRACE);
+            natsort($v['images']);
             foreach($v['images'] as $key => $val) {
                 unset($v['images'][$key]);
                 $v['images'][$key]['src'] = '/'.$val;
