@@ -178,7 +178,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     }
 
 
-    public function getChildPosts()
+    public function getChildPosts($startMargin = 0, $margin = 50)
     {
         $db = Db::getInstance();
         $root = $this->pageData['ID'];
@@ -190,7 +190,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $childPosts = $this->buildList($childPosts);
 
         foreach ($childPosts as $k => $post) {
-            $childPosts[$k]['margin'] = $post['indent'] * 50;
+            $childPosts[$k]['margin'] = $startMargin + $post['indent'] * $margin;
             $childPosts[$k]['content'] = nl2br($childPosts[$k]['content']);
             $childPosts[$k]['date_create'] = Util::dateReach($childPosts[$k]['date_create']);
         }

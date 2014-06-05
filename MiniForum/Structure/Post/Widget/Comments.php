@@ -19,6 +19,8 @@ class Comments extends \Ideal\Core\Widget
     protected $model;
     /** @var bool Флаг нужно отбражать на этой странице форум или не нужно */
     protected $isShow = true;
+    /** @var string Идентификатор страницы состоящий из prev_structure и ID */
+    protected $pageStructure = '';
 
     /**
      * Получение списка комментариев первого уровня для запрошенной страницы
@@ -36,12 +38,11 @@ class Comments extends \Ideal\Core\Widget
 
         $forum = new \MiniForum\Structure\Post\Site\Model('');
 
-        $pageStructure = $this->model->getPrevStructure();
-        $posts = $forum->getComments($pageStructure); // получаем список сообщений первого уровня для страницы $pageStructure
+        $posts = $forum->getComments($this->pageStructure); // получаем список сообщений первого уровня для страницы $pageStructure
 
         $result = array(
             'isShow' => true,
-            'pageStructure' => $pageStructure,
+            'pageStructure' => $this->pageStructure,
             'posts' => $posts,
         );
 
@@ -66,5 +67,9 @@ class Comments extends \Ideal\Core\Widget
             $this->isShow = false;
             return;
         }
+    }
+
+    public function setPath($pageStructure) {
+        $this->pageStructure = $pageStructure;
     }
 }

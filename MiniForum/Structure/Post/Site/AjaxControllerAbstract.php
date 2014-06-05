@@ -3,6 +3,7 @@ namespace MiniForum\Structure\Post\Site;
 
 use Ideal\Core\Util;
 use Ideal\Core\Config;
+use Ideal\Core\Db;
 
 class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
 {
@@ -11,8 +12,19 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
 
     public function __construct() {
         $config = Config::getInstance();
-        $forum = $config->getStructureByName('MiniForum_Post');
-        $this->prevStructure = $forum['prevStructure'];
+        $this->prevStructure = $this->getForumInPart();
+    }
+
+    protected function getForumInPart() {
+        $config = Config::getInstance();
+        $partTable = $config->db['prefix'] . 'ideal_structure_part';
+        $_sql = "SELECT ID, prev_structure FROM {$partTable} WHERE structure = 'MiniForum_Post'";
+        $db = Db::getInstance();
+        $forum = $db->queryArray($_sql);
+
+        if (!isset($forum[0]['prev_structure'])) return '';
+        $part_prev = explode('-', $forum[0]['prev_structure']);
+        return end($part_prev) . '-' . $forum[0]['ID'];
     }
 
     /**
