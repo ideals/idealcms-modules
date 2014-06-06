@@ -129,12 +129,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                     $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
                     $categoryWhere = " category_id IN (SELECT ID FROM {$catTable} WHERE cid LIKE '{$cid}%' AND is_active=1)";
                 }
-                $where .= " AND e.ID IN (SELECT good_id FROM {$table}
+                $where .= " AND g.ID IN (SELECT good_id FROM {$table}
                                                   WHERE {$categoryWhere})";
             }
         }
 
-        $where = parent::getWhere($where . ' AND e.is_active=1');
+        $where = parent::getWhere($where . ' AND g.is_active=1');
 
         return $where;
     }

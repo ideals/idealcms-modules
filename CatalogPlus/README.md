@@ -10,3 +10,9 @@ CatalogPlus v. 1.2
 Внутри модели CatalogPlus_Category всегда находится модель
 CatalogPlus_Good, а в модели CatalogPlus_Good всегда находится
 модель CatalogPlus_Category.
+
+Для **sql** запросов использовать:
+
+1. `'prefix'_catalogplus_structure_good as g`
+
+2. `'prefix'_catalogplus_structure_category as cat`
