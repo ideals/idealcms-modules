@@ -10,7 +10,8 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     protected $model;
     protected $prevStructure;
 
-    public function __construct() {
+    public function __construct()
+    {
         $config = Config::getInstance();
         $this->prevStructure = $this->getForumInPart();
     }
@@ -30,7 +31,8 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     /**
      * Добавление сообщение на форум
      */
-    public function insetAction() {
+    public function insetAction()
+    {
         $form = $_POST['form'];
         parse_str($form, $post);
 
@@ -38,6 +40,10 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         if ($valid !== true) {
             echo $valid;
             return;
+        }
+
+        if ($post['email'] == '') {
+            $post['get_mail'] = false;
         }
 
         $this->model = new Model($this->prevStructure);
@@ -89,7 +95,8 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     /**
      * Редактирование сообщения
      */
-    function updateAction() {
+    function updateAction()
+    {
         $form = $_POST['form'];
         parse_str($form, $post);
 
@@ -112,7 +119,8 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     /**
      * Вывод формы для создания темы на форуме
      */
-    public function getModalFormAction() {
+    public function getModalFormAction()
+    {
         parse_str($_GET['formValues'], $formValues);
 
         if ($formValues['ID'] !== '0') {
@@ -134,7 +142,8 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     /**
      * Вывод формы для ответа
      */
-    public function getAnswerFormAction() {
+    public function getAnswerFormAction()
+    {
         parse_str($_GET['formValues'], $formValues);
         if (($formValues['mainParentId'] != '0') && ($formValues['pageStructurePostId'] != '0')) {
             $goToPost = true;
@@ -150,15 +159,13 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
      * @param $post
      * @return bool|string
      */
-    protected function validation($post) {
+    protected function validation($post)
+    {
         $msgValidation = '';
-        foreach ($post as $key  => $value) {
-            if (strlen($value) === 0) {
-                $msgValidation = 'Необходимо заполнить все поля формы';
-                break;
-            }
+        if ((strlen($post['author']) === 0) || (strlen($post['content']) === 0)) {
+            $msgValidation = 'Необходимо заполнить все поля формы';
         }
-        if (!Util::is_email($post['email'])) {
+        if ((strlen($post['email']) != 0) && (!Util::is_email($post['email']))) {
             $msgValidation = 'Вы ввели неправильный почтовый адрес';
         }
         if (strlen($msgValidation) !== 0) {

@@ -1,14 +1,14 @@
 <div class="postAnswer" id="postAnswer<?php echo $formValues['ID'];?>">
     <form method="post" id="postForm<?php echo $formValues['ID'];?>" action="javascript: void(0)">
         <div class="input-line">
-            <label for="authorPF">Ваше имя:</label>
+            <label for="authorPF">Ваше имя:<em class="formee-req"> *</em></label>
             <input id="authorPF" value="" name="author" type="text">
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <label for="emailPF">E-mail: </label>
             <input id="emailPF" name="email" value="" type="text">
         </div>
         <div class="input-line">
-            <label for="contentPF">Сообщение: </label><br />
+            <label for="contentPF">Сообщение:<em class="formee-req"> *</em> </label><br />
             <textarea name="content"></textarea>
         </div>
         <div class="input-line" style="display: <?php if (isSet($formValues['isPosterBlock'])) echo 'block'; else echo 'none'; ?>">
