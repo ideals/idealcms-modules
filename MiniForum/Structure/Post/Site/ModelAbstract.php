@@ -65,7 +65,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         foreach ($posts as $k => $v) {
             $posts[$k]['link'] = '/forum' . '/' . $v['ID'] . $config->urlSuffix;
-            $posts[$k]['date_create'] = Util::dateReach($v['date_create']);
+            $posts[$k]['date_create'] = Util::dateReach($v['date_create']) . ' ' . date('G:i', $v['date_create']);
 
             //Резделяем текст в соответствии с условиями
             $text = $this->splitMessage($posts[$k]['content'], 30, 200);
@@ -130,7 +130,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         } else {
             $this->pageData['title'] = $title;
         }
-        return $title;
+        $this->pageData['title'] = htmlspecialchars($this->pageData['title']);
+        return htmlspecialchars($title);
     }
 
     public function splitMessage($text, $min, $max)
@@ -192,7 +193,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         foreach ($childPosts as $k => $post) {
             $childPosts[$k]['margin'] = $startMargin + $post['indent'] * $margin;
             $childPosts[$k]['content'] = nl2br($childPosts[$k]['content']);
-            $childPosts[$k]['date_create'] = Util::dateReach($childPosts[$k]['date_create']);
+            $childPosts[$k]['date_create'] = Util::dateReach($childPosts[$k]['date_create']). ' ' . date('G:i', $post['date_create']);
         }
 
         return $childPosts;
@@ -285,7 +286,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $values['page_structure'] = $this->post['page_structure'];
         $values['author'] = $this->post['author'];
         $values['email'] = $this->post['email'];
-        $values['content'] = $this->post['content'];
+        $values['content'] = strip_tags($this->post['content'], '<p><br><strong><em><a><table><tr><td>');
         $values['date_create'] = $time;
         $values['is_active'] = 1;
         $values['get_mail'] = $this->post['get_mail'] ? 1 : 0;
