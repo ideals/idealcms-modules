@@ -49,14 +49,14 @@ return array(
         ),
         'template' => array(
             'label'     => 'Тип документа',
-            'sql'       => "varchar(20) not null default 'Page'",
+            'sql'       => "varchar(30) not null default 'Page'",
             'type'      => 'Ideal_Template',
             'medium'    => '\\Ideal\\Medium\\TemplateList\\Model',
             'templates' =>  array('Ideal_Page'),
         ),
         'data' => array(
             'label'     => 'Тип товара',
-            'sql'       => "varchar(20) not null default 'CatalogPlus_Data'",
+            'sql'       => "varchar(30) not null default 'CatalogPlus_Data'",
             'type'      => 'Ideal_Template',
             'medium'    => '\\Ideal\\Medium\\TemplateList\\Model',
             'templates' =>  array('CatalogPlus_Data'),

@@ -47,13 +47,13 @@ return array(
         ),
         'structure' => array(
             'label' => 'Тип раздела',
-            'sql'   => "varchar(20) default 'CatalogPlus_Category'",
+            'sql'   => "varchar(30) default 'CatalogPlus_Category'",
             'default'=> 'CatalogPlus_Category',
             'type'  => 'Ideal_Hidden',
         ),
         'template' => array(
             'label'     => 'Тип документа',
-            'sql'       => "varchar(20) not null default 'Ideal_Page'",
+            'sql'       => "varchar(30) not null default 'Ideal_Page'",
             'type'      => 'Ideal_Template',
             'medium'    => '\\Ideal\\Medium\\TemplateList\\Model',
             'templates' =>  array('Ideal_Page', 'Ideal_PhpFile'),

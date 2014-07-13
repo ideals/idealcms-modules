@@ -51,13 +51,13 @@ return array(
         ),
         'structure' => array(
             'label' => 'Тип раздела',
-            'sql'   => 'varchar(20) not null',
+            'sql'   => 'varchar(30) not null',
             'type'  => 'Ideal_Select',
             'class' => '\\Ideal\\Structure\\Part\\Getters\\StructureList'
         ),
         'template' => array(
             'label'     => 'Тип документа',
-            'sql'       => "varchar(20) not null default 'Page'",
+            'sql'       => "varchar(30) not null default 'Page'",
             'type'      => 'Ideal_Template',
             'class'     => '\\Ideal\\Structure\\Part\\Getters\\TemplateList',
             'templates' =>  array('Ideal_Page', 'Ideal_PhpFile'),
