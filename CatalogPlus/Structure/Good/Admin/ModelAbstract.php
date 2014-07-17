@@ -14,14 +14,14 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $db = Db::getInstance();
         $config = Config::getInstance();
         // Поиск всех категорий для составления фильтра
-        $_table = $config->db['prefix'] . 'ideal_structure_datalist';
-        $where = $this->pageData['url'];
-        $_sql = "SELECT * FROM {$_table} WHERE parent_url='{$where}' LIMIT 1";
+        $_table = $config->db['prefix'] . 'ideal_structure_part';
+        $_sql = "SELECT * FROM {$_table} WHERE structure='CatalogPlus_Category' LIMIT 1";
         $tmp = $db->queryArray($_sql);
         if(count($tmp) > 0){
             // Построение prevStructure
             $categoryPrevStructure = explode('-', $tmp[0]['prev_structure']);
             $categoryPrevStructure = end($categoryPrevStructure) . '-' . $tmp[0]['ID'];
+            $this->categoryPrevStructure = $categoryPrevStructure;
         } else{
             \FB::error($this, 'CatalogPlus');
         }
@@ -37,6 +37,12 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
             $selected = '';
             if ($category['ID'] == $currentCategory) {
                 $selected = 'selected="selected"';
+            }
+            for ($i = 1; $i < (int)$category['lvl']; $i++){
+                if($i > 8) {
+                    break;
+                }
+                $category['name'] = '-' . $category['name'];
             }
             $select .= '<option ' . $selected . ' value="' . $category['ID'] . '">' . $category['name'] . '</option>';
         }
