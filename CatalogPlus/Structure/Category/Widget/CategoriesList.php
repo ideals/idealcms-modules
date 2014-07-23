@@ -29,7 +29,7 @@ class CategoriesList extends \Ideal\Core\Widget
         $path = $this->model->getPath();
         $object = array_pop($path);
         $prev = array_pop($path);
-        $digits = $this->model->params['digits'];
+        $digits = (isset($this->model->params['digits'])) ? $this->model->params['digits'] : 3;
         $smallCidActive = '';
         if ($prev['structure'] == 'CatalogPlus_Category') {
             $smallCidActive = substr($object['cid'], 0, $digits * $object['lvl']);
