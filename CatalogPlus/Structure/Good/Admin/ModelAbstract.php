@@ -30,7 +30,10 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $this->categories = $db->queryArray($_sql);
 
         $request = new Request();
-        $currentCategory = $request->toolbar['category'];
+        $currentCategory = '';
+        if (isset($request->toolbar['category'])) {
+            $currentCategory = $request->toolbar['category'];
+        }
 
         $select = '<select class="form-control" name="toolbar[category]"><option value="">Не фильтровать</option>';
         foreach ($this->categories as $category) {
@@ -60,7 +63,10 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
     protected function getWhere($where)
     {
         $request = new Request();
-        $currentCategory = $request->toolbar['category'];
+        $currentCategory = '';
+        if (isset($request->toolbar['category'])) {
+            $currentCategory = $request->toolbar['category'];
+        }
 
         $config = Config::getInstance();
         $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
