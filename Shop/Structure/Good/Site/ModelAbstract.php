@@ -52,7 +52,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $url = mysql_real_escape_string($url);
         $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
 
-        $list = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
+        $list = $db->select($_sql); // запрос на получение всех страниц, соответствующих частям url
 
         // Страницу не нашли, возвращаем 404
         if (!isset($list[0]['ID'])) {
@@ -74,7 +74,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $urlModel = new Url\Model();
 
         $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY cid";
-        $list = $db->queryArray($_sql);
+        $list = $db->select($_sql);
 
         $lvl = 0;
         $url = array('0' => array('url' => $config->structures[0]['url']));

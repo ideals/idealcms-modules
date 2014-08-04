@@ -32,7 +32,7 @@ class Categories2 extends \Ideal\Core\Widget
         $_table = $config->db['prefix'] . 'catalog_structure_categorymulti';
         $_sql = "SELECT * FROM {$_table}
                     WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0 AND prev_structure='{$this->prevStructure}' ORDER BY cid";
-        $menuList = $db->queryArray($_sql);
+        $menuList = $db->select($_sql);
 
         // Раскладываем считанное меню во вложенные массивы по cid и lvl
         $num = 0;

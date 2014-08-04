@@ -16,7 +16,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         // Поиск всех категорий для составления фильтра
         $_table = $config->db['prefix'] . 'ideal_structure_part';
         $_sql = "SELECT * FROM {$_table} WHERE structure='CatalogPlus_Category' LIMIT 1";
-        $tmp = $db->queryArray($_sql);
+        $tmp = $db->select($_sql);
         if(count($tmp) > 0){
             // Построение prevStructure
             $categoryPrevStructure = explode('-', $tmp[0]['prev_structure']);
@@ -27,7 +27,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         }
         $_table = $config->db['prefix'] . 'catalogplus_structure_category';
         $_sql = "SELECT * FROM {$_table} WHERE prev_structure='{$this->categoryPrevStructure}' AND is_active=1 ORDER BY cid";
-        $this->categories = $db->queryArray($_sql);
+        $this->categories = $db->select($_sql);
 
         $request = new Request();
         $currentCategory = '';

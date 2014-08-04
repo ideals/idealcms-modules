@@ -33,7 +33,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
 
         $db = Db::getInstance();
         $_sql = "SELECT fio, phone, password, act_key,message FROM {$table} WHERE email='{$email}' LIMIT 1";
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
         $pass = $arr[0]['password'];
 
         if (count($arr) == 1) {
@@ -79,7 +79,7 @@ EOT;
         $db = Db::getInstance();
         $config = Config::getInstance();
         $_sql = "SELECT ID FROM {$table} WHERE email = '{$arr['email']}' LIMIT 1";
-        $result = $db->queryArray($_sql);
+        $result = $db->select($_sql);
         if (count($result) == 1) {
             return false;
         }
@@ -109,7 +109,7 @@ EOT;
         $email = mysql_real_escape_string($_GET['email']);
         $key = mysql_real_escape_string($_GET['key']);
         $_sql = "SELECT * FROM {$this->_table} WHERE email='{$email}' AND act_key='{$key}' LIMIT 1";
-        $result = $db->queryArray($_sql);
+        $result = $db->select($_sql);
         if (count($result) == 1) {
             $_sql = "UPDATE {$this->_table} SET is_active=1, act_key=''";
             $db->query($_sql);
@@ -127,7 +127,7 @@ EOT;
             $where = 'ID=' . $_SESSION['login']['ID'];
         }
         $_sql = "SELECT email, address, fio, phone FROM {$this->_table} WHERE {$where} LIMIT 1";
-        $result = $db->queryArray($_sql);
+        $result = $db->select($_sql);
         return $result[0];
     }
 

@@ -38,7 +38,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
         $config = Config::getInstance();
         $table = $config->db['prefix'] . $this->tableGood;
         $_sql = "SELECT * FROM {$table} WHERE ID IN {$in}";
-        $goodIdsArr = $db->queryArray($_sql);
+        $goodIdsArr = $db->select($_sql);
         foreach ($goodIdsArr as $good) {
             $id = $good['ID'];
             $basket[$id]['name'] = $good['name'];

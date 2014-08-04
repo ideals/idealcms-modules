@@ -37,10 +37,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $db = Db::getInstance();
 
-        $url = mysql_real_escape_string($url[0]);
-        $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
+        $_sql = "SELECT * FROM {$this->_table} WHERE url=:url LIMIT 1";
+        $par = array('url' => $url[0]);
 
-        $list = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
+        $list = $db->select($_sql, $par); // запрос на получение всех страниц, соответствующих частям url
 
         // Страницу не нашли, возвращаем 404
         if (!isset($list[0]['ID'])) {
@@ -57,14 +57,14 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this;
     }
 
-    public function getList($page)
+    public function getList($page = null)
     {
         $list = parent::getList($page);
 
         // Построение правильных URL
         $url = new \Ideal\Field\Url\Model();
         $url->setParentUrl($this->path);
-        if (is_array($list) && count($list) != 0 ) {
+        if (is_array($list) && (count($list) != 0)) {
             foreach ($list as $k => $v) {
                 $list[$k]['link'] = $url->getUrl($v);
             }
@@ -81,7 +81,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $urlModel = new Url\Model();
 
         $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY name";
-        $list = $db->queryArray($_sql);
+        $list = $db->select($_sql);
 
         $lvl = 0;
         $url = array('0' => array('url' => $config->structures[0]['url']));

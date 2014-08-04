@@ -126,7 +126,7 @@ class CategoriesList extends \Ideal\Core\Widget
                  FROM {$table}
                  WHERE is_active=1 AND is_not_menu=0 AND lvl<{$this->lvl}
                  ORDER BY cid";
-        $menuList = $db->queryArray($_sql);
+        $menuList = $db->select($_sql);
 
         return $menuList;
     }

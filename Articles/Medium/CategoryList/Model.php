@@ -26,7 +26,7 @@ class Model extends Medium\AbstractModel
         $config = Config::getInstance();
         $db = Db::getInstance();
         $_sql = 'SELECT ID, name FROM ' . $config->db['prefix'] . 'articles_structure_category';
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $item) {

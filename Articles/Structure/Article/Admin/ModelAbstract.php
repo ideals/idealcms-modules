@@ -15,7 +15,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'articles_structure_category';
         $_sql = "SELECT * FROM {$_table} WHERE prev_structure='{$this->categoryPrevStructure}' AND is_active=1 ORDER BY cid";
-        $this->categories = $db->queryArray($_sql);
+        $this->categories = $db->select($_sql);
 
         $request = new Request();
         $currentCategory = $request->toolbar['category'];

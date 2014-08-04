@@ -78,7 +78,7 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $config = Config::getInstance();
         $_sql = "SELECT * FROM {$this->_table}
                  WHERE structure_path = '{$this->structurePath}'";
-        $list = $db->queryArray($_sql);
+        $list = $db->select($_sql);
 
         foreach ($list as $l) {
             $bigImg = str_replace($_GET['directory'] . '/', '', substr($l['img'], 0, -4));

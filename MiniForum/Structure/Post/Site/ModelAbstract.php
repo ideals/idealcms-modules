@@ -23,8 +23,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         parent::__construct($prevStructure);
 
         // Для авторизованного пользователя выводим все посты
-        session_start();
-        if (!$_SESSION['IsAuthorized']) {
+        if (!isset($_SESSION)) {
+            session_start();
+        }
+        if ((isset($_SESSION['IsAuthorized'])) && !$_SESSION['IsAuthorized']) {
             $this->where = 'AND is_moderated=1';
         }
     }
@@ -39,7 +41,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // todo сделать ограничение на количество комментариев на странице
         $_sql = "SELECT * FROM i_miniforum_structure_post WHERE page_structure='{$pageStructure}' AND is_active=1 AND parent_id=0 {$this->where}";
         $db = Db::getInstance();
-        $posts = $db->queryArray($_sql);
+        $posts = $db->select($_sql);
         $posts = $this->parsePosts($posts);
 
         return $posts;
@@ -49,7 +51,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      * @param int $page Номер отображаемой страницы
      * @return array Полученный список элементов
      */
-    public function getList($page)
+    public function getList($page = null)
     {
         $posts = parent::getList($page);
 
@@ -81,7 +83,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $posts[$k]['secondText'] = str_replace('\r\n', ' ', $posts[$k]['secondText']);
 
             $_sql = "SELECT COUNT(*) FROM {$this->_table} WHERE main_parent_id='{$v['ID']}'";
-            $answerCount = $db->queryArray($_sql);
+            $answerCount = $db->select($_sql);
             $posts[$k]['answer_count'] = $answerCount[0]['COUNT(*)'];
         }
 
@@ -96,7 +98,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
 
         $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND ID='{$url}' {$where}";
-        $post = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
+        $post = $db->select($_sql); // запрос на получение всех страниц, соответствующих частям url
 
         // Страницу не нашли, возвращаем 404
         if (!isset($post[0]['ID'])) {
@@ -137,9 +139,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function splitMessage($text, $min, $max)
     {
         $str = mb_substr($text, $min);
-        preg_match_all('/(.*)[\.\?\!]/U', $str, $second, PREG_OFFSET_CAPTURE);
-        $second = $second['0']['0']['0'];
-
+        $second = false;
+        if (mb_strlen($str) > 0) {
+            preg_match_all('/(.*)[\.\?\!]/U', $str, $second, PREG_OFFSET_CAPTURE);
+            $second = $second['0']['0']['0'];
+        }
         if ($second) {
             $rText[0] = mb_substr($text, 0, $min) . $second;
         } else {
@@ -185,7 +189,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $root = $this->pageData['ID'];
 
         $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND main_parent_id='{$root}' {$this->where}";
-        $childPosts = $db->queryArray($_sql);
+        $childPosts = $db->select($_sql);
 
         $childPosts = $this->buildTree($childPosts, $root);
         $childPosts = $this->buildList($childPosts);
@@ -205,7 +209,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
 
         $_sql = "SELECT * FROM {$this->_table} WHERE ID = {$ID} LIMIT 1";
-        $post = $db->queryArray($_sql);
+        $post = $db->select($_sql);
 
         return $post;
     }
@@ -260,7 +264,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if ((isset($this->post['is_poster']) && $this->post['is_poster'] == 'true') || ($this->post['email'] == 'zzz@zzz.zz')) {
             if ($this->post['main_parent_id'] !== '0') { // Если добавляется ответ
                 $_sql = "SELECT date_create FROM {$this->_table} WHERE parent_id = {$this->post['parent_id']} ORDER BY date_create";
-                $dates = $db->queryArray($_sql);
+                $dates = $db->select($_sql);
 
                 if (count($dates) > 0) { // Если на родительское сообщение уже были ответы
                     $date = end($dates);
@@ -268,7 +272,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
                 } else {
                     $_sql = "SELECT date_create FROM $this->_table WHERE ID = {$this->post['parent_id']}";
-                    $date = $db->queryArray($_sql);
+                    $date = $db->select($_sql);
                     $date_create = $date[0]['date_create'];
                 }
 
@@ -417,7 +421,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $db = Db::getInstance();
         $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE (get_mail = 1 AND main_parent_id = {$post['main_parent_id']}) OR ID = {$post['main_parent_id']} GROUP BY email";
-        $postsDB = $db->queryArray($_sql);
+        $postsDB = $db->select($_sql);
         // Если нет почтовых ящиков, возвращаем false
         if (!$postsDB) return false;
 
@@ -467,7 +471,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE ID = {$id}";
         $db = Db::getInstance();
-        $post = $db->queryArray($_sql);
+        $post = $db->select($_sql);
         $trueHash = (string)$post[0]['email'] . (string)$post[0]['main_parent_id'] . (string)$post[0]['ID'] . (string)$post[0]['date_create'];
         $trueHash = crypt((string)$trueHash, (string)$post[0]['ID']);
         if ($trueHash === $hash) {
@@ -488,7 +492,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $urlModel = new Url\Model();
 
         $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND parent_id=0 AND is_moderated=1";
-        $list = $db->queryArray($_sql);
+        $list = $db->select($_sql);
 
         if (count($this->path) == 0 ) {
             $url = array('0' => array('url' => $config->structures[0]['url']));
@@ -499,7 +503,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $lvl = 0;
         foreach ($list as $k => $v) {
             if ($v['lvl'] > $lvl) {
-                if (($v['url'] != '/') AND ($k > 0)) {
+                if (($v['url'] != '/') && ($k > 0)) {
                     $url[] = $list[$k-1];
                 }
                 $urlModel->setParentUrl($url);

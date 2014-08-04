@@ -23,7 +23,7 @@ class Categories extends \Ideal\Core\Widget
         $_sql = "SELECT * FROM {$_table}
                     WHERE lvl=1 AND is_active=1 AND is_not_menu=0 AND structure_path='{$this->structurePath}'
                     ORDER BY cid";
-        $menuList = $db->queryArray($_sql);
+        $menuList = $db->select($_sql);
 
         $menu = array();
         $url = new \Ideal\Field\Url\Model();

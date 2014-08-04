@@ -39,7 +39,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         $in = '(' . implode(',', $in) . ')';
 
         $_sql = "SELECT * FROM {$this->table} WHERE ID IN {$in}";
-        $goodIdsArr = $db->queryArray($_sql);
+        $goodIdsArr = $db->select($_sql);
         //$basket = (array)$basket;
         foreach ($goodIdsArr as $good) {
             $id = $good['ID'];

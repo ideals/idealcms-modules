@@ -20,7 +20,7 @@ class Model extends AbstractModel
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'catalog_structure_category';
         $_sql = 'SELECT ID, name FROM ' . $_table;
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $item) {

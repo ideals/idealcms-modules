@@ -21,7 +21,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
         $partTable = $config->db['prefix'] . 'ideal_structure_part';
         $_sql = "SELECT ID, prev_structure FROM {$partTable} WHERE structure = 'MiniForum_Post'";
         $db = Db::getInstance();
-        $forum = $db->queryArray($_sql);
+        $forum = $db->select($_sql);
 
         if (!isset($forum[0]['prev_structure'])) return '';
         $part_prev = explode('-', $forum[0]['prev_structure']);

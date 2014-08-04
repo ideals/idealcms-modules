@@ -17,7 +17,7 @@ class Model extends \Ideal\Structure\Part\Site\ModelAbstract
                     JOIN i_shop_category_good AS scg ON ssc.ID = scg.good_id WHERE scg.category_id = '{$categoryId}' LIMIT {$from}, {$this->limit}";*/
 
         $_sql = "SELECT * FROM i_shop_structure_good AS ssg LEFT JOIN i_shop_category_good AS scg ON scg.good_id = ssg.id WHERE scg.category_id = '{$categoryId}' LIMIT {$from}, {$this->limit}";
-        $goods = $db->queryArray($_sql);
+        $goods = $db->select($_sql);
         return $goods;
     }
 }

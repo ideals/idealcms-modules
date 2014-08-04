@@ -43,7 +43,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
             $table = $config->db['prefix'] . 'cabinet_structure_user';
             $email = $_SESSION['login']['user'];
             $_sql = "SELECT fio, phone, city, postcode, address FROM {$table} WHERE email='{$email}'";
-            $result = $db->queryArray($_sql);
+            $result = $db->select($_sql);
             $_SESSION['login']['data'] = $result[0];
         }
         $this->answer['data'] = $_SESSION['login']['data'];
@@ -75,7 +75,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
             $config = Config::getInstance();
             $table = $config->db['prefix'] . 'cabinet_structure_user';
 
-            $tmp = $db->queryArray("SELECT ID,password,last_visit,is_active FROM {$table} WHERE email='{$email}' LIMIT 1");
+            $tmp = $db->select("SELECT ID,password,last_visit,is_active FROM {$table} WHERE email='{$email}' LIMIT 1");
 
             //$pass = crypt($pass, $tmp[0]['password']);
             if ((count($tmp) === 1) && (crypt($pass, $tmp[0]['password']) === $tmp[0]['password'])) {
@@ -132,7 +132,7 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
             // Установка таблицы в базе данных
             $table = $config->db['prefix'] . 'cabinet_structure_user';
             // Проверка на существование в базе данных email
-            $tmp = $db->queryArray("SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1");
+            $tmp = $db->select("SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1");
             if (count($tmp) > 0) {
                 $this->answer['text'] = 'Такой Email уже зарегестрирован';
                 $this->answer['error'] = true;
@@ -207,7 +207,7 @@ EOT;
         }
         $table = $config->db['prefix'] . 'cabinet_structure_user';
         $_sql = "SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1";
-        $user = $db->queryArray($_sql);
+        $user = $db->select($_sql);
         if (count($user) == 0) {
             $this->answer['error'] = true;
             $this->answer['text'] = 'Данный E-mail еще не зарегистрирован';

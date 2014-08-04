@@ -37,7 +37,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $_sql = "SELECT * FROM {$this->_table} WHERE url='{$articleUrl}' LIMIT 1";
 
-        $list = $db->queryArray($_sql); // запрос на получение всех страниц, соответствующих частям url
+        $list = $db->select($_sql); // запрос на получение всех страниц, соответствующих частям url
 
         // Страницу не нашли, возвращаем 404
         if (!isset($list[0]['ID'])) {

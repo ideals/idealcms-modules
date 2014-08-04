@@ -22,7 +22,7 @@ class CategoryList
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'catalog_structure_category';
         $_sql = 'SELECT ID, name FROM {$_table}';
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $item) {
@@ -44,7 +44,7 @@ class CategoryList
         }
         $goodId = $this->obj->object['ID'];
         $_sql = "SELECT category_id FROM i_shop_category_good WHERE good_id='{$goodId}'";
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $v) {

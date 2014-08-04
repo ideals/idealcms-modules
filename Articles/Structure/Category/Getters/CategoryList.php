@@ -20,7 +20,7 @@ class CategoryList
     {
         $db = Db::getInstance();
         $_sql = 'SELECT ID, name FROM i_articles_structure_category';
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $item) {
@@ -36,7 +36,7 @@ class CategoryList
         $db = Db::getInstance();
         $article = $this->obj->getPageData();
         $_sql = "SELECT category_id FROM i_articles_category_article WHERE article_id='{$article['ID']}'";
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $v) {

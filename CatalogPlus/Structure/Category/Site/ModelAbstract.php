@@ -45,7 +45,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             $_sql = "SELECT good_id FROM {$tableLink} WHERE category_id IN ({$_sql})";
             $_sql = "SELECT COUNT(ID) FROM {$tableGood} WHERE is_active=1 AND ID IN ({$_sql})";
         }
-        $list = $db->queryArray($_sql);
+        $list = $db->select($_sql);
 
         return $list[0]['COUNT(ID)'];
     }
@@ -124,7 +124,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         if (!isset($this->categories)) {
             $db = Db::getInstance();
             $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure='{$this->prevStructure}' AND is_active=1";
-            $this->categories = $db->queryArray($_sql);
+            $this->categories = $db->select($_sql);
         }
         return $this->categories;
     }
@@ -193,7 +193,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             $prevStructure = $this->pageData['prev_structure'];
         }
         $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure = '{$prevStructure}' AND is_active = 1 ORDER BY cid";
-        $list = $db->queryArray($_sql);
+        $list = $db->select($_sql);
         $arr = array();
         foreach($list as $v){
             $this->getMenu($v, $arr, 0,0);

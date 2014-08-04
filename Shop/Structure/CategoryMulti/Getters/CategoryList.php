@@ -32,7 +32,7 @@ class CategoryList
         $categoryPrevStructure = $this->obj->category->getPrevStructure();
         $_sql = "SELECT ID, name FROM {$this->categoryTable}
                         WHERE prev_structure='{$categoryPrevStructure}' AND is_active=1 ORDER BY cid";
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         // todo отображение вложенных категорий
         $list = array();
@@ -49,7 +49,7 @@ class CategoryList
         $db = Db::getInstance();
         $good = $this->obj->getPageData();
         $_sql = "SELECT category_id FROM {$this->categoryGoodTable} WHERE good_id='{$good['ID']}'";
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $v) {

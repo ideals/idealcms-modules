@@ -16,7 +16,7 @@ class Model extends AbstractModel
         $config = Config::getInstance();
         $table = $config->db['prefix'] . 'catalogplus_structure_category';
         $_sql = 'SELECT ID, name FROM ' . $table;
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $item) {
@@ -33,7 +33,7 @@ class Model extends AbstractModel
         $pageData = $this->obj->getPageData();
         $goodId = $pageData['ID'];
         $_sql = "SELECT category_id FROM {$this->table} WHERE good_id='{$goodId}'";
-        $arr = $db->queryArray($_sql);
+        $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $v) {

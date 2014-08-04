@@ -70,7 +70,7 @@ class ToolsAbstract
         // Считываем категории из нашей БД
         $_sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title FROM {$this->tableCat}
                     WHERE prev_structure='{$this->prevCat}'";
-        $groups = $db->queryArray($_sql);
+        $groups = $db->select($_sql);
 
         // Устанавливаем категории из БД
         $base->setOldGroups($groups);
@@ -96,7 +96,7 @@ class ToolsAbstract
         // Считываем товар из нашей БД;
         $_sql = "SELECT ID, name, id_1c, is_active FROM {$this->tableGood}
                     WHERE prev_structure='{$this->prevGood}'";
-        $goods = $db->queryArray($_sql);
+        $goods = $db->select($_sql);
 
         $changedGoods = $base->getGoods($fields, $goods);
 
@@ -293,10 +293,10 @@ class ToolsAbstract
                 foreach ($goodIds as $goodId) {
                     if ($groupId == '') continue;
                     $_sql = "SELECT ID FROM {$this->tableCat} AS t1 WHERE t1.id_1c='{$groupId}' LIMIT 1";
-                    $id = $db->queryArray($_sql);
+                    $id = $db->select($_sql);
                     $id = $id[0]['ID'];
                     $_sql = "SELECT ID FROM {$this->tableCat} AS t1 WHERE t1.id_1c='{$goodId}' LIMIT 1";
-                    $id2 = $db->queryArray($_sql);
+                    $id2 = $db->select($_sql);
                     $id2 = $id2[0]['ID'];
                     $row = array(
                         'category_id' => $id,
