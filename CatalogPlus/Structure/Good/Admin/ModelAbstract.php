@@ -67,12 +67,10 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         if (isset($request->toolbar['category'])) {
             $currentCategory = $request->toolbar['category'];
         }
-
-        $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
-
-        $db = DB::getInstance();
         if ($currentCategory != '') {
+            $db = DB::getInstance();
+            $config = Config::getInstance();
+            $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
             if ($where != '') {
                 $where .= ' AND ';
             }
@@ -80,7 +78,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
             $where .= 'ID IN (SELECT good_id FROM ' . $table . ' WHERE category_id='
                 . $db->real_escape_string($currentCategory) . ')';
         }
-        if($where != ''){
+        if ($where != ''){
             $where = 'WHERE '.$where;
         }
 
