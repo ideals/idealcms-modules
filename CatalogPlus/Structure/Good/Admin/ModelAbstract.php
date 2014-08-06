@@ -71,13 +71,14 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $config = Config::getInstance();
         $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
 
+        $db = DB::getInstance();
         if ($currentCategory != '') {
             if ($where != '') {
                 $where .= ' AND ';
             }
             // Выборка статей, принадлежащих этой категории
             $where .= 'ID IN (SELECT good_id FROM ' . $table . ' WHERE category_id='
-                . mysql_real_escape_string($currentCategory) . ')';
+                . $db->real_escape_string($currentCategory) . ')';
         }
         if($where != ''){
             $where = 'WHERE '.$where;
