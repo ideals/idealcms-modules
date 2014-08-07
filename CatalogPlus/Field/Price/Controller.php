@@ -23,7 +23,7 @@ class Controller extends \Ideal\Field\AbstractController
     public function getInputText()
     {
         $value = htmlspecialchars($this->getValue());
-        return '<input type="number" class="form-control ' . $this->widthEditField
+        return '<input type="number" class="form-control '
             . '" name="' . $this->htmlName
             . '" id="' . $this->htmlName
             . '" value="' . $value . '">';
