@@ -314,8 +314,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $db = Db::getInstance();
         foreach ($this->post as $k => $v) {
-            $this->post[$k] = mysql_real_escape_string($v);
+            $this->post[$k] = $db->real_escape_string($v);
         }
+
         $_sql = "UPDATE $this->_table SET author = '{$this->post['author']}', email = '{$this->post['email']}', content = '{$this->post['content']}' WHERE ID = {$this->post['ID']}";
 
         $result = $db->query($_sql);
