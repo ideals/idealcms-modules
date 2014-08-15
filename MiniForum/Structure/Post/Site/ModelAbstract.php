@@ -26,7 +26,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if (!isset($_SESSION)) {
             session_start();
         }
-        if ((isset($_SESSION['IsAuthorized'])) && !$_SESSION['IsAuthorized']) {
+        if (!isset($_SESSION['IsAuthorized']) || ((isset($_SESSION['IsAuthorized'])) && !$_SESSION['IsAuthorized'])) {
             $this->where = 'AND is_moderated=1';
         }
     }
