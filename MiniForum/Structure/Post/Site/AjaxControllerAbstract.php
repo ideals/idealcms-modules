@@ -4,6 +4,7 @@ namespace MiniForum\Structure\Post\Site;
 use Ideal\Core\Util;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
+use Ideal\Structure\User;
 
 class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
 {
@@ -35,6 +36,11 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     {
         $form = $_POST['form'];
         parse_str($form, $post);
+
+        $user = User\Model::getInstance();
+        if (($post['email'] == '') && (isset($user->data['email']))) {
+            $post['email'] = $user->data['email'];
+        }
 
         $valid = $this->validation($post);
         if ($valid !== true) {
@@ -95,10 +101,15 @@ class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
     /**
      * Редактирование сообщения
      */
-    function updateAction()
+    public function updateAction()
     {
         $form = $_POST['form'];
         parse_str($form, $post);
+
+        $user = User\Model::getInstance();
+        if (($post['email'] == '') && (isset($user->data['email']))) {
+            $post['email'] = $user->data['email'];
+        }
 
         $valid = $this->validation($post);
         if ($valid !== true) {
