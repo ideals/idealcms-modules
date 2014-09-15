@@ -428,7 +428,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // Задаём тему для всех отправляемых сообщений
         $mail->setSubj($config->domain . ': новый ответ на сообщение');
-        $href = $_SERVER['HTTP_REFERER'];
+        $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['main_parent_id'] . $config->urlSuffix;
         if (isset($post['ID'])) {
             $href = $href . '#post-line-' . $post['ID'];
         };
@@ -453,7 +453,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $hash = (string)$postDB['email'] . (string)$postDB['main_parent_id'] . (string)$postDB['ID'] . (string)$postDB['date_create'];
             $hash = crypt((string)$hash, (string)$postDB['ID']);
             // Создаём ссылку для отписки
-            $hrefUnsubscribe = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['main_parent_id'] . '.html' . '?email=' . urlencode($postDB['email']) . '&post=' . urlencode($postDB['main_parent_id']) . '&id=' . urlencode($postDB['ID']) . '&hash=' . urlencode($hash);
+            $hrefUnsubscribe = $href . '?email=' . urlencode($postDB['email']) . '&post=' . urlencode($postDB['main_parent_id']) . '&id=' . urlencode($postDB['ID']) . '&hash=' . urlencode($hash);
             $unsubscribe = "Чтобы больше не получать уведомления об ответах на Ваше сообщение нажмите сюда: <a href=\"{$hrefUnsubscribe}\">{$hrefUnsubscribe}</a></br>";
             // Не даём отписаться создателю темы
             if ($postDB['ID'] === $post['main_parent_id']) $unsubscribe = '';
