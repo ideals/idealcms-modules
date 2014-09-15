@@ -77,7 +77,7 @@ loadForm.form = '';
  */
 loadForm.ajaxLoadForm = function (formValues, formLoad) {
     $.ajax({
-        url: "/?mode=ajax&module=MiniForum&controller=Post&action=" + formLoad,
+        url: "/?mode=ajax&controller=MiniForum\\Structure\\Post\\Site&action=" + formLoad,
         async: false,
         data: {isAuthorized: loadForm.isAuthorized, formValues: jQuery.param(formValues)},
         success: function (form) {
@@ -205,7 +205,7 @@ function ajaxAddNewPost(goToPost, pageStructure, mainParentId, ID) {
     var form = $(idElement).serialize();
     $(idElement).show();
     $.post(
-        "/?mode=ajax&module=MiniForum&controller=Post&action=inset",
+        "/?mode=ajax&controller=MiniForum\\Structure\\Post\\Site&action=inset",
         {
             form: form
         },
@@ -243,7 +243,7 @@ function ajaxAddNewPost(goToPost, pageStructure, mainParentId, ID) {
  */
 function ajaxDeletePost(ID, mainParentId, parentId) {
     $.post(
-        "/?mode=ajax&module=MiniForum&controller=Post&action=delete",
+        "/?mode=ajax&controller=MiniForum\\Structure\\Post\\Site&action=delete",
         {
             ID: ID,
             parent_id: parentId,
@@ -269,7 +269,7 @@ function ajaxUpdatePost(ID) {
     var form = $(idElement).serialize();
     $(idElement).show();
     $.post(
-        "/?mode=ajax&module=MiniForum&controller=Post&action=update",
+        "/?mode=ajax&controller=MiniForum\\Structure\\Post\\Site&action=update",
         {
             form: form
         },
@@ -284,7 +284,7 @@ function ajaxUpdatePost(ID) {
  */
 function ajaxModeratedPost(ID, isModerated) {
     $.post(
-        "/?mode=ajax&module=MiniForum&controller=Post&action=moderate",
+        "/?mode=ajax&controller=MiniForum\\Structure\\Post\\Site&action=moderate",
         {
             ID: ID,
             isModerated: isModerated

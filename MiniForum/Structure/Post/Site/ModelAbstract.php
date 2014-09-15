@@ -39,9 +39,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getComments($pageStructure)
     {
         // todo сделать ограничение на количество комментариев на странице
-        $_sql = "SELECT * FROM i_miniforum_structure_post WHERE page_structure='{$pageStructure}' AND is_active=1 AND parent_id=0 {$this->where}";
+        $_sql = "SELECT * FROM i_miniforum_structure_post WHERE page_structure=:page_structure AND is_active=1 AND parent_id=0 {$this->where}";
+        $params = array('page_structure' => $pageStructure);
         $db = Db::getInstance();
-        $posts = $db->select($_sql);
+        $posts = $db->select($_sql, $params);
         $posts = $this->parsePosts($posts);
 
         return $posts;
@@ -82,8 +83,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $posts[$k]['firstText'] = str_replace('\r\n', ' ', $posts[$k]['firstText']);
             $posts[$k]['secondText'] = str_replace('\r\n', ' ', $posts[$k]['secondText']);
 
-            $_sql = "SELECT COUNT(*) FROM {$this->_table} WHERE main_parent_id='{$v['ID']}'";
-            $answerCount = $db->select($_sql);
+            $_sql = "SELECT COUNT(*) FROM {$this->_table} WHERE main_parent_id=:main_parent_id";
+            $params = array('main_parent_id' => $v['ID']);
+            $answerCount = $db->select($_sql, $params);
             $posts[$k]['answer_count'] = $answerCount[0]['COUNT(*)'];
         }
 
@@ -94,11 +96,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         // Условие отбора
         $where = '';
-        $url = mysql_real_escape_string($url[0]);
         $db = Db::getInstance();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND ID='{$url}' {$where}";
-        $post = $db->select($_sql); // запрос на получение всех страниц, соответствующих частям url
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND ID=:url {$where}";
+        $params = array('url' => $url[0]);
+        $post = $db->select($_sql, $params); // запрос на получение всех страниц, соответствующих частям url
 
         // Страницу не нашли, возвращаем 404
         if (!isset($post[0]['ID'])) {
@@ -188,8 +190,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
         $root = $this->pageData['ID'];
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND main_parent_id='{$root}' {$this->where}";
-        $childPosts = $db->select($_sql);
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND main_parent_id=:main_parent_id {$this->where}";
+        $params = array('main_parent_id' => $root);
+        $childPosts = $db->select($_sql, $params);
 
         $childPosts = $this->buildTree($childPosts, $root);
         $childPosts = $this->buildList($childPosts);
@@ -208,8 +211,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $db = Db::getInstance();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE ID = {$ID} LIMIT 1";
-        $post = $db->select($_sql);
+        $_sql = "SELECT * FROM {$this->_table} WHERE ID = :ID LIMIT 1";
+        $params = array("ID" => $ID);
+        $post = $db->select($_sql, $params);
 
         return $post;
     }
@@ -225,7 +229,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $tree = array();
         foreach ($list as $k => $v) {
             if ($v['parent_id'] == $root) {
-                //unset($list[$k]);
                 $v['elements'] = $this->buildTree($list, $v['ID']);
                 $tree[] = $v;
             }
@@ -263,16 +266,20 @@ class ModelAbstract extends \Ideal\Core\Site\Model
          */
         if ((isset($this->post['is_poster']) && $this->post['is_poster'] == 'true') || ($this->post['email'] == 'zzz@zzz.zz')) {
             if ($this->post['main_parent_id'] !== '0') { // Если добавляется ответ
-                $_sql = "SELECT date_create FROM {$this->_table} WHERE parent_id = {$this->post['parent_id']} ORDER BY date_create";
-                $dates = $db->select($_sql);
+                $_sql = "SELECT date_create FROM &table WHERE parent_id = :parent_id ORDER BY date_create";
+                $params = array('parent_id' => $this->post['parent_id']);
+                $fields = array('table' => $this->_table);
+                $dates = $db->select($_sql, $params, $fields);
 
                 if (count($dates) > 0) { // Если на родительское сообщение уже были ответы
                     $date = end($dates);
                     $date_create = $date['date_create'];
 
                 } else {
-                    $_sql = "SELECT date_create FROM $this->_table WHERE ID = {$this->post['parent_id']}";
-                    $date = $db->select($_sql);
+                    $_sql = "SELECT date_create FROM &table WHERE ID = :parent_id";
+                    $params = array('parent_id' => $this->post['parent_id']);
+                    $fields = array('table' => $this->_table);
+                    $date = $db->select($_sql, $params, $fields);
                     $date_create = $date[0]['date_create'];
                 }
 
@@ -316,28 +323,39 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         foreach ($this->post as $k => $v) {
             $this->post[$k] = $db->real_escape_string($v);
         }
-
-        $_sql = "UPDATE $this->_table SET author = '{$this->post['author']}', email = '{$this->post['email']}', content = '{$this->post['content']}' WHERE ID = {$this->post['ID']}";
-
-        $result = $db->query($_sql);
+        $values = array(
+            'author' => $this->post['author'],
+            'email' => $this->post['email'],
+            'content' => $this->post['content'],
+        );
+        $params = array('ID' => $this->post['ID']);
+        $result = $db
+            ->update($this->_table)
+            ->set($values)
+            ->where('ID = :ID', $params)
+            ->exec();
         return $result; //true || false
     }
 
     public function deletePost()
     {
         $db = Db::getInstance();
-        $_sql = "DELETE FROM {$this->_table} WHERE ID = {$this->post['ID']} ";
-        $result = $db->query($_sql);
+        $result = $db->delete($this->_table)
+                ->where('ID = :ID', array('ID' => $this->post['ID']))
+                ->exec();
 
         if ($this->post['main_parent_id'] == 0) {
             // Это первое сообщение, удаляем всё подчистую
-            $_sql = "DELETE FROM {$this->_table} WHERE main_parent_id = {$this->post['ID']} ";
-            $db->query($_sql);
+            $db->delete($this->_table)
+                ->where('ID = :ID', array('main_parent_id' => $this->post['ID']))
+                ->exec();
 
         } else {
             // Заменяем у всех потомков родительский id
-            $_sql = "UPDATE {$this->_table} SET parent_id={$this->post['parent_id']} WHERE parent_id={$this->post['ID']}";
-            $db->query($_sql);
+            $db->update($this->_table)
+                ->set(array('parent_id' => $this->post['parent_id']))
+                ->where('parent_id = :ID', array('parent_id' => $this->post['ID']))
+                ->exec();
         }
         return $result; //true || false
     }
@@ -348,8 +366,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function moderatedPost()
     {
         $db = Db::getInstance();
-        $_sql = "UPDATE {$this->_table} SET is_moderated = {$this->post['isModerated']} WHERE ID = {$this->post['ID']} ";
-        $result = $db->query($_sql);
+        $result = $db->update($this->_table)
+            ->set(array('is_moderated' => $this->post['isModerated']))
+            ->where('ID = :ID', array('ID' => $this->post['ID']))
+            ->exec();
 
         return $result; //true || false
     }
@@ -364,10 +384,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         foreach ($emails as $k => $email) {
             if ($k == 0) {
-                $where = "email = '" . $email . "'";
+                $where['param']['email'] = $email;
+                $where['sql'] = "email = :email";
                 continue;
             }
-            $where .= " OR email = '" . $email . "'";
+            $where['param']["email{$k}"] = $email;
+            $where['sql'] .= " OR email = :email{$k}";
         }
         // Если отписываемся, то ищем те поля, где подписка включена и наоборот
         if ($subscribe == false) {
@@ -377,9 +399,15 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $setGetMail = 1;
             $whereGetMail = 0;
         }
-        $_sql = "UPDATE i_miniforum_structure_post SET get_mail = {$setGetMail}  WHERE get_mail = {$whereGetMail} AND main_parent_id = {$mainPost} AND " . $where;
         $db = Db::getInstance();
-        return $result = $db->query($_sql); //true || false
+        $where['sql'] = 'get_mail = :whereGetMail AND main_parent_id = :mainPost AND ' . $where['sql'];
+        $where['param']['get_mail'] = $whereGetMail;
+        $where['param']['main_parent_id'] = $mainPost;
+        $db = $db->update('i_miniforum_structure_post')
+            ->set(array('get_mail' => $setGetMail))
+            ->where($where['sql'], $where['param'])
+            ->exec();
+        return $result = $db; //true || false
     }
 
     /*
@@ -421,8 +449,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
 
         $db = Db::getInstance();
-        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE (get_mail = 1 AND main_parent_id = {$post['main_parent_id']}) OR ID = {$post['main_parent_id']} GROUP BY email";
-        $postsDB = $db->select($_sql);
+        $_sql = "SELECT email, ID, date_create, main_parent_id FROM &table WHERE (get_mail = 1 AND main_parent_id = :main_parent_id) OR ID = :main_parent_id GROUP BY email";
+        $params = array('main_parent_id' => $post['main_parent_id']);
+        $fields = array('table' => 'i_miniforum_structure_post');
+        $postsDB = $db->select($_sql, $params, $fields);
         // Если нет почтовых ящиков, возвращаем false
         if (!$postsDB) return false;
 
@@ -470,9 +500,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $mainParentID = mysql_real_escape_string((urldecode($mainParentID)));
         $hash = mysql_real_escape_string((urldecode($hash)));
 
-        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE ID = {$id}";
+        $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE ID = :ID";
+        $params = array('ID' => $id);
+        $fields = array('table' => 'i_miniforum_structure_post');
         $db = Db::getInstance();
-        $post = $db->select($_sql);
+        $post = $db->select($_sql, $params, $fields);
         $trueHash = (string)$post[0]['email'] . (string)$post[0]['main_parent_id'] . (string)$post[0]['ID'] . (string)$post[0]['date_create'];
         $trueHash = crypt((string)$trueHash, (string)$post[0]['ID']);
         if ($trueHash === $hash) {

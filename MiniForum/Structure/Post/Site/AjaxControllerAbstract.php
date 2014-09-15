@@ -6,7 +6,7 @@ use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Structure\User;
 
-class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
+class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
     protected $model;
     protected $prevStructure;
