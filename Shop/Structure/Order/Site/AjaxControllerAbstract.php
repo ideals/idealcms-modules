@@ -4,7 +4,7 @@ namespace Shop\Structure\Order\Site;
 use Ideal\Core\Config;
 use Shop\Structure\Basket;
 
-class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
+class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
     /**
      * Формирование заказа

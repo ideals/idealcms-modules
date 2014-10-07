@@ -4,7 +4,7 @@ namespace Cabinet\Structure\User\Site;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
 
-class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
+class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
     /** @var array Основные параметры при ответе для json */
     protected $answer = array('error' => false, 'text' => '', 'refresh' => false);

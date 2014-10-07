@@ -1,7 +1,7 @@
 <?php
 namespace Shop\Structure\Basket\Site;
 
-class AjaxControllerAbstract extends \Ideal\Core\Site\AjaxController
+class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
 
     public function addToBasketAction()
