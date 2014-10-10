@@ -10,7 +10,9 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     public function indexAction()
     {
         parent::indexAction();
-        session_start();
+        if (session_id() == "") {
+            session_start();
+        }
         if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
             $this->view->user = $this->model->getUser();
             $this->view->step = 'lk';
