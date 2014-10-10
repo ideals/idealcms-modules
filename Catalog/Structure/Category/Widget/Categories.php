@@ -39,6 +39,9 @@ class Categories extends \Ideal\Core\Widget
 
         $path = $this->model->getPath();
         foreach ($path as $v) {
+            if (!isset($v['cid'])) {
+                continue;
+            }
             if (!isset($menu[$v['cid']])) {
                 continue;
             }
