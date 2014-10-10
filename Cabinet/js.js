@@ -43,8 +43,7 @@ function validator(form, errClass) {
     return false;
 }
 
-function sendForm(e, module, controller, action) {
-    if (!module) module = 'module';
+function sendForm(e, controller, action) {
     if (!controller) controller = 'controller';
     if (!action) action = 'action';
     var tmp = $(e).parent();
@@ -56,7 +55,7 @@ function sendForm(e, module, controller, action) {
     }
     var form = tmp.find('form');
     if (validator(form)) {
-        url = '/?mode=ajax&module=' + module + '&controller=' + controller + '&action=' + action;
+        url = '/?mode=ajax&controller=' + controller + '&action=' + action;
         $.ajax({
             type: "POST",
             url: url,
