@@ -109,7 +109,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
 
         $post[0]['structure'] = 'MiniForum_Post';
-        $post[0]['url'] = $url;
+        $post[0]['url'] = $url[0];
         //$post[0]['content'] = str_replace('\r\n', '<br />', $post[0]['content']);
         $post[0]['content'] = nl2br($post[0]['content']);
         $post[0]['date_create'] = Util::dateReach($post[0]['date_create']);
