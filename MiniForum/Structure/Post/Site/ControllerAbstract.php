@@ -34,6 +34,11 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->prevStructure = 0;
         $pageData = $this->model->getPageData();
 
+        // Задаём название в хлебных крошках
+        $path = $this->model->getPath();
+        $path[count($path) - 1]['name'] = '';
+        $this->model->setPath($path);
+
         $text = $this->model->splitMessage($pageData['content'], 30, 0);
         $this->view->header = strip_tags($text[0]);
         $pageData['content'] = $text[1];
