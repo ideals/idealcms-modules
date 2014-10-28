@@ -13,7 +13,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     public function indexAction()
     {
         parent::indexAction();
-        $this->view->Authorized = $_SESSION['IsAuthorized'];
+        $this->view->Authorized = isset($_SESSION['IsAuthorized']) ? $_SESSION['IsAuthorized'] : '';
         $request = new Request();
         $page = intval($request->page);
         $this->view->posts = $this->model->getList($page);
@@ -45,7 +45,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->mainPost =  $pageData;
 
         $this->view->posts = $this->model->getChildPosts();
-        $this->view->Authorized = $_SESSION['IsAuthorized'];
+        $this->view->Authorized = isset($_SESSION['IsAuthorized']) ? $_SESSION['IsAuthorized'] : '';
 
         $config = Config::getInstance();
 
