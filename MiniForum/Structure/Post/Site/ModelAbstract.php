@@ -522,33 +522,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $urlModel = new Url\Model();
 
         $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND parent_id=0 AND is_moderated=1";
         $list = $db->select($_sql);
 
-        if (count($this->path) == 0 ) {
-            $url = array('0' => array('url' => $config->structures[0]['url']));
-        } else {
-            $url = $this->path;
-        }
-
-        $lvl = 0;
         foreach ($list as $k => $v) {
-            if ($v['lvl'] > $lvl) {
-                if (($v['url'] != '/') && ($k > 0)) {
-                    $url[] = $list[$k-1];
-                }
-                $urlModel->setParentUrl($url);
-            } elseif ($v['lvl'] < $lvl) {
-                // Если двойной или тройной выход добавляем соответствующий мультипликатор
-                $c = $lvl - $v['lvl'];
-                $url = array_slice($url, 0, -$c);
-                $urlModel->setParentUrl($url);
-            }
-            $list[$k]['name']  = $this->splitMessage($v['content'], 10, 80);
+            $list[$k]['name'] = $this->splitMessage($v['content'], 10, 80);
             $list[$k]['name'] = $list[$k]['name'][0] . $list[$k]['name'][1];
-            $lvl = $v['lvl'];
             $list[$k]['link'] = $this->parentUrl . '/' . $v['ID'] . $config->urlSuffix;
         }
         return $list;
