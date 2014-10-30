@@ -18,7 +18,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $this->categories = $db->select($_sql);
 
         $request = new Request();
-        $currentCategory = $request->toolbar['category'];
+        $currentCategory = isset($request->toolbar['category']) ? $request->toolbar['category'] : 0;
 
         $select = '<select name="toolbar[category]" class="form-control"><option value="">Все статьи</option>';
         foreach ($this->categories as $category) {
@@ -42,6 +42,10 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
     protected function getWhere($where)
     {
         $request = new Request();
+        if (!isset($request->toolbar['category'])) {
+            $where = parent::getWhere($where);
+            return $where;
+        }
         $currentCategory = $request->toolbar['category'];
 
         $config = Config::getInstance();
