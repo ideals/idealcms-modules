@@ -29,6 +29,10 @@ class Model extends Medium\AbstractModel
         $arr = $db->select($_sql);
 
         $list = array();
+        if (count($arr) == 0) {
+            return$list;
+        }
+        
         foreach ($arr as $item) {
             $list[$item['ID']] = $item['name'];
         }
