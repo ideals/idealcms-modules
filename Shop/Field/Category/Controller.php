@@ -41,6 +41,7 @@ class Controller extends \Ideal\Field\AbstractController
                 'fieldName' => $this->htmlName,
                 'value' => $this->newValue,
                 'message' => '',
+                'sqlAdd' => ''
             );
             return $item;
         }
