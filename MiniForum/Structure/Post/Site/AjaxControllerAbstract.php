@@ -176,7 +176,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if ((strlen($post['author']) === 0) || (strlen($post['content']) === 0)) {
             $msgValidation = 'Необходимо заполнить все поля формы';
         }
-        if ((strlen($post['email']) != 0) && (!Util::is_email($post['email']))) {
+        if ((strlen($post['email']) != 0) && (!Util::isEmail($post['email']))) {
             $msgValidation = 'Вы ввели неправильный почтовый адрес';
         }
         if (strlen($msgValidation) !== 0) {
