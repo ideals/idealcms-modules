@@ -30,6 +30,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function detectPageByUrl($path, $url)
     {
+        if (count($url) == 0) {
+            $this->is404 = true;
+            return $this;
+        }
         if (count($url) > 1) {
             $this->is404 = true;
             return $this;

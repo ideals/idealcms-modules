@@ -144,7 +144,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $second = false;
         if (mb_strlen($str) > 0) {
             preg_match_all('/(.*)[\.\?\!]/U', $str, $second, PREG_OFFSET_CAPTURE);
-            $second = $second['0']['0']['0'];
+            $second = isset($second['0']['0']['0']) ? $second['0']['0']['0'] : null;
         }
         if ($second) {
             $rText[0] = mb_substr($text, 0, $min) . $second;

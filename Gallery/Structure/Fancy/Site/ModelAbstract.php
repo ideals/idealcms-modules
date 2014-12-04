@@ -18,6 +18,7 @@ class ModelAbstract extends News\Site\Model
             $tmp = preg_split('/(\r\n|\r|\n)/su', $v['info']);
             foreach($tmp as $val) {
                 $tmp2 = explode(':', $val);
+                $tmp2[1] = isset($tmp2[1]) ? $tmp2[1] : '';
                 $title[trim($tmp2[0])] = trim($tmp2[1]);
             }
             $v['images'] = glob($v['dir_img'] . '/*.{jpg,png,gif}', GLOB_BRACE);
