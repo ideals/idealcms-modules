@@ -380,7 +380,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      * $mainPost - указывает на раздел, в от которого мы отписываем
      * $subscribe - если false, то отписываем, если true, то подписываем
      * */
-    public function subscribe(array $emails, int $mainPost, boolean $subscribe)
+    public function subscribe(array $emails, $mainPost, $subscribe)
     {
         foreach ($emails as $k => $email) {
             if ($k == 0) {
@@ -401,8 +401,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
         $db = Db::getInstance();
         $where['sql'] = 'get_mail = :whereGetMail AND main_parent_id = :mainPost AND ' . $where['sql'];
-        $where['param']['get_mail'] = $whereGetMail;
-        $where['param']['main_parent_id'] = $mainPost;
+        $where['param']['whereGetMail'] = $whereGetMail;
+        $where['param']['mainPost'] = $mainPost;
         $db = $db->update('i_miniforum_structure_post')
             ->set(array('get_mail' => $setGetMail))
             ->where($where['sql'], $where['param'])

@@ -50,6 +50,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
         if ($post['email'] == '') {
             $post['get_mail'] = false;
+        } else {
+            $post['get_mail'] = true;
         }
 
         $this->model = new Model($this->prevStructure);
@@ -76,9 +78,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->model->setPost($post);
         $result = $this->model->deletePost();
         if ($result) {
-            echo 'Ответ успешно удалён';
+            exit('Ответ успешно удалён');
         } else {
-            echo 'Не удалось удалить ответ';
+            exit('Не удалось удалить ответ');
         }
     }
 
@@ -93,7 +95,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->model->setPost($post);
         $result = $this->model->moderatedPost();
         if (!$result) {
-            echo 'Не удалось выполнить действие';
+            exit('Не удалось выполнить действие');
         }
     }
 
@@ -121,9 +123,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->model->setPost($post);
         $result = $this->model->updatePost();
         if ($result) {
-            echo 'Ответ успешно изменён';
+            exit('Ответ успешно изменён');
         } else {
-            echo 'Не удалось изменить ответ';
+            exit('Не удалось изменить ответ');
         }
     }
 
@@ -156,7 +158,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     public function getAnswerFormAction()
     {
         parse_str($_GET['formValues'], $formValues);
-        if (($formValues['mainParentId'] != '0') && ($formValues['pageStructurePostId'] != '0')) {
+        if ((isset($formValues['mainParentId']) && ($formValues['mainParentId'] != '0'))
+            && (isset($formValues['pageStructurePostId']) && ($formValues['pageStructurePostId'] != '0'))) {
             $goToPost = true;
         } else {
             $goToPost = false;

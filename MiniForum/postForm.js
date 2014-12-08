@@ -169,7 +169,7 @@ function addPostAnswer(ID, mainParentId, pageStructure) {
         buttonMethod: 'ajaxAddNewPost',
         ajaxAddNewPost: true,
         isPosterBlock: true
-    }
+    };
     loadForm.openAnswerForm(formValues);
 }
 
