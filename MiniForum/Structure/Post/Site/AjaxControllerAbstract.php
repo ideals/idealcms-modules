@@ -167,6 +167,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         //parse_str($_GET['formValues'], $formValues);
         $answerForm = stream_resolve_include_path('answerForm.php');
         include($answerForm);
+        exit;
     }
 
     /**
