@@ -105,9 +105,8 @@ EOT;
     public function finishReg()
     {
         $db = Db::getInstance();
-        $confing = Config::getInstance();
-        $email = mysql_real_escape_string($_GET['email']);
-        $key = mysql_real_escape_string($_GET['key']);
+        $email = mysqli_real_escape_string($db, $_GET['email']);
+        $key = mysqli_real_escape_string($db, $_GET['key']);
         $_sql = "SELECT * FROM {$this->_table} WHERE email='{$email}' AND act_key='{$key}' LIMIT 1";
         $result = $db->select($_sql);
         if (count($result) == 1) {

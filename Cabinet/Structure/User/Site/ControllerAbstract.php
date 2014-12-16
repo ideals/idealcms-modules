@@ -41,7 +41,9 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     public function finishRegAction()
     {
         parent::indexAction();
-        session_start();
+        if (!isset($_SESSION)) {
+            session_start();
+        }
         $this->view->step = 'finishReg';
         if (isset($_GET['email']) && isset($_GET['key'])) {
             $this->model->finishReg();
@@ -54,7 +56,9 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
      */
     public function logoutAction()
     {
-        session_start();
+        if (!isset($_SESSION)) {
+            session_start();
+        }
         unset($_SESSION['login']);
         $url = explode('?', $_SERVER['HTTP_REFERER']);
         header('Location: ' . $url[0]);
