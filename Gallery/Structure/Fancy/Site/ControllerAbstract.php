@@ -17,10 +17,8 @@ class ControllerAbstract extends Core\Site\Controller
 
         $request = new Request();
         $page = intval($request->page);
-        $this->view->parts = $this->model->getList($page);
-        $this->view->foto = $this->model->getFotos($page);
+        $this->view->photos = $this->model->getList($page);
 
         $this->view->pager = $this->model->getPager($page, $request->getQueryWithout('page'));
-
     }
 }
