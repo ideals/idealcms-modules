@@ -42,6 +42,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $photos;
     }
 
+    public function getWhere($where)
+    {
+        $where = 'WHERE ' . $where . ' AND is_active=1';
+        return $where;
+    }
+
     public function getStructureElements()
     {
         return array();
