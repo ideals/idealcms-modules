@@ -11,7 +11,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this;
     }
 
-    public function getList($page)
+    public function getList($page = null)
     {
         $list = parent::getList($page);
         $photos = array();
