@@ -39,14 +39,57 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getComments($pageStructure)
     {
         // todo сделать ограничение на количество комментариев на странице
-        $_sql = "SELECT * FROM i_miniforum_structure_post WHERE page_structure=:page_structure AND is_active=1 AND parent_id=0 {$this->where}";
+        // Очень выжно чтобы главные посты шли в конце иначе при получении дочерних постов через getCommentsTree,
+        // мы не получим все элементы
+        $_sql = "SELECT * FROM i_miniforum_structure_post
+                    WHERE page_structure=:page_structure AND is_active=1 {$this->where}
+                    ORDER BY main_parent_id DESC, date_create ASC";
         $params = array('page_structure' => $pageStructure);
         $db = Db::getInstance();
-        $posts = $db->select($_sql, $params);
-        $posts = $this->parsePosts($posts);
+        $list = $db->select($_sql, $params);
+        $posts = array();
+        foreach ($list as $k => &$v) {
+            $v['date_create'] = Util::dateReach($v['date_create']) . ' ' . date('G:i', $v['date_create']);
+            if ($v['main_parent_id'] != 0) {
+                continue;
+            }
+            $element = $v;
+            $element['margin'] = 0;
+            $element['elements'] = $this->buildTree($list, $v['ID']);
+            $element['elements'] = $this->buildList($element['elements'], 1);
+            $posts = array_merge($this->buildChildrenPosts(50, array('0' => $element)), $posts);
+        }
+
 
         return $posts;
     }
+
+    /**
+     * @param $margin
+     * @param $parent
+     */
+    protected function buildChildrenPosts($margin, $parent)
+    {
+        $end = end($parent);
+
+        $children = $end['elements'];
+
+        if (!isset($children[0]['ID'])) {
+            return $parent;
+        }
+
+        foreach ($children as &$v) {
+            $v['margin'] = $v['indent'] * $margin;
+        }
+
+        unset($parent[0]['elements']);
+        $parent = array_merge($parent, $children);
+
+        $parent = $this->buildChildrenPosts($margin, $parent);
+
+        return $parent;
+    }
+
 
     /**
      * @param int $page Номер отображаемой страницы
@@ -56,41 +99,54 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $posts = parent::getList($page);
 
-        $posts = $this->parsePosts($posts);
-
-        return $posts;
-    }
-
-    protected function parsePosts($posts)
-    {
-        $db = Db::getInstance();
-        $config = Config::getInstance();
-
         foreach ($posts as $k => $v) {
-            $posts[$k]['link'] = '/forum' . '/' . $v['ID'] . $config->urlSuffix;
-            $posts[$k]['date_create'] = Util::dateReach($v['date_create']) . ' ' . date('G:i', $v['date_create']);
-
-            //Резделяем текст в соответствии с условиями
-            $text = $this->splitMessage($posts[$k]['content'], 30, 200);
-
-            $posts[$k]['firstText'] = $text[0];
-            $posts[$k]['secondText'] = $text[1];
-
-            if ((mb_strlen($posts[$k]['firstText'] . $posts[$k]['secondText']) < mb_strlen($v['content'])) && ($posts[$k]['secondText'] !== '')) {
-                $posts[$k]['secondText'] .= '...';
-            }
-
-            $posts[$k]['firstText'] = str_replace('\r\n', ' ', $posts[$k]['firstText']);
-            $posts[$k]['secondText'] = str_replace('\r\n', ' ', $posts[$k]['secondText']);
-
-            $_sql = "SELECT COUNT(*) FROM {$this->_table} WHERE main_parent_id=:main_parent_id";
-            $params = array('main_parent_id' => $v['ID']);
-            $answerCount = $db->select($_sql, $params);
-            $posts[$k]['answer_count'] = $answerCount[0]['COUNT(*)'];
+            $posts[$k] = $this->parsePost($v);
+            $posts[$k] = $this->getAnswerCount($v);
         }
 
         return $posts;
     }
+
+    protected function parsePost($post)
+    {
+        $config = Config::getInstance();
+
+        $post['link'] = '/forum' . '/' . $post['ID'] . $config->urlSuffix;
+        $post['date_create'] = Util::dateReach($post['date_create']) . ' ' . date('G:i', $post['date_create']);
+
+        //Резделяем текст в соответствии с условиями
+        $text = $this->splitMessage($post['content'], 30, 200);
+
+        $post['firstText'] = $text[0];
+        $post['secondText'] = $text[1];
+
+        if ((mb_strlen($post['firstText'] . $post['secondText']) < mb_strlen($post['content']))
+                && ($post['secondText'] !== '')) {
+                $post['secondText'] .= '...';
+        }
+
+        $post['firstText'] = str_replace('\r\n', ' ', $post['firstText']);
+        $post['secondText'] = str_replace('\r\n', ' ', $post['secondText']);
+
+        return $post;
+    }
+
+
+    /**
+     * Получение количества ответов на пост
+     *
+     * @param $post
+     * @return mixed
+     */
+    protected function getAnswerCount($postID)
+    {
+        $db = Db::getInstance();
+        $_sql = "SELECT COUNT(*) AS count FROM {$this->_table} WHERE main_parent_id=:main_parent_id";
+        $params = array('main_parent_id' => $postID['ID']);
+        $answerCount = $db->select($_sql, $params);
+        return isset($answerCount[0]['count']) ? $answerCount[0]['count'] : false;
+    }
+
 
     public function detectPageByUrl($path, $url)
     {
