@@ -7,7 +7,7 @@ use Ideal\Core\Request;
 use Ideal\Core\Util;
 use Mail\Sender;
 use Ideal\Field\Url;
-
+use Ideal\Structure\User;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
@@ -17,6 +17,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     protected $pageStructure = false;
     protected $prevStructure;
     protected $parentUrl = '/forum';
+    protected $isModerator = false;
 
     public function __construct($prevStructure)
     {
@@ -26,8 +27,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if (!isset($_SESSION)) {
             session_start();
         }
-        if (!isset($_SESSION['IsAuthorized']) || ((isset($_SESSION['IsAuthorized'])) && !$_SESSION['IsAuthorized'])) {
+        $user = new User\Model();
+        if (!isset($user->data['ID'])) {
             $this->where = 'AND is_moderated=1';
+        } else {
+            $user = new \Ideal\Structure\User\Model();
+            $this->isModerator == true;
         }
     }
 
@@ -50,6 +55,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $posts = array();
         foreach ($list as $k => &$v) {
             $v['date_create'] = Util::dateReach($v['date_create']) . ' ' . date('G:i', $v['date_create']);
+            $v['content'] = nl2br($v['content']);
             if ($v['main_parent_id'] != 0) {
                 continue;
             }
@@ -353,13 +359,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $values['page_structure'] = $this->post['page_structure'];
         $values['author'] = $this->post['author'];
         $values['email'] = $this->post['email'];
-        $values['content'] = strip_tags($this->post['content'], '<p><br><strong><em><a><table><tr><td>');
+        $values['content'] = $this->isModerator ? $this->post['content'] : strip_tags($this->post['content']);
         $values['date_create'] = $time;
         $values['is_active'] = 1;
         $values['get_mail'] = $this->post['get_mail'] ? 1 : 0;
 
         // Сообщения и темы созданные зарегестрированным пользователем по умолчанию отображаются.
-        $values['is_moderated'] = intval($_SESSION['IsAuthorized']);
+        $values['is_moderated'] = intval($this->isModerator);
 
 
         $result = $db->insert($this->_table, $values);
@@ -376,9 +382,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function updatePost()
     {
         $db = Db::getInstance();
-        foreach ($this->post as $k => $v) {
-            $this->post[$k] = $db->real_escape_string($v);
-        }
         $values = array(
             'author' => $this->post['author'],
             'email' => $this->post['email'],
