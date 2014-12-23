@@ -28,8 +28,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if (!isset($user->data['ID'])) {
             $this->where = 'AND is_moderated=1';
         } else {
-            $user = new \Ideal\Structure\User\Model();
-            $this->isModerator == true;
+            $this->isModerator = true;
         }
     }
 

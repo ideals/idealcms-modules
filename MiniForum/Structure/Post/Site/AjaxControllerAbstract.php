@@ -45,7 +45,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $valid = $this->validation($post);
         if ($valid !== true) {
             echo $valid;
-            return;
+            exit();
         }
 
         if ($post['email'] == '') {
