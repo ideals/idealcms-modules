@@ -24,9 +24,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         parent::__construct($prevStructure);
 
         // Для авторизованного пользователя выводим все посты
-        if (!isset($_SESSION)) {
-            session_start();
-        }
         $user = new User\Model();
         if (!isset($user->data['ID'])) {
             $this->where = 'AND is_moderated=1';
@@ -78,7 +75,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $end = end($parent);
 
-        $children = $end['elements'];
+        $children = isset($end['elements']) ? $end['elements'] : null;
 
         if (!isset($children[0]['ID'])) {
             return $parent;
