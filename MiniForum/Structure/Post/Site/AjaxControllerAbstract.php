@@ -63,7 +63,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
         echo $result;
         exit();
-
     }
 
     /**
@@ -97,6 +96,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if (!$result) {
             exit('Не удалось выполнить действие');
         }
+        exit;
     }
 
 
