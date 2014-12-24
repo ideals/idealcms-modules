@@ -402,14 +402,14 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if ($this->post['main_parent_id'] == 0) {
             // Это первое сообщение, удаляем всё подчистую
             $db->delete($this->_table)
-                ->where('ID = :ID', array('main_parent_id' => $this->post['ID']))
+                ->where('ID = :main_parent_id', array('main_parent_id' => $this->post['ID']))
                 ->exec();
 
         } else {
             // Заменяем у всех потомков родительский id
             $db->update($this->_table)
                 ->set(array('parent_id' => $this->post['parent_id']))
-                ->where('parent_id = :ID', array('parent_id' => $this->post['ID']))
+                ->where('parent_id = :parent_id', array('parent_id' => $this->post['ID']))
                 ->exec();
         }
         return $result; //true || false
