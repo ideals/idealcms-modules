@@ -69,6 +69,9 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         $dataList = new \Ideal\Structure\DataList\Admin\ModelAbstract('0-' . $structure['ID']);
         $end = end($path);
         $spravochnik = $dataList->getByParentUrl($end['url']);
+        if (!isset($spravochnik['url'])) {
+            return false;
+        }
         $this->tagParamName = $spravochnik['url'];
         $this->prevStructure = $structure['ID'] . '-' . $spravochnik['ID'];
         $this->path = array($structure, $spravochnik);
