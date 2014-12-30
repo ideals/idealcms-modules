@@ -10,7 +10,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
      */
     public function indexAction()
     {
-        $this->setTemplate('Catalog/Structure/Category/Site/index.twig');
         parent::indexAction();
 
         $request = new Request();
