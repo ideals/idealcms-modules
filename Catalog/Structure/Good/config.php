@@ -21,12 +21,6 @@ return array(
             'sql'   => 'char(15)',
             'type'  => 'Ideal_Hidden'
         ),
-        'category_id' => array(
-            'label' => 'Категория',
-            'sql'   => 'int(11) not null',
-            'type'  => 'Ideal_Select',
-            'medium' => '\\Catalog\\Medium\\CategoryList\\Model',
-        ),
         'name' => array(
             'label' => 'Название',
             'sql'   => 'varchar(255) not null',
