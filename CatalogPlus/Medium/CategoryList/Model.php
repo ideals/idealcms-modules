@@ -15,12 +15,12 @@ class Model extends AbstractModel
         $db = Db::getInstance();
         $config = Config::getInstance();
         $table = $config->db['prefix'] . 'catalogplus_structure_category';
-        $_sql = 'SELECT ID, name FROM ' . $table;
+        $_sql = 'SELECT ID, name, lvl FROM ' . $table . ' ORDER BY cid';
         $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $item) {
-            $list[$item['ID']] = $item['name'];
+            $list[$item['ID']] = str_repeat('— ', ($item['lvl'] - 1)) . $item['name'];
         }
 
         return $list;
