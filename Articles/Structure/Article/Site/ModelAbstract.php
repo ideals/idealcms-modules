@@ -175,6 +175,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // Если есть шаблон с контентом, пытаемся из него извлечь заголовок H1
             list($header, $text) = $this->extractHeader($this->pageData['content']);
             $this->pageData['content'] = $text;
+        } elseif (isset($this->pageData['template']['content'])) {
+            // Извлекаем заголовок из текста для списка статей
+            list($header, $text) = $this->extractHeader($this->pageData['template']['content']);
+            $this->pageData['template']['content'] = $text;
         }
 
         if ($header == '') {
