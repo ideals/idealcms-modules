@@ -11,6 +11,9 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
 
     public function getToolbar()
     {
+        if (is_null($this->categoryPrevStructure)) {
+            return '';
+        }
         $db = Db::getInstance();
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'articles_structure_category';
