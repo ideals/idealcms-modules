@@ -102,4 +102,22 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         print json_encode($answer);
         exit;
     }
+
+    public function templateInit($tplName = '')
+    {
+        if (!stream_resolve_include_path($tplName)) {
+            echo 'Нет файла шаблона ' . $tplName;
+            exit;
+        }
+        $tplRoot = dirname(stream_resolve_include_path($tplName));
+        $tplName = basename($tplName);
+
+        // Определяем корневую папку системы для подключение шаблонов из любой вложенной папки через их путь
+        $config = Config::getInstance();
+        $cmsFolder = DOCUMENT_ROOT . '/' . $config->cmsFolder;
+
+        $folders = array_merge(array($tplRoot, $cmsFolder));
+        $this->view = new \Ideal\Core\View($folders, $config->cache['templateSite']);
+        $this->view->loadTemplate($tplName);
+    }
 }
