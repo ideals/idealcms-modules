@@ -3,11 +3,18 @@ namespace Cabinet\Structure\User\Site;
 
 use Ideal\Core\Config;
 use Ideal\Core\Db;
+use Ideal\Core\Util;
+use Mail\Sender;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
     /** @var array Основные параметры при ответе для json */
-    protected $answer = array('error' => false, 'text' => '', 'refresh' => false);
+    protected $answer;
+
+    protected $data;
+
+    /** @var \Ideal\Core\View */
+    protected $view;
 
     /**
      * TODO
@@ -23,6 +30,23 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             'text' => '', // Текст о выполнении задачи
             'refresh' => false // Требуется ли обновление страницы после получения данных
         );
+        $this->loadData();
+        if ($this->answer['error']) {
+            exit();
+        }
+        if (session_id() == '') {
+            session_start();
+        }
+    }
+
+    /**
+     * Завершение работы ajax запроса и вывод результатов
+     */
+    public function __destruct()
+    {
+        $this->answer['text'] = trim($this->answer['text']);
+        print json_encode($this->answer);
+        exit();
     }
 
     /**
@@ -30,7 +54,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function getUserAction()
     {
-        session_start();
         if (!isset($_SESSION['login']['user'])) {
             $this->answer['error'] = true;
             $this->answer['text'] = "Вы не авторизованы";
@@ -57,45 +80,35 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function loginAction()
     {
-        session_start();
         if (isset($_SESSION['login']['input']) && $_SESSION['login']['input']) {
-            //return;
+            exit();
         }
-        if (!isset($_POST['login']) || !isset($_POST['pass'])) {
+        if (!isset($this->data['email']) || !isset($this->data['pass'])) {
             $this->answer['text'] = 'Вы указали не все данные';
             $this->answer['error'] = true;
+            exit();
         }
 
-        if (!$this->answer['error']) {
-            $email = @ htmlspecialchars($_POST['login']);
-            $email = strtolower($email);
-            $pass = @ htmlspecialchars($_POST['pass']);
+        $email = strtolower($this->data['email']);
+        $pass = htmlspecialchars($this->data['pass']);
 
-            $db = Db::getInstance();
-            $config = Config::getInstance();
-            $table = $config->db['prefix'] . 'cabinet_structure_user';
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $table = $config->db['prefix'] . 'cabinet_structure_user';
 
-            $tmp = $db->select("SELECT ID,password,last_visit,is_active FROM {$table} WHERE email='{$email}' LIMIT 1");
+        $tmp = $db->select("SELECT ID,password,last_visit,is_active FROM {$table} WHERE email='{$email}' LIMIT 1");
 
-            //$pass = crypt($pass, $tmp[0]['password']);
-            if ((count($tmp) === 1) && (crypt($pass, $tmp[0]['password']) === $tmp[0]['password'])) {
-                $_SESSION['login']['user'] = $email;
-                $_SESSION['login']['ID'] = $tmp[0]['ID'];
-                $_SESSION['login']['input'] = true;
-                if ($tmp[0]['is_active'] == 1) {
-                    $_SESSION['login']['is_active'] = true;
-                } else {
-                    $_SESSION['login']['is_active'] = false;
-                }
-                $this->answer['text'] = 'Вы успешно вошли';
-                $this->answer['refresh'] = true;
-            } else {
-                $this->answer['text'] = 'Ошибка в логине(email) или пароле';
-                $this->answer['error'] = true;
-            }
+        if ((count($tmp) === 1) && (crypt($pass, $tmp[0]['password']) === $tmp[0]['password'])) {
+            $_SESSION['login']['user'] = $email;
+            $_SESSION['login']['ID'] = $tmp[0]['ID'];
+            $_SESSION['login']['input'] = true;
+            $_SESSION['login']['is_active'] = boolval($tmp[0]['is_active']);
+            $this->answer['text'] = 'Вы успешно вошли';
+        } else {
+            $this->answer['text'] = 'Ошибка в логине(email) или пароле';
+            $this->answer['error'] = true;
         }
-        echo json_encode($this->answer);
-        exit;
+        exit();
     }
 
     /**
@@ -103,90 +116,88 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function registrationAction()
     {
-        session_start();
-
-        // Получение данных из формы регистрации
-        $name = @ htmlspecialchars($_POST['name']);
-        $lastName = @ htmlspecialchars($_POST['lastname']);
-        $phone = @ htmlspecialchars($_POST['phone']);
-        $address = @ htmlspecialchars($_POST['addr']);
-        $email = @ htmlspecialchars($_POST['email']);
-        $email = strtolower($email);
-        $captcha = @ htmlspecialchars($_POST['int']);
-        $captcha = md5($captcha);
-        $fio = $name . ' ' . $lastName;
-
-        if ($_SESSION['cryptcode'] !== $captcha) {
-            $this->answer['text'] = 'Не верно введена капча';
+        // Проверка данных из формы
+        if (!(isset($this->data['fio']) && (strlen($this->data['fio']) > 1))
+            || !(isset($this->data['phone']) && (strlen($this->data['phone']) > 1))
+            || !(isset($this->data['addr']) && (strlen($this->data['addr']) > 1))
+        ) {
             $this->answer['error'] = true;
+            $this->answer['text'] .= ' Заполнены не все поля.';
+            exit();
         }
-
-        if (!$this->answer['error']) {
-            $config = Config::getInstance();
-            $db = Db::getInstance();
+        $fio = $this->data['fio'];
+        $phone = $this->data['phone'];
+        $address = $this->data['addr'];
+        $email = $this->data['email'];
+        if (isset($data['pass']) && (strlen($this->data['pass']) > 4)) {
+            $clearPass = $this->data['pass'];
+        } else {
             // Создаем пароль
             $clearPass = $this->randPassword();
-            // Хешируем пароль
-            $pass = crypt($clearPass);
-            $email = mysql_real_escape_string($email);
-            // Установка таблицы в базе данных
-            $table = $config->db['prefix'] . 'cabinet_structure_user';
-            // Проверка на существование в базе данных email
-            $tmp = $db->select("SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1");
-            if (count($tmp) > 0) {
-                $this->answer['text'] = 'Такой Email уже зарегестрирован';
-                $this->answer['error'] = true;
-            } else {
-                // Определяем с какого url был переход
-                // Что бы потом можно было указать страницу для заверщения регистрации
-                $url = array();
-                $patter = "/{$config->domain}(.*)\?/iU";
-                preg_match($patter, $_SERVER['HTTP_REFERER'], $url);
-                $url = end($url);
-                $url = trim($url, '/');
-                $url = $url . $config->urlSuffix;
-                // Определние правильного prevStructure при помощи конфига
-                $prevStructure = $config->getStructureByName('Cabinet_User');
-                $prevStructure = '0-' . $prevStructure['ID'];
-
-                // Ключ который высылается пользователю для подтверждения почты и активации пользователя
-                $key = md5(time());
-                $db->insert($config->db['prefix'] . 'cabinet_structure_user', array(
-                    'email' => $email,
-                    'address' => $address,
-                    'phone' => $phone,
-                    'password' => $pass,
-                    'fio' => $fio,
-                    'is_active' => 0,
-                    'prev_structure' => $prevStructure,
-                    'act_key' => $key,
-                    'reg_date' => time()
-                ));
-                // Текст письма которое получает пользователь на почту
-                $message = <<<EOT
-Для продолжение регистрации перейдите по ссылке http://{$config->domain}/{$url}?action=finishReg&email={$email}&key={$key}
-
-Имя: {$fio}
-Email: $email
-Пароль: {$clearPass}
-EOT;
-
-                $title = 'Регистрация' . $config->domain;
-                $to = $email;
-                $headers = "From: {$config->robotEmail}\r\n"
-                    . "Content-type: text/plain; charset=\"utf-8\"";
-                if (mail($to, $title, $message, $headers)) {
-                    $this->answer['text'] = 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
-                } else {
-                    $this->answer['text'] = 'Ошибка. Попробуйте чуть позже';
-                    $this->answer['error'] = 1;
-                }
-            }
         }
+        // Хешируем пароль
+        $pass = crypt($clearPass);
 
+        $config = Config::getInstance();
+        $db = Db::getInstance();
 
-        print json_encode($this->answer);
-        exit;
+        $email = mysqli_real_escape_string($db->getInstance(), $email);
+        $email = strtolower($email);
+        // Установка таблицы в базе данных
+        $table = $config->db['prefix'] . 'cabinet_structure_user';
+        // Проверка на существование в базе данных email
+        $tmp = $db->select("SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1");
+        if (count($tmp) > 0) {
+            $this->answer['text'] .= ' Такой Email уже зарегестрирован.';
+            $this->answer['error'] = true;
+            exit();
+        }
+        // Определние правильного prevStructure при помощи конфига
+        $prevStructure = $config->getStructureByName('Cabinet_User');
+        $prevStructure = '0-' . $prevStructure['ID'];
+
+        // Ключ который высылается пользователю для подтверждения почты и активации пользователя
+        $key = md5(time());
+        $db->insert($config->db['prefix'] . 'cabinet_structure_user', array(
+            'email' => $email,
+            'address' => $address,
+            'phone' => $phone,
+            'password' => $pass,
+            'fio' => $fio,
+            'is_active' => 0,
+            'prev_structure' => $prevStructure,
+            'act_key' => $key,
+            'reg_date' => time()
+        ));
+        $title = 'Регистрация на ' . $config->domain;
+
+        $this->templateInit('Cabinet/Structure/User/Site/letter.twig');
+        $this->loadHelpVar();
+
+        $this->view->reg = true;
+        $this->view->fio = $fio;
+        $this->view->email = $email;
+        $this->view->pass = $clearPass;
+        $link = 'http://' . $config->domain . '/?';
+        $link .= 'mode=ajax&controller=Cabinet\\Structure\\User\\Site&action=finish';
+        $link .= '&email=' . urlencode($email);
+        $link .= '&key=' . urlencode($key);
+        $this->view->link = $link;
+        $this->view->title = $title;
+
+        $msg = $this->view->render();
+
+        $mail = new Sender();
+        $mail->setSubj($title);
+        $mail->setHtmlBody($msg);
+
+        if ($mail->sent($config->robotEmail, $this->data['email'])) {
+            $this->answer['text'] = 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
+        } else {
+            $this->answer['text'] = 'Ошибка. Попробуйте чуть позже';
+            $this->answer['error'] = 1;
+        }
+        exit();
     }
 
     /**
@@ -197,43 +208,39 @@ EOT;
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $email = mysql_real_escape_string($_POST['login']);
+        $email = mysqli_real_escape_string($db->getInstance(), $this->data['email']);
         $email = strtolower($email);
-        if ((strlen($email) < 1) || (strpos($email, '@') == false)) {
-            $this->answer['text'] = 'Не указан E-mail';
-            $this->answer['error'] = true;
-            print json_encode($this->answer);
-            exit;
-        }
         $table = $config->db['prefix'] . 'cabinet_structure_user';
         $_sql = "SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1";
         $user = $db->select($_sql);
         if (count($user) == 0) {
             $this->answer['error'] = true;
-            $this->answer['text'] = 'Данный E-mail еще не зарегистрирован';
+            $this->answer['text'] .= ' Данный E-mail еще не зарегистрирован.';
+            exit();
         }
-        if (!$this->answer['error']) {
-            $clearPass = $this->randPassword();
-            $pass = crypt($clearPass);
-            $title = 'Восстановление пароля на ' . $config->domain;
-            $headers = "From: {$config->robotEmail}\r\n"
-                . "Content-type: text/plain; charset=\"utf-8\"";
-            $to = $email;
-            $msg = <<<EOT
-Ваш новый пароль:{$clearPass}
-EOT;
-            if (mail($to, $title, $msg, $headers)) {
-                $this->answer['text'] = 'Вам было отправлено письмо с новым паролем';
-            } else {
-                $this->answer['text'] = 'Ошибка. Попробуйте чуть позже';
-                $this->answer['error'] = 1;
-            }
+        $clearPass = $this->randPassword();
+        $pass = crypt($clearPass);
+        $mail = new Sender();
+        $title = 'Восстановление пароля на ' . $config->domain;
+        $mail->setSubj($title);
+        $this->templateInit('Cabinet/Structure/User/Site/letter.twig');
+        $this->loadHelpVar();
+
+        $this->view->title = $title;
+        $this->view->clearPass = $clearPass;
+        $this->view->recover = true;
+
+        $html = $this->view->render();
+        $mail->setHtmlBody($html);
+        if ($mail->sent($config->robotEmail, $this->data['email'])) {
             $_sql = "UPDATE {$table} SET password='{$pass}' WHERE email='{$email}'";
             $db->query($_sql);
+            $this->answer['text'] .= ' Вам выслан новый пароль.';
+        } else {
+            $this->answer['error'] = true;
+            $this->answer['text'] .= ' Услуга временно недоступна попробуйте позже.';
         }
-
-        print json_encode($this->answer);
-        exit;
+        exit();
     }
 
     /**
@@ -276,5 +283,104 @@ EOT;
         $length = rand($min, $max);
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         return substr(str_shuffle($chars), 0, $length);
+    }
+
+    /**
+     * Проверка корректности введенного email
+     *
+     * @param $email
+     * @return bool
+     */
+    protected function isEmail($email)
+    {
+        $result = true;
+        if (function_exists('filter_var') && (!filter_var($email, FILTER_VALIDATE_EMAIL))) {
+            $result = false;
+        } else {
+            if (!Util::isEmail($email)) {
+                $result = false;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Загрузка полученных данных
+     */
+    protected function loadData()
+    {
+        foreach ($_REQUEST as $k => $v) {
+            switch (strtolower($k)) {
+                case 'email':
+                case 'e-mail':
+                case 'login':
+                    if (!$this->isEmail($v)) {
+                        $this->answer['error'] = true;
+                        $this->answer['text'] .= ' E-mail указан неверно.';
+                    }
+                    $this->data['email'] = strtolower($v);
+                    break;
+                case 'pass':
+                case 'password':
+                case 'repass':
+                    if (isset($this->data['pass'])) {
+                        if ($this->data['pass'] != $v) {
+                            $this->answer['error'] = true;
+                            $this->answer['text'] .= ' Пароли не совпадают друг с другом.';
+                        }
+                    } else {
+                        $this->data['pass'] = $v;
+                    }
+                    break;
+                case 'captha':
+                case 'int':
+                    $captcha = md5($v);
+                    if ($_SESSION['cryptcode'] !== $captcha) {
+                        $this->answer['text'] .= ' Не верно введена капча.';
+                        $this->answer['error'] = true;
+                    }
+                    break;
+                case 'mode':
+                case 'controller':
+                case 'action':
+                    break;
+                default:
+                    $this->data[$k] = $v;
+            }
+        }
+    }
+
+    protected function loadHelpVar()
+    {
+        if (!isset($this->view)) {
+            return false;
+        }
+        $config = Config::getInstance();
+        $this->view->phone = $config->phone;
+        $this->view->email = $config->mailForm;
+        $this->view->domain = $config->domain;
+    }
+
+    /**
+     * Генерация шаблона отображения
+     *
+     * @param string $tplName
+     */
+    public function templateInit($tplName = '')
+    {
+        if (!stream_resolve_include_path($tplName)) {
+            echo 'Нет файла шаблона ' . $tplName;
+            exit;
+        }
+        $tplRoot = dirname(stream_resolve_include_path($tplName));
+        $tplName = basename($tplName);
+
+        // Определяем корневую папку системы для подключение шаблонов из любой вложенной папки через их путь
+        $config = Config::getInstance();
+        $cmsFolder = DOCUMENT_ROOT . '/' . $config->cmsFolder;
+
+        $folders = array_merge(array($tplRoot, $cmsFolder));
+        $this->view = new \Ideal\Core\View($folders, $config->cache['templateSite']);
+        $this->view->loadTemplate($tplName);
     }
 }
