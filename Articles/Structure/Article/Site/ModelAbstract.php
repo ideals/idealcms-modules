@@ -61,7 +61,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function detectCurrentCategory()
     {
         $config = Config::getInstance();
-        if (!boolval($config->getStructureByName('Articles_Category'))) {
+        if (!(bool)($config->getStructureByName('Articles_Category'))) {
             $this->categoryModel = false;
             return;
         }
@@ -81,7 +81,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function getCategories()
     {
-        if (!boolval($this->currentCategory)) {
+        if (!(bool)($this->currentCategory)) {
             return false;
         }
         $parentUrl = $this->getParentUrl();
