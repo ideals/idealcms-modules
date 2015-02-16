@@ -16,8 +16,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function detectPageByUrl($path, $url)
     {
+        $config = Config::getInstance();
         // Определяем, нет ли в URL категории
-        $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
+        //$this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
         $url = $this->categoryModel->detectPageByUrl($path, $url);
         if (count($url) == 0) {
             // Прошло успешно определение страницы категории, значит статью определять не надо
@@ -59,6 +60,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function detectCurrentCategory()
     {
+        $config = Config::getInstance();
+        if (!boolval($config->getStructureByName('Articles_Category'))) {
+            $this->categoryModel = false;
+            return;
+        }
         if (!isset($this->categoryModel)) {
             // Если категория не была определена на этапе DetectPageByUrl, то нужно
             // проверить, нет ли категории в query_string
@@ -75,6 +81,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function getCategories()
     {
+        if (!boolval($this->currentCategory)) {
+            return false;
+        }
         $parentUrl = $this->getParentUrl();
         return $this->categoryModel->getCategories($parentUrl);
     }
