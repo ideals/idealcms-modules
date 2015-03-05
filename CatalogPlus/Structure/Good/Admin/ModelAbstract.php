@@ -17,12 +17,12 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $_table = $config->db['prefix'] . 'ideal_structure_part';
         $_sql = "SELECT * FROM {$_table} WHERE structure='CatalogPlus_Category' LIMIT 1";
         $tmp = $db->select($_sql);
-        if(count($tmp) > 0){
+        if (count($tmp) > 0) {
             // Построение prevStructure
             $categoryPrevStructure = explode('-', $tmp[0]['prev_structure']);
             $categoryPrevStructure = end($categoryPrevStructure) . '-' . $tmp[0]['ID'];
             $this->categoryPrevStructure = $categoryPrevStructure;
-        } else{
+        } else {
             \FB::error($this, 'CatalogPlus');
         }
         $_table = $config->db['prefix'] . 'catalogplus_structure_category';
@@ -41,8 +41,8 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
             if ($category['ID'] == $currentCategory) {
                 $selected = 'selected="selected"';
             }
-            for ($i = 1; $i < (int)$category['lvl']; $i++){
-                if($i > 8) {
+            for ($i = 1; $i < (int)$category['lvl']; $i++) {
+                if ($i > 8) {
                     break;
                 }
                 $category['name'] = '-' . $category['name'];
@@ -78,8 +78,8 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
             $where .= 'ID IN (SELECT good_id FROM ' . $table . ' WHERE category_id='
                 . $db->real_escape_string($currentCategory) . ')';
         }
-        if ($where != ''){
-            $where = 'WHERE '.$where;
+        if ($where != '') {
+            $where = 'WHERE ' . $where;
         }
 
         return $where;

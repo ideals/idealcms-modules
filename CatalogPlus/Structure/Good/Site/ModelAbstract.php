@@ -3,9 +3,9 @@ namespace CatalogPlus\Structure\Good\Site;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
-use Ideal\Core\Request;
 use Ideal\Core\Util;
-use Ideal\Field\Cid;
+use Ideal\Field;
+use CatalogPlus;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
@@ -20,7 +20,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function detectPageByUrl($path, $url)
     {
         // Определяем, нет ли в URL категории
-        $this->categoryModel = new \CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
+        $this->categoryModel = new CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
         $model = $this->categoryModel->detectPageByUrl($path, $url);
         if (!$model->is404) {
             // Прошло успешно определение страницы категории, значит товар определять не надо
@@ -65,7 +65,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function getStructureElements()
     {
-        $this->categoryModel = new \CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
+        $this->categoryModel = new CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
         $this->categoryModel->setPath($this->path);
         $this->params['elements_site'] = 9999;
         $articles = $this->getList(1);
@@ -76,12 +76,18 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getData()
     {
         $data = $this->pageData['data'];
-        $configTemplate = new \CatalogPlus\Template\Data\Model('');
-        if ($data['ID']) unset($data['ID']);
-        if ($data['prev_structure']) unset($data['prev_structure']);
+        $configTemplate = new CatalogPlus\Template\Data\Model('');
+        if ($data['ID']) {
+            unset($data['ID']);
+        }
+        if ($data['prev_structure']) {
+            unset($data['prev_structure']);
+        }
         foreach ($data as $k => $v) {
             unset($data[$k]);
-            if ((is_string($v) && strlen($v) < 1) || (is_null($v))) continue;
+            if ((is_string($v) && strlen($v) < 1) || (is_null($v))) {
+                continue;
+            }
             $data[$k]['name'] = $configTemplate->fields[$k]['label'];
             $data[$k]['value'] = $v;
         }
@@ -97,9 +103,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $list = parent::getList($page);
 
         // Построение правильных URL
-        $url = new \Ideal\Field\Url\Model();
+        $url = new Field\Url\Model();
         $url->setParentUrl($this->path);
-        if (is_array($list) and count($list) != 0 ) {
+        if (is_array($list) and count($list) != 0) {
             foreach ($list as $k => $v) {
                 $list[$k]['link'] = $url->getUrl($v);
             }
@@ -125,18 +131,32 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 if ($this->showNestedElements) {
                     $catTable = $config->db['prefix'] . 'catalogplus_structure_category';
                     $params = $this->categoryModel->params;
-                    $cidModel = new Cid\Model($params['levels'], $params['digits']);
+                    $cidModel = new Field\Cid\Model($params['levels'], $params['digits']);
                     $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
-                    $categoryWhere = " category_id IN (SELECT ID FROM {$catTable} WHERE cid LIKE '{$cid}%' AND is_active=1)";
+                    $categoryWhere = " category_id IN (SELECT ID FROM {$catTable}
+                                        WHERE cid LIKE '{$cid}%' AND is_active=1)";
                 }
-                $where .= " AND e.ID IN (SELECT good_id FROM {$table}
-                                                  WHERE {$categoryWhere})";
+                $where .= " AND e.ID IN (SELECT good_id FROM {$table} WHERE {$categoryWhere})";
             }
         }
 
         $where = parent::getWhere($where . ' AND e.is_active=1');
 
         return $where;
+    }
+
+    public function getShortCidCat()
+    {
+        $cid = false;
+        if (isset($this->categoryModel)) {
+            $category = $this->categoryModel->getPageData();
+            if (isset($category['ID'])) {
+                $params = $this->categoryModel->params;
+                $cidModel = new Field\Cid\Model($params['levels'], $params['digits']);
+                $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
+            }
+        }
+        return $cid;
     }
 
     public function detectPath()
@@ -152,7 +172,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // Определение пути из товара
         $config = Config::getInstance();
-        $db = Db::getInstance();
 
         $good = $this->pageData;
         list($parentStructure, $parentId) = explode('-', $good['prev_structure']);
@@ -164,6 +183,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // Находим предка — структуру статей
         $parentClassName = Util::getClassName($structure['structure'], 'Structure') . '\\Site\\Model';
+        /** @var $parentModel \Ideal\Core\Site\Model */
         $parentModel = new $parentClassName($good['structure']);
         $parentModel->setPageDataById($parentId);
 
@@ -210,7 +230,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     public function setVars($model)
     {
-        $category = new \CatalogPlus\Structure\Category\Site\Model('');
+        $category = new CatalogPlus\Structure\Category\Site\Model('');
         $path = $model->getPath();
         $end = array_pop($path);
         $end['structure'] = 'CatalogPlus_Category';
@@ -220,5 +240,4 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         //$category->setGoods($this);
         return $category;
     }
-
 }

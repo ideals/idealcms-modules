@@ -7,27 +7,28 @@ use Ideal\Medium\AbstractModel;
 
 class Model extends AbstractModel
 {
+    /** @var  \Ideal\Core\Admin\Model Модель редактируемого элемента */
     protected $obj;
     protected $fieldName;
 
-    public function  getList()
+    public function getList()
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
         $table = $config->db['prefix'] . 'catalogplus_structure_category';
-        $_sql = 'SELECT ID, name, lvl FROM ' . $table . ' ORDER BY cid';
+        $_sql = "SELECT ID, name, lvl FROM {$table} ORDER BY cid";
         $arr = $db->select($_sql);
 
         $list = array();
         foreach ($arr as $item) {
-            $list[$item['ID']] = str_repeat('— ', ($item['lvl'] - 1)) . $item['name'];
+            $list[$item['ID']] = str_repeat('вЂ” ', ($item['lvl'] - 1)) . $item['name'];
         }
 
         return $list;
     }
 
 
-    public function getVariants()
+    public function getValues()
     {
         $db = Db::getInstance();
         $pageData = $this->obj->getPageData();
@@ -52,5 +53,4 @@ class Model extends AbstractModel
         }
         return $_sql;
     }
-
 }

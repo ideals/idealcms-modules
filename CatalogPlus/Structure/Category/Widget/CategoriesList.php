@@ -1,13 +1,16 @@
 <?php
 namespace CatalogPlus\Structure\Category\Widget;
 
-use \Ideal\Core\Config;
-use \Ideal\Core\Db;
-use \Ideal\Field;
+use Ideal\Core\Config;
+use Ideal\Core\Db;
+use Ideal\Field;
+use Ideal\Core\Widget;
 
-class CategoriesList extends \Ideal\Core\Widget
+class CategoriesList extends Widget
 {
     protected $lvl = 4;
+
+    /** @var  \Ideal\Core\Site\Model */
     protected $model;
 
 
@@ -56,9 +59,10 @@ class CategoriesList extends \Ideal\Core\Widget
 
             // Определяем активен ли данный пункт меню
             $menu[$k]['isActivePage'] = 0;
-            $currentCid = substr($v['cid'], 0, $v['lvl']*$digits);
+            $currentCid = substr($v['cid'], 0, $v['lvl'] * $digits);
             if (isset($object['lvl']) && $object['lvl'] >= $lvl
-                && substr($smallCidActive, 0, strlen($currentCid)) == $currentCid) {
+                && substr($smallCidActive, 0, strlen($currentCid)) == $currentCid
+            ) {
                 $menu[$k]['isActivePage'] = 1;
             }
             if (isset($v['is_skip']) && $v['is_skip'] == 0) {

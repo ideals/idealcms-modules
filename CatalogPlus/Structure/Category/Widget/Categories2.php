@@ -3,8 +3,9 @@ namespace CatalogPlus\Structure\Category\Widget;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
+use Ideal\Core\Widget;
 
-class Categories2 extends \Ideal\Core\Widget
+class Categories2 extends Widget
 {
     protected $structurePath;
     protected $prefix;
@@ -27,7 +28,7 @@ class Categories2 extends \Ideal\Core\Widget
         $config = Config::getInstance();
         $category = $config->getStructureByName('CatalogPlus_Category');
         $digits = $category['params']['digits'];
-        $table = $config->db['prefix'].'catalogplus_structure_category';
+        $table = $config->db['prefix'] . 'catalogplus_structure_category';
 
         $db = Db::getInstance();
         $_sql = "SELECT * FROM {$table}
@@ -65,7 +66,9 @@ class Categories2 extends \Ideal\Core\Widget
         $object = $this->model->getPageData();
         if (isset($object['prev_structure']) && $object['prev_structure'] == $this->prevStructure) {
             $activeUrl = substr($object['cid'], 0, $digits);
-            if (!isset($menu[$activeUrl])) return $menu;
+            if (!isset($menu[$activeUrl])) {
+                return $menu;
+            }
             $menu[$activeUrl]['activeUrl'] = 1;
             $menu[$activeUrl]['classActiveUrl'] = 'activeMenu';
             foreach ($menu[$activeUrl]['subMenu'] as $k => $elem) {
@@ -79,5 +82,4 @@ class Categories2 extends \Ideal\Core\Widget
 
         return $menu;
     }
-
 }

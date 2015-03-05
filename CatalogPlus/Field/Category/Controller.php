@@ -3,6 +3,7 @@ namespace CatalogPlus\Field\Category;
 
 class Controller extends \Ideal\Field\AbstractController
 {
+    /** @var \Ideal\Medium\AbstractModel */
     protected $medium; // объект доступа к редактируемым данным
 
     public function setModel($model, $fieldName, $groupName = 'general')
@@ -18,8 +19,9 @@ class Controller extends \Ideal\Field\AbstractController
     public function getInputText()
     {
         $list = $this->medium->getList();
-        $variants = $this->medium->getVariants();
-        $html = '<select multiple="multiple" class="form-control" name="' . $this->htmlName . '[]" id="' . $this->htmlName . '">';
+        $variants = $this->medium->getValues();
+        $html = '<select multiple="multiple" class="form-control" name="' . $this->htmlName
+            . '[]" id="' . $this->htmlName . '">';
         foreach ($list as $k => $v) {
             $selected = '';
             if (in_array($k, $variants)) {
@@ -48,5 +50,4 @@ class Controller extends \Ideal\Field\AbstractController
 
         return $item;
     }
-
 }

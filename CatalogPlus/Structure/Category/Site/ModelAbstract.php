@@ -6,13 +6,14 @@ use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Field;
-use Ideal\Core\Util;
+use CatalogPlus;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
 {
     protected $categories;
     protected $current;
     protected $tagParam;
+    protected $tagParamName;
 
     /** @var  \CatalogPlus\Structure\Good\Site\Model */
     protected $goods;
@@ -20,7 +21,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     public function __construct($prevStructure)
     {
         parent::__construct($prevStructure);
-        $this->goods = new \CatalogPlus\Structure\Good\Site\Model('');
+        $this->goods = new CatalogPlus\Structure\Good\Site\Model('');
     }
 
     /**
@@ -97,7 +98,9 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
                 break;
             }
         }
-        if ($this->pageData === false) return array('нет', 'такой', 'категории');
+        if ($this->pageData === false) {
+            return array('нет', 'такой', 'категории');
+        }
         return array();
     }
 
@@ -105,12 +108,12 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     public function setTagParamName($path)
     {
         $config = Config::getInstance();
-        $structure = $config->getStructureByName('Ideal_DataList');
-        $dataList = new \Ideal\Structure\DataList\Admin\ModelAbstract('0-' . $structure['ID']);
+        $structure = $config->getStructureByName('Ideal_Part');
+        //$dataList = new \Ideal\Structure\Part\Admin\ModelAbstract('0-' . $structure['ID']);
         $end = end($path);
-        $spravochnik = $dataList->getByParentUrl($end['url']);
-        $this->tagParamName = $spravochnik['url'];
-        $this->prevStructure = $structure['ID'] . '-' . $spravochnik['ID'];
+        //$spravochnik = $dataList->getByParentUrl($end['url']);
+        $this->tagParamName = $end['url'];
+        $this->prevStructure = $structure['ID'] . '-' . $end['ID'];
         //$this->path = array($structure, $spravochnik);
         return $this->tagParamName;
     }
@@ -168,7 +171,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             $config = Config::getInstance();
             $url = $prefix . $config->urlSuffix . '?tag=' . $element['url'];
         } else {
-            $urlModel = new \Ideal\Field\Url\Model();
+            $urlModel = new Field\Url\Model();
             $url = $urlModel->getUrlWithPrefix($element, $prefix . '/' . $this->tagParam);
         }
         return $url;
@@ -183,20 +186,18 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     public function getListCategory()
     {
         $db = Db::getInstance();
-        $config = Config::getInstance();
         if ($this->pageData['structure'] == 'CatalogPlus_Good') {
             $prevStructure = explode('-', $this->pageData['prev_structure']);
             $prevStructure = end($prevStructure);
             $prevStructure = $this->pageData['ID'] . '-' . $prevStructure;
-            $active = false;
         } else {
             $prevStructure = $this->pageData['prev_structure'];
         }
-        $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure = '{$prevStructure}' AND is_active = 1 ORDER BY cid";
-        $list = $db->select($_sql);
+        $sql = "SELECT * FROM {$this->_table} WHERE prev_structure = '{$prevStructure}' AND is_active = 1 ORDER BY cid";
+        $list = $db->select($sql);
         $arr = array();
-        foreach($list as $v){
-            $this->getMenu($v, $arr, 0,0);
+        foreach ($list as $v) {
+            $this->getMenu($v, $arr, 0, 0);
         }
 
     }
@@ -206,7 +207,9 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         $ceil = &$list;
         $cidKey = str_split($value['cid'], $this->params['digits']);
         foreach ($cidKey as $k => $v) {
-            if ($v == '000') break;
+            if ($v == '000') {
+                break;
+            }
             if (!isset($ceil[$v])) {
                 $ceil[$v] = array('cat' => array(), 'subcat' => array());
             }
