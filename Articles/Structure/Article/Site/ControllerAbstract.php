@@ -14,8 +14,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function indexAction()
     {
-        $this->model->detectCurrentCategory();
-
         parent::indexAction();
 
         $request = new Request();
@@ -23,8 +21,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->parts = $this->model->getList($page);
 
         $this->view->pager = $this->model->getPager('page');
-
-        $this->view->categories = $this->model->getCategories();
     }
 
 

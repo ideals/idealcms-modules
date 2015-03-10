@@ -57,37 +57,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this;
     }
 
-
-    public function detectCurrentCategory()
-    {
-        $config = Config::getInstance();
-        if (!(bool)($config->getStructureByName('Articles_Category'))) {
-            $this->categoryModel = false;
-            return;
-        }
-        if (!isset($this->categoryModel)) {
-            // Если категория не была определена на этапе DetectPageByUrl, то нужно
-            // проверить, нет ли категории в query_string
-            $this->categoryModel = new \Articles\Structure\Category\Site\Model('');
-            $this->categoryModel->detectPageByUrl($this->path, array());
-        }
-
-        $this->currentCategory = $this->categoryModel->getCurrent();
-        if ($this->currentCategory) {
-            $this->pageData = $this->currentCategory;
-        }
-    }
-
-
-    public function getCategories()
-    {
-        if (!(bool)($this->currentCategory)) {
-            return false;
-        }
-        $parentUrl = $this->getParentUrl();
-        return $this->categoryModel->getCategories($parentUrl);
-    }
-
     public function getStructureElements()
     {
         $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->prevStructure);
