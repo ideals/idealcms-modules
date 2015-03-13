@@ -16,7 +16,7 @@ class Model extends Roster\Admin\ModelAbstract
         $db = Db::getInstance();
         $type = array();
 
-        $_sql = "SELECT ID, name FROM i_shop_structure_type WHERE prev_structure = '{$prevStructure}'";
+        $_sql = "SELECT ID, name FROM i_catalogplus_structure_brand WHERE prev_structure = '{$prevStructure}'";
         $types = $db->select($_sql);
         foreach ($types as $elem) {
             $key = trim(strtolower($elem['name']), " \t");
@@ -40,7 +40,7 @@ class Model extends Roster\Admin\ModelAbstract
                 'date_create' => time(),
                 'is_active' => 1
             );
-            $id = $db->insert('i_shop_structure_type', $insert);
+            $id = $db->insert('i_catalogplus_structure_brand', $insert);
             $this->type[$name] = $id;
             //$this->loadType();
             return $id;

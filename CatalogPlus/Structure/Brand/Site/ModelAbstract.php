@@ -45,6 +45,10 @@ class ModelAbstract extends Part\Site\Model
     public function detectPageByUrl($path, $url)
     {
         $db = Db::getInstance();
+        if (count($url) > 1) {
+            $this->is404 = true;
+            return $this;
+        }
 
         $url = $db->real_escape_string(end($url));
         $sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND url='{$url}'  AND date_create < " . time();
