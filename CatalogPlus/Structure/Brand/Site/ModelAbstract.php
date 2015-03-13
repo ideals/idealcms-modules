@@ -92,6 +92,24 @@ class ModelAbstract extends Part\Site\Model
         return $db->select($sql);
     }
 
+
+
+    public function getHeader()
+    {
+        $header = '';
+        if (isset($this->pageData['annot'])) {
+            // Если есть шаблон с контентом, пытаемся из него извлечь заголовок H1
+            list($header, $text) = $this->extractHeader($this->pageData['annot']);
+            $this->pageData['annot'] = $text;
+        }
+
+        if ($header == '') {
+            // Если заголовка H1 в тексте нет, берём его из названия name
+            $header = $this->pageData['name'];
+        }
+        return $header;
+    }
+
     public function setObjectNew()
     {
 
