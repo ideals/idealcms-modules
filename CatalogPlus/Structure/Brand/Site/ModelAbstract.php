@@ -57,7 +57,8 @@ class ModelAbstract extends Part\Site\Model
 
         // Страницу не нашли, возвращаем 404
         if (!isset($brand[0]['ID'])) {
-            return '404';
+            $this->is404 = true;
+            return $this;
         }
 
         $brand[0]['structure'] = 'CatalogPlus_Brand';
