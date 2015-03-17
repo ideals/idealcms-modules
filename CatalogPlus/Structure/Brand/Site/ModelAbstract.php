@@ -94,7 +94,25 @@ class ModelAbstract extends Part\Site\Model
 
             $sql .= " LIMIT {$start}, {$onPage}";
         }
-        return $db->select($sql);
+        $goods = $db->select($sql);
+        foreach ($goods as $k => $v) {
+            $goods[$k]['properties'] = unserialize($v['properties']);
+            if (isset($goods[$k]['properties']['Состав'])) {
+                // Перенос поля состов в конец списка свойст
+                $tmp = $goods[$k]['properties']['Состав'];
+                unset($goods[$k]['properties']['Состав']);
+                $goods[$k]['properties']['Состав'] = $tmp;
+            }
+
+            $goods[$k]['name'] = str_ireplace($goods[$k]['brand'], '', $goods[$k]['name']);
+
+            if (isset($v['sell']) && $v['sell'] != null && time() < $v['sell_date']) {
+                $goods[$k]['oldPrice'] = $v['price'];
+                $goods[$k]['price'] = $v['price'] - floor($v['price'] / 100 * $v['sell']);
+            }
+            $goods[$k]['link'] = 'href="/shop/detail/' . $v['url'] . $config->urlSuffix . '"';
+        }
+        return $goods;
     }
 
 
