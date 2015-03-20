@@ -28,7 +28,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     {
         $this->templateInit('Articles/Structure/Article/Site/detail.twig');
 
-        // Выдёргиваем заголовок из template['content']
+        // Выдёргиваем заголовок из addonName[key]['content']
         $this->view->header = $this->model->getHeader();
 
         $this->view->article = $this->model->getPageData();

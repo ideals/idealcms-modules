@@ -76,7 +76,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getData()
     {
         $data = $this->pageData['data'];
-        $configTemplate = new CatalogPlus\Template\Data\Model('');
+        $configAddon = new CatalogPlus\Addon\Data\Model('');
         if ($data['ID']) {
             unset($data['ID']);
         }
@@ -88,7 +88,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             if ((is_string($v) && strlen($v) < 1) || (is_null($v))) {
                 continue;
             }
-            $data[$k]['name'] = $configTemplate->fields[$k]['label'];
+            $data[$k]['name'] = $configAddon->fields[$k]['label'];
             $data[$k]['value'] = $v;
         }
         return $data;

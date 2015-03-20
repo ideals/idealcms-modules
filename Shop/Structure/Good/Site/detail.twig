@@ -3,7 +3,20 @@
 {% block content %}
     <h1>{{ good.name }}</h1>
 
-    {{ template.content|raw }}
+    {# Сначала выводим все аддоны типа "Текст" #}
+    {% for value in page %}
+        {{ value.content|raw }}
+    {% endfor %}
+
+    {# Затем выводим все аддоны типа "PHP-файл" #}
+    {% for value in phpfile %}
+        {{ value.content|raw }}
+    {% endfor %}
+
+    {# Затем выводим все аддоны типа "Карта сайта" #}
+    {% for value in sitemap %}
+        {{ value.content|raw }}
+    {% endfor %}
 
     <div style="display: block; padding: 30px;">
         <div id="left" style="width: 500px; float: left">
