@@ -48,14 +48,22 @@ return array(
             'label' => 'Тип раздела',
             'sql'   => 'varchar(30) not null',
             'type'  => 'Ideal_Select',
-            'class' => '\\Ideal\\Structure\\Part\\Getters\\StructureList'
+            'medium' => '\\Ideal\\Medium\\StructureList\\Model'
         ),
         'template' => array(
-            'label'     => 'Тип документа',
-            'sql'       => "varchar(30) not null default 'Ideal_Page'",
-            'type'      => 'Ideal_Template',
-            'class'     => '\\Ideal\\Structure\\Part\\Getters\\TemplateList',
-            'templates' =>  array('Ideal_Page', 'Ideal_PhpFile'),
+            'label' => 'Шаблон отображения',
+            'sql' => "varchar(255) default 'index.twig'",
+            'type' => 'Catalog_Template',
+            'medium' => '\\Idea\\Medium\\TemplateList\\Model',
+            'default'   => 'index.twig',
+        ),
+        'addon' => array(
+            'label' => 'Аддоны',
+            'sql' => "varchar(255) not null default '{\"1\":\"Ideal_Page\"}'",
+            'type' => 'Ideal_Addon',
+            'medium'    => '\\Ideal\\Medium\\AddonList\\Model',
+            'available' =>  array('Catalog_GoodConfig'),
+            'default'   => '[["1","Catalog_GoodConfig",""]]',
         ),
         'name' => array(
             'label' => 'Название',

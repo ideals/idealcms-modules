@@ -334,7 +334,7 @@ class ToolsAbstract
     }
 
     /**
-     * TODO создание категории если ее нет
+     * TODO создание категории если ее нет, с учётом аддонов
      * @param $id
      * @return mixed
      */

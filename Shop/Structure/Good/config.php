@@ -25,7 +25,7 @@ return array(
             'label' => 'Категория',
             'sql'   => 'int(11) not null',
             'type'  => 'Shop_Category',
-            'class' => '\\Shop\\Structure\\Category\\Getters\\CategoryList'
+            'medium' => '\\Shop\\Medium\\CategoryList\\Model'
         ),
         'name' => array(
             'label' => 'Название',

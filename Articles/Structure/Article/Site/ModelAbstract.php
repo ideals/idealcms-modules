@@ -149,14 +149,17 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getHeader()
     {
         $header = '';
-        if (isset($this->pageData['content'])) {
-            // Если есть шаблон с контентом, пытаемся из него извлечь заголовок H1
+        // Если есть шаблон с контентом, пытаемся из него извлечь заголовок H1
+        if (isset($this->pageData['content']) && !empty($this->pageData['content'])) {
             list($header, $text) = $this->extractHeader($this->pageData['content']);
             $this->pageData['content'] = $text;
-        } elseif (isset($this->pageData['template']['content'])) {
-            // Извлекаем заголовок из текста для списка статей
-            list($header, $text) = $this->extractHeader($this->pageData['template']['content']);
-            $this->pageData['template']['content'] = $text;
+        } elseif (!empty($this->pageData['addon'])) {
+            $addons = json_decode($this->pageData['addon']);
+            foreach ($addons as $addon) {
+                $addonGroupName = strtolower(end(explode('_', $addon[1])));
+                list($header, $text) = $this->extractHeader($this->pageData[$addonGroupName][$addon[0]]['content']);
+                $this->pageData[$addonGroupName][$addon[0]]['content'] = $text;
+            }
         }
 
         if ($header == '') {
