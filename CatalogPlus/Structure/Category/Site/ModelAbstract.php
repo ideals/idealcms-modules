@@ -39,7 +39,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             $prevStructure = $prevStructure . '-' . $this->pageData['ID'];
             $_sql = "SELECT COUNT(ID) FROM {$table} WHERE is_active = 1 AND prev_structure = '{$prevStructure}'";
         } else {
-            $tableLink = $config->db['prefix'] . 'catalogplus_medium_categorylist';
+            $tableLink = $config->db['prefix'] . 'catalogplus_medium_taglist';
             $tableGood = $config->db['prefix'] . 'catalogplus_structure_good';
             $cid = rtrim($this->pageData['cid'], '0');
             $_sql = "SELECT ID FROM {$this->_table} WHERE is_active = 1 AND cid LIKE '{$cid}%'";

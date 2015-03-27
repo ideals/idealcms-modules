@@ -52,7 +52,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         $currentCategory = $request->toolbar['category'];
 
         $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'articles_medium_categorylist';
+        $table = $config->db['prefix'] . 'articles_medium_taglist';
 
         if ($currentCategory != '') {
             // Выборка статей, принадлежащих этой категории

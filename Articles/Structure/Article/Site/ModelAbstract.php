@@ -112,7 +112,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if ($this->currentCategory) {
             // Вывод статей только определённой категории
             $config = Config::getInstance();
-            $table = $config->db['prefix'] . 'articles_medium_categorylist';
+            $table = $config->db['prefix'] . 'articles_medium_taglist';
             $where .= $and . "e.ID IN (SELECT article_id FROM {$table}
                                               WHERE category_id={$this->currentCategory['ID']})";
         }

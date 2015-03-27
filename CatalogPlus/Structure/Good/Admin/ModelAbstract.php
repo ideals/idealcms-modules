@@ -70,7 +70,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         if ($currentCategory != '') {
             $db = DB::getInstance();
             $config = Config::getInstance();
-            $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
+            $table = $config->db['prefix'] . 'catalogplus_medium_taglist';
             if ($where != '') {
                 $where .= ' AND ';
             }
