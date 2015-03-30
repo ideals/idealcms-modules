@@ -21,11 +21,11 @@ return array(
             'sql'   => 'char(15)',
             'type'  => 'Ideal_Hidden'
         ),
-        'category' => array(
-            'label' => 'Категория',
+        'tag' => array(
+            'label' => 'Тег',
             'sql'   => '',
             'type'  => 'Ideal_SelectMulti',
-            'medium' => '\\Articles\\Medium\\CategoryList\\Model'
+            'medium' => '\\Ideal\\Medium\\TagList\\Model'
         ),
         'name' => array(
             'label' => 'Название',
