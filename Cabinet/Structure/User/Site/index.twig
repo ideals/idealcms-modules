@@ -183,19 +183,7 @@
     </div>
 
     <div id="lk">
-        {# Сначала выводим все аддоны типа "Текст" #}
-        {% for value in page %}
-            {{ value.content|raw }}
-        {% endfor %}
-
-        {# Затем выводим все аддоны типа "PHP-файл" #}
-        {% for value in phpfile %}
-            {{ value.content|raw }}
-        {% endfor %}
-
-        {# Затем выводим все аддоны типа "Карта сайта" #}
-        {% for value in sitemap %}
-            {{ value.content|raw }}
-        {% endfor %}
+        {# Выводим контент первого аддона #}
+        {{ addons.0.content|raw }}
     </div>
 {% endblock %}
