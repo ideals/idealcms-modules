@@ -4,7 +4,7 @@ namespace CatalogPlus\Structure\Category\Site;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
-use Ideal\Core\Request;
+use Ideal\Core\Util;
 use Ideal\Field;
 use CatalogPlus;
 
@@ -39,7 +39,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             $prevStructure = $prevStructure . '-' . $this->pageData['ID'];
             $_sql = "SELECT COUNT(ID) FROM {$table} WHERE is_active = 1 AND prev_structure = '{$prevStructure}'";
         } else {
-            $tableLink = $config->db['prefix'] . 'catalogplus_medium_taglist';
+            $tableLink = $config->db['prefix'] . 'catalogplus_medium_categorylist';
             $tableGood = $config->db['prefix'] . 'catalogplus_structure_good';
             $cid = rtrim($this->pageData['cid'], '0');
             $_sql = "SELECT ID FROM {$this->_table} WHERE is_active = 1 AND cid LIKE '{$cid}%'";
@@ -49,59 +49,6 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         $list = $db->select($_sql);
 
         return $list[0]['COUNT(ID)'];
-    }
-
-
-    public function detectPageByUrl($path, $url)
-    {
-        $this->tagParam = $this->setTagParamName($path);
-        if ($this->params['is_query_param']) {
-            // Категория определяется через QUERY_STRING
-            $request = new Request();
-            $tag = $request->{$this->tagParam};
-            if ($tag == '') {
-                // Категория не указана, выходим
-                return $url;
-            }
-            // TODO сделать проверку, что $url на этом этапе должен быть пустой или содержать один элемент?
-            $url = explode('/', $tag); // В тэге могут быть подкатегории
-        } else {
-            $tagName = reset($url);
-            if ($this->tagParam != $tagName) {
-                // Первый элемент URL не обозначает категорию, значит это статья
-                return $url;
-            }
-            array_shift($url);
-        }
-
-        if (count($url) == 1) {
-            // Для первого уровня категорий используем небольшой хак — кэширование категорий
-            $url = $this->detectPageByTag($url, $path);
-        } else {
-            // Для вложенных категорий используем стандартное средство обнаружения страницы
-            $url = parent::detectPageByUrl($path, $url);
-        }
-
-        return $url;
-    }
-
-
-    public function detectPageByTag($url, $path)
-    {
-        $this->pageData = false;
-        $list = $this->readCategories();
-        foreach ($list as $v) {
-            if ($v['url'] == $url[0]) {
-                $v['structure'] = 'CatalogPlus_Category';
-                $this->pageData = $v;
-                $this->path[] = $v;
-                break;
-            }
-        }
-        if ($this->pageData === false) {
-            return array('нет', 'такой', 'категории');
-        }
-        return array();
     }
 
 
@@ -178,48 +125,99 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     }
 
 
+    /**
+     * {@inheritdoc}
+     */
     public function getStructureElements()
     {
         return array();
     }
 
+    /**
+     * Получить список всех категорий
+     *
+     * @return array
+     */
     public function getListCategory()
     {
         $db = Db::getInstance();
+        $config = Config::getInstance();
         if ($this->pageData['structure'] == 'CatalogPlus_Good') {
             $prevStructure = explode('-', $this->pageData['prev_structure']);
             $prevStructure = end($prevStructure);
             $prevStructure = $this->pageData['ID'] . '-' . $prevStructure;
         } else {
-            $prevStructure = $this->pageData['prev_structure'];
-        }
-        $sql = "SELECT * FROM {$this->_table} WHERE prev_structure = '{$prevStructure}' AND is_active = 1 ORDER BY cid";
-        $list = $db->select($sql);
-        $arr = array();
-        foreach ($list as $v) {
-            $this->getMenu($v, $arr, 0, 0);
+            $prevStructure = $this->prevStructure;
         }
 
-    }
-
-    private function getMenu($value, &$list, $tag, $urlParent)
-    {
-        $ceil = &$list;
-        $cidKey = str_split($value['cid'], $this->params['digits']);
-        foreach ($cidKey as $k => $v) {
-            if ($v == '000') {
+        // Узнаем url главной страницы категорий
+        $catUrl = '';
+        foreach ($this->path as $k => $v) {
+            if (isset($v['is_skip']) && ($v['is_skip'] === '1')) {
+                continue;
+            }
+            if (!isset($v['url']) || (strlen($v['url']) < 1)) {
+                continue;
+            }
+            $catUrl .= '/' . $v['url'];
+            if ($v['structure'] === 'CatalogPlus_Category') {
                 break;
             }
-            if (!isset($ceil[$v])) {
-                $ceil[$v] = array('cat' => array(), 'subcat' => array());
-            }
-            if (!isset($cidKey[$k + 1]) || $cidKey[$k + 1] == '000') {
-                $ceil = & $ceil[$v];
-            } else {
-                $ceil = & $ceil['subcat'];
-            }
         }
-        $ceil['cat'] = $value;
+
+        // Список всех доступных категорий
+        $sql = "SELECT * FROM {$this->_table} WHERE prev_structure = '{$prevStructure}' ORDER BY cid";
+        $list = $db->select($sql);
+
+        // Создание массива категорий
+        // Есть два уровня на первом уровне ключ сид категории внутри(второй уровень) находится два эелемента
+        // первый сама категория, а второй вложнные категории где все повторяется( есть два уровня...)
+        $menu = array();
+        $tmpUrl = array();
+        foreach ($list as $v) {
+            $aCurrent = &$menu;
+
+            // Постороение правильных url для вложенных категорий
+            if ($v['lvl'] == '1') {
+                $tmpUrl = array();
+                if ($v['is_skip'] !== '1') {
+                    $tmpUrl[1] = $catUrl . '/' . $v['url'];
+                } else {
+                    $tmpUrl[1] = $catUrl;
+                }
+            } else {
+                if (!isset($tmpUrl[(int)$v['lvl'] - 1])) {
+                    Util::addError('Нету родителя на 1 уровень выше! Категория:' . $v['name']);
+                    exit(1);
+                }
+                if ($v['is_skip'] !== '1') {
+                    $tmpUrl[(int)$v['lvl']] = $tmpUrl[(int)$v['lvl'] - 1] . '/' . $v['url'];
+                } else {
+                    $tmpUrl[(int)$v['lvl']] = $tmpUrl[(int)$v['lvl'] - 1];
+                }
+            }
+
+            // Создание иерархии категорий
+            $cidKey = str_split($v['cid'], $this->params['digits']);
+            foreach ($cidKey as $key => $cid) {
+                // Ищем положение текущего элемента(категории)
+                if ($cid === '000') {
+                    break;
+                }
+                if (!isset($aCurrent[$cid])) {
+                    $aCurrent[$cid] = array('cat' => array(), 'subcat' => array());
+                }
+                if (!isset($cidKey[$key + 1]) || $cidKey[$key + 1] == '000') {
+                    $aCurrent = &$aCurrent[$cid];
+                } else {
+                    $aCurrent = &$aCurrent[$cid]['subcat'];
+                }
+            }
+            $aCurrent['cat'] = $v;
+            $aCurrent['cat']['link'] = 'href="' . $tmpUrl[$v['lvl']] . $config->urlSuffix . '"';
+        }
+        return $menu;
+
     }
 
     /**

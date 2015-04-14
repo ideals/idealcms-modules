@@ -17,13 +17,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading text-center">Каталог</div>
-                    <ul class="list-group">
-                        <li class="list-group-item">Cras justo odio</li>
-                        <li class="list-group-item">Dapibus ac facilisis in</li>
-                        <li class="list-group-item">Morbi leo risus</li>
-                        <li class="list-group-item">Porta ac consectetur ac</li>
-                        <li class="list-group-item">Vestibulum at eros</li>
-                    </ul>
+                    {{ _self.echoListCat(listCat) }}
                 </div>
             </div>
             <div class="col-md-9">
@@ -78,37 +72,24 @@
 
 {% endblock %}
 
-{% macro outputList(list) %}
-    <li {% if list.isActivePage %} class="active" {% endif %}><a {{ list.link|raw }}>{{ list.name }}</a>
-        {% if list.isActivePage %}
-            {% if list.subCategoryList|length > 0 %}
-                <ul>
-                    {% for list in list.subCategoryList %}
-                        {{ _self.outputList(list) }}
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endif %}
-    </li>
-{% endmacro %}
 
-{% block slider %}
-    {% import _self as tools %}
-    <div class="sidebar">
-        <ul>
-            {% for item in listCat %}
-                <li {% if item.isActivePage %} class="active" {% endif %}><a {{ item.link|raw }}>{{ item.name }}</a>
-                    {% if item.isActivePage %}
-                        <ul class="menu">
-                            {% for subItem in item.subCategoryList %}
-                                {{ tools.outputList(subItem) }}
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-{% endblock %}
+{% macro echoListCat(categorys, recur) %}
+
+    {% for cat in categorys %}
+        {% if loop.first %}
+            <div{% if recur == ' ' %} style="margin-left: 10px"{% endif %}>
+        {% endif %}
+
+        <p class="list-group-item">
+            <a {{ cat.cat.link|raw }}>{{ cat.cat.name }}</a>
+            {% if cat.subcat|length > 0 %}
+                {{ _self.echoListCat(cat.subcat, ' ') }}
+            {% endif %}
+        </p>
+        {% if loop.last %}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
 
 

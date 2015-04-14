@@ -3,7 +3,7 @@
 // Новости
 return array(
     'params' => array (
-        'in_structures'    => array('Ideal_Part'), // в каких структурах можно создавать эту структуру
+        'in_structures' => array('Ideal_Part'), // в каких структурах можно создавать эту структуру
         'elements_cms'  => 10,            // количество элементов в списке в CMS
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
@@ -50,24 +50,9 @@ return array(
         'template' => array(
             'label' => 'Шаблон отображения',
             'sql' => "varchar(255) default 'index.twig'",
-            'type' => 'Catalog_Template',
+            'type' => 'Ideal_Template',
             'medium' => '\\Ideal\\Medium\\TemplateList\\Model',
             'default'   => 'index.twig',
-        ),
-        'addon' => array(
-            'label' => 'Аддоны',
-            'sql' => "varchar(255) not null default '{\"1\":\"Ideal_Page\"}'",
-            'type' => 'Ideal_Addon',
-            'medium'    => '\\Ideal\\Medium\\AddonList\\Model',
-            'available' =>  array('Catalog_GoodConfig'),
-            'default'   => '[["1","Catalog_GoodConfig",""]]',
-        ),
-        'data' => array(
-            'label'     => 'Тип товара',
-            'sql'       => "varchar(30) not null default 'CatalogPlus_Data'",
-            'type'      => 'Ideal_Template',
-            'medium'    => '\\Ideal\\Medium\\TemplateList\\Model',
-            'templates' =>  array('CatalogPlus_Data'),
         ),
         'sell' => array(
             'tab'   => 'Данные',

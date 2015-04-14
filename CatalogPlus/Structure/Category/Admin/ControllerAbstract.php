@@ -6,10 +6,11 @@
  * @license   http://idealcms.ru/license.html LGPL v3
  */
 
+
 namespace CatalogPlus\Structure\Category\Admin;
 
 
-class Model extends ModelAbstract
+class ControllerAbstract extends \Ideal\Structure\Part\Admin\Controller
 {
 
 }

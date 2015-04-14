@@ -21,7 +21,7 @@ class Model extends AbstractModel
 
         $list = array();
         foreach ($arr as $item) {
-            $list[$item['ID']] = str_repeat('вЂ” ', ($item['lvl'] - 1)) . $item['name'];
+            $list[$item['ID']] = str_repeat('-', ($item['lvl'] - 1)) . $item['name'];
         }
 
         return $list;

@@ -3,7 +3,7 @@
 // Страницы сайта
 return array(
     'params' => array(
-        'in_structures' => array('Ideal_DataList'),
+        'in_structures' => array('Ideal_Part'),
         'structures'    => array('CatalogPlus_Category'), // типы, которые можно создавать в этом разделе
         'elements_cms'  => 10, // количество элементов в списке в CMS
         'elements_site' => 15, // количество элементов в списке на сайте
@@ -12,7 +12,6 @@ return array(
         'field_list'    => array('cid!40', 'ID', 'name', 'date_mod', 'url'),
         'levels'        => 6, // количество уровней вложенности
         'digits'        => 3, // кол-во разрядов
-        'url'           => 'separate', // как будет строится url категории: query, child, separate
     ),
     'fields' => array(
         // label - название поля в админке
@@ -47,16 +46,24 @@ return array(
         ),
         'structure' => array(
             'label' => 'Тип раздела',
-            'sql'   => "varchar(30) default 'CatalogPlus_Category'",
-            'default'=> 'CatalogPlus_Category',
-            'type'  => 'Ideal_Hidden',
+            'sql' => 'varchar(30) not null',
+            'type' => 'Ideal_Select',
+            'medium' => '\\Ideal\\Medium\\StructureList\\Model'
         ),
         'template' => array(
-            'label'     => 'Тип документа',
-            'sql'       => "varchar(30) not null default 'Ideal_Page'",
-            'type'      => 'Ideal_Template',
-            'medium'    => '\\Ideal\\Medium\\TemplateList\\Model',
-            'templates' =>  array('Ideal_Page', 'Ideal_PhpFile'),
+            'label' => 'Шаблон отображения',
+            'sql' => "varchar(255) default 'index.twig'",
+            'type' => 'Ideal_Template',
+            'medium' => '\\Ideal\\Medium\\TemplateList\\Model',
+            'default'   => 'index.twig',
+        ),
+        'addon' => array(
+            'label' => 'Аддоны',
+            'sql' => "varchar(255) not null default '[[\"1\":\"Ideal_Page\"]]'",
+            'type' => 'Ideal_Addon',
+            'medium'    => '\\Ideal\\Medium\\AddonList\\Model',
+            'available' =>  array('Ideal_Page', 'Ideal_PhpFile'),
+            'default'   => '[["1","Ideal_Page",""]]',
         ),
         'name' => array(
             'label' => 'Название',

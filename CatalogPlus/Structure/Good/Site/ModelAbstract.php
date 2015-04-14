@@ -126,7 +126,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             if (isset($category['ID'])) {
                 // Вывод товара только определённой категории
                 $config = Config::getInstance();
-                $table = $config->db['prefix'] . 'catalogplus_medium_taglist';
+                $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
                 $categoryWhere = 'category_id = ' . $category['ID'];
                 if ($this->showNestedElements) {
                     $catTable = $config->db['prefix'] . 'catalogplus_structure_category';

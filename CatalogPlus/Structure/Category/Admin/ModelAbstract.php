@@ -9,7 +9,7 @@
 namespace CatalogPlus\Structure\Category\Admin;
 
 
-class Model extends ModelAbstract
+class ModelAbstract extends \Ideal\Structure\Part\Admin\Model
 {
 
 }
