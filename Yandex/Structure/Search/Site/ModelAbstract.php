@@ -3,7 +3,6 @@ namespace Yandex\Structure\Search\Site;
 
 use Ideal\Core\Config;
 use Ideal\Structure\User;
-use YandexXML\Yandex;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
@@ -21,8 +20,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     public function getList($page = null)
     {
+        require 'harvester/Mods/Yandex/Library/YandexXML/Yandex.php';
         $config = Config::getInstance();
-        $yandex = new Yandex($config->cms['yandexUser'], $config->cms['yandexKey']);
+
+        $yandex = new \YandexXML\Yandex($config->cms['yandexUser'], $config->cms['yandexKey']);
 
         if (empty($this->query)) {
             throw new \Exception('Пустой поисковый запрос');
