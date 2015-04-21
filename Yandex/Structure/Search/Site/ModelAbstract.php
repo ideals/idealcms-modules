@@ -3,6 +3,9 @@ namespace Yandex\Structure\Search\Site;
 
 use Ideal\Core\Config;
 use Ideal\Structure\User;
+use YandexXML\YandexXmlClient;
+use YandexXml\Exceptions\YandexXmlException;
+use Exception;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
@@ -20,24 +23,32 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     public function getList($page = null)
     {
-        require 'harvester/Mods/Yandex/Library/YandexXML/Yandex.php';
+        require_once 'Yandex/Library/YandexXML/YandexXmlClient.php';
+        require_once 'Yandex/Library/YandexXML/Exceptions/YandexXmlException.php';
         $config = Config::getInstance();
 
-        $yandex = new \YandexXML\Yandex($config->cms['yandexUser'], $config->cms['yandexKey']);
+        $yandex = new YandexXmlClient($config->cms['yandexUser'], $config->cms['yandexKey']);
 
         if (empty($this->query)) {
             throw new \Exception('Пустой поисковый запрос');
         }
-        $yandex -> query($this->query)          // устанавливаем поисковый запрос
-        -> site($config->domain)                // ограничиваемся поиском по сайту
-        -> page($page)
-        -> limit($this->params['elements_cms']) // результатов на странице
-        -> request()                            // отправляем запрос
-        ;
 
-        if (!empty($yandex->error)) {
-            return $yandex->error;
+        // Отлавливаем исключения и отдаём их на страницу
+        try {
+            $yandex->query($this->query)// устанавливаем поисковый запрос
+            ->site($config->domain)// ограничиваемся поиском по сайту
+            ->page($page)
+                ->limit($this->params['elements_cms'])// результатов на странице
+                ->request()                            // отправляем запрос
+            ;
         }
+        catch (YandexXmlException $e) {
+            return $e->getMessage();
+        }
+        catch (Exception $e) {
+            return $e->getMessage();
+        }
+
         $list = $yandex->results();
         $list = $this->view($list);
         $this->listCount = $yandex->total();
@@ -52,7 +63,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $result[$k]['title'] = (string)$v->title;
             foreach ($v->passages as $passage) {
 
-                $result[$k]['passages'][] = Yandex::highlight($passage);
+                $result[$k]['passages'][] = YandexXmlClient::highlight($passage);
             }
         }
         return $result;

@@ -1,7 +1,6 @@
 <?php
 namespace Yandex\Structure\Search\Site;
 
-use Ideal\Core\Config;
 use Ideal\Core\Request;
 
 class ControllerAbstract extends \Ideal\Core\Site\Controller
