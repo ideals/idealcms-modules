@@ -10,32 +10,46 @@ use Shop\Structure\Data;
 
 class ToolsAbstract
 {
-    private $test;
-
     // Таблицы указываются без префекса
-    protected $tableLink = ''; // таблица для связи категории и товара
-    protected $tableGood = ''; // таблица товаров
-    protected $tableCat  = ''; // таблица категорий
 
-    protected $prevGood = ''; // prev_structure товаров
-    protected $prevCat  = ''; // prev_structure категорий
+    /** @var string tableCat Таблица категорий */
+    protected $tableCat = 'catalogplus_structure_category';
 
+    /** @var string tableCat Таблица товаров */
+    protected $tableGood = 'catalogplus_structure_good';
+
+    /** @var string tableCat Таблица c информацией о товарном предложении */
+    protected $tableOffer = 'offers_good';
+
+    /** @var string tableCat Таблица для связи категории и товара */
+    protected $tableMediumGood = 'catalogplus_medium_categorylist';
+
+    /** @var string prevGood prev_structure товаро */
+    protected $prevGood = '';
+
+    /** @var string $prevCat prev_structure категорийа */
+    protected $prevCat  = '';
+
+    /** @var array fields */
     protected $fields = array();
 
-    private $category = array();
-    private $treeCat = array();
+    /** @var array  */
+    protected $category = array();
+
+    protected $treeCat = array();
 
     public function __construct()
     {
         $config = Config::getInstance();
-        $this->tableLink = $config->db['prefix'] . $this->tableLink;
-        $this->tableGood = $config->db['prefix'] . $this->tableGood;
-        $this->tableCat = $config->db['prefix'] . $this->tableCat;
-        $this->test = "load";
+        $prefix = $config->db['prefix'];
+        $this->tableCat = $prefix . $this->tableCat;
+        $this->tableGood = $prefix . $this->tableGood;
+        $this->tableOffer = $prefix . $this->tableOffer;
+        $this->tableMediumGood = $prefix . $this->tableMediumGood;
     }
 
 
-    function showProperties($importFile, $offersFile, $priceId)
+    public function showProperties($importFile, $offersFile, $priceId)
     {
         $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
 
@@ -46,7 +60,7 @@ class ToolsAbstract
     }
 
 
-    function showCategories($importFile, $offersFile, $priceId)
+    public function showCategories($importFile, $offersFile, $priceId)
     {
         $base = new Load1c\Model(DOCUMENT_ROOT . $importFile, DOCUMENT_ROOT . $offersFile, $priceId);
 
@@ -57,7 +71,7 @@ class ToolsAbstract
     }
 
 
-    function loadBase($importFile, $offersFile, $priceId, $loadImg = false)
+    public function loadBase($importFile, $offersFile, $priceId, $loadImg = false, $conect1c = false)
     {
         $db = Db::getInstance();
 
@@ -67,63 +81,114 @@ class ToolsAbstract
 
         // УСТАНОВКА КАТЕГОРИЙ ТОВАРА ИЗ БД
 
+        // Сбрасываем счетчик товаров для групп
+        $sql = "UPDATE {$this->tableCat} SET num = 0, count_sale = 0, is_not_menu = 0 WHERE id_1c != 'not-1c'";
+        $db->query($sql);
+
         // Считываем категории из нашей БД
-        $_sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title FROM {$this->tableCat}
-                    WHERE prev_structure='{$this->prevCat}'";
-        $groups = $db->select($_sql);
+        $sql = <<<SQL
+        SELECT ID, name, cid, lvl, id_1c, is_active, title, count_sale
+          FROM {$this->tableCat}
+          WHERE prev_structure='{$this->prevCat}' AND id_1c !='not-1c'
+SQL;
+        $groups = $db->select($sql);
 
         // Устанавливаем категории из БД
         $base->setOldGroups($groups);
         unset($groups);
 
-        $txt = '';
+        $txt = ''; // сообщение со статусом работы
+        $text = ''; // текст письма информирующего о выгрузке
 
         // ОБРАБОТКА КАТЕГОРИЙ ТОВАРА
 
         // Получаем изменённые категории
         $changedGroups = $base->getLoadGroups();
 
-        echo '<h2>Категории</h2>';
-        echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
-        echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
-        echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
+        if (!$conect1c) {
+            echo '<h2>Категории</h2>';
+            echo 'Добавлено: ' . count($changedGroups['add']) . '<br />'; //Пока не требуется
+            echo 'Обновлено: ' . count($changedGroups['update']) . '<br />';
+            echo 'Удалено: ' . count($changedGroups['delete']) . '<br />';
+        } else {
+            $text .= "Категории\nДобавлено: " . count($changedGroups['add']) . "\nОбновлено: "
+                . count($changedGroups['update']) . "\nУдалено: " . count($changedGroups['delete']) . "\n";
+        }
 
         $txt = $this->updateCategories($db, $this->tableCat, $txt, $changedGroups);
         unset($changedGroups);
 
         // ОБРАБОТКА ТОВАРА
-
-        // Считываем товар из нашей БД;
-        $_sql = "SELECT ID, name, id_1c, is_active FROM {$this->tableGood}
-                    WHERE prev_structure='{$this->prevGood}'";
-        $goods = $db->select($_sql);
+        // Считываем товар из нашей БД
+        $sql = "SELECT ID, name, id_1c, is_active FROM {$this->tableGood} WHERE prev_structure='{$this->prevGood}'";
+        $goods = $db->select($sql);
 
         $changedGoods = $base->getGoods($fields, $goods);
 
-        echo '<h2>Товары</h2>';
-        echo 'Было: ' . count($goods) . '<br />';
-        echo 'Добавлено: ' . count($changedGoods['add']) . '<br />';
-        echo 'Обновлено: ' . count($changedGoods['update']) . '<br />';
-        echo 'Удалено: ' . count($changedGoods['delete']) . '<br />';
+        if (!$conect1c) {
+            echo '<h2>Товары</h2>';
+            echo 'Товаров в базе: ' . count($goods) . '<br />';
+            echo 'Добавлено: ' . count($changedGoods['add']) . '<br />';
+            echo 'Обновлено: ' . count($changedGoods['update']) . '<br />';
+            echo 'Кол-во в архиве: ' . count($changedGoods['delete']) . '<br />';
+        } else {
+            $text .= "\nТовары\nБыло: " . count($goods) . "\nДобавлено: " . count($changedGoods['add'])
+                . "\nОбновлено: " . count($changedGoods['update']) . "\nКол-во в архиве: "
+                . count($changedGoods['delete']) . "\n";
+        }
+        $db->query("UPDATE {$this->tableGood} SET sell = NULL");
 
-        $txt = $this->updateGoods($db, $this->tableGood, $txt, $changedGoods, $loadImg);
+        $txt = $this->updateGoods($db, $this->tableGood, $txt, $changedGoods, $loadImg, $conect1c);
         unset($changedGoods);
 
         // ПРИВЯЗКА ТОВАРА К КАТЕГОРИЯМ
 
         $this->updateGoodsToGroups($db, $base->getGoodsToGroups(), $base->status);
 
-        echo str_replace("\n", '<br />', $txt);
+        // Запись скидочных товаров для категорий
+        $txt .= 'Товаров со скидкой: '
+            . $this->updateCountGoodsCat(
+                $db,
+                $this->tableCat,
+                $base->getSaleCount(),
+                $base->getGroupArr(),
+                $base->getGoodsOnCat()
+            ) . "\n";
+
+        // Скрываем группы которые созданы в 1с, но сейчас не имеют товаров совсем
+        $sql = "UPDATE {$this->tableCat} SET is_not_menu = 1 WHERE id_1c != 'not-1c' AND num = 0 AND count_sale = 0";
+        $db->query($sql);
+
+        if (count($this->newColor) > 0) {
+            $txt .= "\nПоявились новые цвета: " . implode('; ', $this->newColor);
+        }
+
+        if (count($this->newSize) > 0) {
+            $txt .= "\nПоявились новые размеры: " . implode('; ', $this->newSize);
+        }
+
+        if (count($this->nonBrand) > 0) {
+            $txt .= "\nУ товаров с артикулом нет бренда: " . implode('; ', $this->nonBrand);
+        }
+        if (count($this->nonColor) > 0) {
+            $txt .= "\nУ товаров с артикулом нет цвета: " . implode('; ', $this->nonColor);
+        }
+        if (!$conect1c) {
+            echo str_replace("\n", '<br />', $txt);
+        } else {
+            $text .= $txt . "\nВыгрузка еще не завершена. Может идти еще выгрузка картинок";
+            $mail = new Sender();
+            $mail->setSubj('Выгрузка на ciaokids.ru');
+            $mail->setPlainBody($text);
+            $mail->sent('1c@ciaokids.ru', 'top@neox.ru, morozov@neox.ru, help1@neox.ru, seo3@neox.ru');
+            echo iconv("UTF-8", "windows-1251", $text);
+        }
     }
 
-
-    function updateCategories(Db $db, $table, $txt, $changedGroups)
+    protected function updateCategories(Db $db, $table, $txt, $changedGroups)
     {
-
-        $modelType = new Data\Admin\Model('3-2');  //TODO нужно вынести
-        $modelType->loadData();
         foreach ($changedGroups['update'] as $v) {
-            if ($v['lvl'] == 1) $modelType->getIdData($v['name']);
+            //if ($v['lvl'] == 1) $modelType->getIdType($v['name']);
             if ($v['Наименование'] != $v['name']) {
                 $txt .= 'Переименована категория &laquo;' . $v['name'] . '&raquo; в &laquo;'
                     . $v['Наименование'] . "\n";
@@ -136,28 +201,27 @@ class ToolsAbstract
                 'name' => $v['Наименование'],
                 'cid' => $v['cid'],
                 'lvl' => $v['lvl'],
-                'is_active' => 1
+                'is_active' => 1,
+                'is_not_menu' => 0
             );
-            $db->update($table, $v['ID'], $update);
+            $db->update($table)->set($update)->where('ID=:id', array('id' => $v['ID']))->exec();
         }
 
         $add = array(
             'date_create' => time(),
             'date_mod' => time(),
-            'structure_path' => '1-3',
-            'structure' => 'Shop_Category',
+            'prev_structure' => $this->prevCat,
+            'structure' => 'CatalogPlus_Category',
             'template' => 'Ideal_Page',
             'is_active' => 1
         );
 
         foreach ($changedGroups['add'] as $v) {
-            $v['name'] = trim($v['name']);
-            if ($v['lvl'] == 1) {
-                $modelType->getIdData($v['Наименование']);
-            }
             $v['id_1c'] = $v['Ид'];
+            $this->listCat[$v['id_1c']] = 0;
             unset($v['Ид']);
             $v['name'] = $v['Наименование'];
+            $v['name'] = trim($v['name']);
             unset($v['Наименование']);
 
             $v['url'] = Url\Model::translitUrl($v['name']);
@@ -168,8 +232,9 @@ class ToolsAbstract
         }
 
         foreach ($changedGroups['delete'] as $v) {
-            $par = array('is_active' => 1);
-            $db->update($table, $v['ID'], $par);
+            $this->listCat[$v['id_1c']] = 0;
+            $par = array('is_active' => 1, 'is_not_menu' => 1);
+            $db->update($table)->set($par)->where('ID=:id', array('id' => $v['ID']))->exec();
             $txt .= 'Удалена категория: ' . $v['name'] . "\n";
 
         }
@@ -178,132 +243,177 @@ class ToolsAbstract
     }
 
 
-    function updateGoods(Db $db, $table, $txt, &$changedGoods, $loadImg = false)
+    protected function updateGoods(Db $db, $table, $txt, &$changedGoods, $loadImg = false, $conect1c = false)
     {
-        $modelType = new Data\Admin\Model('3-1'); //TODO нужно вынести
-        $modelBrand = new Data\Admin\Model('3-2'); //TODO нужно вынести
-        $modelCategory = new Category\Admin\Model('3-3'); //TODO нужно вынести
+        $modelCategory = new Category\Admin\Model('');
         $modelCategory->loadCategory();
-        $par = array();
-
-
-        $modelType->loadData();
-        $modelBrand->loadData();
+        $typeBrand = new Brand\Admin\Model('1-25'); // TODO нужно вынести prev_structure
+        $typeBrand->loadType();
+        $config = Config::getInstance();
+        $dataId = $config->getStructureByName('Ideal_DataList');
+        $dataId = $dataId['ID'];
+        $sql = "SELECT * FROM i_ideal_structure_datalist WHERE structure = 'Synonyms_Data'";
+        $result = $db->select($sql);
+        foreach ($result as $k => $v) {
+            if ($v['parent_url'] == 'size') {
+                $this->prevSize = $dataId . '-' . $v['ID'];
+            } elseif ($v['parent_url'] == 'color') {
+                $this->prevColor = $dataId . '-' . $v['ID'];
+            }
+        }
+        $data = new Data\Admin\Model('');
+        $data->loadType(false);
         foreach ($changedGoods['update'] as $v) {
             $v['is_active'] = 1;
-            if ($v['img'] != null) {
-                if ($loadImg) {
-                    $i = new Image($v['img'], 1000, 1000, 'big', false);
-                }
-                $image = basename($v['img']);
-                $dir = basename(str_replace('/' . $image, '', $v['img']));
-                $image = $dir . '/' . $image;
-                $v['img'] = $image;
-
+            $properties = unserialize($v['properties']);
+            $v['color_id'] = $data->getIdType($properties['Цвет'], $this->prevColor);
+            if (!isset($properties['Бренд'])) {
+                $this->nonBrand[$v['articul']] = $v['articul'];
+                continue;
+            }
+            $v['brand_id'] = $typeBrand->getIdType($properties['Бренд']);
+            if ($loadImg) {
+                $this->loadImg($v);
             }
             if ($v['ID'] == 0) {
                 echo 'Невозможно обновить, т.к. нулевой ID.<br />';
                 print_r($v);
                 exit;
             }
-            if (!isset($v['type'])) {
-                $v['idType'] = $modelType->getIdData('Не указан');
-            } else {
-                $v['idType'] = $modelType->getIdData($v['type']);
-            }
-            $par['id_1c'] = $v['id_1c'];
-            if ($v['category'] && $v['nameGroup']) {
-                $idCat = $modelCategory->getIdCategory($v['category'] . $modelCategory->getGlue() . $v['nameGroup'], $par);
+            if ($v['idGroup']) {
+                $idCat = $modelCategory->getIdCategory($v['idGroup']);
                 $v['category_id'] = $idCat['ID'];
             }
-            $v['idBrand'] = $modelBrand->getIdData($v['nameGroup']);
-            unset($v['nameGroup']);
-            unset($v['category']);
-            $db->update($table, $v['ID'], $v);
+            unset($v['idGroup']);
+            unset($properties);
+            $db->update($table)->set($v)->where('ID=:id', array('id' => $v['ID']))->exec();
         }
-
         $add = array(
             'date_create' => time(),
             'date_mod' => time(),
-            'structure_path' => $this->prevGood,
+            'prev_structure' => $this->prevGood,
             'is_active' => 1
         );
-
         foreach ($changedGoods['add'] as $v) {
             $v['name'] = trim($v['name']);
-            $v['url'] = Url\Model::translitUrl(preg_replace('/ {2,}/',' ',$v['name']));
-            $v = array_merge($v, $add);
-
-            if (!isset($v['type'])) {
-                $v['idType'] = $modelType->getIdData('Не указан');
+            $properties = unserialize($v['properties']);
+            $v['color_id'] = $data->getIdType($properties['Цвет'], $this->prevColor);
+            if (!isset($properties['Бренд'])) {
+                $this->nonBrand[$v['articul']] = $v['articul'];
+                continue;
+            }
+            if (isset($properties['Цвет'])) {
+                $url = $properties['Бренд'] . ' ' . $v['articul'] . ' ' . $properties['Цвет'];
             } else {
-                $v['idType'] = $modelType->getIdData($v['type']);
+                $url = $properties['Бренд'] . ' ' . $v['articul'];
+                $this->nonColor[$v['articul']] = $v['articul'];
             }
-            if ($v['img'] != null) {
-                if ($loadImg) {
-                    $i = new Image($v['img'], 132, 132, 'big', false);
-                }
-                $image = basename($v['img']);
-                $dir = basename(str_replace('/' . $image, '', $v['img']));
-                $image = $dir . '/' . $image;
-                $v['img'] = $image;
-
+            $url = str_replace('!"#$%&\'()*+,./@:;<=>[\\]^`{|}~', '', $url);
+            $v['brand_id'] = $typeBrand->getIdType($properties['Бренд']);
+            $v['url'] = Url\Model::translitUrl($url);
+            $v = array_merge($v, $add);
+            if ($loadImg) {
+                $this->loadImg($v);
             }
-
-            $par['id_1c'] = $v['id_1c'];
-            $v['idBrand'] = $modelBrand->getIdData($v['nameGroup']);
-            if ($v['category'] && $v['nameGroup']) {
-                $idCat = $modelCategory->getIdCategory($v['category'] . $modelCategory->getGlue() . $v['nameGroup'], $par);
+            //$v['idBrand'] = $modelBrand->getIdType($v['nameGroup']);
+            if ($v['idGroup']) {
+                $idCat = $modelCategory->getIdCategory($v['idGroup']);
                 $v['category_id'] = $idCat['ID'];
             }
-            unset($v['nameGroup']);
-            unset($v['category']);
+            unset($v['idGroup']);
+            unset($properties);
             $db->insert($table, $v);
         }
-
         foreach ($changedGoods['delete'] as $v) {
             $par = array('is_active' => 0);
-            if (!isset($v['ID']) OR ($v['ID'] == 0)) {
+            if (!isset($v['ID']) || ($v['ID'] == 0)) {
                 // Если товара нет в БД, и у него нет цены — не добавляем его в базу
                 continue;
             } else {
-                $db->update($table, $v['ID'], $par);
+                $db->update($table)->set($par)->where('ID=:id', array('id' => $v['ID']))->exec();
             }
-            $txt .= 'Удален товар: ' . $v['name'] . "\n";
-
+            //$txt .= 'Удален товар: ' . $v['name'] . "\n";
         }
-
         return $txt;
     }
 
+    /**
+     * Создание ссылки на картинки товара
+     * @param $v array данные о товаре
+     */
+    private function loadImg(&$v)
+    {
+        /*
+        // Удаление картинок если картинки перевыгружют
+        $config = Config::getInstance();
+        $allowResize = explode("\n", $config->allowResize);
+        */
+        if (isset($v['img']) && $v['img'] != null) {
+            /*
+            // Удаление картинок если картинки перевыгружют
+            foreach ($allowResize as $k => $v) {
+                if (file_exists(DOCUMENT_ROOT . '/images/1c/' . $v . '/' .$v['img'])) {
+                    unlink(DOCUMENT_ROOT . '/images/1c/' . $v . '/' .$v['img']);
+                }
+            }*/
+            $image = basename($v['img']);
+            $dir = basename(str_replace('/' . $image, '', $v['img']));
+            $image = $dir . '/' . $image;
+            $v['img'] = $image;
+            unset($image);
+        }
+        if (isset($v['imgs']) && $v['imgs'] != null) {
+            $imgs = explode('|:|', $v['imgs']);
+            foreach ($imgs as $k => $value) {
+                /*
+                // Удаление картинок если картинки перевыгружют
+                foreach ($allowResize as $k => $v) {
+                    if (file_exists(DOCUMENT_ROOT . '/images/1c/' . $v . '/' . $value)) {
+                        unlink(DOCUMENT_ROOT . '/images/1c/' . $v . '/' . $value);
+                    }
+                }*/
+                $image = basename($imgs[$k]);
+                $dir = basename(str_replace('/' . $image, '', $imgs[$k]));
+                $image = $dir . '/' . $image;
+                $imgs[$k] = $image;
+            }
+            $v['imgs'] = implode('|:|', $imgs);
+            unset($imgs);
+        }
+    }
 
-    function updateGoodsToGroups(Db $db, $goodsToGroups, $status)
+    protected function updateGoodsToGroups(Db $db, $goodsToGroups, $status)
     {
         $fields = array(
-            'category_id' => array('sql' => 'int(11)'),
-            'good_id' => array('sql' => 'int(11)')
+            'category_id' => array('sql' => 'int(11)', 'label' => ''),
+            'good_id' => array('sql' => 'int(11)', 'label' => '')
         );
 
         if ($status == 'full') {
-            $_sql = "DROP TABLE IF EXISTS {$this->tableLink}";
+            $_sql = "DROP TABLE IF EXISTS {$this->tableMediumGood}";
             $db->query($_sql);
-            $db->create($this->tableLink, $fields);
-            print 'Count goods to groups: ' . count($goodsToGroups) . '<br />';
+            $db->create($this->tableMediumGood, $fields);
+            $db->query("ALTER TABLE {$this->tableMediumGood} ADD INDEX ( category_id )");
+            $db->query("ALTER TABLE {$this->tableMediumGood} ADD INDEX ( good_id )");
             foreach ($goodsToGroups as $groupId => $goodIds) {
                 foreach ($goodIds as $goodId) {
-                    if ($groupId == '') continue;
+                    if ($groupId == '') {
+                        continue;
+                    }
                     $_sql = "SELECT ID FROM {$this->tableCat} AS t1 WHERE t1.id_1c='{$groupId}' LIMIT 1";
                     $id = $db->select($_sql);
                     $id = $id[0]['ID'];
-                    $_sql = "SELECT ID FROM {$this->tableCat} AS t1 WHERE t1.id_1c='{$goodId}' LIMIT 1";
+                    $_sql = "SELECT ID FROM {$this->tableGood} AS t1 WHERE t1.id_1c='{$goodId}' LIMIT 1";
                     $id2 = $db->select($_sql);
                     $id2 = $id2[0]['ID'];
                     $row = array(
                         'category_id' => $id,
                         'good_id' => $id2
                     );
-                    if ($row['category_id'] == '') continue;
-                    $db->insert($this->tableCat, $row);
+                    if ($row['category_id'] == '') {
+                        continue;
+                    }
+                    $db->insert($this->tableMediumGood, $row);
                 }
             }
         } else {
@@ -317,20 +427,17 @@ class ToolsAbstract
 
             // Проходимся по массиву товаров: удаляем все привязки товара из БД, добавляем из XML
             foreach ($goods as $goodId => $groupsId) {
-                $_sql = "DELETE FROM {$this->tableLink} WHERE good_id = '{$goodId}'";
+                $_sql = "DELETE FROM {$this->tableMediumGood} WHERE good_id = '{$goodId}'";
                 $db->query($_sql);
                 foreach ($groupsId as $groupId) {
                     $row = array(
                         'category_id' => $groupId,
                         'good_id' => $goodId
                     );
-                    $db->insert($this->tableLink, $row);
+                    $db->insert($this->tableMediumGood, $row);
                 }
-
             }
-
         }
-
     }
 
     /**
@@ -338,7 +445,7 @@ class ToolsAbstract
      * @param $id
      * @return mixed
      */
-    private function createCategory($id)
+    protected function createCategory($id)
     {
         $parentId = $this->treeCat[$id]['parent_id'];
         $cid = new \Ideal\Field\Cid\Model(6, 3);
@@ -364,5 +471,72 @@ class ToolsAbstract
             );
         }
         return $id;
+    }
+
+    /**
+     * Записываем кол-во товаров со скидкой для каждой группы
+     * @param Db $db
+     * @param $table string таблица категорий
+     * @param $sale array массив где ключ id_1c категории, а значение кол-во товара со скидкой
+     * @param $groups
+     * @param $countCat int кол-во товара на группу
+     * @return int Количество товаров со скидкой
+     */
+    private function updateCountGoodsCat(Db $db, $table, $sale, $groups, $countCat)
+    {
+        $arr = array();
+        $count = 0;
+        ksort($groups);
+        foreach ($groups as $key => $val) {
+            preg_match_all('/([0-9]{0,3})/', $key, $tmp);
+            $tmp = $tmp[0];
+            $obiwan = & $arr[array_shift($tmp)];
+            foreach ($tmp as $_v) {
+                if (($_v === '000') || ($_v === '')) {
+                    break;
+                }
+                $obiwan = &$obiwan['sub'][array_shift($tmp)];
+            }
+            $obiwan['id_1c'] = $val['id_1c'];
+            $obiwan['count_sale'] = (int)$val['count_sale'];
+            $obiwan['count_good'] = isset($countCat[$val['id_1c']]) ? $countCat[$val['id_1c']] : 0;
+            if (isset($sale[$val['id_1c']]) && $sale[$val['id_1c']] != $val['count_sale']) {
+                $obiwan['count_sale'] = $sale[$val['id_1c']];
+            }
+        }
+
+        foreach ($arr as $k => $v) {
+            $tmp = $this->recurUpdateSale($db, $table, $arr[$k]);
+            $count += $tmp['s'];
+        }
+        return $count;
+    }
+
+    /**
+     * Установка кол-во товара в категории
+     * @param Db $db
+     * @param $table
+     * @param $elem
+     * @return array
+     */
+    private function recurUpdateSale(Db $db, $table, &$elem)
+    {
+        $countS = 0;
+        $countG = 0;
+        if (isset($elem['sub'])) {
+            foreach ($elem['sub'] as $k => $v) {
+                $tmp = $this->recurUpdateSale($db, $table, $elem['sub'][$k]);
+                $countS += $tmp['s'];
+                $countG += $tmp['g'];
+            }
+        } else {
+            $countS = $elem['count_sale'];
+            $countG = $elem['count_good'];
+        }
+        $tmp = $elem['id_1c'];
+        $_sql = "UPDATE {$table} SET count_sale={$countS}, num={$countG}";
+        $_sql .= " WHERE id_1c='{$tmp}'";
+        $db->query($_sql);
+        return array('s' => $countS, 'g' => $countG);
     }
 }
