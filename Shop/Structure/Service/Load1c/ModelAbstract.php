@@ -5,7 +5,7 @@ use Ideal\Core\Config;
 use Ideal\Field\Cid;
 use Ideal\Field\Url;
 
-class Model
+class ModelAbstract
 {
     // Основной xml-контент, загруженный из файла
     protected $xml;
