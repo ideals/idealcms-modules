@@ -11,11 +11,8 @@ namespace Shop\Structure\Service\Load1c;
 
 class Tools extends ToolsAbstract
 {
-    public function __construct(){
-        $this->tableLink = 'catalogplus_good';
-        $this->tableGood = 'catalogplus_structure_good';
-        $this->tableCat = 'catalogplus_structure_category';
-
+    public function __construct()
+    {
         $this->fields = array(
             'Ид' => 'id_1c',
             'Наименование' => 'name',
@@ -48,7 +45,6 @@ class Tools extends ToolsAbstract
             'Единица' => 'item',
             'Коэффициент' => 'coefficient'
         );
-
         parent::__construct();
     }
 }

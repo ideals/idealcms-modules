@@ -15,23 +15,25 @@ use Ideal\Field\Url;
 
 class ModelAbstract
 {
-    // Основной xml-контент, загруженный из файла
+    /** @var \SimpleXMLElement  xml-контент, загруженный из файла */
     protected $xml;
-    // Категории товара
+    /** @var array Категории товара */
     protected $groups;
-    // Свойства товара
+    /** @var array Свойства товара */
     protected $props;
-    // Принадлежность каждого товара к определённой группе
+    /** @var array Принадлежность каждого товара к определённой группе */
     protected $goodGroups;
-    // full | update — выгружается весь каталог или только изменения
+    /** @var string full | update — выгружается весь каталог или только изменения */
     public $status;
+    /** @var  array Группы существующие в базе данных */
     protected $oldGroups;
+    /** @var  array Поля свойств товара */
     protected $fields;
-    // Массив с кол-вом скидок, ключ у массива id категории из 1с, значение кол-во скидочных товаров
+    /** @var  array Массив с кол-вом скидок, ключ у массива id категории из 1с, значение кол-во скидочных товаров */
     protected $saleGroup;
-    // Категории. Ключ cid значения кол-во скидочных товаров и id из 1с
+    /** @var array Категории. Ключ cid значения кол-во скидочных товаров и id из 1с */
     protected $groupArr;
-    // Кол-во товара на категорию
+    /** @var array  Кол-во товара на категорию */
     protected $goodsOnCat;
 
 
@@ -44,9 +46,12 @@ class ModelAbstract
      * @param string $offersFile Путь к файлу offers.xml
      * @param string $idTypeOfPrice Ид типа цены для сайта
      */
+
     public function __construct($importFile, $offersFile, $idTypeOfPrice)
     {
-        $this->xml = simplexml_load_file($importFile);
+        //$this->xml = simplexml_load_file($importFile);
+        $xmlString = str_replace('xmlns=', 'ns=', file_get_contents($importFile));
+        $this->xml = new \SimpleXMLElement($xmlString);
 
         // Считываем категории товара в массив $this->groups
         $groupsXML = $this->xml->xpath('Классификатор/Группы');
@@ -75,7 +80,10 @@ class ModelAbstract
         $this->props = $props;
 
         // Считываем цену и количество товара
-        $xml = simplexml_load_file($offersFile);
+        //$xml = simplexml_load_file($offersFile);
+        $xmlString = str_replace('xmlns=', 'ns=', file_get_contents($offersFile));
+        $xml = new \SimpleXMLElement($xmlString);
+
         $goodsXML = $xml->xpath('ПакетПредложений/Предложения');
         $this->offers = $this->getOffers($goodsXML[0], $idTypeOfPrice);
 
@@ -321,7 +329,8 @@ class ModelAbstract
     public function getLoadGroups()
     {
         // Прописать количество товара в соответствующих категориях
-        // Обойти все категории и прорисать количество товара у родительских категорий (в которых нет товара, но есть категории с товаром)
+        // Обойти все категории и прорисать количество товара у родительских категорий (в которых нет товара, но есть
+        // категории с товаром)
 
         $result = $this->getChangedGroupsRecursive($this->groups);
 
@@ -530,7 +539,8 @@ class ModelAbstract
                             $this->offers[$explodeID[0]]['Единица'] = $v['Единица'];
                             $this->offers[$explodeID[0]]['Коэффициент'] = $v['Коэффициент'];
                             $this->offers[$explodeID[0]]['Скидка'] = isset($v['Скидка']) ? $v['Скидка'] : null;
-                            $this->offers[$explodeID[0]]['ДатаОкончания'] = isset($v['ДатаОкончания']) ? $v['ДатаОкончания'] : null;
+                            $this->offers[$explodeID[0]]['ДатаОкончания'] =
+                                isset($v['ДатаОкончания']) ? $v['ДатаОкончания'] : null;
                         }
                     }
                 }
@@ -565,7 +575,8 @@ class ModelAbstract
                     // todo это должно быть в переопределнии метода обработки товара
                     //$good['category'] = $properties['Категория на сайте'];
 
-                    // todo всё что ниже должно быть в переопредлении метода getGoodProperties для конкретной реализации, а не тут
+                    // todo всё что ниже должно быть в переопредлении метода getGoodProperties для конкретной
+                    //реализации, а не тут
                     if (isset($properties['Новинка']) && ($properties['Новинка'] == 'да')) {
                         $good['new_item'] = 1;
                     } else {

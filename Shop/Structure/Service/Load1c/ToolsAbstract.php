@@ -14,34 +14,34 @@ use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Field\Url;
 use Shop\Structure\Service\Load1c;
-use Shop\Structure\Data;
+use CatalogPlus\Structure\Category;
 
 class ToolsAbstract
 {
     // Таблицы указываются без префекса
 
-    /** @var string tableCat Таблица категорий */
+    /** @var string Таблица категорий */
     protected $tableCat = 'catalogplus_structure_category';
 
-    /** @var string tableCat Таблица товаров */
+    /** @var string Таблица товаров */
     protected $tableGood = 'catalogplus_structure_good';
 
-    /** @var string tableCat Таблица c информацией о товарном предложении */
+    /** @var string Таблица c информацией о товарном предложении */
     protected $tableOffer = 'offers_good';
 
-    /** @var string tableCat Таблица для связи категории и товара */
+    /** @var string Таблица для связи категории и товара */
     protected $tableMediumGood = 'catalogplus_medium_categorylist';
 
-    /** @var string prevGood prev_structure товаро */
+    /** @var string prev_structure товаров */
     protected $prevGood = '';
 
-    /** @var string $prevCat prev_structure категорийа */
+    /** @var string prev_structure категорий товаров */
     protected $prevCat  = '';
 
-    /** @var array fields */
+    /** @var array Поля обозначающие связь между полями выгрузки 1С и полями в БД */
     protected $fields = array();
 
-    /** @var array  */
+    /** @var array Категории товаров */
     protected $category = array();
 
     protected $treeCat = array();
@@ -56,6 +56,14 @@ class ToolsAbstract
         $this->tableMediumGood = $prefix . $this->tableMediumGood;
     }
 
+    /**
+     * @param $importFile
+     * @param $offersFile
+     * @param $priceId
+     * оферсы
+     * склады
+     * характеристики
+     */
 
     public function showProperties($importFile, $offersFile, $priceId)
     {
@@ -79,6 +87,13 @@ class ToolsAbstract
     }
 
 
+    /**
+     * @param $importFile
+     * @param $offersFile
+     * @param $priceId
+     * @param bool $loadImg
+     * @param bool $conect1c
+     */
     public function loadBase($importFile, $offersFile, $priceId, $loadImg = false, $conect1c = false)
     {
         $db = Db::getInstance();
@@ -147,6 +162,7 @@ SQL;
         $db->query("UPDATE {$this->tableGood} SET sell = NULL");
 
         $txt = $this->updateGoods($db, $this->tableGood, $txt, $changedGoods, $loadImg, $conect1c);
+        $txt = $this->updateOffers($db, $txt, $changedGoods);
         unset($changedGoods);
 
         // ПРИВЯЗКА ТОВАРА К КАТЕГОРИЯМ
@@ -167,7 +183,7 @@ SQL;
         $sql = "UPDATE {$this->tableCat} SET is_not_menu = 1 WHERE id_1c != 'not-1c' AND num = 0 AND count_sale = 0";
         $db->query($sql);
 
-        if (count($this->newColor) > 0) {
+        /*if (count($this->newColor) > 0) {
             $txt .= "\nПоявились новые цвета: " . implode('; ', $this->newColor);
         }
 
@@ -180,15 +196,16 @@ SQL;
         }
         if (count($this->nonColor) > 0) {
             $txt .= "\nУ товаров с артикулом нет цвета: " . implode('; ', $this->nonColor);
-        }
+        }*/
         if (!$conect1c) {
             echo str_replace("\n", '<br />', $txt);
         } else {
+            $config = Config::getInstance();
             $text .= $txt . "\nВыгрузка еще не завершена. Может идти еще выгрузка картинок";
             $mail = new Sender();
-            $mail->setSubj('Выгрузка на ciaokids.ru');
+            $mail->setSubj('Выгрузка на' . $config->db['domain']);
             $mail->setPlainBody($text);
-            $mail->sent('1c@ciaokids.ru', 'top@neox.ru, morozov@neox.ru, help1@neox.ru, seo3@neox.ru');
+            $mail->sent('top@neox.ru, morozov@neox.ru, help1@neox.ru, seo3@neox.ru');
             echo iconv("UTF-8", "windows-1251", $text);
         }
     }
@@ -255,10 +272,10 @@ SQL;
     {
         $modelCategory = new Category\Admin\Model('');
         $modelCategory->loadCategory();
-        $typeBrand = new Brand\Admin\Model('1-25'); // TODO нужно вынести prev_structure
-        $typeBrand->loadType();
+        //$typeBrand = new Brand\Admin\Model('1-25'); // TODO нужно вынести prev_structure
+        //$typeBrand->loadType();
         $config = Config::getInstance();
-        $dataId = $config->getStructureByName('Ideal_DataList');
+        /*$dataId = $config->getStructureByName('Ideal_DataList');
         $dataId = $dataId['ID'];
         $sql = "SELECT * FROM i_ideal_structure_datalist WHERE structure = 'Synonyms_Data'";
         $result = $db->select($sql);
@@ -270,16 +287,16 @@ SQL;
             }
         }
         $data = new Data\Admin\Model('');
-        $data->loadType(false);
+        $data->loadType(false);*/
         foreach ($changedGoods['update'] as $v) {
             $v['is_active'] = 1;
             $properties = unserialize($v['properties']);
-            $v['color_id'] = $data->getIdType($properties['Цвет'], $this->prevColor);
+            /*$v['color_id'] = $data->getIdType($properties['Цвет'], $this->prevColor);
             if (!isset($properties['Бренд'])) {
                 $this->nonBrand[$v['articul']] = $v['articul'];
                 continue;
             }
-            $v['brand_id'] = $typeBrand->getIdType($properties['Бренд']);
+            $v['brand_id'] = $typeBrand->getIdType($properties['Бренд']);*/
             if ($loadImg) {
                 $this->loadImg($v);
             }
@@ -305,7 +322,7 @@ SQL;
         foreach ($changedGoods['add'] as $v) {
             $v['name'] = trim($v['name']);
             $properties = unserialize($v['properties']);
-            $v['color_id'] = $data->getIdType($properties['Цвет'], $this->prevColor);
+            /*$v['color_id'] = $data->getIdType($properties['Цвет'], $this->prevColor);
             if (!isset($properties['Бренд'])) {
                 $this->nonBrand[$v['articul']] = $v['articul'];
                 continue;
@@ -318,7 +335,8 @@ SQL;
             }
             $url = str_replace('!"#$%&\'()*+,./@:;<=>[\\]^`{|}~', '', $url);
             $v['brand_id'] = $typeBrand->getIdType($properties['Бренд']);
-            $v['url'] = Url\Model::translitUrl($url);
+            $v['url'] = Url\Model::translitUrl($url);*/
+            $v['url'] = $this->getUrl($v);
             $v = array_merge($v, $add);
             if ($loadImg) {
                 $this->loadImg($v);
@@ -346,10 +364,53 @@ SQL;
     }
 
     /**
+     * @param Db $db
+     * @param $txt
+     * @param $changedGoods
+     */
+    protected function updateOffers(Db $db, $txt, &$changedGoods)
+    {
+        $fields = array(
+            'ID' => array('sql' => 'int(8) unsigned not null auto_increment primary key', 'label' => ''),
+            'offer_id' => array('sql' => 'varchar(37)', 'label' => ''),
+            'good_id' => array('sql' => 'varchar(37)', 'label' => ''),
+            'price' => array('sql' => 'int(11)', 'label' => ''),
+            'name' => array('sql' => 'varchar(255)', 'label' => ''),
+            'count' => array('sql' => 'int(11)', 'label' => ''),
+        );
+        $_sql = "DROP TABLE IF EXISTS {$this->tableOffer}";
+        $db->query($_sql);
+        $db->create($this->tableOffer, $fields);
+        $db->query("ALTER TABLE {$this->tableOffer} ADD INDEX ( good_id )");
+        foreach ($changedGoods['offers'] as $k => $v) {
+            unset($v['ЦенаЗаЕдиницу']);
+            $row = array();
+            $row['offer_id'] = $offers;
+            $row['good_id'] = $k;
+            $row['price'] = (int)$val['ЦенаЗаЕдиницу'];
+            $row['name'] = $val['Наименование'];
+            $row['count'] = (int)$val['Количество'];
+            $db->insert($this->tableOffer, $row);
+            unset($row);
+        }
+    }
+
+    /**
+     * Получение url товара
+     * @param array $good Bнформация о товаре
+     * @return string Url товара
+     */
+    protected function getUrl($good)
+    {
+        $url = str_replace('!"#$%&\'()*+,./@:;<=>[\\]^`{|}~', '', $good['name']);
+        return Url\Model::translitUrl($url);
+    }
+
+    /**
      * Создание ссылки на картинки товара
      * @param $v array данные о товаре
      */
-    private function loadImg(&$v)
+    protected function loadImg(&$v)
     {
         /*
         // Удаление картинок если картинки перевыгружют
@@ -458,8 +519,8 @@ SQL;
         $parentId = $this->treeCat[$id]['parent_id'];
         $cid = new \Ideal\Field\Cid\Model(6, 3);
         $lvl = 1;
-        if($parentId !== false){
-        } else{
+        if ($parentId !== false) {
+        } else {
             //$newCid = $cid->setBlock($nextParentCid, $newLvl, $newCid, true);
 
             $db = Db::getInstance();
