@@ -49,12 +49,22 @@ class ModelAbstract
 
     public function __construct($importFile, $offersFile, $idTypeOfPrice)
     {
-        //$this->xml = simplexml_load_file($importFile);
-        $xmlString = str_replace('xmlns=', 'ns=', file_get_contents($importFile));
-        $this->xml = new \SimpleXMLElement($xmlString);
+        $this->xml = simplexml_load_file($importFile);
+
+        $namespaces = $this->xml->getDocNamespaces();
+        if (isset($namespaces[''])) {
+            $defaultNamespaceUrl = $namespaces[''];
+            $this->xml->registerXPathNamespace('default', $defaultNamespaceUrl);
+            $nsprefix = 'default:';
+        } else {
+            $nsprefix = '';
+        }
+        /*$xmlString = str_replace('xmlns=', 'ns=', file_get_contents($importFile));
+        $this->xml = new \SimpleXMLElement($xmlString);*/
 
         // Считываем категории товара в массив $this->groups
-        $groupsXML = $this->xml->xpath('Классификатор/Группы');
+        //$groupsXML = $this->xml->xpath('//' . $nsprefix . 'Классификатор/Группы');
+        $groupsXML = $this->xml->xpath('//' . $nsprefix . 'Классификатор/' . $nsprefix . 'Группы');
         $modGroups = new ModGroups($groupsXML[0], $this->xml);
 
         $this->groups = $this->loadGroups($groupsXML[0]);
@@ -62,7 +72,8 @@ class ModelAbstract
 
         // Считываем свойства товара в массив $this->props
         $props = array();
-        $propsXML = $this->xml->xpath('Классификатор/Свойства/Свойство');
+        $propsXML = $this->xml->xpath('//' . $nsprefix . 'Классификатор/' . $nsprefix . 'Свойства/' . $nsprefix
+            . 'Свойство');
         foreach ($propsXML as $child) {
             $id = (string)$child->{'Ид'};
             if ((string)$child->{'ТипЗначений'} == 'Справочник') {
@@ -80,11 +91,21 @@ class ModelAbstract
         $this->props = $props;
 
         // Считываем цену и количество товара
-        //$xml = simplexml_load_file($offersFile);
-        $xmlString = str_replace('xmlns=', 'ns=', file_get_contents($offersFile));
-        $xml = new \SimpleXMLElement($xmlString);
+        $xml = simplexml_load_file($offersFile);
+        //$xml = simplexml_load_file($name);
+        $namespaces = $xml->getDocNamespaces();
+        if (isset($namespaces[''])) {
+            $defaultNamespaceUrl = $namespaces[''];
+            $xml->registerXPathNamespace('default', $defaultNamespaceUrl);
+            $nsprefix = 'default:';
+        } else {
+            $nsprefix = '';
+        }
 
-        $goodsXML = $xml->xpath('ПакетПредложений/Предложения');
+        /*$xmlString = str_replace('xmlns=', 'ns=', file_get_contents($offersFile));
+        $xml = new \SimpleXMLElement($xmlString);*/
+
+        $goodsXML = $xml->xpath('//' . $nsprefix. 'ПакетПредложений/' . $nsprefix. 'Предложения');
         $this->offers = $this->getOffers($goodsXML[0], $idTypeOfPrice);
 
         // Определяем весь каталог выгружается, или только изменения
