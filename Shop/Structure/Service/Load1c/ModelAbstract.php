@@ -35,6 +35,10 @@ class ModelAbstract
     protected $groupArr;
     /** @var array  Кол-во товара на категорию */
     protected $goodsOnCat;
+    /** @var string Префикс пространства имён */
+    protected $importNsPrefix = '';
+    /** @var string Префикс пространства имён */
+    protected $offerNsPrefix = '';
 
 
     /**
@@ -55,16 +59,16 @@ class ModelAbstract
         if (isset($namespaces[''])) {
             $defaultNamespaceUrl = $namespaces[''];
             $this->xml->registerXPathNamespace('default', $defaultNamespaceUrl);
-            $nsprefix = 'default:';
-        } else {
-            $nsprefix = '';
+            $this->importNsPrefix = 'default:';
         }
         /*$xmlString = str_replace('xmlns=', 'ns=', file_get_contents($importFile));
         $this->xml = new \SimpleXMLElement($xmlString);*/
 
         // Считываем категории товара в массив $this->groups
         //$groupsXML = $this->xml->xpath('//' . $nsprefix . 'Классификатор/Группы');
-        $groupsXML = $this->xml->xpath('//' . $nsprefix . 'Классификатор/' . $nsprefix . 'Группы');
+        $groupsXML = $this->xml->xpath(
+            '//' . $this->importNsPrefix . 'Классификатор/' . $this->importNsPrefix . 'Группы'
+        );
         $modGroups = new ModGroups($groupsXML[0], $this->xml);
 
         $this->groups = $this->loadGroups($groupsXML[0]);
@@ -72,8 +76,10 @@ class ModelAbstract
 
         // Считываем свойства товара в массив $this->props
         $props = array();
-        $propsXML = $this->xml->xpath('//' . $nsprefix . 'Классификатор/' . $nsprefix . 'Свойства/' . $nsprefix
-            . 'Свойство');
+        $propsXML = $this->xml->xpath(
+            '//' . $this->importNsPrefix . 'Классификатор/' . $this->importNsPrefix . 'Свойства/'
+            . $this->importNsPrefix . 'Свойство'
+        );
         foreach ($propsXML as $child) {
             $id = (string)$child->{'Ид'};
             if ((string)$child->{'ТипЗначений'} == 'Справочник') {
@@ -97,15 +103,15 @@ class ModelAbstract
         if (isset($namespaces[''])) {
             $defaultNamespaceUrl = $namespaces[''];
             $xml->registerXPathNamespace('default', $defaultNamespaceUrl);
-            $nsprefix = 'default:';
-        } else {
-            $nsprefix = '';
+            $this->offerNsPrefix = 'default:';
         }
 
         /*$xmlString = str_replace('xmlns=', 'ns=', file_get_contents($offersFile));
         $xml = new \SimpleXMLElement($xmlString);*/
 
-        $goodsXML = $xml->xpath('//' . $nsprefix. 'ПакетПредложений/' . $nsprefix. 'Предложения');
+        $goodsXML = $xml->xpath(
+            '//' . $this->offerNsPrefix . 'ПакетПредложений/' . $this->offerNsPrefix . 'Предложения'
+        );
         $this->offers = $this->getOffers($goodsXML[0], $idTypeOfPrice);
 
         // Определяем весь каталог выгружается, или только изменения
@@ -197,7 +203,10 @@ class ModelAbstract
     public function checkGoodsInGroups()
     {
         // Устраиваем цикл по товарам
-        $goodsXML = $this->xml->xpath('Каталог/Товары/Товар');
+        $goodsXML = $this->xml->xpath(
+            '//' . $this->offerNsPrefix . 'Каталог/' . $this->offerNsPrefix . 'Товары/'
+            . $this->offerNsPrefix . 'Товар'
+        );
         $goodGroups = array();
         foreach ($goodsXML as $child) {
             foreach ($child->{'Группы'}->children() as $item) {
@@ -510,7 +519,9 @@ class ModelAbstract
             $oldGoods[$v['id_1c']] = $v;
         }
 
-        $goodsXML = $this->xml->xpath('Каталог/Товары/Товар');
+        $goodsXML = $this->xml->xpath(
+            '//' . $this->offerNsPrefix . 'Каталог/' . $this->offerNsPrefix . 'Товары/' . $this->offerNsPrefix . 'Товар'
+        );
         $goods = array(
             'add' => array(),
             'update' => array(),
@@ -734,7 +745,7 @@ class ModelAbstract
                     if (count($id) > 1) {
                         $cellArr = & $offersArr[$id[0]][$id[1]];
                     } else {
-                        $cellArr = & $offersArr[$id[0]];
+                        $cellArr = & $offersArr[$id[0]][$id[0]];
                     }
                     $cellArr = array(
                         'Наименование' => (string)$child->{'Наименование'},
