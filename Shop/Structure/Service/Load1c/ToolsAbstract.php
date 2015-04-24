@@ -385,12 +385,17 @@ SQL;
         foreach ($changedGoods['offers'] as $k => $v) {
             unset($v['ЦенаЗаЕдиницу']);
             $row = array();
-            $row['offer_id'] = $offers;
-            $row['good_id'] = $k;
-            $row['price'] = (int)$val['ЦенаЗаЕдиницу'];
-            $row['name'] = $val['Наименование'];
-            $row['count'] = (int)$val['Количество'];
-            $db->insert($this->tableOffer, $row);
+            $tmp = isset($changedGoods['add'][$k]) ? 'add' : 'update';
+            $tmp = unserialize($changedGoods[$tmp][$k]['properties']);
+            foreach ($v as $offers => $val) {
+                $row['offer_id'] = $offers;
+                $row['good_id'] = $k;
+                $row['price'] = (int)$val['ЦенаЗаЕдиницу'];
+                $row['name'] = $val['Наименование'];
+                $row['count'] = (int)$val['Количество'];
+                $db->insert($this->tableOffer, $row);
+            }
+            unset($v['ЦенаЗаЕдиницу']);
             unset($row);
         }
     }
