@@ -6,6 +6,7 @@ use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Core\Util;
 use Ideal\Field;
+use Ideal\Structure\User;
 use CatalogPlus;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
@@ -18,6 +19,9 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     /** @var  \CatalogPlus\Structure\Good\Site\Model */
     protected $goods;
 
+    /**
+     * {@inheritdoc}
+     */
     public function __construct($prevStructure)
     {
         parent::__construct($prevStructure);
@@ -165,8 +169,12 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             }
         }
 
+        // Для авторизированных в админку пользователей отображать скрытые категории
+        $user = new User\Model();
+        $checkActive = ($user->checkLogin()) ? '' : ' AND is_active=1';
+
         // Список всех доступных категорий
-        $sql = "SELECT * FROM {$this->_table} WHERE prev_structure = '{$prevStructure}' ORDER BY cid";
+        $sql = "SELECT * FROM {$this->_table} WHERE prev_structure = '{$prevStructure}' {$checkActive} ORDER BY cid";
         $list = $db->select($sql);
 
         // Создание массива категорий

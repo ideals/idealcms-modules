@@ -28,7 +28,8 @@
                             <div class="col-md-4">
                                 <div class="thumbnail">
                                     <a href="{{ good.link }}" class="thumbnail">
-                                        <img src="{{ good.img }}" alt="{{ good.name }}">
+                                        <img {% if good.img|length > 0 %}src="{{ good.img }}"{% endif %}
+                                             alt="{{ good.name }}">
                                     </a>
 
                                     <div class="caption">
@@ -72,7 +73,7 @@
 
 {% endblock %}
 
-
+{# Вывод списка категорий с вложенными категориями #}
 {% macro echoListCat(categorys, recur) %}
 
     {% for cat in categorys %}
