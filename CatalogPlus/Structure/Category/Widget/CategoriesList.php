@@ -1,19 +1,42 @@
 <?php
+/**
+ * Ideal CMS (http://idealcms.ru/)
+ *
+ * @link      http://github.com/ideals/idealcms репозиторий исходного кода
+ * @copyright Copyright (c) 2012-2015 Ideal CMS (http://idealcms.ru)
+ * @license   http://idealcms.ru/license.html LGPL v3
+ */
+
 namespace CatalogPlus\Structure\Category\Widget;
 
 use Ideal\Core\Config;
 use Ideal\Core\Db;
-use Ideal\Field;
 use Ideal\Core\Widget;
+use Ideal\Field;
 
+/**
+ * Виджет для получение иерархии категорий товара заданной вложенности
+ *
+ * Пример использования:
+ *
+ *     $cats = new CategoriesList($model);
+ *     $cats->setLvl(4);
+ *     $cats->setPrefix('/shop/categories');
+ *     $vars['categories'] = $cats->getData(true);
+ */
 class CategoriesList extends Widget
 {
+    /** @var int Уровень вложенности, до которого выбираются категории */
     protected $lvl = 4;
 
-    /** @var  \Ideal\Core\Site\Model */
+    /** @var \Ideal\Core\Site\Model Модель страницы с данными */
     protected $model;
 
-
+    /**
+     * Установка уровня вложенности для выборки категорий
+     *
+     * @param int $lvl Уровень вложенности, до которого выбираются категории
+     */
     public function setLvl($lvl)
     {
         $this->lvl = $lvl;
@@ -21,14 +44,16 @@ class CategoriesList extends Widget
 
     /**
      * Получение списка категорий продукции
-     * @param bool $menuList
-     * @return array
+     *
+     * @param bool $menuList Если false, то не строится иерархия категорий и не делаются ссылки
+     * @return array Список категорий товаров
      */
     public function getData($menuList = false)
     {
         if ($menuList === false) {
             $menuList = $this->getList();
         }
+
         $path = $this->model->getPath();
         $object = array_pop($path);
         $prev = array_pop($path);
@@ -77,6 +102,12 @@ class CategoriesList extends Widget
         return $categoryList;
     }
 
+    /**
+     * Рекурсивный метод для построения иерархии вложенных категорий
+     *
+     * @param array $menu Массив, в котором строится иерархия
+     * @return array Массив с построенной иерархией дочерних элементов
+     */
     protected function getSubCategories(&$menu)
     {
         // Записываем в массив первый элемент
@@ -104,7 +135,9 @@ class CategoriesList extends Widget
     }
 
     /**
-     * @return mixed
+     * Получение модели страницы с данными
+     *
+     * @return \Ideal\Core\Site\Model Модель страницы с данными
      */
     public function getModel()
     {
