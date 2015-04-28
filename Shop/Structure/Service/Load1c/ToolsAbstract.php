@@ -237,7 +237,6 @@ SQL;
             'date_mod' => time(),
             'prev_structure' => $this->prevCat,
             'structure' => 'CatalogPlus_Category',
-            'template' => 'Ideal_Page',
             'is_active' => 1
         );
 
