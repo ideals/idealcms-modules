@@ -22,7 +22,7 @@ use Ideal\Field;
  *     $cats = new CategoriesList($model);
  *     $cats->setLvl(4);
  *     $cats->setPrefix('/shop/categories');
- *     $vars['categories'] = $cats->getData(true);
+ *     $vars['categories'] = $cats->getData();
  */
 class CategoriesList extends Widget
 {
@@ -31,6 +31,9 @@ class CategoriesList extends Widget
 
     /** @var \Ideal\Core\Site\Model Модель страницы с данными */
     protected $model;
+
+    /** @var array Массив, позволяющий избежать получения из БД категорий, если они были получены вне виджета */
+    protected $menuList = array();
 
     /**
      * Установка уровня вложенности для выборки категорий
@@ -45,14 +48,11 @@ class CategoriesList extends Widget
     /**
      * Получение списка категорий продукции
      *
-     * @param bool $menuList Если false, то не строится иерархия категорий и не делаются ссылки
      * @return array Список категорий товаров
      */
-    public function getData($menuList = false)
+    public function getData()
     {
-        if ($menuList === false) {
-            $menuList = $this->getList();
-        }
+        $menuList = $this->getList();
 
         $path = $this->model->getPath();
         $object = array_pop($path);
@@ -154,6 +154,10 @@ class CategoriesList extends Widget
      */
     public function getList()
     {
+        if (!empty($this->menuList)) {
+            return $this->menuList;
+        }
+
         $db = Db::getInstance();
         $config = Config::getInstance();
 
@@ -166,5 +170,15 @@ class CategoriesList extends Widget
         $menuList = $db->select($_sql);
 
         return $menuList;
+    }
+
+    /**
+     * Метод позволяет задать список категорий товара, если он уже был определён вне виджета
+     *
+     * @param array $menuList Массив с плоским списком категорий товара
+     */
+    public function setMenuList($menuList)
+    {
+        $this->menuList = $menuList;
     }
 }
