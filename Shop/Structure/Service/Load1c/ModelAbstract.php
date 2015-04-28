@@ -109,6 +109,7 @@ class ModelAbstract
         /*$xmlString = str_replace('xmlns=', 'ns=', file_get_contents($offersFile));
         $xml = new \SimpleXMLElement($xmlString);*/
 
+
         $goodsXML = $xml->xpath(
             '//' . $this->offerNsPrefix . 'ПакетПредложений/' . $this->offerNsPrefix . 'Предложения'
         );
@@ -742,6 +743,9 @@ class ModelAbstract
                     foreach ($link as $tmp) {
                         $features[(string)$tmp->{'Наименование'}] = (string)$tmp->{'Значение'};
                     }
+                    // Получение количества товаров
+                    $count = $this->getOfferCount($child);
+
                     if (count($id) > 1) {
                         $cellArr = & $offersArr[$id[0]][$id[1]];
                     } else {
@@ -749,13 +753,14 @@ class ModelAbstract
                     }
                     $cellArr = array(
                         'Наименование' => (string)$child->{'Наименование'},
-                        'Количество' => (string)$child->{'Количество'},
+                        'Количество' => $count,
                         'ЦенаЗаЕдиницу' => (string)$price->{'ЦенаЗаЕдиницу'},
                         'Валюта' => (string)$price->{'Валюта'},
                         'Единица' => (string)$price->{'Единица'},
                         'Коэффициент' => (string)$price->{'Коэффициент'},
                         'Предложения' => $features
                     );
+
                     if (isset($child->{'СкидкиНаценки'}) && count($child->xpath('СкидкиНаценки')) > 0) {
                         $cellArr['Скидка'] = (int)$child->{'СкидкиНаценки'}->{'СкидкаНаценка'}->{'Процент'};
                         if (isset($child->{'СкидкиНаценки'}->{'СкидкаНаценка'}->{'ДатаОкончания'})) {
@@ -778,6 +783,24 @@ class ModelAbstract
             }
         }
         return $offersArr;
+    }
+
+    /**
+     * Получение количества товаров
+     * @param object $offer Товарное предложение
+     * @return int Количество товаров
+     */
+    protected function getOfferCount($offer)
+    {
+        $store = array();
+        if (isset($offer->{'Склад'})) {
+            $store = $offer->{'Склад'};
+        }
+        $count = 0;
+        foreach ($store as $k => $v) {
+            $count += (int)$v['КоличествоНаСкладе'];
+        }
+        return $count;
     }
 
     /**
