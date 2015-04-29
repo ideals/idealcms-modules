@@ -647,7 +647,7 @@ class ModelAbstract
             }
 
             // todo это должно быть в переопределении метода разбора товара
-            if(isset($good['article'])){
+            if (isset($good['article'])) {
                 $good['name'] = str_replace($good['article'], "", $good['name']);
                 $good['name'] = trim($good['name']);
             }
@@ -664,10 +664,10 @@ class ModelAbstract
                 continue;
             }
 
-            $idGroup = $child->xpath('Группы/Ид');
+            $idGroup = (array)$child->{'Группы'};
 
             // Привязываем товар к одной группе
-            $good['idGroup'] = (string)$idGroup[0]; // todo тут точно будет ID?
+            $good['idGroup'] = $idGroup['Ид'];
 
             // todo тоже нужно куда-то выносить
             // Подсчет кол-во товара со скидкой на категорию
