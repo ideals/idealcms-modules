@@ -29,21 +29,8 @@ class CategoriesList extends Widget
     /** @var int Уровень вложенности, до которого выбираются категории */
     protected $lvl = 4;
 
-    /** @var \Ideal\Core\Site\Model Модель страницы с данными */
-    protected $model;
-
     /** @var array Массив, позволяющий избежать получения из БД категорий, если они были получены вне виджета */
     protected $menuList = array();
-
-    /**
-     * Установка уровня вложенности для выборки категорий
-     *
-     * @param int $lvl Уровень вложенности, до которого выбираются категории
-     */
-    public function setLvl($lvl)
-    {
-        $this->lvl = $lvl;
-    }
 
     /**
      * Получение списка категорий продукции
@@ -170,6 +157,16 @@ class CategoriesList extends Widget
         $menuList = $db->select($_sql);
 
         return $menuList;
+    }
+
+    /**
+     * Установка уровня вложенности для выборки категорий
+     *
+     * @param int $lvl Уровень вложенности, до которого выбираются категории
+     */
+    public function setLvl($lvl)
+    {
+        $this->lvl = $lvl;
     }
 
     /**
