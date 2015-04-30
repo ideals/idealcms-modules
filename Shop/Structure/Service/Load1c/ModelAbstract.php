@@ -746,6 +746,12 @@ class ModelAbstract
                     // Получение количества товаров
                     $count = $this->getOfferCount($child);
 
+                    // Склады с количеством товаров
+                    $store = array();
+                    foreach ($child->{'Склад'} as $k => $v) {
+                        $store[(string)$v['ИдСклада']] = (int)$v['КоличествоНаСкладе'];
+                    }
+
                     if (count($id) > 1) {
                         $cellArr = & $offersArr[$id[0]][$id[1]];
                     } else {
@@ -758,7 +764,8 @@ class ModelAbstract
                         'Валюта' => (string)$price->{'Валюта'},
                         'Единица' => (string)$price->{'Единица'},
                         'Коэффициент' => (string)$price->{'Коэффициент'},
-                        'Предложения' => $features
+                        'Предложения' => $features,
+                        'Склады' => $store
                     );
 
                     if (isset($child->{'СкидкиНаценки'}) && count($child->xpath('СкидкиНаценки')) > 0) {
