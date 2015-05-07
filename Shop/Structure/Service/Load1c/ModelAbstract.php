@@ -752,6 +752,14 @@ class ModelAbstract
                         $store[(string)$v['ИдСклада']] = (int)$v['КоличествоНаСкладе'];
                     }
 
+                    // Удаляем оффер с нулевой ценой
+                    if ((string)$price->{'ЦенаЗаЕдиницу'} == '0') {
+                        if (count($offersArr[$id[0]]) == 0) {
+                            unset($offersArr[$id[0]]);
+                        }
+                        continue;
+                    }
+
                     if (count($id) > 1) {
                         $cellArr = & $offersArr[$id[0]][$id[1]];
                     } else {
