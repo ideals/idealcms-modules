@@ -27,13 +27,16 @@ class ToolsAbstract
     protected $tableGood = 'catalogplus_structure_good';
 
     /** @var string Таблица c информацией о товарном предложении */
-    protected $tableOffer = 'offers_good';
+    protected $tableOffer = 'catalogplus_structure_offer';
 
     /** @var string Таблица для связи категории и товара */
     protected $tableMediumGood = 'catalogplus_medium_categorylist';
 
     /** @var string prev_structure товаров */
     protected $prevGood = '';
+
+    /** @var string структуры товаров */
+    protected $structureGood = '';
 
     /** @var string prev_structure категорий товаров */
     protected $prevCat  = '';
@@ -236,7 +239,7 @@ SQL;
             'date_create' => time(),
             'date_mod' => time(),
             'prev_structure' => $this->prevCat,
-            'structure' => 'CatalogPlus_Category',
+            'structure' => $this->structureGood,
             'is_active' => 1
         );
 
@@ -316,6 +319,7 @@ SQL;
             'date_create' => time(),
             'date_mod' => time(),
             'prev_structure' => $this->prevGood,
+            'structure' => 'CatalogPlus_Offer',
             'is_active' => 1
         );
         foreach ($changedGoods['add'] as $v) {
@@ -371,6 +375,7 @@ SQL;
     {
         $fields = array(
             'ID' => array('sql' => 'int(8) unsigned not null auto_increment primary key', 'label' => ''),
+            'prev_structure' => array('sql' => 'varchar(15)', 'label' => ''),
             'offer_id' => array('sql' => 'varchar(37)', 'label' => ''),
             'good_id' => array('sql' => 'varchar(37)', 'label' => ''),
             'price' => array('sql' => 'int(11)', 'label' => ''),
@@ -389,6 +394,7 @@ SQL;
             foreach ($v as $offers => $val) {
                 $row['offer_id'] = $offers;
                 $row['good_id'] = $k;
+                $row['prev_structure'] = '';
                 $row['price'] = (int)$val['ЦенаЗаЕдиницу'];
                 $row['name'] = $val['Наименование'];
                 $row['count'] = (int)$val['Количество'];
