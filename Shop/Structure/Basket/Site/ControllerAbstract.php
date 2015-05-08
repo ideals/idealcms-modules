@@ -8,17 +8,43 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function indexAction()
     {
-        parent::indexAction();
-
-        $this->view->goods = $this->model->getGoods();
-
-        $basket = $_COOKIE['basket'];
-        $basket = json_decode($basket, true);
-
-        if (!isset($basket['good']) || !(count($basket['good']) > 0)) {
-            $this->view->hideBasket = true;
+        $basket = $this->model->getGoods();
+        $hideBasket = false;
+        if (!isset($basket['goods']) || !(count($basket['goods']) > 0)) {
+            $hideBasket = true;
+            $this->templateInit('Shop/Structure/Basket/Site/empty.twig');
         } else {
-            $this->view->basket = $basket;
+            $this->templateInit();
         }
+
+        $this->view->hideBasket = $hideBasket;
+
+        // Выдёргиваем заголовок из template['content']
+        $this->view->header = $this->model->getHeader();
+
+        // Перенос данных страницы в шаблон
+        $pageData = $this->model->getPageData();
+        foreach ($pageData as $k => $v) {
+            $this->view->$k = $v;
+        }
+        if ($hideBasket) {
+            return;
+        }
+
+        $this->view->goods = $basket;
+
+        if (isset($_GET['tab'])) {
+            $this->view->tab = (int)$_GET['tab'];
+            $this->view->{'tab' . (int)$_GET['tab']} = 'current';
+        } else {
+            $this->view->tab = 0;
+            $this->view->tab0 = 'current';
+        }
+
+        /*// TODO получение информации о пользователе(покупателе)
+        $user = \Shop\Structure\Order\Site\Model::getContactUser();
+        foreach ($user as $k => $v) {
+            $this->view->{$k} = $v;
+        }*/
     }
 }

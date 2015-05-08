@@ -2,10 +2,12 @@
 namespace Shop\Structure\Basket\Site;
 
 use Ideal\Core\Db;
+use Ideal\Core\Config;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
 {
     /**
+     * TODO определять таблицу автоматически
      * Таблица где хранятся товары
      * @var string
      */
@@ -13,45 +15,79 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function getGoods()
     {
-        if (isset($_COOKIE)) {
-            $basket = $_COOKIE['basket'];
-            $basket = json_decode($basket, true);
-        } else {
-            $basket['total_price'] = 0;
-            $basket['count'] = 0;
-            return $basket;
+        if (!isset($_COOKIE['basket'])) {
+            return false;
         }
-        if (count($basket) <= 2) {
-            return $basket;
+        $basket = json_decode($_COOKIE['basket'], true);
+        if (count($basket['goods']) === 0) {
+            return false;
         }
-        $db = Db::getInstance();
-
-        $in = array();
-        foreach ($basket as $key => $value) {
-            if ($key == 'count' OR $key == 'total_price') continue;
-            if (!empty($value['price'])) $in[] = $key;
-        }
-
-        if (count($in) === 0) {
-            return $in;
-        }
-
-        $in = '(' . implode(',', $in) . ')';
-
-        $_sql = "SELECT * FROM {$this->table} WHERE ID IN {$in}";
-        $goodIdsArr = $db->select($_sql);
-        //$basket = (array)$basket;
-        foreach ($goodIdsArr as $good) {
-            $id = $good['ID'];
-            $basket[$id]['name'] = $good['name'];
-            $basket[$id]['price'] = $good['price'];
-            $basket[$id]['amount'] = $basket['good'][$id]['count'];
-            $basket[$id]['total_price'] = $basket[$id]['price'] * $basket[$id]['amount'];
-            $basket[$id]['img'] = $good['img'];
-            $basket[$id]['url'] = $good['url'];
-            $basket[$id]['ID'] = $id;
+        $basket['total'] = 0;
+        $basket['count'] = 0;
+        foreach ($basket['goods'] as $k => $v) {
+            $id = explode('_', $k);
+            if (count($id) > 1) {
+                $tmp = $this->getGoodInfo($id[0], $id[1]);
+            } else {
+                $tmp = $this->getGoodInfo($id[0]);
+            }
+            if ($tmp === false) {
+                unset($basket['goods'][$k]);
+                continue;
+            }
+            $basket['goods'][$k] = array_merge($v, $tmp);
+            $basket['goods'][$k]['total_price'] = $v['count'] * $tmp['sale_price'];
+            $basket['total'] += $basket['goods'][$k]['total_price'];
+            $basket['count'] += 1;
         }
         return $basket;
+    }
+
+    private function getGoodInfo($id, $offer = false)
+    {
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        if ($offer === false) {
+            // TODO запрос в базу на получение информации о конкретном товаре
+            $sql = "SELECT e.*
+                    FROM i_catalogplus_structure_good AS e
+                    WHERE ID = {$id} AND e.is_active = 1
+                    LIMIT 1";
+        } else {
+            // TODO запрос в базу на получение информации о конкретном предложении для товара
+            $sql = "SELECT o.*, g.name, g.url, g.img
+                    FROM i_catalogplus_structure_offer AS o
+                    INNER JOIN i_catalogplus_structure_good AS g
+                    WHERE o.ID = {$offer} AND o.is_active = 1 AND g.ID= {$id}
+                    LIMIT 1";
+        }
+        $allPrice = $db->select($sql);
+        if (count($allPrice) === 0) {
+            return false;
+        }
+        $allPrice = $allPrice[0];
+        if ($offer !== false) {
+            $field = $config->getStructureByName('CatalogPlus_Offer');
+            $field = $field['fields'];
+            foreach ($field as $k => $v) {
+                if ($v['type'] != 'Ideal_Select') {
+                    unset($field[$k]);
+                }
+            }
+            $tmp = array_keys($field);
+            foreach ($tmp as $v) {
+                if ($allPrice[$v] != '0') {
+                    $allPrice['offer'] = array(
+                        'name' => $field[$v]['label'],
+                        'value' => $field[$v]['values'][$allPrice[$v]]
+                    );
+                }
+            }
+        }
+        // TODO url для товаров
+        $allPrice['url'] = $allPrice['url'] . $config->urlSuffix;
+        $allPrice['sale_price'] = ceil((100 - $allPrice['sale']) / 100 * $allPrice['price']);
+        return $allPrice;
     }
 
 
