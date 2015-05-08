@@ -49,8 +49,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // Товар найден, проводим необходимую инициализацию свойств
 
-        $list[0]['structure'] = 'CatalogPlus_Good';
-
         $this->path = array_merge($path, $list);
         $this->pageData = end($list);
 
