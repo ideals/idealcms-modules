@@ -562,7 +562,7 @@ class ModelAbstract
                 }
 
                 $goods['offers'][$explodeID[0]] = $this->offers[$explodeID[0]];
-                foreach ($this->offers[$explodeID[0]] as $v) {
+                foreach ($this->offers[$explodeID[0]] as $k => $v) {
                     if ($parentInfo && isset($v['ЦенаЗаЕдиницу'])) {
                         if (($this->offers[$explodeID[0]]['ЦенаЗаЕдиницу'] > $v['ЦенаЗаЕдиницу'])
                             || ($this->offers[$explodeID[0]]['ЦенаЗаЕдиницу'] === null)) {
@@ -574,6 +574,7 @@ class ModelAbstract
                             $this->offers[$explodeID[0]]['Скидка'] = isset($v['Скидка']) ? $v['Скидка'] : null;
                             $this->offers[$explodeID[0]]['ДатаОкончания'] =
                                 isset($v['ДатаОкончания']) ? $v['ДатаОкончания'] : null;
+                            $good['offer_id_1c'] = $k;
                         }
                     }
                 }
