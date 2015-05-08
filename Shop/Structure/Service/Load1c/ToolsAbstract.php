@@ -38,6 +38,9 @@ class ToolsAbstract
     /** @var string структуры товаров */
     protected $structureGood = '';
 
+    /** @var string структуры категорий */
+    protected $structureCategory = 'CatalogPlus_Category';
+
     /** @var string prev_structure категорий товаров */
     protected $prevCat  = '';
 
@@ -239,7 +242,7 @@ SQL;
             'date_create' => time(),
             'date_mod' => time(),
             'prev_structure' => $this->prevCat,
-            'structure' => $this->structureGood,
+            'structure' => $this->structureCategory,
             'is_active' => 1
         );
 
