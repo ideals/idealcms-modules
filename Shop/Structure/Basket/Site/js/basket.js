@@ -25,6 +25,17 @@ function getCookie(name) {
     }
 }
 
+Number.prototype.format = function (n, x, s, c) {
+    var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\D' : '$') + ')';
+    var num = this.toFixed(Math.max(0, ~~n));
+
+    return (c ? num.replace('.', c) : num).replace(new RegExp(re, 'g'), '$&' + (s || ','));
+};
+
+jQuery.fn.hasAttr = function(name) {
+    return this.attr(name) !== undefined;
+};
+
 function loadBasket(basket) {
     var $count = jQuery('.cart-items-number');
     var $price = jQuery('.cart-subtotal > .amount');
