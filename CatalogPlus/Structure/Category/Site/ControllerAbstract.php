@@ -2,6 +2,7 @@
 namespace CatalogPlus\Structure\Category\Site;
 
 use Ideal\Core\Request;
+use CatalogPlus\Structure\Category\Filter;
 
 class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
@@ -20,8 +21,14 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
             $page = 1;
         }
 
+        $filter = new Filter();
+        $filter->setParams($_GET);
+
         $this->goodModel = new \CatalogPlus\Structure\Good\Site\Model('');
         $this->goodModel->setCategoryModel($this->model);
+
+        $this->goodModel->setFilter($filter);
+
         $this->view->goods = $this->goodModel->getList($page);
         if ($this->goodModel->is404) {
             $this->model->is404 = true;

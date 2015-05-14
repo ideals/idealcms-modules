@@ -17,6 +17,15 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /** @var bool Отображать в категории товары из подкатегорий */
     protected $showNestedElements = true;
 
+    /** @var mixed null - если фильтр не установлен, Объект фильтра если фильтр был применён */
+    protected $filter = null;
+
+    public function setFilter($filter){
+        $this->filter = $filter;
+        $this->filter->setCategoryModel($this->categoryModel);
+        $this->filter->setShowNestedElements($this->showNestedElements);
+    }
+
     public function detectPageByUrl($path, $url)
     {
         // Определяем, нет ли в URL категории
@@ -135,42 +144,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
 
         return $list;
-    }
-
-    /**
-     * Добавление к where-запросу фильтра по category_id
-     * @param string $where Исходная WHERE-часть
-     * @return string Модифицированная WHERE-часть, с расширенным запросом, если установлена GET-переменная category
-     */
-    protected function getWhere($where)
-    {
-        if (isset($this->categoryModel)) {
-            $category = $this->categoryModel->getPageData();
-
-            // Получения товара для категории, для самой главной выводится все товары
-            $prevPath = $this->categoryModel->getPath();
-            $prevCategory = ($prevPath[count($prevPath) - 2]['structure'] == 'CatalogPlus_Category') ? true : false;
-
-            if (isset($category['ID']) && ($prevCategory)) {
-                // Вывод товара только определённой категории
-                $config = Config::getInstance();
-                $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
-                $categoryWhere = 'category_id = ' . $category['ID'];
-                if ($this->showNestedElements) {
-                    $catTable = $config->db['prefix'] . 'catalogplus_structure_category';
-                    $params = $this->categoryModel->params;
-                    $cidModel = new Field\Cid\Model($params['levels'], $params['digits']);
-                    $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
-                    $categoryWhere = " category_id IN (SELECT ID FROM {$catTable}
-                                        WHERE cid LIKE '{$cid}%' AND is_active=1)";
-                }
-                $where .= " AND e.ID IN (SELECT good_id FROM {$table} WHERE {$categoryWhere})";
-            }
-        }
-
-        $where = parent::getWhere($where . ' AND e.is_active=1');
-
-        return $where;
     }
 
     public function getShortCidCat()
