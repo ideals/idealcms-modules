@@ -162,10 +162,20 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->update = true;
     }
 
-    public function quantGoodAction()
+    /**
+     * Изменение кол-ва товара в корзине
+     * @param bool $local тригер на проверка запуска из другого метода класса
+     * @return bool
+     */
+    public function quantGoodAction($local = false)
     {
         $this->basket['goods'][$this->idGood]['count'] = (int)$this->quant;
         $this->update = true;
+        if (!$local) {
+            exit();
+        } else {
+            return true;
+        }
     }
 
     /**
