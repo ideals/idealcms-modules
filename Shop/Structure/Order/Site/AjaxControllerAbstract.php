@@ -6,101 +6,24 @@ use Shop\Structure\Basket;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
-    /**
-     * Формирование заказа
-     */
-    public function orderAction()
+    private $answer;
+    private $user;
+
+    public function __construct()
     {
-        $answer = array('error' => 0, 'text' => '');
-        $config = Config::getInstance();
-        /*
-         * Данные из формы заказа
-         */
-        $email = @ htmlspecialchars($_POST['email']);
-        $fio = @ htmlspecialchars($_POST['fio']);
-        $phone = @ htmlspecialchars($_POST['phone']);
-        $postcode = @ htmlspecialchars($_POST['postcode']);
-        $city = @ htmlspecialchars($_POST['city']);
-        $address = @ htmlspecialchars($_POST['address']);
-        $comment = @ htmlspecialchars($_POST['comment']);
-        // Установка цены за доставку
-        switch ($_POST['delivery']) {
-            default:
-            case 1:
-                $delivery = 'Курьерская доставка по Москве';
-                $deliveryMoney = 300;
-                $payMethod = 'Наличными курьеру';
-                break;
-            case 2:
-                $delivery = 'Курьерская доставка по Московской области';
-                $deliveryMoney = 650;
-                $payMethod = 'Наличными курьеру';
-                break;
-            case 3:
-                $delivery = 'Почта России';
-                $deliveryMoney = 0;
-                $payMethod = 'Безналичная оплата';
-                break;
-            case 4:
-                $delivery = 'EMS - Почта России';
-                $deliveryMoney = 0;
-                $payMethod = 'Безналичная оплата';
-                break;
+        $this->answer = array(
+            'error' => false,
+            'text' => ''
+        );
+    }
+
+    public function __destruct()
+    {
+        if (isset($this->answer['class'])) {
+            $this->answer['class'] = '[name=' . implode('], [name=', $this->answer['class']) . ']';
         }
-
-        /**
-         * Сегмент кода нужен если подключен модуль Cabinet_User
-         *
-        session_start();
-        if (!isset($_SESSION['userChecked']) || $_SESSION['userChecked'] != true) {
-            $User = new \Cabinet\Structure\User\Site\Model('');
-            $answer = $User->regOrder();
-        }
-        */
-
-        if ($answer['error'] == 0) {
-            $basketModel = new Basket\Site\Model('');
-            $goods = $basketModel->getGoods(); // Товары из корзины
-            $price = (float)$goods['price'] + $deliveryMoney;
-
-            $order = new \Shop\Structure\Order\Site\Model('');
-            $idOrder = $order->createOrder($comment, $fio, $city . ', ' . $address);
-
-            /**
-             * Генерация письма
-             */
-            $this->templateInit('Shop/Structure/Order/Site/letter.twig');
-            $this->view->idOrder = $idOrder;
-            $this->view->delivery = $delivery;
-            $this->view->payMethod = $payMethod;
-            $this->view->goods = $goods['good'];
-            $this->view->deliveryMoney = $deliveryMoney;
-            $this->view->price = $price;
-            $this->view->fio = $fio;
-            $this->view->phone = $phone;
-            $this->view->postcode = $postcode;
-            $this->view->city = $city;
-            $this->view->address = $address;
-            $this->view->comment = $comment;
-            $this->view->email = $email;
-            $this->view->domain = $config->domain;
-            // Текст письма
-            $orderMail = $this->view->render();
-
-            $order->updateOrder($orderMail, $idOrder, $price);
-            $orderTitle = 'Заказ c ' . $config->domain;
-            $headers = "From: {$config->robotEmail}\r\n"
-                . "Content-type: text/html; charset=\"utf-8\"";
-
-            if (mail($email, $orderTitle, $orderMail, $headers) && mail($config->mailForm, $orderTitle, $orderMail, $headers)) {
-                $answer['text'] = 'Ваш заказ принят в обработку. Наш менеджер скоро с Вами свяжется.';
-            } else {
-                $answer['text'] .= 'Ошибка. Попробуйте чуть позже';
-                $answer['error'] = 1;
-            }
-        }
-        print json_encode($answer);
-        exit;
+        print json_encode($this->answer);
+        exit();
     }
 
     public function templateInit($tplName = '')
@@ -119,5 +42,88 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $folders = array_merge(array($tplRoot, $cmsFolder));
         $this->view = new \Ideal\Core\View($folders, $config->cache['templateSite']);
         $this->view->loadTemplate($tplName);
+    }
+
+    public function setUserAction()
+    {
+        $user = array();
+        foreach ($_POST as $k => $v) {
+            if ((strpos($k, 'required') !== false) && (strlen($v) == 0)) {
+                $this->answer['error'] = true;
+                $this->answer['text'] = 'Заполните все поля отмечанные звездочкой';
+                $this->answer['class'][] = $k;
+            }
+            $k = htmlspecialchars($k);
+            $v = htmlspecialchars($v);
+            $user[$k] = $v;
+        }
+        $this->answer['user'] = $user;
+    }
+
+    public function orderAction()
+    {
+        $this->setUserAction();
+        if (!$this->answer['error']) {
+            $this->user = $this->answer['user'];
+            $this->answer['user'] = '';
+
+            $fname = $this->user['billing_first_name_required'];
+            $lname = $this->user['billing_last_name_required'];
+            $address = $this->user['billing_address_required'];
+            $email = $this->user['billing_email_required'];
+            $phone = $this->user['billing_phone'];
+            $payment = $this->user['payment_method'];
+            $comment = $this->user['order_comments'];
+
+            $basket = new \Shop\Structure\Basket\Site\Model('');
+            $basket = $basket->getGoods();
+            if ($basket === false) {
+                $this->answer['error'] = true;
+                $this->answer['text'] = 'Данная услуга временно не работает. Поробуйте чуть позже';
+                exit();
+            }
+            if (count($basket['goods']) === 0) {
+                $this->answer['error'] = true;
+                $this->answer['text'] = 'Вв не добавили товары в корзину';
+                exit();
+            }
+            $config = Config::getInstance();
+
+            $price = $basket['total'];
+
+            $order = new \Shop\Structure\Order\Site\Model('');
+            $idOrder = $order->createOrder($comment, $lname . ' ' . $fname, $address);
+            $this->templateInit('Shop/Structure/Order/Site/letter.twig');
+
+            $this->view->idOrder = $idOrder;
+            $this->view->fname = $fname;
+            $this->view->lname = $lname;
+            $this->view->address = $address;
+            $this->view->email = $email;
+            $this->view->phone = $phone;
+            $this->view->payment = $payment;
+            $this->view->comment = $comment;
+            $this->view->basket = $basket;
+            $this->view->domain = $config->domain;
+
+            $orderMail = $this->view->render();
+            $order->updateOrder($orderMail, $idOrder, $price);
+
+            $orderTitle = 'Заказ c ' . $config->domain;
+            $headers = "From: {$config->robotEmail}\r\n"
+                . "Content-type: text/html; charset=\"utf-8\"";
+
+            if (mail($email, $orderTitle, $orderMail, $headers)
+                && mail($config->mailForm, $orderTitle, $orderMail, $headers)
+            ) {
+                $this->answer['text'] = 'Ваш заказ принят в обработку. Наш менеджер скоро с Вами свяжется.';
+            } else {
+                $this->answer['text'] .= 'Ошибка. Попробуйте чуть позже';
+                $this->answer['error'] = 1;
+            }
+        } else {
+            // error code
+        }
+
     }
 }
