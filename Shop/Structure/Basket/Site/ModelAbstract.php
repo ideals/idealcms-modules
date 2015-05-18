@@ -35,6 +35,12 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
                 unset($basket['goods'][$k]);
                 continue;
             }
+            if (isset($tmp['count'])) {
+                if (isset($v['count']) && ((int)$v['count'] > (int)$tmp['count'])) {
+                    $v['warning'][] = 'Заказано больше чем есть на складе. Уточняйте у менеджера.';
+                }
+                unset ($tmp['count']);
+            }
             $basket['goods'][$k] = array_merge($v, $tmp);
             $basket['goods'][$k]['total_price'] = $v['count'] * $tmp['sale_price'];
             $basket['total'] += $basket['goods'][$k]['total_price'];

@@ -64,21 +64,21 @@
                                     </td>
                                     <td class="product-price">
                                         <span class="amount">
-                                            {{ (good.sale_price/100)|number_format(2, '.', ',') }}&nbsp;&#36;
+                                            {{ (good.sale_price/100)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                     </td>
 
                                     <td class="product-quantity">
                                         <div class="quantity">
                                             <input type="number" step="1" name="goods[{{ key }}]" data-id="{{ key }}"
-                                                   value="{{ good.count }}" onchange="fastChangeQuant(this)"
+                                                   value="{{ good.count }}" onchange="changeCountCart(this)"
                                                    size="4" min="1" title="Колличество" class="input-text qty text"/>
                                         </div>
                                     </td>
 
                                     <td class="product-subtotal">
-                                        <span class="amount">
-                                            {{ (good.total_price/100)|number_format(2, '.', ',') }}&nbsp;&#36;
+                                        <span class="amount {{ key }}">
+                                            {{ (good.total_price/100)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                     </td>
                                 </tr>
@@ -108,7 +108,7 @@
                                     <th>Стоимость товаров</th>
                                     <td>
                                         <span class="amount">
-                                            {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;&#36;
+                                            {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                     </td>
                                 </tr>
@@ -124,7 +124,7 @@
                                     <td>
                                         <strong>
                                             <span class="amount">
-                                                {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;&#36;
+                                                {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
                                             </span>
                                         </strong>
                                     </td>
@@ -384,7 +384,7 @@
                                                 <td class="product-quantity">{{ good.count }}</td>
                                                 <td class="product-total">
                                                 <span class="amount">
-                                                    {{ (good.total_price/100)|number_format(2, '.', ',') }}&nbsp;&#36;
+                                                    {{ (good.total_price/100)|number_format(2, '.', ',') }}&nbsp;руб.
                                                 </span>
                                                 </td>
                                             </tr>
@@ -392,7 +392,7 @@
                                         <tr class="cart-subtotal">
                                             <th colspan="2">Итог</th>
                                             <td><span class="amount">
-                                                {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;&#36;
+                                                {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
                                             </span>
                                             </td>
                                         </tr>
@@ -407,7 +407,7 @@
                                             <td>
                                                 <strong>
                                                 <span class="amount">
-                                                    {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;&#36;
+                                                    {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
                                                 </span>
                                                 </strong>
                                             </td>
@@ -518,6 +518,19 @@
     </style>
 
     <script type="text/javascript" charset="utf-8">
+        function changeCountCart(e) {
+            fastChangeQuant(e);
+            var $this = jQuery(e);
+            var id = $this.attr('data-id');
+            var basket = $.parseJSON(getCookie('basket'));
+            var price = basket['goods'][id]['sale_price'] * $this.val();
+            $('.amount.' + id).text((parseInt(price)).format(2, 3, ',', '.') + ' руб.');
+            var total = 0;
+            $('.qty').each(function (index, elem) {
+                total += (basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val());
+            });
+            $('.cart_totals .amount').text((parseInt(total)).format(2, 3, ',', '.') + ' руб.');
+        }
         function update() {
             var $ = jQuery;
             var result = false;
