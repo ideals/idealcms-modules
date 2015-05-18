@@ -13,6 +13,19 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
      */
     protected $table = 'i_catalogplus_structure_good';
 
+    protected $tableGood;
+    protected $tableOffer;
+
+    public function __construct($prevStructure)
+    {
+        parent::__construct($prevStructure);
+        // Указываем таблицы где хранятся данные
+        $config = Config::getInstance();
+        $prefix = $config->db['prefix'];
+        $this->tableGood = $prefix . 'catalogplus_structure_good';
+        $this->tableOffer = $prefix . 'catalogplus_structure_offer';
+    }
+
     public function getGoods()
     {
         if (!isset($_COOKIE['basket'])) {
@@ -54,16 +67,16 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         $db = Db::getInstance();
         $config = Config::getInstance();
         if ($offer === false) {
-            // TODO запрос в базу на получение информации о конкретном товаре
-            $sql = "SELECT e.*
-                    FROM i_catalogplus_structure_good AS e
+            // Запрос в базу на получение информации о конкретном товаре
+            $sql = "SELECT e.*, (CEIL(((100-e.sell)/100)*e.price)) AS sale_price
+                    FROM {$this->tableGood} AS e
                     WHERE ID = {$id} AND e.is_active = 1
                     LIMIT 1";
         } else {
-            // TODO запрос в базу на получение информации о конкретном предложении для товара
-            $sql = "SELECT o.*, g.name, g.url, g.img
-                    FROM i_catalogplus_structure_offer AS o
-                    INNER JOIN i_catalogplus_structure_good AS g
+            // Запрос в базу на получение информации о конкретном предложении для товара
+            $sql = "SELECT o.*, (CEIL(((100-g.sell)/100)*o.price)) AS sale_price
+                    FROM {$this->tableOffer} AS o
+                    INNER JOIN {$this->tableGood} as g ON (g.ID = {$id})
                     WHERE o.ID = {$offer} AND o.is_active = 1 AND g.ID= {$id}
                     LIMIT 1";
         }
@@ -92,7 +105,6 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         // TODO url для товаров
         $allPrice['url'] = $allPrice['url'] . $config->urlSuffix;
-        $allPrice['sale_price'] = ceil((100 - $allPrice['sale']) / 100 * $allPrice['price']);
         return $allPrice;
     }
 
