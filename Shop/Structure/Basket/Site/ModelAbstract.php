@@ -2,9 +2,12 @@
 namespace Shop\Structure\Basket\Site;
 
 use Ideal\Core\Db;
+use Ideal\Core\Util;
 use Ideal\Core\Config;
+use Ideal\Core\Request;
+use Ideal\Structure\User;
 
-class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
+class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
 {
     /**
      * TODO определять таблицу автоматически
@@ -112,6 +115,72 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     public function getStructureElements()
     {
         return array();
+    }
+
+    public function detectPageByUrl($path, $url)
+    {
+        $db = Db::getInstance();
+
+        // Для авторизированных в админку пользователей отображать скрытые страницы
+        $user = new User\Model();
+        $checkActive = ($user->checkLogin()) ? '' : ' AND is_active=1';
+
+        $sql = "SELECT * FROM {$this->_table} WHERE url='{$url[0]}' {$checkActive} ORDER BY pos";
+
+        $tabs = $db->select($sql); // запрос на получение всех табов, с этим урлом
+
+        // Таб не нашли. Отображаем корзину
+        if (!isset($tabs[0]['ID'])) {
+            $this->path = $path;
+            // $this->is404 = true; // TODO обработка не существующего таба
+            return $this;
+        }
+
+        if (count($tabs) > 1) {
+            $c = count($tabs);
+            Util::addError("В базе несколько ({$c}) табов для корзины с одинаковым url: " . implode('/', $url));
+            $tabs = array($tabs[0]); // выводим таб который стоит раньше
+        }
+        $path[count($path) - 1]['tab'] = $tabs[0];
+
+        $this->path = $path;
+
+        return $this;
+    }
+
+    /**
+     * Список табов
+     * @return array
+     */
+    public function getTabs()
+    {
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+
+        // Для авторизированных в админку пользователей отображать скрытые страницы
+        $user = new User\Model();
+        $checkActive = ($user->checkLogin()) ? '' : ' WHERE is_active=1';
+
+        $sql = "SELECT * FROM {$this->_table} {$checkActive} ORDER BY {$this->params['field_sort']}";
+        $tabs = $db->select($sql);
+
+        $url = new \Ideal\Field\Url\Model();
+        $cartUrl = $url->getUrl($this->pageData);
+        $cartTab = array(
+            'ID' => "0",
+            'name' => $this->pageData['name'],
+            'link' => "href='{$cartUrl}'"
+        );
+        $cartUrl = $url->cutSuffix($cartUrl);
+        foreach ($tabs as $k => $v) {
+            $tabs[$k]['link'] = 'href="' . $cartUrl . '/' . $v['url'] . $config->urlSuffix . '"';
+        }
+        array_unshift($tabs, $cartTab);
+        if (count($tabs) < 1) {
+            return array();
+        } else {
+            return $tabs;
+        }
     }
 
 }

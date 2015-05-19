@@ -15,6 +15,8 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
             $this->templateInit('Shop/Structure/Basket/Site/empty.twig');
         } else {
             $this->templateInit();
+            $this->view->tabs = $this->model->getTabs();
+            $this->view->goods = $basket;
         }
 
         $this->view->hideBasket = $hideBasket;
@@ -30,16 +32,15 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         if ($hideBasket) {
             return;
         }
+        $t = 1;
 
-        $this->view->goods = $basket;
-
-        if (isset($_GET['tab'])) {
+        /*if (isset($_GET['tab'])) {
             $this->view->tab = (int)$_GET['tab'];
             $this->view->{'tab' . (int)$_GET['tab']} = 'current';
         } else {
             $this->view->tab = 0;
             $this->view->tab0 = 'current';
-        }
+        }*/
 
         /*// TODO получение информации о пользователе(покупателе)
         $user = \Shop\Structure\Order\Site\Model::getContactUser();

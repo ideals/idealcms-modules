@@ -4,6 +4,7 @@
 
     <div id="rcontent">
         <div id="checkout_multistep">
+            {# Старый вариант отображения табов
             {% set elems = {'0':'<img src="/i/header-cart-checkout.png" alt="Процесс оформления"/> Процесс оформления',
             '1':'Авторизация', '2':'Адрес проживания' , '3':'Способ оплаты', '4':'Просмотр заказа' } %}
 
@@ -14,6 +15,23 @@
                             <span class="checkout_progress">{{ item|raw }}</span>
                         {% else %}
                             <a href="#" data-step="{{ key }}"
+                               {% if loop.first %}style="border-left: 1px solid #dfdcdc"{% endif %}
+                               class="{% if tab == key %}current{% endif %} multistep_section">
+                                {{ item|raw }}
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            #}
+
+            <div id="multistep_resume">
+                {% for key, item in tabs %}
+                    <div>
+                        {% if key > tab %}
+                            <span class="checkout_progress">{{ item.name|raw }}</span>
+                        {% else %}
+                            <a {{ item.link|raw }}
                                {% if loop.first %}style="border-left: 1px solid #dfdcdc"{% endif %}
                                class="{% if tab == key %}current{% endif %} multistep_section">
                                 {{ item|raw }}
