@@ -227,10 +227,15 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      *
      * Вызывается при копировании данных из одной модели в другую
      * @param Model $model Массив переменных объекта
+     * @param bool $bypass Признак того что этот метод нужно пропустить и перейти к родительскому
      * @return $this Либо ссылка на самого себя, либо новый объект модели
      */
-    public function setVars($model)
+    public function setVars($model, $bypass = false)
     {
+        if ($bypass) {
+            return parent::setVars($model);
+        }
+
         $category = new CatalogPlus\Structure\Category\Site\Model('');
         $path = $model->getPath();
         $end = array_pop($path);

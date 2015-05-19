@@ -3,8 +3,9 @@ namespace CatalogPlus\Structure\Offer\Site;
 
 use CatalogPlus;
 use Ideal\Core\Db;
+use CatalogPlus\Structure\Good\Site\ModelAbstract as GoodAbstract;
 
-class ModelAbstract extends \Ideal\Core\Site\Model
+class ModelAbstract extends GoodAbstract
 {
 
     public function detectPageByUrl($path, $url)
@@ -54,7 +55,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     public function setVars($model)
     {
-        $model = parent::setVars($model);
+        $model = parent::setVars($model, true);
         $pageData = $model->getPageData();
         $pageData['offers'] = $model->getOffers($model->prevStructure);
         $model->setPageData($pageData);
