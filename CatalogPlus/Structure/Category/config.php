@@ -59,7 +59,7 @@ return array(
         ),
         'addon' => array(
             'label' => 'Аддоны',
-            'sql' => "varchar(255) not null default '[[\"1\":\"Ideal_Page\"]]'",
+            'sql' => "varchar(255) not null default '[[\"1\",\"Ideal_Page\",\"\"]]'",
             'type' => 'Ideal_Addon',
             'medium'    => '\\Ideal\\Medium\\AddonList\\Model',
             'available' =>  array('Ideal_Page', 'Ideal_PhpFile'),
