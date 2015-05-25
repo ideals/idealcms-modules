@@ -164,6 +164,12 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         $sql = "SELECT * FROM {$this->_table} {$checkActive} ORDER BY {$this->params['field_sort']}";
         $tabs = $db->select($sql);
 
+        $curUrl = explode('/', $_SERVER['REQUEST_URI']);
+        $curUrl = end($curUrl);
+
+        $cmsFolder = DOCUMENT_ROOT . '/' . $config->cmsFolder;
+
+        $active = false;
         $url = new \Ideal\Field\Url\Model();
         $cartUrl = $url->getUrl($this->pageData);
         $cartTab = array(
@@ -171,10 +177,25 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
             'name' => $this->pageData['name'],
             'link' => "href='{$cartUrl}'"
         );
-        $cartUrl = $url->cutSuffix($cartUrl);
-        foreach ($tabs as $k => $v) {
-            $tabs[$k]['link'] = 'href="' . $cartUrl . '/' . $v['url'] . $config->urlSuffix . '"';
+        $count = strlen($config->urlSuffix);
+        if ($count > 0) {
+            $count = -1 * $count;
+        } else {
+            $count = strlen($cartUrl);
         }
+        $cartUrl = substr($cartUrl, 0, $count);
+        foreach ($tabs as $k => $v) {
+            $tmp = str_replace($cmsFolder, '', stream_resolve_include_path($v['template']));
+            $tabs[$k]['pathTab'] = $tmp;
+            $tabs[$k]['link'] = 'href="' . $cartUrl . '/' . $v['url'] . $config->urlSuffix . '"';
+            if (($v['url'] == $curUrl) && ($active == false)) {
+                $tabs[$k]['is_active'] = true;
+                $active = true;
+            } else {
+                $tabs[$k]['is_active'] = false;
+            }
+        }
+        $cartTab['is_active'] = !$active;
         array_unshift($tabs, $cartTab);
         if (count($tabs) < 1) {
             return array();

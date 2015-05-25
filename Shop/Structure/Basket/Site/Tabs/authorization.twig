@@ -1,1 +1,84 @@
 {# Авторизация #}
+
+<div class="{{ tab1 }} multistep_step span12 user_not_logged_in" id="multistep_step1" data-step="1">
+    <div class="box_style">
+        <div class="row">
+            <div class="step1_login_form span6">
+                <h3>Авторизация</h3>
+
+                <form method="post" class="login_checkout">
+                    <p class="form-row form-row-first">
+                        <label for="username">Имя пользователя или e-mail
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" class="input-text" name="username" id="username"/>
+                    </p>
+
+                    <p class="form-row form-row-last">
+                        <label for="password">Пароль <span class="required">*</span></label>
+                        <input class="input-text" type="password" name="password" id="password"/>
+                    </p>
+
+                    <div class="clear"></div>
+
+                    <p class="form-row">
+                        <input type="submit" class="button" name="login" value="Авторизация"/>
+                        <a class="lost_password" href="/">
+                            Забыли пароль?
+                        </a>
+                    </p>
+                </form>
+            </div>
+
+            <div class="step1_create_account span6">
+
+                <h3><span>Впервые на {{ domain }}</span> Зарегистрируйтесь!</h3>
+
+                <form method="post" class="register">
+                    <p class="form-row form-row-first">
+                        <label for="reg_username">Имя пользователя
+                            <span class="required">*</span></label>
+                        <input type="text" class="input-text" name="username" id="reg_username"
+                               value=""/>
+                    </p>
+
+                    <p class="form-row form-row-last">
+                        <label for="reg_email">Email <span class="required">*</span></label>
+                        <input type="email" class="input-text" name="email" id="reg_email"
+                               value=""/>
+                    </p>
+
+                    <div class="clear"></div>
+
+                    <p class="form-row form-row-first">
+                        <label for="reg_password">Пароль <span class="required">*</span></label>
+                        <input type="password" class="input-text" name="password"
+                               id="reg_password" value=""/>
+                    </p>
+
+                    <p class="form-row form-row-last">
+                        <label for="reg_password2">Повторный ввод пароля <span
+                                    class="required">*</span>
+                        </label>
+                        <input type="password" class="input-text" name="password2"
+                               id="reg_password2"
+                               value=""/>
+                    </p>
+
+                    <div class="clear"></div>
+
+                    <p class="form-row">
+                        <input type="submit" class="button" name="register" value="Регистрация"/>
+                    </p>
+
+                </form>
+            </div>
+            <a href="?tab=2" class="nextstep">
+                <input type="button" class="button next" name="next[]"
+                       value="Оформить без регистрации" data-next="2"/>
+            </a>
+        </div>
+
+        <div class="clear"></div>
+    </div>
+</div>
