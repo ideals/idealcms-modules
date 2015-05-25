@@ -134,7 +134,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function getModalFormAction()
     {
-        parse_str($_GET['formValues'], $formValues);
+        parse_str($_POST['formValues'], $formValues);
 
         if ($formValues['ID'] !== '0') {
             $this->model = new Model($this->prevStructure);
@@ -157,7 +157,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function getAnswerFormAction()
     {
-        parse_str($_GET['formValues'], $formValues);
+        parse_str($_POST['formValues'], $formValues);
         if ((isset($formValues['mainParentId']) && ($formValues['mainParentId'] != '0'))
             && (isset($formValues['pageStructurePostId']) && ($formValues['pageStructurePostId'] != '0'))) {
             $goToPost = true;

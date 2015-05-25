@@ -77,6 +77,7 @@ loadForm.form = '';
  */
 loadForm.ajaxLoadForm = function (formValues, formLoad) {
     $.ajax({
+        type: "POST",
         url: "/?mode=ajax&controller=MiniForum\\Structure\\Post\\Site&action=" + formLoad,
         async: false,
         data: {isAuthorized: loadForm.isAuthorized, formValues: jQuery.param(formValues)},
