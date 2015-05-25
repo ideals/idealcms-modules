@@ -19,6 +19,8 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
     protected $tableGood;
     protected $tableOffer;
 
+    protected $linkArr = array();
+
     public function __construct($prevStructure)
     {
         parent::__construct($prevStructure);
@@ -77,7 +79,7 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
                     LIMIT 1";
         } else {
             // Запрос в базу на получение информации о конкретном предложении для товара
-            $sql = "SELECT o.*, (CEIL(((100-g.sell)/100)*o.price)) AS sale_price
+            $sql = "SELECT o.*, (CEIL(((100-g.sell)/100)*o.price)) AS sale_price, g.url, g.prev_structure AS prev
                     FROM {$this->tableOffer} AS o
                     INNER JOIN {$this->tableGood} as g ON (g.ID = {$id})
                     WHERE o.ID = {$offer} AND o.is_active = 1 AND g.ID= {$id}
@@ -106,8 +108,11 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
                 }
             }
         }
-        // TODO url для товаров
-        $allPrice['url'] = $allPrice['url'] . $config->urlSuffix;
+        if (isset($allPrice['prev'])) {
+            $allPrice['fullUrl'] = $this->getUrlByPrevStructure($allPrice['prev'], $allPrice['url']);
+        } else {
+            $allPrice['fullUrl'] = $this->getUrlByPrevStructure($allPrice['prev_structure'], $allPrice['url']);
+        }
         return $allPrice;
     }
 
@@ -202,6 +207,29 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         } else {
             return $tabs;
         }
+    }
+
+    // TODO постороение url для товара по параметру prev_structure
+    private function getUrlByPrevStructure($prev, $url = '')
+    {
+        $config = Config::getInstance();
+        $db = Db::getInstance();
+        if (isset($this->linkArr[$prev])) {
+            return $this->linkArr[$prev] . '/' . $url;
+        }
+        $prevStructure = explode('-', $prev);
+        $link = array();
+        $prevConf = $config->getStructureById($prevStructure[0]);
+        $prevTable = $config->getTableByName($prevConf['structure']);
+        $sql = "SELECT * FROM {$prevTable} WHERE ID = {$prevStructure[1]}";
+        $tmp = $db->select($sql);
+        $tmp = $tmp[0];
+        if (!isset($tmp['is_skip']) || ($tmp['is_skip'] == '0')) {
+            if (!(isset($tmp['is_active']) ^ ($tmp['is_active'] == '1'))) {
+                $link[] = $tmp['url'];
+            }
+        }
+        return '';
     }
 
 }
