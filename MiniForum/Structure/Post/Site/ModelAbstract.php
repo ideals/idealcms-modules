@@ -103,7 +103,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         foreach ($posts as $k => $v) {
             $posts[$k] = $this->parsePost($v);
-            $posts[$k] = $this->getAnswerCount($v);
+            $posts[$k]['answer_count'] = $this->getAnswerCount($v);
         }
 
         return $posts;

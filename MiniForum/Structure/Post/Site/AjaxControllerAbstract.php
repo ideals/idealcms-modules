@@ -17,14 +17,17 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->prevStructure = $this->getForumInPart();
     }
 
-    protected function getForumInPart() {
+    protected function getForumInPart()
+    {
         $config = Config::getInstance();
         $partTable = $config->db['prefix'] . 'ideal_structure_part';
         $_sql = "SELECT ID, prev_structure FROM {$partTable} WHERE structure = 'MiniForum_Post'";
         $db = Db::getInstance();
         $forum = $db->select($_sql);
 
-        if (!isset($forum[0]['prev_structure'])) return '';
+        if (!isset($forum[0]['prev_structure'])) {
+            return '';
+        }
         $part_prev = explode('-', $forum[0]['prev_structure']);
         return end($part_prev) . '-' . $forum[0]['ID'];
     }
@@ -180,7 +183,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if ((strlen($post['author']) === 0) || (strlen($post['content']) === 0)) {
             $msgValidation = 'Необходимо заполнить все поля формы';
         }
-        if ((strlen($post['email']) != 0) && (!Util::isEmail($post['email']))) {
+        if ((strlen($post['email']) != 0) && (!Util::is_email($post['email']))) {
             $msgValidation = 'Вы ввели неправильный почтовый адрес';
         }
         if (strlen($msgValidation) !== 0) {
