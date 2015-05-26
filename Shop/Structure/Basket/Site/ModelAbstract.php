@@ -154,7 +154,7 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
     }
 
     /**
-     * Список табов
+     * Получение табов доступных для корзины
      * @return array
      */
     public function getTabs()
@@ -166,32 +166,41 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         $user = new User\Model();
         $checkActive = ($user->checkLogin()) ? '' : ' WHERE is_active=1';
 
+        // Получаем все доступные табы
         $sql = "SELECT * FROM {$this->_table} {$checkActive} ORDER BY {$this->params['field_sort']}";
         $tabs = $db->select($sql);
 
+        // Определяем текущий таб по url
         $curUrl = explode('/', $_SERVER['REQUEST_URI']);
         $curUrl = end($curUrl);
 
+        // Папка где находится админка
         $cmsFolder = DOCUMENT_ROOT . '/' . $config->cmsFolder;
 
-        $active = false;
+        $active = false; // тригер был ли активный таб среди полученных из быза
         $url = new \Ideal\Field\Url\Model();
-        $cartUrl = $url->getUrl($this->pageData);
+        $cartUrl = $url->getUrl($this->pageData); // url корзины с постфиксом
+        // Таб корзины(самый первый)
         $cartTab = array(
             'ID' => "0",
             'name' => $this->pageData['name'],
             'link' => "href='{$cartUrl}'"
         );
+
+        // Обрезаем постфикс с url корзины для правильного построения ссылок далее
         $count = strlen($config->urlSuffix);
         if ($count > 0) {
             $count = -1 * $count;
         } else {
             $count = strlen($cartUrl);
         }
-        $cartUrl = substr($cartUrl, 0, $count);
+        $cartUrl = substr($cartUrl, 0, $count); // url корзины без постфикса
         foreach ($tabs as $k => $v) {
+            // Строим путь до шаблона таба
             $tmp = str_replace($cmsFolder, '', stream_resolve_include_path($v['template']));
             $tabs[$k]['pathTab'] = $tmp;
+
+            // Ссылка на таб
             $tabs[$k]['link'] = 'href="' . $cartUrl . '/' . $v['url'] . $config->urlSuffix . '"';
             if (($v['url'] == $curUrl) && ($active == false)) {
                 $tabs[$k]['is_active'] = true;
@@ -200,7 +209,7 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
                 $tabs[$k]['is_active'] = false;
             }
         }
-        $cartTab['is_active'] = !$active;
+        $cartTab['is_active'] = !$active; // если активного таба нету, значит отображаем корзину
         array_unshift($tabs, $cartTab);
         if (count($tabs) < 1) {
             return array();
