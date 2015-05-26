@@ -42,18 +42,18 @@
                                 {% for key, good in goods.goods %}
                                     <tr class="cart_table_item">
                                         <td class="product-remove">
-                                            <a href="#" class="remove" title="Удалить" data-id="{{ key }}"
-                                               onclick="fastDelGood(this);return false">&times;</a>
+                                            <a class="remove" title="Удалить" data-id="{{ key }}"
+                                               onclick="deleteGood(this);return false">&times;</a>
                                         </td>
                                         <td class="product-thumbnail">
-                                            <a href="{{ good.url }}">
-                                                <img width="65" height="65" src="/images/resized/65x65{{ good.img }}"
-                                                     class="attachment-shop_thumbnail wp-post-image" alt="vocunson 40"/>
+                                            <a {{ good.link|raw }}">
+                                            <img width="65" height="65" src="/images/resized/65x65{{ good.img }}"
+                                                 class="attachment-shop_thumbnail wp-post-image" alt="vocunson 40"/>
                                             </a>
                                         </td>
 
                                         <td class="product-name">
-                                            <a href="{{ good.url }}">{{ good.name }}</a>
+                                            <a {{ good.link|raw }}>{{ good.name }}</a>
                                             {% if good.offer %}
                                                 <dl class="variation">
                                                     <dt class="variation-">{{ good.offer.name }}:</dt>
@@ -151,9 +151,11 @@
         #checkout_multistep .clear {
             clear: both;
         }
+
         #checkout_multistep table {
             width: 100%;
         }
+
         #multistep_resume {
             margin-top: 42px;
         }
@@ -220,6 +222,20 @@
             var total = 0;
             $('.qty').each(function (index, elem) {
                 total += (basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val());
+            });
+            $('.cart_totals .amount').text((parseInt(total)).format(2, 3, ',', '.') + ' руб.');
+        }
+        function deleteGood(e) {
+            fastDelGood(e);
+            var $this = jQuery(e);
+            var id = $this.attr('data-id');
+            var basket = $.parseJSON(getCookie('basket'));
+            delete basket.goods[id];
+            var total = 0;
+            $('.qty').each(function (index, elem) {
+                if ($(elem).attr('data-id') != id) {
+                    total += (basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val());
+                }
             });
             $('.cart_totals .amount').text((parseInt(total)).format(2, 3, ',', '.') + ' руб.');
         }

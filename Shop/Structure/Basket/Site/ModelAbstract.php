@@ -85,11 +85,11 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
                     WHERE o.ID = {$offer} AND o.is_active = 1 AND g.ID= {$id}
                     LIMIT 1";
         }
-        $allPrice = $db->select($sql);
-        if (count($allPrice) === 0) {
+        $info = $db->select($sql);
+        if (count($info) === 0) {
             return false;
         }
-        $allPrice = $allPrice[0];
+        $info = $info[0];
         if ($offer !== false) {
             $field = $config->getStructureByName('CatalogPlus_Offer');
             $field = $field['fields'];
@@ -100,20 +100,20 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
             }
             $tmp = array_keys($field);
             foreach ($tmp as $v) {
-                if ($allPrice[$v] != '0') {
-                    $allPrice['offer'] = array(
+                if ($info[$v] != '0') {
+                    $info['offer'] = array(
                         'name' => $field[$v]['label'],
-                        'value' => $field[$v]['values'][$allPrice[$v]]
+                        'value' => $field[$v]['values'][$info[$v]]
                     );
                 }
             }
         }
-        if (isset($allPrice['prev'])) {
-            $allPrice['fullUrl'] = $this->getUrlByPrevStructure($allPrice['prev'], $allPrice['url']);
+        if (isset($info['prev'])) {
+            $info['link'] = 'href="' . $this->getUrlByPrevStructure($info['prev'], $info['url']) . '"';
         } else {
-            $allPrice['fullUrl'] = $this->getUrlByPrevStructure($allPrice['prev_structure'], $allPrice['url']);
+            $info['link'] = 'href="' . $this->getUrlByPrevStructure($info['prev_structure'], $info['url']) . '"';
         }
-        return $allPrice;
+        return $info;
     }
 
 
@@ -219,10 +219,11 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
      * @return string возвращает строку url с постфиксом
      * @throws \Exception
      */
-    private function getUrlByPrevStructure($prev, $url = '')
+    private function getUrlByPrevStructure($prev, $url)
     {
         $config = Config::getInstance();
         $db = Db::getInstance();
+        $url = trim($url, ' \\');
         if (isset($this->linkArr[$prev])) {
             // Если для данной структуры мы уже строили путь
             return '/' . $this->linkArr[$prev] . '/' . $url . $config->urlSuffix;
