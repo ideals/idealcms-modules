@@ -209,27 +209,69 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         }
     }
 
-    // TODO постороение url для товара по параметру prev_structure
+    /**
+     * Получение url для страницы по prev_structure
+     * Построение начинает с предедущей структуры, то есть если страница находится в одной структуре, но
+     * ее уровень не первый, то предется передовать полный путь до первого уровня в переменной @param $url
+     *
+     * @param string $prev prev_structure
+     * @param string $url url данной страницы
+     * @return string возвращает строку url с постфиксом
+     * @throws \Exception
+     */
     private function getUrlByPrevStructure($prev, $url = '')
     {
         $config = Config::getInstance();
         $db = Db::getInstance();
         if (isset($this->linkArr[$prev])) {
-            return $this->linkArr[$prev] . '/' . $url;
+            // Если для данной структуры мы уже строили путь
+            return '/' . $this->linkArr[$prev] . '/' . $url . $config->urlSuffix;
         }
         $prevStructure = explode('-', $prev);
-        $link = array();
-        $prevConf = $config->getStructureById($prevStructure[0]);
-        $prevTable = $config->getTableByName($prevConf['structure']);
-        $sql = "SELECT * FROM {$prevTable} WHERE ID = {$prevStructure[1]}";
-        $tmp = $db->select($sql);
-        $tmp = $tmp[0];
-        if (!isset($tmp['is_skip']) || ($tmp['is_skip'] == '0')) {
-            if (!(isset($tmp['is_active']) ^ ($tmp['is_active'] == '1'))) {
-                $link[] = $tmp['url'];
+        $link = array(); // массив с url до корня(без него)
+        $i = 0;
+        do {
+            $k = 0; // ключ к последнему элементу массива
+            $prevConf = $config->getStructureById($prevStructure[0]); // конфиг структуры откуда берем данные
+            $prevTable = $config->getTableByName($prevConf['structure']); // таблица структуры откуда берем ссылки
+            $sql = "SELECT * FROM {$prevTable} WHERE ID = {$prevStructure[1]}";
+            $tmp = $db->select($sql);
+            if (!isset($tmp[0]['is_skip']) || ($tmp[0]['is_skip'] == '0')) {
+                /* Если нужно проверять еще и на активность страницы
+                 * if (!(isset($tmp[0]['is_active']) ^ ($tmp[0]['is_active'] == '1'))) {
+                    $link[] = $tmp[0]['url'];
+                }*/
+                $link[] = $tmp[0]['url']; // добовляем ссылку в список
             }
-        }
-        return '';
+            // Если у нас страница не первого уровня строим url до первого уровня
+            if (isset($tmp[0]['lvl']) && ($tmp[0]['lvl'] > 1)) {
+                $cid = new \Ideal\Field\Cid\Model($prevConf['params']['levels'], $prevConf['params']['digits']);
+                $cids = $cid->getParents($tmp[0]['cid']); // Получаем все предедущие(родительские) cid
+                $cids = '\'' . implode('\',\'', $cids) . '\'';
+                $sql = "SELECT * FROM {$prevTable} WHERE cid IN ({$cids}) ORDER BY cid";
+                $tmp = $db->select($sql);
+                foreach ($tmp as $k => $v) {
+                    if (!isset($v['is_skip']) || ($v['is_skip'] == '0')) {
+                        /* Если нужно проверять еще и на активность страницы
+                         * if (!(isset($v['is_active']) ^ ($v['is_active'] == '1'))) {
+                            $link[] = $v['url'];
+                        }*/
+                        $link[] = $v['url']; // добовляем ссылку в список
+                    }
+                }
+            }
+            // Теперь ищем оставщиеся url из других структ, если есть
+            $prevStructure = explode('-', $tmp[$k]['prev_structure']);
+            // Защита от бесконечного циклп, а поскольку вряд ли возможна вложеность 10 уровня, на ней и останавливаемся
+            $i++;
+            if ($i > 10) {
+                break;
+            }
+        } while ($prevStructure[0] != '0');
+        // Записываем url для данной структуры($prev)
+        $this->linkArr[$prev] = implode('/', $link);
+        // Возвращаем сформированныей url
+        return '/' . $this->linkArr[$prev] . '/' . $url . $config->urlSuffix;
     }
 
 }
