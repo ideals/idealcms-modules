@@ -54,8 +54,8 @@ class Model extends Medium\AbstractModel
                 $k = substr($value, mb_strlen($this->dir) + 1);
                 $str = fgets($rFile); // считываем первую строку файла
                 // Проверяем если название название шаблона-таба в шаблоне
-                if (preg_match('/\{\#(.{3,})\#\}/iu', $str)) {
-                    $v = trim($str, '{}# ');
+                if (preg_match('/\{\#(.{3,})\#\}/iu', $str, $str)) {
+                    $v = trim($str[1], '{}# ');
                 } else {
                     // Если описания не оказалось в шаблоне используем названия файла шаблона-таба
                     $v = substr($value, strripos($value, '/') + 1, -5);
