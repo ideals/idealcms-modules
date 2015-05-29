@@ -8,7 +8,7 @@ return array(
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
         'field_sort'    => 'date_create DESC', // поле, по которому проводится сортировка в CMS
-        'field_list'    => array('name', 'is_active', 'date_create')
+        'field_list'    => array('name', 'is_active', 'date_create', 'url')
      ),
     'fields'   => array (
         'ID' => array(
@@ -25,6 +25,11 @@ return array(
             'label' => 'Название',
             'sql'   => 'varchar(255) not null',
             'type'  => 'Ideal_Text'
+        ),
+        'url' => array(
+            'label' => 'URL',
+            'sql' => 'varchar(255) not null',
+            'type' => 'Ideal_UrlAuto'
         ),
         'price' => array(
             'label' => 'Сумма заказа',

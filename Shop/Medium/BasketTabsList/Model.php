@@ -33,11 +33,24 @@ class Model extends Medium\AbstractModel
         $this->mask = 'Shop/Structure/Basket/Site/Tabs/*.twig';
         $this->list = array();
         // Поиск шаблонов в папке с модами
-        $this->checkTabs(' (Mods)');
+        $this->checkTabs();
 
-        // Поиск шаблонов в папке с изменеными модами
-        $this->dir = $this->dir . '.c';
-        $this->checkTabs(' (Mods.c)');
+        foreach ($this->list as $k => $v) {
+            $fileName = explode('/', $k);
+            $fileName = end($fileName);
+            if (strpos($fileName, '_') == 0) {
+                continue;
+            }
+            unset($this->list[$k]);
+            if (strpos($fileName, '.twig')) {
+                $fileName = substr($fileName, 0, -5);
+            }
+            $structure = $config->getStructureByName($fileName);
+            if ($structure != false) {
+                $this->list[$fileName] = $structure['name'] . ' (модуль)';
+            }
+
+        }
 
         // Сортируем массив
         natsort($this->list);
@@ -45,13 +58,12 @@ class Model extends Medium\AbstractModel
         return $this->list;
     }
 
-    protected function checkTabs($postfixName = '')
+    protected function checkTabs()
     {
-        $this->tmp = $postfixName;
-        array_walk(glob($this->dir . '/' . $this->mask), function ($value, $key) {
+        array_walk(glob($this->dir . '{,.c}/' . $this->mask, GLOB_BRACE), function ($value, $key) {
             // Проверяем наличие файла
             if ($rFile = fopen($value, 'r')) {
-                $k = substr($value, mb_strlen($this->dir) + 1);
+                $k = substr($value, strpos($value, 'Shop/'));
                 $str = fgets($rFile); // считываем первую строку файла
                 // Проверяем если название название шаблона-таба в шаблоне
                 if (preg_match('/\{\#(.{3,})\#\}/iu', $str, $str)) {
@@ -60,10 +72,9 @@ class Model extends Medium\AbstractModel
                     // Если описания не оказалось в шаблоне используем названия файла шаблона-таба
                     $v = substr($value, strripos($value, '/') + 1, -5);
                 }
-                $this->list[$k] = $v . $this->tmp; // указываем в какой папке Mods находиться данный шаблон-таб
+                $this->list[$k] = $v; // указываем в какой папке Mods находиться данный шаблон-таб
                 fclose($rFile);
             }
         });
-        unset($this->tmp);
     }
 }

@@ -137,7 +137,7 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         // Таб не нашли. Отображаем корзину
         if (!isset($tabs[0]['ID'])) {
             $this->path = $path;
-            // $this->is404 = true; // TODO обработка не существующего таба
+            $this->is404 = true; // TODO обработка не существующего таба
             return $this;
         }
 
@@ -184,7 +184,9 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         $cartTab = array(
             'ID' => "0",
             'name' => $this->pageData['name'],
-            'link' => "href='{$cartUrl}'"
+            'link' => "href='{$cartUrl}'",
+            'url' => $this->pageData['url'],
+            'is_show' => true
         );
 
         // Обрезаем постфикс с url корзины для правильного построения ссылок далее
@@ -195,27 +197,41 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
             $count = strlen($cartUrl);
         }
         $cartUrl = substr($cartUrl, 0, $count); // url корзины без постфикса
+        array_unshift($tabs, $cartTab);
+        $newTabs = array();
         foreach ($tabs as $k => $v) {
-            // Строим путь до шаблона таба
-            $tmp = str_replace($cmsFolder, '', stream_resolve_include_path($v['template']));
-            $tabs[$k]['pathTab'] = $tmp;
-
-            // Ссылка на таб
-            $tabs[$k]['link'] = 'href="' . $cartUrl . '/' . $v['url'] . $config->urlSuffix . '"';
             if (($v['url'] == $curUrl) && ($active == false)) {
-                $tabs[$k]['is_active'] = true;
+                $v['link'] = '';
+                $v['is_active'] = true;
                 $active = true;
             } else {
-                $tabs[$k]['is_active'] = false;
+                $v['is_active'] = false;
+                // Ссылка на таб
+                $v['link'] = 'href="' . $cartUrl . '/' . $v['url'] . $config->urlSuffix . '"';
             }
+
+            if (strpos($v['template'], '_') == false) {
+                // Строим путь до шаблона таба
+                $tmp = str_replace($cmsFolder, '', stream_resolve_include_path($v['template']));
+                $v['pathTab'] = $tmp;
+                $v['is_show'] = true;
+                $newTabs[] = $v;
+            } else {
+                $num = count($newTabs);
+                if ($num > 0) {
+                    list($v['modName'], $v['structure']) = explode('_', $v['template']);
+                    $newTabs[$num - 1]['module'] = $v;
+                }
+            }
+
         }
-        $cartTab['is_active'] = !$active; // если активного таба нету, значит отображаем корзину
-        array_unshift($tabs, $cartTab);
-        if (count($tabs) < 1) {
-            return array();
-        } else {
-            return $tabs;
+
+        if (($active && !((bool)$newTabs[0]['is_active']))) {
+            $newTabs[0]['link'] = 'href="' . $cartUrl . $config->urlSuffix . '"';
         }
+
+        return $newTabs;
+
     }
 
     /**

@@ -7,18 +7,20 @@
             <div id="multistep_resume">
                 {% set activeTab = -1 %}
                 {% for key, item in tabs %}
-                    <div>
-                        {% if activeTab == -1 %}
-                            <a {{ item.link|raw }}
-                                    {% if loop.first %}style="border-left: 1px solid #dfdcdc"{% endif %}
-                                    class="{% if item.is_active %}current{% set activeTab=key %}{% endif %}
-                                    multistep_section">
-                                {{ item.name|raw }}
-                            </a>
-                        {% else %}
-                            <span class="checkout_progress">{{ item.name|raw }}</span>
-                        {% endif %}
-                    </div>
+                    {% if item.is_show %}
+                        <div>
+                            {% if activeTab == -1 %}
+                                <a {{ item.link|raw }}
+                                        {% if loop.first %}style="border-left: 1px solid #dfdcdc"{% endif %}
+                                        class="{% if item.is_active %}current{% endif %} multistep_section">
+                                    {{ item.name|raw }}
+                                </a>
+                            {% else %}
+                                <span class="checkout_progress">{{ item.name|raw }}</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    {% if item.is_active %}{% set activeTab=key %}{% endif %}
                 {% endfor %}
             </div>
 
@@ -128,19 +130,14 @@
                         </div>
                     </div>
                 {% else %}
-                    {% include tabs[activeTab]['pathTab'] %}
+                    {% if tabs[activeTab]['module'] != true %}
+                        {% include tabs[activeTab]['pathTab'] %}
+                    {% endif %}
                 {% endif %}
 
-                {% if tabs[activeTab-1] %}
-                    <a {{ tabs[activeTab-1]['link']|raw }}>
-                        <input type="button" class="button prev" value="&larr; {{ tabs[activeTab-1]['name'] }}"/>
-                    </a>
-                {% endif %}
-                {% if tabs[activeTab + 1] %}
-                    <a {{ tabs[activeTab+1]['link']|raw }}>
-                        <input type="button" class="button next" value="{{ tabs[activeTab+1]['name'] }} &rarr;"/>
-                    </a>
-                {% endif %}
+                {{ _self.backButtom(tabs, activeTab - 1) }}
+                {{ _self.nextButton(tabs, activeTab + 1) }}
+
 
             </div>
         </div>
@@ -284,13 +281,67 @@
             });
             return result;
         }
-        jQuery(document).ready(function () {
 
+        function otherMod(modName, structure, url) {
+            var url = url||false;
             var $ = jQuery;
-
-            $('.nextstep').click(function () {
-                return update();
+            var result = false;
+            $.ajax({
+                type: 'POST',
+                data: $('#multistep_steps form').serialize(),
+                dataType: 'json',
+                async: false,
+                url: '/?mode=ajax&controller=' + modName + '\\Structure\\' + structure + '\\Site&action=basket',
+                success: function (data) {
+                    if (data.text.length > 0) {
+                        alert(data.text);
+                    }
+                    if (data.error) {
+                        result = false;
+                    } else {
+                        if (data.js.length > 0) {
+                            eval(data.js);
+                        }
+                        if (url != false) {
+                            window.location.href = url.replace(/href="(.*)"/i, '$1');
+                        }
+                    }
+                }
             });
-        });
+        }
     </script>
 {% endblock %}
+
+{% macro backButtom(tabs, activeTab) %}
+    {% if tabs[activeTab] %}
+        <a {{ tabs[activeTab]['link']|raw }}>
+            <input type="button" class="button prev" value="&larr; {{ tabs[activeTab]['name'] }}"/>
+        </a>
+    {% endif %}
+{% endmacro %}
+
+{% macro nextButton(tabs, activeTab) %}
+    {% if tabs[activeTab - 1]['module']['ID'] %}
+        {% if tabs[activeTab] %}
+            {% set link = tabs[activeTab]['link'] %}
+            {% set rarr = ' &rarr;' %}
+        {% else %}
+            {% set link = tabs[activeTab - 1]['module']['link'] %}
+            {% set rarr = '' %}
+        {% endif %}
+        {% set structure = tabs[activeTab - 1]['module']['structure'] %}
+        {% set modName = tabs[activeTab - 1]['module']['modName'] %}
+        {% set name = tabs[activeTab - 1]['module']['name'] %}
+        <a>
+            <input type="button" class="buttom next"
+                   value="{{ name }}{{ rarr|raw }}"
+                   onclick="otherMod('{{ modName }}', '{{ structure }}', '{{ link }}')" />
+        </a>
+    {% else %}
+        {% if tabs[activeTab] %}
+            <a {{ tabs[activeTab]['link']|raw }}>
+                <input type="button" class="button next" value="{{ tabs[activeTab]['name'] }} &rarr;"/>
+            </a>
+        {% endif %}
+    {% endif %}
+{% endmacro %}
