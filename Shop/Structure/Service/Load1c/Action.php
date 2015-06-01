@@ -11,8 +11,10 @@
 $base = new \Shop\Structure\Service\Load1c\Tools();
 $_POST['priceId'] = '6988920d-7fd5-11e1-9984-002354786c00';
 
-$import = ($_POST['import']) ? $_POST['import'] : '/tmp/1c/import.xml';
-$offers = ($_POST['offers']) ? $_POST['offers'] : '/tmp/1c/offers.xml';
+$import = isset($_POST['import']) ? $_POST['import'] : '/tmp/1c/import.xml';
+$offers = isset($_POST['offers']) ? $_POST['offers'] : '/tmp/1c/offers.xml';
+
+$mode1 = $mode2 = $mode3 = $mode4 = '';
 
 if (isset($_POST['load'])) {
     $priceId = $_POST['priceId'];
