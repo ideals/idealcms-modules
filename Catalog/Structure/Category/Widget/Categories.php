@@ -32,7 +32,7 @@ class Categories extends \Ideal\Core\Widget
         // Построение правильных url
         $url = new Url\Model();
         foreach ($menuList as $v) {
-            $v['link'] = $url->getUrlWithPrefix($v, $this->prefix);
+            $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $this->prefix) . '"';
             $menu[$v['cid']] = $v;
         }
         unset($menuList);
