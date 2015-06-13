@@ -18,14 +18,17 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     {
         parent::indexAction();
 
-        $page = $this->model->getPageData();
+        $pageDate = $this->model->getPageData();
         $config = Config::getInstance();
         $structure = $config->getStructureByClass(get_class($this));
+
+        $request = new Request();
+        $page = intval($request->page);
 
         // todo отображение товаров для категорий с вложенными категориями
         if ($this->isShowSubGoods) {
             // Определяем модель товаров этой категории
-            $prevStructure = $structure['ID'] . '-' . $page['ID'];
+            $prevStructure = $structure['ID'] . '-' . $pageDate['ID'];
             $goods = new Good\Site\Model($prevStructure);
             $goods->setPath($this->model->getPath());
             $goods->setCategoryModel($this->model);
@@ -33,8 +36,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
             $this->view->pager = $goods->getPager('page');
         }
 
-        $request = new Request();
-        $page = intval($request->page);
         $this->view->categories = $this->model->getList($page);
     }
 }
