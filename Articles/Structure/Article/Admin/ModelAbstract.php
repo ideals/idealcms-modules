@@ -44,6 +44,8 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
      */
     protected function getWhere($where)
     {
+        $db = Db::getInstance();
+
         $request = new Request();
         if (!isset($request->toolbar['category'])) {
             $where = parent::getWhere($where);
@@ -56,8 +58,8 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
 
         if ($currentCategory != '') {
             // Выборка статей, принадлежащих этой категории
-            $where .= ' AND e.ID IN (SELECT article_id FROM ' . $table . ' WHERE category_id='
-                . mysql_real_escape_string($currentCategory) . ')';
+            $where .= ' AND e.ID IN (SELECT part_id FROM ' . $table . ' WHERE tag_id='
+                . $db->escape_string($currentCategory) . ')';
         }
 
         $where = parent::getWhere($where);
