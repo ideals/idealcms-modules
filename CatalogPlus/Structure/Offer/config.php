@@ -36,7 +36,7 @@ return array(
         'price' => array(
             'label' => 'Цена за единицу (если договорная, то 0)',
             'sql'   => 'int default null',
-            'type'  => 'Catalog_Price'
+            'type'  => 'Ideal_Price'
         ),
         'is_active' => array(
             'label' => 'Отображать на сайте',

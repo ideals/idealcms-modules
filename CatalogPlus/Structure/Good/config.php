@@ -40,7 +40,7 @@ return array(
         'price' => array(
             'label' => 'Цена за единицу',
             'sql'   => 'int',
-            'type'  => 'CatalogPlus_Price'
+            'type'  => 'Ideal_Price'
         ),
         'annot' => array(
             'label' => 'Описание',
