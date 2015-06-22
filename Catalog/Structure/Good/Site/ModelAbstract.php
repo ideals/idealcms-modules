@@ -81,29 +81,19 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getStructureElements()
     {
         $db = Db::getInstance();
-        $config = Config::getInstance();
-        $urlModel = new Url\Model();
+        $ps = $this->prevStructure; // todo вот здесь я не уверен, что это правильная prev_structutre
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY name";
+        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND prev_strucutre='{$ps}' ORDER BY name";
         $list = $db->select($_sql);
 
-        $lvl = 0;
-        $url = array('0' => array('url' => $config->structures[0]['url']));
+        // Построение ссылок на товар
+        $urlModel = new Url\Model();
+        $urlModel->setParentUrl($this->path);
+
         foreach ($list as $k => $v) {
-            if ($v['lvl'] > $lvl) {
-                if ($v['url'] != '/') {
-                    $url[] = $list[$k - 1];
-                }
-                $urlModel->setParentUrl($url);
-            } elseif ($v['lvl'] < $lvl) {
-                // Если двойной или тройной выход добавляем соответствующий мультипликатор
-                $c = $lvl - $v['lvl'];
-                $url = array_slice($url, 0, -$c);
-                $urlModel->setParentUrl($url);
-            }
-            $lvl = $v['lvl'];
-            $list[$k]['url'] = $urlModel->getUrl($v);
+            $list[$k]['link'] = $urlModel->getUrl($v);
         }
+
         return $list;
     }
 
