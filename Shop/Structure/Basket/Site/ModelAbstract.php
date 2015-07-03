@@ -199,13 +199,17 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         $cartUrl = substr($cartUrl, 0, $count); // url корзины без постфикса
         array_unshift($tabs, $cartTab);
         $newTabs = array();
+        $this->pageData['currentTab'] = 0;
+        $counter = 0;
         foreach ($tabs as $k => $v) {
             if (($v['url'] == $curUrl) && ($active == false)) {
                 $v['link'] = '';
                 $v['is_active'] = true;
                 $active = true;
+                $this->pageData['currentTab'] = $counter;
             } else {
                 $v['is_active'] = false;
+                $counter++;
                 // Ссылка на таб
                 $v['link'] = 'href="' . $cartUrl . '/' . $v['url'] . $config->urlSuffix . '"';
             }
@@ -233,6 +237,20 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         return $newTabs;
 
     }
+
+    /**
+     * Получение относительного пути до шаблона таба
+     *
+     * @return string
+     */
+    public function getCurrentTab()
+    {
+        if (!isset($this->pageData['tab']) || !isset($this->pageData['tab']['ID'])) {
+            return '';
+        }
+        return $this->pageData['tab']['template'];
+    }
+
 
     /**
      * Получение url для страницы по prev_structure

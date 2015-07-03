@@ -14,7 +14,17 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
             $hideBasket = true;
             $this->templateInit('Shop/Structure/Basket/Site/empty.twig');
         } else {
-            $this->templateInit();
+            $template = $this->model->getCurrentTab();
+            $this->templateInit($template);
+
+            if (file_exists('Mods.c/Shop/Structure/Basket/Site/index.twig')) {
+                $this->view->indexTwig = 'Mods.c/Shop/Structure/Basket/Site/index.twig';
+            } else {
+                $this->view->indexTwig = 'Mods/Shop/Structure/Basket/Site/index.twig';
+            }
+
+
+
             $this->view->tabs = $this->model->getTabs();
             $this->view->goods = $basket;
         }

@@ -1,1 +1,16 @@
 {# Текстовая странца #}
+{% extends indexTwig %}
+
+{% block tabContent %}
+    {% if addons|length > 0 %}
+        {% for addon in addons %}
+            <div>{{ addon.content|raw }}</div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
+
+{% block tabCss %}
+{% endblock %}
+
+{% block tabJs %}
+{% endblock %}
