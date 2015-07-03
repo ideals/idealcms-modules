@@ -33,6 +33,7 @@ class DbCategory
     public function parse()
     {
         $db = Db::getInstance();
+        $this->checkTable();
 
         // Сбрасываем счетчик товаров для групп
         $values = array(
@@ -50,12 +51,10 @@ class DbCategory
 
         // Считываем категории из нашей БД
         $where = array(
-            'prev_structure' => '1-23',
-            'id_1c' => 'not-1c',
+            'key' => 'not-1c',
         );
         $sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title, count_sale
-          FROM `ciaokids`.`{$this->structureCat}`
-          WHERE prev_structure =:prev_structure AND id_1c <>:id_1c";
+          FROM `{$this->structureCat}` WHERE id_1c <>:key";
 
         $result = $db->select($sql, $where);
 
@@ -110,5 +109,30 @@ class DbCategory
             $oldGroups[$v['id_1c']] = $v;
         }
         return $oldGroups;
+    }
+
+    protected function checkTable()
+    {
+        $db = Db::getInstance();
+
+        $params = array(
+            array('table' => $this->structureCat),
+            array(
+                'id' => 'id_1c',
+                'sale' => 'count_sale'
+            )
+        );
+        $sql = 'SHOW COLUMNS FROM &table WHERE Field = :id OR Field =:sale';
+        $res = $db->select($sql, $params[1], $params[0]);
+        $idSql = "ADD COLUMN `id_1c` varchar(75) DEFAULT 'not-1c' AFTER ID";
+        $saleSql = "ADD COLUMN `count_sale` int(11) DEFAULT 0 AFTER `description`";
+        $sql = "ALTER TABLE {$this->structureCat} ";
+        if (empty($res)) {
+            $sql .=  " {$idSql}, {$saleSql}";
+            $db->query($sql);
+        } elseif (count($res) === 1) {
+            $sql .= ($res[0]['Field'] == 'id_1c' ? $saleSql : $idSql);
+            $db->query($sql);
+        }
     }
 }

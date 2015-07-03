@@ -33,5 +33,5 @@ $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
 $config->loadSettings();
 
 
-$fc = new Load1c\FrontController();
+$fc = new Load1c_v2\FrontController();
 $fc->run();

@@ -1,6 +1,8 @@
 <?php
 namespace Shop\Structure\Service\Load1c_v2;
 
+use Ideal\Field\Cid\Model;
+
 /**
  * Created by PhpStorm.
  * User: Help4
@@ -18,6 +20,9 @@ class XmlCategory
     protected $tmpDir;
     protected $ns;
     protected $data;
+    /** @var  \Ideal\Field\Cid\Model $cidModel */
+    protected $cidModel;
+    protected $cid = '001';
 
     public function __construct($source, $type, $path)
     {
@@ -31,7 +36,7 @@ class XmlCategory
                 $file_name = '';
                 break;
             case self::TYPE_FTP:
-                if (!$handle = ftp_connect($this->host)) {
+                if (!$handle = ftp_connect($source)) {
                     // no connection
                 }
                 $file_name = end(explode('/', $source));
@@ -58,6 +63,7 @@ class XmlCategory
 
     public function parse()
     {
+        $this->cidModel = new Model(6, 3);
         $this->recursiveParse($this->xml);
         return $this->data;
     }
@@ -65,17 +71,21 @@ class XmlCategory
     public function recursiveParse($groupsXML, $lvl = 1)
     {
         $groups = array();
+        $i = 1;
 
         foreach ($groupsXML->{'Группа'} as $child) {
             $id = (string)$child->{'Ид'};
+            $this->cid = $this->cidModel->setBlock($this->cid, $lvl, $i);
+            $i += 1;
             $this->data[$id] = array(
                 'name' => (string)$child->{'Наименование'},
                 'lvl' => $lvl,
-                'cid' => md5(time()) // Cid Model
+                'cid' => $this->cid // Cid Model
             );
             if ($child->{'Группы'}) {
-                $lvl += 1;
+                $lvl++;
                 $this->recursiveParse($child->{'Группы'}, $lvl);
+                $this->cid = $this->cidModel->getCidByLevel($this->cid, --$lvl);
             }
         }
         return $groups;
