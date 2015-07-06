@@ -68,6 +68,11 @@ class XmlCategory
         return $this->data;
     }
 
+    public function getParent($id)
+    {
+
+    }
+
     public function recursiveParse($groupsXML, $lvl = 1)
     {
         $groups = array();
@@ -75,17 +80,14 @@ class XmlCategory
 
         foreach ($groupsXML->{'Группа'} as $child) {
             $id = (string)$child->{'Ид'};
-            $this->cid = $this->cidModel->setBlock($this->cid, $lvl, $i);
             $i += 1;
             $this->data[$id] = array(
                 'name' => (string)$child->{'Наименование'},
                 'lvl' => $lvl,
-                'cid' => $this->cid // Cid Model
             );
             if ($child->{'Группы'}) {
                 $lvl++;
-                $this->recursiveParse($child->{'Группы'}, $lvl);
-                $this->cid = $this->cidModel->getCidByLevel($this->cid, --$lvl);
+                $this->recursiveParse($child->{'Группы'}, $lvl--);
             }
         }
         return $groups;

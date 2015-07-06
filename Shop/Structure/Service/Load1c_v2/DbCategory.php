@@ -3,6 +3,7 @@ namespace Shop\Structure\Service\Load1c_v2;
 
 use Ideal\Core\Config;
 use Ideal\Core\Db;
+use Ideal\Field\Url;
 
 /**
  * Created by PhpStorm.
@@ -19,8 +20,9 @@ class DbCategory
     /** @var string Структуры категорий */
     protected $structureCat = 'catalogplus_structure_category';
 
-    /** @var string Таблица категорий */
-    protected $category = 'CatalogPlus_Category';
+    protected $structureSchema = array();
+
+    protected $prevCat = '1-8';
 
     public function __construct()
     {
@@ -63,8 +65,8 @@ class DbCategory
 
     public function save($array)
     {
-        $this->update($array['update']);
         $this->delete($array['delete']);
+        $this->update($array['update']);
         $this->add($array['add']);
     }
 
@@ -73,8 +75,11 @@ class DbCategory
 
     }
 
-    protected function delete()
+    protected function delete($array)
     {
+        foreach ($array as $value) {
+            $this->findParent();
+        }
         /** проставляем is_active = 0. Удаления как такового нет
          * 2 варианта: категория удалена, категория перемещена
          *
@@ -88,9 +93,25 @@ class DbCategory
          */
     }
 
-    protected function add()
+    protected function add($array)
     {
+        $db = Db::getInstance();
 
+        foreach ($array as $key => $item) {
+            $params = array(
+                'id_1c' => $key,
+                'cid' => $item['cid'],
+                'lvl' => $item['lvl'],
+                'name' => $item['name'],
+                'url' => Url\Model::translitUrl($item['name']),
+                'date_create' => time(),
+                'date_mod' => time(),
+                'template' => 'index.twig',
+                'prev_structure' => $this->prevCat,
+                'is_active' => 1
+            );
+            $db->insert($this->structureCat, $params);
+        }
     }
 
     protected function setOldGroups($groups)
@@ -106,7 +127,8 @@ class DbCategory
             if ($v['id_1c'] == '') {
                 $v['id_1c'] = $v['ID'];
             }
-            $oldGroups[$v['id_1c']] = $v;
+            $oldGroups['id_1c'][$v['id_1c']] = $v;
+            $oldGroups['cid'][$v['cid']] = $v;
         }
         return $oldGroups;
     }
@@ -117,13 +139,16 @@ class DbCategory
 
         $params = array(
             array('table' => $this->structureCat),
-            array(
-                'id' => 'id_1c',
-                'sale' => 'count_sale'
-            )
         );
-        $sql = 'SHOW COLUMNS FROM &table WHERE Field = :id OR Field =:sale';
-        $res = $db->select($sql, $params[1], $params[0]);
+        $sql = 'SHOW COLUMNS FROM &table';
+        $res = $db->select($sql, null, $params[0]);
+        foreach ($res as $key => $value) {
+            $this->structureSchema[$value['Field']] = $value;
+            if ($value['Field'] != 'id_1c' && $value['Field'] != 'count_sale') {
+                unset ($res[$key]);
+            }
+        }
+        $res = array_values($res);
         $idSql = "ADD COLUMN `id_1c` varchar(75) DEFAULT 'not-1c' AFTER ID";
         $saleSql = "ADD COLUMN `count_sale` int(11) DEFAULT 0 AFTER `description`";
         $sql = "ALTER TABLE {$this->structureCat} ";
