@@ -7,30 +7,16 @@ use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Structure\User;
 
-class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
+class ModelAbstract extends \Ideal\Core\Site\Model
 {
+    /** @var \CatalogPlus\Structure\Good\Site\Model */
+    protected $goodsModel;
+
     /**
-     * TODO определять таблицу автоматически
-     * Таблица где хранятся товары
-     * @var string
+     * Получение полной информации о товарах в корзине
+     *
+     * @return array
      */
-    protected $table = 'i_catalogplus_structure_good';
-
-    protected $tableGood;
-    protected $tableOffer;
-
-    protected $linkArr = array();
-
-    public function __construct($prevStructure)
-    {
-        parent::__construct($prevStructure);
-        // Указываем таблицы где хранятся данные
-        $config = Config::getInstance();
-        $prefix = $config->db['prefix'];
-        $this->tableGood = $prefix . 'catalogplus_structure_good';
-        $this->tableOffer = $prefix . 'catalogplus_structure_offer';
-    }
-
     public function getGoods()
     {
         if (!isset($_COOKIE['basket'])) {
@@ -42,13 +28,20 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         }
         $basket['total'] = 0;
         $basket['count'] = 0;
+
+        // todo где лучше раскладывать корзину по офферам тут или в товарах? Наверное лучше тут
+
+        $goods = $this->goodsModel->goodsFromBasket($basket['goods']);
         foreach ($basket['goods'] as $k => $v) {
+
+            /*
             $id = explode('_', $k);
             if (count($id) > 1) {
                 $tmp = $this->getGoodInfo($id[0], $id[1]);
             } else {
                 $tmp = $this->getGoodInfo($id[0]);
             }
+            */
             if ($tmp === false) {
                 unset($basket['goods'][$k]);
                 continue;
@@ -67,61 +60,9 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         return $basket;
     }
 
-    private function getGoodInfo($id, $offer = false)
-    {
-        $db = Db::getInstance();
-        $config = Config::getInstance();
-        if ($offer === false) {
-            // Запрос в базу на получение информации о конкретном товаре
-            $sql = "SELECT e.*, (CEIL(((100-e.sell)/100)*e.price)) AS sale_price
-                    FROM {$this->tableGood} AS e
-                    WHERE ID = {$id} AND e.is_active = 1
-                    LIMIT 1";
-        } else {
-            // Запрос в базу на получение информации о конкретном предложении для товара
-            $sql = "SELECT o.*, (CEIL(((100-g.sell)/100)*o.price)) AS sale_price, g.url, g.prev_structure AS prev
-                    FROM {$this->tableOffer} AS o
-                    INNER JOIN {$this->tableGood} as g ON (g.ID = {$id})
-                    WHERE o.ID = {$offer} AND o.is_active = 1 AND g.ID= {$id}
-                    LIMIT 1";
-        }
-        $info = $db->select($sql);
-        if (count($info) === 0) {
-            return false;
-        }
-        $info = $info[0];
-        if ($offer !== false) {
-            $field = $config->getStructureByName('CatalogPlus_Offer');
-            $field = $field['fields'];
-            foreach ($field as $k => $v) {
-                if ($v['type'] != 'Ideal_Select') {
-                    unset($field[$k]);
-                }
-            }
-            $tmp = array_keys($field);
-            foreach ($tmp as $v) {
-                if ($info[$v] != '0') {
-                    $info['offer'] = array(
-                        'name' => $field[$v]['label'],
-                        'value' => $field[$v]['values'][$info[$v]]
-                    );
-                }
-            }
-        }
-        if (isset($info['prev'])) {
-            $info['link'] = 'href="' . $this->getUrlByPrevStructure($info['prev'], $info['url']) . '"';
-        } else {
-            $info['link'] = 'href="' . $this->getUrlByPrevStructure($info['prev_structure'], $info['url']) . '"';
-        }
-        return $info;
-    }
-
-
-    public function getStructureElements()
-    {
-        return array();
-    }
-
+    /**
+     * {@inheritdoc}
+     */
     public function detectPageByUrl($path, $url)
     {
         $db = Db::getInstance();
@@ -146,9 +87,14 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
             Util::addError("В базе несколько ({$c}) табов для корзины с одинаковым url: " . implode('/', $url));
             $tabs = array($tabs[0]); // выводим таб который стоит раньше
         }
-        $path[count($path) - 1]['tab'] = $tabs[0];
 
-        $this->path = $path;
+        $tabs[0]['structure'] = 'Shop_Basket';
+        $tabs[0]['url'] = $url[0];
+
+        $this->path = array_merge($path, $tabs);
+
+        $request = new Request();
+        $request->action = 'detail';
 
         return $this;
     }
@@ -170,152 +116,34 @@ class ModelAbstract extends \Ideal\Structure\News\Site\ModelAbstract
         $sql = "SELECT * FROM {$this->_table} {$checkActive} ORDER BY {$this->params['field_sort']}";
         $tabs = $db->select($sql);
 
-        // Определяем текущий таб по url
-        $curUrl = explode('/', $_SERVER['REQUEST_URI']);
-        $curUrl = end($curUrl);
+        // Определяем путь к табам
+        $path = $this->getPath();
+        $active = null;
+        if ($path[count($path) - 2]['structure'] == 'Shop_Basket') {
+            // Если предпоследний элемент пути - корзина, то нужно срезать последний элемент,
+            // чтобы выстроить пути ко всем табам
+            $active = array_pop($path);
+        }
 
-        // Папка где находится админка
-        $cmsFolder = DOCUMENT_ROOT . '/' . $config->cmsFolder;
-
-        $active = false; // тригер был ли активный таб среди полученных из быза
+        // Строим ссылки на табы
         $url = new \Ideal\Field\Url\Model();
-        $cartUrl = $url->getUrl($this->pageData); // url корзины с постфиксом
-        // Таб корзины(самый первый)
-        $cartTab = array(
+        $url->setParentUrl($path);
+        foreach ($tabs as $k => $tab) {
+            $tab[$k]['link'] = $url->getUrl($tab);
+            $tab[$k]['is_current'] = (!empty($active) && $active['ID'] == $tab['ID']);
+        }
+
+        // Добавляем самый первый таб - ссылка на корзину
+        $basket = array_pop($path);
+        $url->setParentUrl($path);
+        array_unshift($tabs, array(
             'ID' => "0",
-            'name' => $this->pageData['name'],
-            'link' => "href='{$cartUrl}'",
-            'url' => $this->pageData['url'],
+            'name' => $basket['name'],
+            'link' => "href='{$url->getUrl($basket)}'",
+            'url' => $basket['url'],
             'is_show' => true
-        );
-
-        // Обрезаем постфикс с url корзины для правильного построения ссылок далее
-        $count = strlen($config->urlSuffix);
-        if ($count > 0) {
-            $count = -1 * $count;
-        } else {
-            $count = strlen($cartUrl);
-        }
-        $cartUrl = substr($cartUrl, 0, $count); // url корзины без постфикса
-        array_unshift($tabs, $cartTab);
-        $newTabs = array();
-        $this->pageData['currentTab'] = 0;
-        $counter = 0;
-        foreach ($tabs as $k => $v) {
-            if (($v['url'] == $curUrl) && ($active == false)) {
-                $v['link'] = '';
-                $v['is_active'] = true;
-                $active = true;
-                $this->pageData['currentTab'] = $counter;
-            } else {
-                $v['is_active'] = false;
-                $counter++;
-                // Ссылка на таб
-                $v['link'] = 'href="' . $cartUrl . '/' . $v['url'] . $config->urlSuffix . '"';
-            }
-
-            if (strpos($v['template'], '_') == false) {
-                // Строим путь до шаблона таба
-                $tmp = str_replace($cmsFolder, '', stream_resolve_include_path($v['template']));
-                $v['pathTab'] = $tmp;
-                $v['is_show'] = true;
-                $newTabs[] = $v;
-            } else {
-                $num = count($newTabs);
-                if ($num > 0) {
-                    list($v['modName'], $v['structure']) = explode('_', $v['template']);
-                    $newTabs[$num - 1]['module'] = $v;
-                }
-            }
-
-        }
-
-        if (($active && !((bool)$newTabs[0]['is_active']))) {
-            $newTabs[0]['link'] = 'href="' . $cartUrl . $config->urlSuffix . '"';
-        }
-
-        return $newTabs;
-
+        ));
+        
+        return $tabs;
     }
-
-    /**
-     * Получение относительного пути до шаблона таба
-     *
-     * @return string
-     */
-    public function getCurrentTab()
-    {
-        if (!isset($this->pageData['tab']) || !isset($this->pageData['tab']['ID'])) {
-            return '';
-        }
-        return $this->pageData['tab']['template'];
-    }
-
-
-    /**
-     * Получение url для страницы по prev_structure
-     * Построение начинает с предедущей структуры, то есть если страница находится в одной структуре, но
-     * ее уровень не первый, то предется передовать полный путь до первого уровня в переменной @param $url
-     *
-     * @param string $prev prev_structure
-     * @param string $url url данной страницы
-     * @return string возвращает строку url с постфиксом
-     * @throws \Exception
-     */
-    private function getUrlByPrevStructure($prev, $url)
-    {
-        $config = Config::getInstance();
-        $db = Db::getInstance();
-        $url = trim($url, ' \\');
-        if (isset($this->linkArr[$prev])) {
-            // Если для данной структуры мы уже строили путь
-            return '/' . $this->linkArr[$prev] . '/' . $url . $config->urlSuffix;
-        }
-        $prevStructure = explode('-', $prev);
-        $link = array(); // массив с url до корня(без него)
-        $i = 0;
-        do {
-            $k = 0; // ключ к последнему элементу массива
-            $prevConf = $config->getStructureById($prevStructure[0]); // конфиг структуры откуда берем данные
-            $prevTable = $config->getTableByName($prevConf['structure']); // таблица структуры откуда берем ссылки
-            $sql = "SELECT * FROM {$prevTable} WHERE ID = {$prevStructure[1]}";
-            $tmp = $db->select($sql);
-            if (!isset($tmp[0]['is_skip']) || ($tmp[0]['is_skip'] == '0')) {
-                /* Если нужно проверять еще и на активность страницы
-                 * if (!(isset($tmp[0]['is_active']) ^ ($tmp[0]['is_active'] == '1'))) {
-                    $link[] = $tmp[0]['url'];
-                }*/
-                $link[] = $tmp[0]['url']; // добовляем ссылку в список
-            }
-            // Если у нас страница не первого уровня строим url до первого уровня
-            if (isset($tmp[0]['lvl']) && ($tmp[0]['lvl'] > 1)) {
-                $cid = new \Ideal\Field\Cid\Model($prevConf['params']['levels'], $prevConf['params']['digits']);
-                $cids = $cid->getParents($tmp[0]['cid']); // Получаем все предедущие(родительские) cid
-                $cids = '\'' . implode('\',\'', $cids) . '\'';
-                $sql = "SELECT * FROM {$prevTable} WHERE cid IN ({$cids}) ORDER BY cid";
-                $tmp = $db->select($sql);
-                foreach ($tmp as $k => $v) {
-                    if (!isset($v['is_skip']) || ($v['is_skip'] == '0')) {
-                        /* Если нужно проверять еще и на активность страницы
-                         * if (!(isset($v['is_active']) ^ ($v['is_active'] == '1'))) {
-                            $link[] = $v['url'];
-                        }*/
-                        $link[] = $v['url']; // добовляем ссылку в список
-                    }
-                }
-            }
-            // Теперь ищем оставщиеся url из других структ, если есть
-            $prevStructure = explode('-', $tmp[$k]['prev_structure']);
-            // Защита от бесконечного циклп, а поскольку вряд ли возможна вложеность 10 уровня, на ней и останавливаемся
-            $i++;
-            if ($i > 10) {
-                break;
-            }
-        } while ($prevStructure[0] != '0');
-        // Записываем url для данной структуры($prev)
-        $this->linkArr[$prev] = implode('/', $link);
-        // Возвращаем сформированныей url
-        return '/' . $this->linkArr[$prev] . '/' . $url . $config->urlSuffix;
-    }
-
 }

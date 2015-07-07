@@ -9,39 +9,22 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     public function indexAction()
     {
         $basket = $this->model->getGoods();
-        $hideBasket = false;
-        if (!isset($basket['goods']) || !(count($basket['goods']) > 0)) {
-            $hideBasket = true;
-            $this->templateInit('Shop/Structure/Basket/Site/empty.twig');
-        } else {
-            $template = $this->model->getCurrentTab();
-            $this->templateInit($template);
 
-            if (file_exists('Mods.c/Shop/Structure/Basket/Site/index.twig')) {
-                $this->view->indexTwig = 'Mods.c/Shop/Structure/Basket/Site/index.twig';
-            } else {
-                $this->view->indexTwig = 'Mods/Shop/Structure/Basket/Site/index.twig';
-            }
-
-
-
-            $this->view->tabs = $this->model->getTabs();
-            $this->view->goods = $basket;
-        }
-
-        $this->view->hideBasket = $hideBasket;
-
-        // Выдёргиваем заголовок из template['content']
-        $this->view->header = $this->model->getHeader();
-
-        // Перенос данных страницы в шаблон
-        $pageData = $this->model->getPageData();
-        foreach ($pageData as $k => $v) {
-            $this->view->$k = $v;
-        }
-        if ($hideBasket) {
+        if (empty($basket)) {
+            // Если в корзине нет товаров — выводим шаблон с пустой корзиной
+            $pageData = $this->model->getPageData();
+            $pageData['template'] = 'Shop/Structure/Basket/Site/empty.twig';
+            $this->model->setPageData($pageData);
+            parent::indexAction();
             return;
         }
+
+        $this->view->goods = $basket;
+    }
+
+    public function detailAction()
+    {
+        $this->view->tabs = $this->model->getTabs();
         $t = 1;
 
         /*if (isset($_GET['tab'])) {
