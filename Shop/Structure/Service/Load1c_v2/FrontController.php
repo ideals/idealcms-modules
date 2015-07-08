@@ -26,13 +26,13 @@ class FrontController
         $dbCategory = new DbCategory();
 
         // инициализируем модель категорий в XML - XmlCategory
-        $xmlCategory = new XmlCategory(DOCUMENT_ROOT . '/tmp/1c/import.xml', 3, 'Классификатор/Группы');
+        $xmlCategory = new XmlCategory(DOCUMENT_ROOT . '/tmp/1c');
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
-        $newCategory = new NewCategory();
+        $newCategory = new NewCategory($dbCategory, $xmlCategory);
 
         // Устанавливаем связь БД и XML
-        $newCategory->parse($dbCategory, $xmlCategory);
+        $newCategory->parse();
 
         // Записываем обновлённые категории в БД
         $dbCategory->save($newCategory->getData());

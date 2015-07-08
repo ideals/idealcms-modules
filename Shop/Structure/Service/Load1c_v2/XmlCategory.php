@@ -1,8 +1,6 @@
 <?php
 namespace Shop\Structure\Service\Load1c_v2;
 
-use Ideal\Field\Cid\Model;
-
 /**
  * Created by PhpStorm.
  * User: Help4
@@ -12,65 +10,56 @@ use Ideal\Field\Cid\Model;
 
 class XmlCategory
 {
-    const TYPE_FTP = 1;
-    const TYPE_1C = 2;
-    const TYPE_LOCAL_PATH = 3;
-
     public $xml;
-    protected $tmpDir;
     protected $ns;
     protected $data;
-    /** @var  \Ideal\Field\Cid\Model $cidModel */
-    protected $cidModel;
-    protected $cid = '001';
 
-    public function __construct($source, $type, $path)
+    public function __construct($source)
     {
-        $this->tmpDir = DOCUMENT_ROOT . '/tmp/1c/';
-        if (!file_exists($this->tmpDir)) {
-            mkdir($this->tmpDir, 0750, true);
-        }
-
-        switch ($type) {
-            case self::TYPE_1C:
-                $file_name = '';
-                break;
-            case self::TYPE_FTP:
-                if (!$handle = ftp_connect($source)) {
-                    // no connection
-                }
-                $file_name = end(explode('/', $source));
-                if (!ftp_get($handle, $this->tmpDir . $file_name, $source, FTP_ASCII)) {
-                    // ftp_get не удалось скачать
-                }
-                ftp_close($handle);
-                $file_name = realpath($this->tmpDir . $file_name);
-                break;
-            case self::TYPE_LOCAL_PATH:
-                $file_name = realpath($source);
-                if (!file_exists($file_name)) {
-                    // no file
-                }
-                break;
-            default:
-                throw new \Exception('Неккорректный тип источника');
-        }
+        $file_name = realpath($source . '/import.xml');
 
         $this->xml = simplexml_load_file($file_name);
         $this->setNamespaces();
-        $this->setPath($path);
+        $namespaces = $this->xml->getDocNamespaces();
+
+        if (isset($namespaces[''])) {
+            $defaultNamespaceUrl = $namespaces[''];
+            $this->xml->registerXPathNamespace('default', $defaultNamespaceUrl);
+            $this->ns = 'default:';
+        }
+        $this->xml = $this->xml->xpath('//' . $this->ns . 'Классификатор/' . $this->ns . 'Группы');
     }
 
     public function parse()
     {
-        $this->cidModel = new Model(6, 3);
-        $this->recursiveParse($this->xml);
+        $this->recursiveParse($this->xml[0]);
         return $this->data;
     }
 
-    public function getParent($id)
+    public function updateElement($array)
     {
+        $path = '//' . $this->ns . '*[' . $this->ns . 'Ид="' . $array['Ид'] . '"]';
+        unset($array['id_1c']);
+        $element = $this->xml[0]->xpath($path);
 
+        foreach ($array as $key => $value) {
+            $element->addChild($key, $value);
+        }
+    }
+
+    public function addChild($array)
+    {
+        $path = '//' . $this->ns . 'Группа';
+        if ($array['parent'] != null) {
+            $path .= '[' . $this->ns . 'Ид="' . $array['parent'] . '"]/' . $this->ns . 'Группы';
+        }
+        $parent = $this->xml[0]->xpath($path);
+        $element = $parent->addChild('Группа');
+        unset($array['parent']);
+
+        foreach ($array as $key => $value) {
+            $element->addChild($key, $value);
+        }
     }
 
     public function recursiveParse($groupsXML, $lvl = 1)
@@ -95,25 +84,6 @@ class XmlCategory
 
     protected function setNamespaces()
     {
-        $namespaces = $this->xml->getDocNamespaces();
 
-        if (isset($namespaces[''])) {
-            $defaultNamespaceUrl = $namespaces[''];
-            $this->xml->registerXPathNamespace('default', $defaultNamespaceUrl);
-            $this->ns = 'default:';
-        }
-    }
-
-    protected function setPath($path)
-    {
-        $path = explode('/', $path);
-        $path = implode('/' . $this->ns, $path);
-        $tmp = $this->xml->xpath('//' . $this->ns . $path);
-        $this->xml = $tmp[0];
-        if (0 === $this->xml->count()) {
-            return false;
-        }
-
-        return true;
     }
 }

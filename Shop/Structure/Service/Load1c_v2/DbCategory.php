@@ -43,12 +43,8 @@ class DbCategory
             'count_sale' => 0,
             'is_not_menu' => 0,
         );
-        $where = array(
-            'key' => 'not-1c',
-        );
         $db->update($this->structureCat)
             ->set($values)
-            ->where('id_1c <> :key', $where)
             ->exec();
 
         // Считываем категории из нашей БД
@@ -56,11 +52,20 @@ class DbCategory
             'key' => 'not-1c',
         );
         $sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title, count_sale
-          FROM `{$this->structureCat}` WHERE id_1c <>:key";
+          FROM `{$this->structureCat}` ORDER BY cid";
 
-        $result = $db->select($sql, $where);
+        $tmp = $db->select($sql, $where);
 
-        return $this->setOldGroups($result);
+        $result = array();
+        foreach ($tmp as $element) {
+            if ($element['id_1c'] === '') {
+                continue;
+            }
+            $result['ids'][$element['id_1c']] = $element;
+            $result['cid'][$element['cid']] = $element;
+        }
+
+        return $result;
     }
 
     public function save($array)
@@ -95,42 +100,23 @@ class DbCategory
 
     protected function add($array)
     {
-        $db = Db::getInstance();
-
-        foreach ($array as $key => $item) {
-            $params = array(
-                'id_1c' => $key,
-                'cid' => $item['cid'],
-                'lvl' => $item['lvl'],
-                'name' => $item['name'],
-                'url' => Url\Model::translitUrl($item['name']),
-                'date_create' => time(),
-                'date_mod' => time(),
-                'template' => 'index.twig',
-                'prev_structure' => $this->prevCat,
-                'is_active' => 1
-            );
-            $db->insert($this->structureCat, $params);
-        }
-    }
-
-    protected function setOldGroups($groups)
-    {
-        $oldGroups = array();
-        // В качестве ключей для категорий из БД ставим ключ 1С
-        foreach ($groups as $v) {
-            $v['is_exist'] = false;
-            if ($v['title']) {
-                $v['is_exist'] = true;
-            }
-
-            if ($v['id_1c'] == '') {
-                $v['id_1c'] = $v['ID'];
-            }
-            $oldGroups['id_1c'][$v['id_1c']] = $v;
-            $oldGroups['cid'][$v['cid']] = $v;
-        }
-        return $oldGroups;
+//        $db = Db::getInstance();
+//
+//        foreach ($array as $key => $item) {
+//            $params = array(
+//                'id_1c' => $key,
+//                'cid' => $item['cid'],
+//                'lvl' => $item['lvl'],
+//                'name' => $item['name'],
+//                'url' => Url\Model::translitUrl($item['name']),
+//                'date_create' => time(),
+//                'date_mod' => time(),
+//                'template' => 'index.twig',
+//                'prev_structure' => $this->prevCat,
+//                'is_active' => 1
+//            );
+//            $db->insert($this->structureCat, $params);
+//        }
     }
 
     protected function checkTable()
