@@ -60,7 +60,9 @@ class Model extends Medium\AbstractModel
 
     protected function checkTabs()
     {
-        array_walk(glob($this->dir . '{,.c}/' . $this->mask, GLOB_BRACE), function ($value, $key) {
+        $pattern = $this->dir . '{,.c}/' . $this->mask;
+
+        $func = function (&$value) {
             // Проверяем наличие файла
             if ($rFile = fopen($value, 'r')) {
                 $k = substr($value, strpos($value, 'Shop/'));
@@ -75,6 +77,10 @@ class Model extends Medium\AbstractModel
                 $this->list[$k] = $v; // указываем в какой папке Mods находиться данный шаблон-таб
                 fclose($rFile);
             }
-        });
+        };
+
+        $glob = glob($pattern, GLOB_BRACE);
+
+        return array_walk($glob, $func);
     }
 }
