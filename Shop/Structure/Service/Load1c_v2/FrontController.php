@@ -32,10 +32,10 @@ class FrontController
         $newCategory = new NewCategory($dbCategory, $xmlCategory);
 
         // Устанавливаем связь БД и XML
-        $newCategory->parse();
+        $categories = $newCategory->parse();
 
         // Записываем обновлённые категории в БД
-        $dbCategory->save($newCategory->getData());
+        $dbCategory->save($categories);
 
         // Уведомление пользователя о количестве добавленных, удалённых и обновлённых категорий
         $answer = $newCategory->answer();

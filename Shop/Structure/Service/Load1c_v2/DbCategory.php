@@ -20,16 +20,22 @@ class DbCategory
     /** @var string Структуры категорий */
     protected $structureCat = 'catalogplus_structure_category';
 
+    protected $structurePart = 'ideal_structure_part';
+
     protected $structureSchema = array();
 
-    protected $prevCat = '1-8';
+    protected $prevCat;
 
     public function __construct()
     {
         $config = Config::getInstance();
+        $db = Db::getInstance();
         $prefix = $config->db['prefix'];
         $this->structureCat = $prefix . $this->structureCat;
-        $this->category = $prefix . $this->category;
+        $this->structurePart = $prefix . $this->structurePart;
+        $this->prevCat = $db->exec(
+            'SELECT prev_structure FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Category"'
+        );
     }
 
     public function parse()
@@ -58,11 +64,11 @@ class DbCategory
 
         $result = array();
         foreach ($tmp as $element) {
-            if ($element['id_1c'] === '') {
-                continue;
+            if ($element['id_1c'] == 'not-1c') {
+                $result[] = $element;
+            } else {
+                $result[$element['id_1c']] = $element;
             }
-            $result['ids'][$element['id_1c']] = $element;
-            $result['cid'][$element['cid']] = $element;
         }
 
         return $result;
@@ -70,53 +76,40 @@ class DbCategory
 
     public function save($array)
     {
-        $this->delete($array['delete']);
-        $this->update($array['update']);
-        $this->add($array['add']);
-    }
-
-    protected function update()
-    {
-
-    }
-
-    protected function delete($array)
-    {
-        foreach ($array as $value) {
-            $this->findParent();
+        foreach ($array as $element) {
+            if (isset($element['ID'])) {
+                $this->update($element);
+            } else {
+                $this->add($element);
+            }
         }
-        /** проставляем is_active = 0. Удаления как такового нет
-         * 2 варианта: категория удалена, категория перемещена
-         *
-         * Удаление
-         *
-         * Перемещение
-         * 1) Определить предка
-         * 2) Определить новый cid предка
-         * 3) Определить новый cid элемента на основании 2
-         * 4) Подготовить для занесения с новыми cid и поставить is_active = 0
-         */
+    }
+
+    protected function update($array)
+    {
+        $db = Db::getInstance();
+
+        $id = array('id' => $array['ID']);
+        unset($array['ID']);
+        $db->update($this->structureCat)->set($array)->where('ID=:id', $id)->exec();
     }
 
     protected function add($array)
     {
-//        $db = Db::getInstance();
-//
-//        foreach ($array as $key => $item) {
-//            $params = array(
-//                'id_1c' => $key,
-//                'cid' => $item['cid'],
-//                'lvl' => $item['lvl'],
-//                'name' => $item['name'],
-//                'url' => Url\Model::translitUrl($item['name']),
-//                'date_create' => time(),
-//                'date_mod' => time(),
-//                'template' => 'index.twig',
-//                'prev_structure' => $this->prevCat,
-//                'is_active' => 1
-//            );
-//            $db->insert($this->structureCat, $params);
-//        }
+        $db = Db::getInstance();
+
+        $params = array(
+            'url' => Url\Model::translitUrl($array['name']),
+            'date_create' => time(),
+            'date_mod' => time(),
+            'template' => 'Ideal_Page',
+            'prev_structure' => $this->prevCat,
+        );
+        foreach ($array as $key => $item) {
+            $params[$key] = $item;
+        }
+
+        $db->insert($this->structureCat, $params);
     }
 
     protected function checkTable()

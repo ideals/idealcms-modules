@@ -19,7 +19,6 @@ class XmlCategory
         $file_name = realpath($source . '/import.xml');
 
         $this->xml = simplexml_load_file($file_name);
-        $this->setNamespaces();
         $namespaces = $this->xml->getDocNamespaces();
 
         if (isset($namespaces[''])) {
@@ -27,12 +26,12 @@ class XmlCategory
             $this->xml->registerXPathNamespace('default', $defaultNamespaceUrl);
             $this->ns = 'default:';
         }
-        $this->xml = $this->xml->xpath('//' . $this->ns . 'Классификатор/' . $this->ns . 'Группы');
+//        $this->xml = $this->xml->xpath('//' . $this->ns . 'Классификатор/' . $this->ns . 'Группы');
     }
 
     public function parse()
     {
-        $this->recursiveParse($this->xml[0]);
+        $this->recursiveParse($this->xml->{'Классификатор'}->{'Группы'});
         return $this->data;
     }
 
@@ -40,10 +39,12 @@ class XmlCategory
     {
         $path = '//' . $this->ns . '*[' . $this->ns . 'Ид="' . $array['Ид'] . '"]';
         unset($array['id_1c']);
-        $element = $this->xml[0]->xpath($path);
+        $element = $this->xml->xpath($path);
 
         foreach ($array as $key => $value) {
-            $element->addChild($key, $value);
+            if (!isset($element[0]->{$key})) {
+                $element[0]->addChild($key, $value);
+            }
         }
     }
 
@@ -52,9 +53,12 @@ class XmlCategory
         $path = '//' . $this->ns . 'Группа';
         if ($array['parent'] != null) {
             $path .= '[' . $this->ns . 'Ид="' . $array['parent'] . '"]/' . $this->ns . 'Группы';
+        } else {
+            $path = '//' . $this->ns . 'Классификатор/' . $this->ns . 'Группы';
         }
-        $parent = $this->xml[0]->xpath($path);
-        $element = $parent->addChild('Группа');
+        $parent = $this->xml->xpath($path);
+
+        $element = $parent[0]->addChild('Группа');
         unset($array['parent']);
 
         foreach ($array as $key => $value) {
@@ -62,28 +66,30 @@ class XmlCategory
         }
     }
 
-    public function recursiveParse($groupsXML, $lvl = 1)
+    protected function recursiveParse($groupsXML, $i = 0, $parent = '', $lvl = 1)
     {
         $groups = array();
-        $i = 1;
 
         foreach ($groupsXML->{'Группа'} as $child) {
-            $id = (string)$child->{'Ид'};
-            $i += 1;
-            $this->data[$id] = array(
-                'name' => (string)$child->{'Наименование'},
-                'lvl' => $lvl,
-            );
+            if ((string)$child->{'Ид'} == 'not-1c') {
+                $id = $i++;
+            } else {
+                $id = (string)$child->{'Ид'};
+            }
+            if ($parent != '') {
+                $this->data[$id]['parent'] = $parent;
+            }
+            $this->data[$id]['lvl'] = $lvl;
+            foreach ($child as $key => $field) {
+                if ($key != 'Группы') {
+                    $this->data[$id][(string) $key] = (string) $field;
+                }
+            }
             if ($child->{'Группы'}) {
-                $lvl++;
-                $this->recursiveParse($child->{'Группы'}, $lvl--);
+                $this->recursiveParse($child->{'Группы'}, $i, $id, ++$lvl);
+                $lvl--;
             }
         }
         return $groups;
-    }
-
-    protected function setNamespaces()
-    {
-
     }
 }
