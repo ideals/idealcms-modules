@@ -7,19 +7,17 @@
             <div id="multistep_resume">
                 {% set activeTab = -1 %}
                 {% for key, item in tabs %}
-                    {% if item.is_show %}
-                        <div>
-                            {% if activeTab == -1 %}
-                                <a {{ item.link|raw }}
-                                        {% if loop.first %}style="border-left: 1px solid #dfdcdc"{% endif %}
-                                        class="{% if item.is_active %}current{% endif %} multistep_section">
-                                    {{ item.name|raw }}
-                                </a>
-                            {% else %}
-                                <span class="checkout_progress">{{ item.name|raw }}</span>
-                            {% endif %}
-                        </div>
-                    {% endif %}
+                    <div>
+                        {% if activeTab == -1 %}
+                            <a {{ item.link|raw }}
+                                    {% if loop.first %}style="border-left: 1px solid #dfdcdc"{% endif %}
+                                    class="{% if item.is_active %}current{% endif %} multistep_section">
+                                {{ item.name|raw }}
+                            </a>
+                        {% else %}
+                            <span class="checkout_progress">{{ item.name|raw }}</span>
+                        {% endif %}
+                    </div>
                     {% if item.is_active %}{% set activeTab=key %}{% endif %}
                 {% endfor %}
             </div>

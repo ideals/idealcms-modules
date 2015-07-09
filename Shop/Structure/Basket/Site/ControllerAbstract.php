@@ -17,6 +17,8 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
             $this->model->setPageData($pageData);
             parent::indexAction();
             return;
+        } else {
+            parent::indexAction();
         }
 
         $this->view->goods = $basket;
@@ -24,6 +26,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function detailAction()
     {
+        parent::indexAction();
         $this->view->tabs = $this->model->getTabs();
         $t = 1;
 

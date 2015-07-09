@@ -23,6 +23,14 @@ return array(
             'sql' => 'char(15)',
             'type' => 'Ideal_Hidden'
         ),
+        'addon' => array(
+            'label' => 'Аддоны',
+            'sql' => "varchar(255) not null default '[[\"1\",\"Ideal_Page\",\"\"]]'",
+            'type' => 'Ideal_Addon',
+            'medium'    => '\\Ideal\\Medium\\AddonList\\Model',
+            'available' =>  array('Ideal_Page', 'Ideal_PhpFile', 'Ideal_Photo', 'Ideal_SiteMap', 'Ideal_YandexSearch'),
+            'default'   => '[["1","Ideal_Page",""]]',
+        ),
         'name' => array(
             'label' => 'Заголовок',
             'sql' => 'varchar(255) not null',
