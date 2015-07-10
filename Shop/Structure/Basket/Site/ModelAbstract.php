@@ -33,7 +33,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $goods = $this->goodsModel->goodsFromBasket($basket['goods']);
         foreach ($basket['goods'] as $k => $v) {
-
             /*
             $id = explode('_', $k);
             if (count($id) > 1) {
@@ -129,8 +128,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $url = new \Ideal\Field\Url\Model();
         $url->setParentUrl($path);
         foreach ($tabs as $k => $tab) {
-            $tab[$k]['link'] = $url->getUrl($tab);
-            $tab[$k]['is_current'] = (!empty($active) && $active['ID'] == $tab['ID']);
+            $tabs[$k]['link'] = 'href="' . $url->getUrl($tab) . '"';
+            $tabs[$k]['is_current'] = (!empty($active) && $active['ID'] == $tab['ID']);
         }
 
         // Добавляем самый первый таб - ссылка на корзину

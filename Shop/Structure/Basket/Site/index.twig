@@ -9,9 +9,9 @@
                 {% for key, item in tabs %}
                     <div>
                         {% if activeTab == -1 %}
-                            <a {{ item.link|raw }}
+                            <a {% if not item.is_current %}{{ item.link|raw }}{% endif %}
                                     {% if loop.first %}style="border-left: 1px solid #dfdcdc"{% endif %}
-                                    class="{% if item.is_active %}current{% endif %} multistep_section">
+                                    class="{% if item.is_current %}current{% endif %} multistep_section">
                                 {{ item.name|raw }}
                             </a>
                         {% else %}
