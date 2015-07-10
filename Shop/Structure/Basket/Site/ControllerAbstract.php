@@ -28,7 +28,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     {
         parent::indexAction();
         $this->view->tabs = $this->model->getTabs();
-        $t = 1;
 
         /*if (isset($_GET['tab'])) {
             $this->view->tab = (int)$_GET['tab'];

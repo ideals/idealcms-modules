@@ -18,7 +18,7 @@
                             <span class="checkout_progress">{{ item.name|raw }}</span>
                         {% endif %}
                     </div>
-                    {% if item.is_active %}{% set activeTab=key %}{% endif %}
+                    {% if item.ID == ID %}{% set activeTab=key %}{% endif %}
                 {% endfor %}
             </div>
 
@@ -197,7 +197,8 @@
             background: #f9f9f9;
             color: #c8c7c7;
         }
-
+        {% block tabCss %}
+        {% endblock %}
     </style>
 
     <script type="text/javascript" charset="utf-8">
@@ -250,29 +251,8 @@
             return result;
         }
 
-        function order() {
-            var $ = jQuery;
-            var result = false;
-            $.ajax({
-                type: 'POST',
-                data: $('[name=checkout]').serialize(),
-                dataType: 'json',
-                async: false,
-                url: '/?mode=ajax&controller=Shop\\Structure\\Order\\Site&action=order',
-                success: function (data) {
-                    alert(data.text);
-                    if (data.error) {
-
-                    } else {
-                        deleteCookie('basket');
-                        deleteCookie('user');
-                        location.reload();
-                    }
-                    result = !data.error;
-                }
-            });
-            return result;
-        }
+        {% block tabJs %}
+        {% endblock %}
 
         function otherMod(modName, structure, url) {
             url = url||false;

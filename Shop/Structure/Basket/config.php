@@ -62,11 +62,6 @@ return array(
             'sql' => 'int(11) not null',
             'type' => 'Ideal_DateSet'
         ),
-        'content' => array(
-            'label' => 'Сообщение',
-            'sql' => 'text',
-            'type' => 'Ideal_RichEdit'
-        ),
         'is_active' => array(
             'label' => 'Отображать на сайте',
             'sql' => 'bool',
