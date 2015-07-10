@@ -156,10 +156,20 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         }
     }
 
-    public function delGoodAction()
+    /**
+     * Удаление товара в корзине
+     * @param bool $local тригер на проверка запуска из другого метода класса
+     * @return bool
+     */
+    public function delGoodAction($local = false)
     {
         unset($this->basket['goods'][$this->idGood]);
         $this->update = true;
+        if (!$local) {
+            exit();
+        } else {
+            return true;
+        }
     }
 
     /**

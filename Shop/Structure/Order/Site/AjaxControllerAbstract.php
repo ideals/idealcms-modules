@@ -126,4 +126,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         }
 
     }
+
+    public function basketAction()
+    {
+        $this->answer['text'] = 'Done!';
+        $this->answer['js'] = 'deleteCookie("basket");';
+        exit();
+    }
 }

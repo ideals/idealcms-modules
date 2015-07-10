@@ -1,0 +1,91 @@
+{# Подверждение заказа #}
+
+<div class="{{ tab4 }} multistep_step span12" id="multistep_step4" data-step="5">
+    <div class="box_style">
+
+        <h3 id="order_review_heading">Ваш заказ</h3>
+
+        <div id="order_review">
+
+            <table class="shop_table">
+                <tr>
+                    <th class="product-name">Товар</th>
+                    <th class="product-quantity">Кол-во</th>
+                    <th class="product-total">Сумма</th>
+                </tr>
+
+                {% for good in goods.goods %}
+                    <tr class="checkout_table_item">
+                        <td class="product-name">
+                            {{ good.name }} {% if good.offer %}
+                                <dl class="variation">
+                                    <dt class="variation-">{{ good.offer.name }}:</dt>
+                                    <dd class="variation-"><p>{{ good.offer.value }}</p>
+                                    </dd>
+                                </dl>
+                            {% endif %}
+                        </td>
+                        <td class="product-quantity">{{ good.count }}</td>
+                        <td class="product-total">
+                            <span class="amount">
+                                {{ (good.total_price/100)|number_format(2, '.', ',') }}&nbsp;руб.
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+                <tr class="cart-subtotal">
+                    <th colspan="2">Итог</th>
+                    <td>
+                        <span class="amount">
+                            {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
+                        </span>
+                    </td>
+                </tr>
+
+
+                <tr class="shipping">
+                    <th>Погрузка и перевозка</th>
+                    <td> Бесплатная доставка</td>
+                </tr>
+                <tr class="total">
+                    <th colspan="2">Сумма</th>
+                    <td>
+                        <strong>
+                            <span class="amount">
+                                {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
+                            </span>
+                        </strong>
+                    </td>
+                </tr>
+            </table>
+
+            <h3>Дополнительная информация</h3>
+
+            <p class="form-row notes" id="order_comments_field">
+                <label for="order_comments" class="">
+                    Заметки к заказу
+                </label>
+                <textarea name="order_comments" class="input-text" id="order_comments"
+                    placeholder="Примечания к вашему заказу, например, особые пожелания отделу доставки."
+                    rows="2" cols="5">
+                </textarea>
+            </p>
+
+            <div class="form-row place-order">
+
+                <noscript>Since your browser does not support JavaScript, or it is disabled,
+                    please ensure you click the <em>Update Totals</em> button before placing
+                    your order. You may be charged more than the amount stated above if you
+                    fail to do so.<br/>
+                    <input type="submit" class="button alt" value="Пересчитать"/>
+                </noscript>
+
+                <input type="button" class="button alt" onclick="return order()"
+                       name="woocommerce_checkout_place_order" id="place_order"
+                       value="Оформить заказ" data-value="Оформить заказ"/>
+            </div>
+
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>

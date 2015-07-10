@@ -2,30 +2,21 @@
 namespace Shop\Structure\Basket\Site;
 
 use Ideal\Core\Db;
+use Ideal\Core\Util;
 use Ideal\Core\Config;
+use Ideal\Core\Request;
+use Ideal\Structure\User;
 
-class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
+class ModelAbstract extends \Ideal\Core\Site\Model
 {
+    /** @var \CatalogPlus\Structure\Good\Site\Model */
+    protected $goodsModel;
+
     /**
-     * TODO определять таблицу автоматически
-     * Таблица где хранятся товары
-     * @var string
+     * Получение полной информации о товарах в корзине
+     *
+     * @return array
      */
-    protected $table = 'i_catalogplus_structure_good';
-
-    protected $tableGood;
-    protected $tableOffer;
-
-    public function __construct($prevStructure)
-    {
-        parent::__construct($prevStructure);
-        // Указываем таблицы где хранятся данные
-        $config = Config::getInstance();
-        $prefix = $config->db['prefix'];
-        $this->tableGood = $prefix . 'catalogplus_structure_good';
-        $this->tableOffer = $prefix . 'catalogplus_structure_offer';
-    }
-
     public function getGoods()
     {
         if (!isset($_COOKIE['basket'])) {
@@ -37,13 +28,19 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         }
         $basket['total'] = 0;
         $basket['count'] = 0;
+
+        // todo где лучше раскладывать корзину по офферам тут или в товарах? Наверное лучше тут
+
+        $goods = $this->goodsModel->goodsFromBasket($basket['goods']);
         foreach ($basket['goods'] as $k => $v) {
+            /*
             $id = explode('_', $k);
             if (count($id) > 1) {
                 $tmp = $this->getGoodInfo($id[0], $id[1]);
             } else {
                 $tmp = $this->getGoodInfo($id[0]);
             }
+            */
             if ($tmp === false) {
                 unset($basket['goods'][$k]);
                 continue;
@@ -62,56 +59,90 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         return $basket;
     }
 
-    private function getGoodInfo($id, $offer = false)
+    /**
+     * {@inheritdoc}
+     */
+    public function detectPageByUrl($path, $url)
+    {
+        $db = Db::getInstance();
+
+        // Для авторизированных в админку пользователей отображать скрытые страницы
+        $user = new User\Model();
+        $checkActive = ($user->checkLogin()) ? '' : ' AND is_active=1';
+
+        $sql = "SELECT * FROM {$this->_table} WHERE url='{$url[0]}' {$checkActive} ORDER BY pos";
+
+        $tabs = $db->select($sql); // запрос на получение всех табов, с этим урлом
+
+        // Таб не нашли. Отображаем корзину
+        if (!isset($tabs[0]['ID'])) {
+            $this->path = $path;
+            $this->is404 = true; // TODO обработка не существующего таба
+            return $this;
+        }
+
+        if (count($tabs) > 1) {
+            $c = count($tabs);
+            Util::addError("В базе несколько ({$c}) табов для корзины с одинаковым url: " . implode('/', $url));
+            $tabs = array($tabs[0]); // выводим таб который стоит раньше
+        }
+
+        $tabs[0]['structure'] = 'Shop_Basket';
+        $tabs[0]['url'] = $url[0];
+
+        $this->path = array_merge($path, $tabs);
+
+        $request = new Request();
+        $request->action = 'detail';
+
+        return $this;
+    }
+
+    /**
+     * Получение табов доступных для корзины
+     * @return array
+     */
+    public function getTabs()
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        if ($offer === false) {
-            // Запрос в базу на получение информации о конкретном товаре
-            $sql = "SELECT e.*, (CEIL(((100-e.sell)/100)*e.price)) AS sale_price
-                    FROM {$this->tableGood} AS e
-                    WHERE ID = {$id} AND e.is_active = 1
-                    LIMIT 1";
-        } else {
-            // Запрос в базу на получение информации о конкретном предложении для товара
-            $sql = "SELECT o.*, (CEIL(((100-g.sell)/100)*o.price)) AS sale_price
-                    FROM {$this->tableOffer} AS o
-                    INNER JOIN {$this->tableGood} as g ON (g.ID = {$id})
-                    WHERE o.ID = {$offer} AND o.is_active = 1 AND g.ID= {$id}
-                    LIMIT 1";
+
+        // Для авторизированных в админку пользователей отображать скрытые страницы
+        $user = new User\Model();
+        $checkActive = ($user->checkLogin()) ? '' : ' WHERE is_active=1';
+
+        // Получаем все доступные табы
+        $sql = "SELECT * FROM {$this->_table} {$checkActive} ORDER BY {$this->params['field_sort']}";
+        $tabs = $db->select($sql);
+
+        // Определяем путь к табам
+        $path = $this->getPath();
+        $active = null;
+        if ($path[count($path) - 2]['structure'] == 'Shop_Basket') {
+            // Если предпоследний элемент пути - корзина, то нужно срезать последний элемент,
+            // чтобы выстроить пути ко всем табам
+            $active = array_pop($path);
         }
-        $allPrice = $db->select($sql);
-        if (count($allPrice) === 0) {
-            return false;
+
+        // Строим ссылки на табы
+        $url = new \Ideal\Field\Url\Model();
+        $url->setParentUrl($path);
+        foreach ($tabs as $k => $tab) {
+            $tabs[$k]['link'] = 'href="' . $url->getUrl($tab) . '"';
+            $tabs[$k]['is_current'] = (!empty($active) && $active['ID'] == $tab['ID']);
         }
-        $allPrice = $allPrice[0];
-        if ($offer !== false) {
-            $field = $config->getStructureByName('CatalogPlus_Offer');
-            $field = $field['fields'];
-            foreach ($field as $k => $v) {
-                if ($v['type'] != 'Ideal_Select') {
-                    unset($field[$k]);
-                }
-            }
-            $tmp = array_keys($field);
-            foreach ($tmp as $v) {
-                if ($allPrice[$v] != '0') {
-                    $allPrice['offer'] = array(
-                        'name' => $field[$v]['label'],
-                        'value' => $field[$v]['values'][$allPrice[$v]]
-                    );
-                }
-            }
-        }
-        // TODO url для товаров
-        $allPrice['url'] = $allPrice['url'] . $config->urlSuffix;
-        return $allPrice;
+
+        // Добавляем самый первый таб - ссылка на корзину
+        $basket = array_pop($path);
+        $url->setParentUrl($path);
+        array_unshift($tabs, array(
+            'ID' => "0",
+            'name' => $basket['name'],
+            'link' => "href='{$url->getUrl($basket)}'",
+            'url' => $basket['url'],
+            'is_show' => true
+        ));
+        
+        return $tabs;
     }
-
-
-    public function getStructureElements()
-    {
-        return array();
-    }
-
 }
