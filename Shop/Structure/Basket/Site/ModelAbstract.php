@@ -12,6 +12,19 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /** @var \CatalogPlus\Structure\Good\Site\Model */
     protected $goodsModel;
 
+    public function __construct($prevStructure)
+    {
+        parent::__construct($prevStructure);
+        $config = Config::getInstance();
+        if ($config->getStructureByName('Catalog_Good')) {
+            $this->goodsModel = new \Catalog\Structure\Good\Site\Model($prevStructure);
+        } elseif ($config->getStructureByName('CatalogPlus_Good')) {
+            $this->goodsModel = new \CatalogPlus\Structure\Good\Site\Model($prevStructure);
+        } else {
+            \Ideal\Core\Util::addError('Не подключен модуль с товарами');
+        }
+    }
+
     /**
      * Получение полной информации о товарах в корзине
      *
