@@ -31,7 +31,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // todo где лучше раскладывать корзину по офферам тут или в товарах? Наверное лучше тут
 
-        $goods = $this->goodsModel->goodsFromBasket($basket['goods']);
+        //$goods = $this->goodsModel->goodsFromBasket($basket['goods']);
         foreach ($basket['goods'] as $k => $v) {
             /*
             $id = explode('_', $k);
@@ -57,6 +57,28 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $basket['count'] += 1;
         }
         return $basket;
+    }
+
+    /**
+     * Получаем первый слайд для начала оформления заказа
+     *
+     * @return array
+     */
+    public function getFirstTab()
+    {
+        $db = Db::getInstance();
+        $sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY {$this->params['field_sort']} LIMIT 1";
+        $tab = $db->select($sql);
+        if (count($tab) < 1) {
+            return array();
+        }
+        $tab = $tab[0];
+        $path = $this->getPath();
+        $url = new \Ideal\Field\Url\Model();
+        // Указываем родителя для url что бы можно было получить корректный url
+        $url->setParentUrl($path);
+        $tab['link'] = 'href="' . $url->getUrl($tab) . '"';
+        return $tab;
     }
 
     /**

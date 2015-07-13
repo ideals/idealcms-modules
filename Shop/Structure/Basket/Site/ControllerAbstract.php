@@ -19,6 +19,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
             return;
         } else {
             parent::indexAction();
+            $this->view->firstTab = $this->model->getFirstTab();
         }
 
         $this->view->goods = $basket;

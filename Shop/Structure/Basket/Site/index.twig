@@ -124,6 +124,11 @@
                                 </table>
                             </div>
                         </div>
+                        {% if firstTab|length > 1 %}
+                            <a {{ firstTab.link|raw }}>
+                                <button>Оформить заказ &rarr;</button>
+                            </a>
+                        {% endif %}
                     </div>
                 {% endblock %}
 
