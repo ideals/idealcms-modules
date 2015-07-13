@@ -44,28 +44,23 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // todo где лучше раскладывать корзину по офферам тут или в товарах? Наверное лучше тут
 
+        $goods = $this->goodsModel->getGoodsInfo(array_keys($basket['goods']));
         //$goods = $this->goodsModel->goodsFromBasket($basket['goods']);
         foreach ($basket['goods'] as $k => $v) {
-            /*
-            $id = explode('_', $k);
-            if (count($id) > 1) {
-                $tmp = $this->getGoodInfo($id[0], $id[1]);
-            } else {
-                $tmp = $this->getGoodInfo($id[0]);
-            }
-            */
-            if ($tmp === false) {
+            if (!isset($goods[$k])) {
                 unset($basket['goods'][$k]);
                 continue;
+            } else {
+                $good = $goods[$k];
             }
-            if (isset($tmp['count'])) {
-                if (isset($v['count']) && ((int)$v['count'] > (int)$tmp['count'])) {
+            if (isset($good['count'])) {
+                if (isset($v['count']) && ((int)$v['count'] > (int)$good['count'])) {
                     $v['warning'][] = 'Заказано больше чем есть на складе. Уточняйте у менеджера.';
                 }
-                unset ($tmp['count']);
+                unset ($good['count']);
             }
-            $basket['goods'][$k] = array_merge($v, $tmp);
-            $basket['goods'][$k]['total_price'] = $v['count'] * $tmp['sale_price'];
+            $basket['goods'][$k] = array_merge($v, $good);
+            $basket['goods'][$k]['total_price'] = $v['count'] * $good['price'];
             $basket['total'] += $basket['goods'][$k]['total_price'];
             $basket['count'] += 1;
         }
