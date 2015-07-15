@@ -302,4 +302,58 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $this->path = $pathCat;
         return parent::getBreadCrumbs();
     }
+
+    /**
+     * Получение информации о товарах
+     *
+     * @param array $ids список id товаров и предложение
+     * @return array информация о товарах и их предложениях
+     * @throws \Exception
+     */
+    public function getGoodsInfo($ids)
+    {
+        $config = Config::getInstance();
+        $db = Db::getInstance();
+        $offers = false; // По умолчанию оферы не подключены
+        if ($config->getStructureByName('CatalogPlus_Offer')) {
+            // А если подключены то загружаем о них данные
+            $offers = $config->getStructureByName('CatalogPlus_Offer');
+        }
+        $goodId = array();
+        $offerId = array();
+        foreach ($ids as $k => $v) {
+            list($goodId[], $offerId[]) = explode('_', $v);
+        }
+        $sql = "SELECT * FROM {$this->_table} WHERE ID IN (" . implode(',', $goodId) . ")";
+        if ($offers) {
+            $offerTable = $config->getTableByName('CatalogPlus_Offer');
+            $field = '';
+            // Что бы поля предложений не переписывали поля товара, добовляем преставку offer_
+            foreach (array_keys($offers['fields']) as $v) {
+                if ($field == '') {
+                    $field .= 'o.' . $v . ' AS offer_' . $v;
+                    continue;
+                }
+                $field .= ', o.' . $v . ' AS offer_' . $v;
+            }
+            // Узнаем ID структуры товаров что бы можно было сделать join для предложений
+            $idStructure = $config->getStructureByName('CatalogPlus_Good');
+            $idStructure = $idStructure['ID'];
+            // Запрос с учетом существования id товара(предложения)
+            $sql = "SELECT g.*, {$field} FROM {$this->_table} AS g
+                    INNER JOIN {$offerTable} AS o ON (o.prev_structure = CONCAT('{$idStructure}-', g.ID))
+                    WHERE g.ID IN (" . implode(',', $goodId) . ") AND o.ID IN (" . implode(',', $offerId) . ")";
+        }
+        $info = $db->select($sql);
+        // Делаем массив с ключом идТовара_идПредложения
+        foreach ($info as $k => $v) {
+            unset($info[$k]);
+            if ($offers) {
+                $info[$v['ID'] . '_' . $v['offer_ID']] = $v;
+            } else {
+                $info[$v['ID']] = $v;
+            }
+        }
+        return $info;
+    }
 }

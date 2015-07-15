@@ -12,6 +12,19 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /** @var \CatalogPlus\Structure\Good\Site\Model */
     protected $goodsModel;
 
+    public function __construct($prevStructure)
+    {
+        parent::__construct($prevStructure);
+        $config = Config::getInstance();
+        if ($config->getStructureByName('Catalog_Good')) {
+            $this->goodsModel = new \Catalog\Structure\Good\Site\Model($prevStructure);
+        } elseif ($config->getStructureByName('CatalogPlus_Good')) {
+            $this->goodsModel = new \CatalogPlus\Structure\Good\Site\Model($prevStructure);
+        } else {
+            \Ideal\Core\Util::addError('Не подключен модуль с товарами');
+        }
+    }
+
     /**
      * Получение полной информации о товарах в корзине
      *
@@ -31,32 +44,49 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // todo где лучше раскладывать корзину по офферам тут или в товарах? Наверное лучше тут
 
-        $goods = $this->goodsModel->goodsFromBasket($basket['goods']);
+        $goods = $this->goodsModel->getGoodsInfo(array_keys($basket['goods']));
+        //$goods = $this->goodsModel->goodsFromBasket($basket['goods']);
         foreach ($basket['goods'] as $k => $v) {
-            /*
-            $id = explode('_', $k);
-            if (count($id) > 1) {
-                $tmp = $this->getGoodInfo($id[0], $id[1]);
-            } else {
-                $tmp = $this->getGoodInfo($id[0]);
-            }
-            */
-            if ($tmp === false) {
+            if (!isset($goods[$k])) {
                 unset($basket['goods'][$k]);
                 continue;
+            } else {
+                $good = $goods[$k];
             }
-            if (isset($tmp['count'])) {
-                if (isset($v['count']) && ((int)$v['count'] > (int)$tmp['count'])) {
+            if (isset($good['count'])) {
+                if (isset($v['count']) && ((int)$v['count'] > (int)$good['count'])) {
                     $v['warning'][] = 'Заказано больше чем есть на складе. Уточняйте у менеджера.';
                 }
-                unset ($tmp['count']);
+                unset ($good['count']);
             }
-            $basket['goods'][$k] = array_merge($v, $tmp);
-            $basket['goods'][$k]['total_price'] = $v['count'] * $tmp['sale_price'];
+            $basket['goods'][$k] = array_merge($v, $good);
+            $basket['goods'][$k]['total_price'] = $v['count'] * $good['price'];
             $basket['total'] += $basket['goods'][$k]['total_price'];
             $basket['count'] += 1;
         }
         return $basket;
+    }
+
+    /**
+     * Получаем первый слайд для начала оформления заказа
+     *
+     * @return array
+     */
+    public function getFirstTab()
+    {
+        $db = Db::getInstance();
+        $sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY {$this->params['field_sort']} LIMIT 1";
+        $tab = $db->select($sql);
+        if (count($tab) < 1) {
+            return array();
+        }
+        $tab = $tab[0];
+        $path = $this->getPath();
+        $url = new \Ideal\Field\Url\Model();
+        // Указываем родителя для url что бы можно было получить корректный url
+        $url->setParentUrl($path);
+        $tab['link'] = 'href="' . $url->getUrl($tab) . '"';
+        return $tab;
     }
 
     /**
