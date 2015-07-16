@@ -35,3 +35,4 @@ $config->loadSettings();
 
 $fc = new Load1c_v2\FrontController();
 $fc->run();
+$fc->run2();

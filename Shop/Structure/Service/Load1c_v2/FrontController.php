@@ -21,15 +21,16 @@ class FrontController
          */
 
         // РАБОТА С КАТЕГОРИЯМИ
+        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'import.xml');
 
         // инициализируем модель категорий в БД - DbCategory
-        $dbCategory = new DbCategory();
+        $dbCategory = new Category\DbCategory();
 
         // инициализируем модель категорий в XML - XmlCategory
-        $xmlCategory = new XmlCategory(DOCUMENT_ROOT . '/tmp/1c');
+        $xmlCategory = new Category\XmlCategory($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
-        $newCategory = new NewCategory($dbCategory, $xmlCategory);
+        $newCategory = new Category\NewCategory($dbCategory, $xmlCategory);
 
         // Устанавливаем связь БД и XML
         $categories = $newCategory->parse();
@@ -37,7 +38,36 @@ class FrontController
         // Записываем обновлённые категории в БД
         $dbCategory->save($categories);
 
+        // создание категории товаров, у которых в выгрузке не присвоена категория
+        $dbCategory->createDefaultCategory();
+
         // Уведомление пользователя о количестве добавленных, удалённых и обновлённых категорий
         $answer = $newCategory->answer();
+
+        print_r($answer);
+    }
+
+    public function run2()
+    {
+        $importXml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'import.xml');
+        // инициализируем модель товаров в БД - DbGood
+        $dbGood = new Good\DbGood();
+
+        // инициализируем модель категорий в XML - XmlCategory
+        $xmlGood = new Good\XmlGood($importXml);
+
+        // Инициализируем модель обновления категорий в БД из XML - NewCategory
+        $newGood = new Good\NewGood($dbGood, $xmlGood);
+
+        // Устанавливаем связь БД и XML
+        $goods = $newGood->parse();
+
+        // Сохраняем результаты
+        $dbGood->save($goods);
+
+        // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
+        $answer = $newGood->answer();
+
+        print_r($answer);
     }
 }
