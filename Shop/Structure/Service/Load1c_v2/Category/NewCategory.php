@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2;
+namespace Shop\Structure\Service\Load1c_v2\Category;
 
 use Ideal\Field\Cid\Model;
 use Ideal\Core\Config;
@@ -12,21 +12,28 @@ use Ideal\Core\Config;
  */
 class NewCategory
 {
-    protected $result = array();
+    /** @var array ответ о добавленных и удаленных категориях */
     protected $answer = array();
-    protected $tmp = array();
     /** @var  DbCategory */
     protected $dbCategory;
     /** @var  XmlCategory */
     protected $xmlCategory;
-    protected $lastCid;
 
+    /**
+     * @param DbCategory $dbCategory объект категорий БД
+     * @param XmlCategory $xmlCategory объект категорий XML
+     */
     public function __construct($dbCategory, $xmlCategory)
     {
         $this->dbCategory = $dbCategory;
         $this->xmlCategory = $xmlCategory;
     }
 
+    /**
+     * Преобразование XML выгрузки в массив и сравнение с данными из БД
+     *
+     * @return array двумерный массив с данными о категориях после сведения XML и БД
+     */
     public function parse()
     {
         $config = Config::getInstance();
@@ -39,7 +46,7 @@ class NewCategory
         // Забираем результаты категорий из xml 1m
         $xmlResult = $this->xmlCategory->parse();
 
-        $this->answer['add'] = array_diff_key($xmlResult, $dbResult);
+        $this->answer['add'] = count(array_diff_key($xmlResult, $dbResult));
         // пройти по выгрузке бд и вставить в хмл данные из бд с ис эктив = 0
         foreach ($dbResult as $key => $element) {
             // если в БД not-1c - вставляем элемент к его предку, данные оставляем из выгрузки
@@ -92,7 +99,7 @@ class NewCategory
         $cidNum = '001';
         // получаем обновленную сплющенную выгрузку XML
         $newXmlResult = $this->xmlCategory->parse();
-        // проставляем cid категориям
+        // проставляем cid категориям, обновляем поля
         foreach ($newXmlResult as $k => $element) {
             $i = 1;
             $newXmlResult[$k]['id_1c'] = $element['Ид'];
@@ -136,11 +143,15 @@ class NewCategory
             }
         }
 
-        $this->answer['update'] = array_intersect_key($newXmlResult, $dbResult);
+        $this->answer['update'] = count(array_intersect_key($newXmlResult, $dbResult));
         return $newXmlResult;
-        // сравниваем сплющенный и массив из БД и находим delete update add
     }
 
+    /**
+     * Геттер
+     *
+     * @return array массив об обновленных и добавленных категориях
+     */
     public function answer()
     {
         return $this->answer;
