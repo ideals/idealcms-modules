@@ -108,7 +108,7 @@ class DbCategory extends AbstractDb
             ->exec();
 
         // Считываем категории из нашей БД
-        $sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title FROM `{$this->structureCat}` ORDER BY cid";
+        $sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title FROM `{$this->table}` ORDER BY cid";
 
         $tmp = $db->select($sql);
 

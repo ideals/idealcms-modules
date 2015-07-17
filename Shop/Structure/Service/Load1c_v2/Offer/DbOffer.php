@@ -55,9 +55,11 @@ class DbOffer extends AbstractDb
 
     public function save($elements)
     {
-        parent::save($elements);
-
         $this->updateGoods($elements);
+        foreach ($elements as $k => $value) {
+            unset ($elements[$k]['coefficient'], $elements[$k]['currency']);
+        }
+        parent::save($elements);
     }
 
     // квадрат чилса используя 2 переменных и только + и -

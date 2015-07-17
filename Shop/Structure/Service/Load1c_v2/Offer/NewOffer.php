@@ -69,8 +69,8 @@ class NewOffer
 
         foreach ($dbResult as $id => $dbValue) {
             $diff = array_diff_assoc($xmlResult[$id], $dbValue);
-            // Больше 1 т.к. в xml категория товара представлена его id_1c а в бд выгрузке - ключом ID
-            if (count($diff) > 0) {
+            if (count($diff) > 2) {
+                // currency и coefficient нет в бд выгрузке
                 $result[$id] = $diff;
                 $result[$id]['ID'] = $dbValue['ID'];
             }
