@@ -32,7 +32,8 @@ $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
 // Загружаем список структур из конфигурационных файлов структур
 $config->loadSettings();
 
-
+// сообщения об ошибках добавления insert, например, возвращает false
 $fc = new Load1c_v2\FrontController();
 $fc->run();
 $fc->run2();
+$fc->run3();
