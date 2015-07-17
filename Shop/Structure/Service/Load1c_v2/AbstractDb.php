@@ -1,0 +1,78 @@
+<?php
+namespace Shop\Structure\Service\Load1c_v2;
+
+use Ideal\Core\Config;
+use Ideal\Core\Db;
+
+/**
+ * Created by PhpStorm.
+ * User: Help4
+ * Date: 17.07.2015
+ * Time: 13:39
+ */
+
+class AbstractDb
+{
+    /** @var string основная таблица */
+    protected $table;
+
+    /** @var string префикс таблиц */
+    protected $prefix;
+
+    /** @var array массив конфигурация для таблицы */
+    protected $configs;
+
+    /**
+     *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
+     */
+    public function __construct()
+    {
+        $config = Config::getInstance();
+        $this->prefix = $config->db['prefix'];
+        $path = explode('\\', get_class($this));
+        $path = array_slice($path, -2, 1);
+        $this->configs = include $path[0] . '/config.php';
+    }
+
+    /**
+     * Обновление данных в БД
+     *
+     * @param array $element массив данных об обновляемой строке БД
+     */
+    protected function update($element)
+    {
+        $db = Db::getInstance();
+
+        $element['date_mod'] = time();
+
+        $db->update($this->table)->set($element)->where('ID=:ID', $element)->exec();
+    }
+
+    /**
+     * Добавление нового товара в БД
+     *
+     * @param array $element данные для добавления в БД
+     */
+    protected function add($element)
+    {
+        $db = Db::getInstance();
+
+        $db->insert($this->table, $element);
+    }
+
+    /**
+     * Сохранение полученных из XML изменений
+     *
+     * @param array $elements массив данных для записи в базу данных
+     */
+    public function save($elements)
+    {
+        foreach ($elements as $element) {
+            if (isset($element['ID'])) {
+                $this->update($element);
+            } else {
+                $this->add($element);
+            }
+        }
+    }
+}
