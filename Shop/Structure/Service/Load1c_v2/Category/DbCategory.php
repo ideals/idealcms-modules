@@ -1,10 +1,11 @@
 <?php
 namespace Shop\Structure\Service\Load1c_v2\Category;
 
-use Ideal\Core\Config;
-use Ideal\Core\Db;
+use Shop\Structure\Service\Load1c_v2\AbstractDb;
 use Ideal\Field\Url;
+use Ideal\Core\Config;
 use Ideal\Field\Cid;
+use Ideal\Core\Db;
 
 /**
  * Created by PhpStorm.
@@ -13,14 +14,8 @@ use Ideal\Field\Cid;
  * Time: 16:31
  */
 
-class DbCategory
+class DbCategory extends AbstractDb
 {
-    /** @var string префикс таблиц */
-    protected $prefix;
-
-    /** @var string Структуры категорий */
-    protected $structureCat = 'catalogplus_structure_category';
-
     /** @var string Структура для получения prev_structure */
     protected $structurePart = 'ideal_structure_part';
 
@@ -32,11 +27,10 @@ class DbCategory
      */
     public function __construct()
     {
-        $config = Config::getInstance();
+        parent::__construct();
         $db = Db::getInstance();
-        $prefix = $config->db['prefix'];
-        $this->structureCat = $prefix . $this->structureCat;
-        $this->structurePart = $prefix . $this->structurePart;
+        $this->table = $this->prefix . 'catalogplus_structure_category';
+        $this->structurePart = $this->prefix . $this->structurePart;
         $res = $db->select(
             'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Category" LIMIT 1'
         );
@@ -51,7 +45,7 @@ class DbCategory
     {
         $db = Db::getInstance();
 
-        $res = $db->select('SELECT ID FROM ' . $this->structureCat . ' WHERE name="Load1c_default"');
+        $res = $db->select('SELECT ID FROM ' . $this->table . ' WHERE name="Load1c_default"');
         if (count($res) == 0) {
             $config = Config::getInstance();
             $part = $config->getStructureByName('Ideal_Part');
@@ -71,7 +65,7 @@ class DbCategory
                 'date_mod' => time(),
                 'is_active' => '0'
             );
-            $db->insert($this->structureCat, $values);
+            $db->insert($this->table, $values);
         }
     }
 
@@ -85,7 +79,7 @@ class DbCategory
         $db = Db::getInstance();
 
         $categories = array();
-        $res = $db->select('SELECT ID, id_1c FROM ' . $this->structureCat);
+        $res = $db->select('SELECT ID, id_1c FROM ' . $this->table);
         foreach ($res as $category) {
             $categories[$category['id_1c']] = $category['ID'];
         }
@@ -109,7 +103,7 @@ class DbCategory
             'count_sale' => 0,
             'is_not_menu' => 0,
         );
-        $db->update($this->structureCat)
+        $db->update($this->table)
             ->set($values)
             ->exec();
 
@@ -132,46 +126,12 @@ class DbCategory
     }
 
     /**
-     * Сохранение полученных из XML изменений
-     *
-     * @param array $elements массив категорий для записи в базу данных
-     */
-    public function save($elements)
-    {
-        foreach ($elements as $element) {
-            // Если присутствует ID - категория уже была в БД и её надо только обновить
-            if (isset($element['ID'])) {
-                $this->update($element);
-            } else {
-                $this->add($element);
-            }
-        }
-    }
-
-    /**
-     * Обновление категории в БД
-     *
-     * @param array $element массив данных об обновляемой категории
-     */
-    protected function update($element)
-    {
-        $db = Db::getInstance();
-
-        $id = array('id' => $element['ID']);
-        $element['date_mod'] = time();
-        unset($element['ID']);
-        $db->update($this->structureCat)->set($element)->where('ID=:id', $id)->exec();
-    }
-
-    /**
      * Добавление категории в БД
      *
      * @param array $element данные о добавляемой категории
      */
     protected function add($element)
     {
-        $db = Db::getInstance();
-
         $params = array(
             'url' => Url\Model::translitUrl($element['name']),
             'date_create' => time(),
@@ -183,7 +143,7 @@ class DbCategory
             $params[$key] = $item;
         }
 
-        $db->insert($this->structureCat, $params);
+        parent::add($element);
     }
 
     /**
@@ -195,7 +155,7 @@ class DbCategory
         $db = Db::getInstance();
 
         $params = array(
-            array('table' => $this->structureCat),
+            array('table' => $this->table),
         );
         $sql = 'SHOW COLUMNS FROM &table';
         $res = $db->select($sql, null, $params[0]);
@@ -207,7 +167,7 @@ class DbCategory
         $res = array_values($res);
         $idSql = "ADD COLUMN `id_1c` varchar(75) DEFAULT 'not-1c' AFTER ID";
         $saleSql = "ADD COLUMN `count_sale` int(11) DEFAULT 0 AFTER `description`";
-        $sql = "ALTER TABLE {$this->structureCat} ";
+        $sql = "ALTER TABLE {$this->table} ";
         if (empty($res)) {
             $sql .=  " {$idSql}, {$saleSql}";
             $db->query($sql);

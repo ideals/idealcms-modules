@@ -16,17 +16,6 @@ class XmlGood extends AbstractXml
     /** @var string путь к категориям в XML */
     public $part = 'Каталог/Товары';
 
-    /** @var array подготовленные данные из выгрузки. Ключ - id_1c, значение - данные из xml */
-    protected $data;
-
-    /** @var array переводчик */
-    protected $translate = array(
-        'Ид' => 'id_1c',
-        'Артикул' => 'articul',
-        'Наименование' => 'name',
-        'Описание' => 'description'
-    );
-
     /**
      * Парсинг xml выгрузки import.xml
      *
@@ -34,34 +23,19 @@ class XmlGood extends AbstractXml
      */
     public function parse()
     {
-        foreach ($this->xml[0] as $item) {
-            $id = (string)  $item->{'Ид'};
-            $this->data[$id] = array();
+        $this->xml = $this->xml[0];
+        parent::parse();
 
-            // todo xpath необходимых значений в ноде
-            foreach ($item->ЗначенияРеквизитов->ЗначениеРеквизита as $param) {
-                switch ($param->Наименование) {
-                    case 'СсылкаНаСайте':
-                        $this->data[$id]['url'] = (string) $param->Значение;
-                        break;
-                    case 'НельзяЗаказать':
-                        $this->data[$id]['is_active'] = (string) $param->Значение == 'false' ? '1' : '0';
-                        break;
-                }
+        foreach ($this->data as $k => $val) {
+            if ($val['category_id'] == '') {
+                $this->data[$k]['category_id'] = 'Load1c_default';
             }
 
-            $catId = (string) $item->{'Группы'}->{'Ид'};
-            $this->data[$id]['category_id'] = $catId != '' ? $catId : 'Load1c_default';
-            foreach ($item as $key => $param) {
-                $child = $param->children();
-                if ($child->count() === 0 && array_key_exists($key, $this->translate)) {
-                    $this->data[$id][$this->translate[$key]] = (string) $param;
-                }
+            if (!isset($val['url'])) {
+                $this->data[$k]['url'] = Url\Model::translitUrl($val['name']);
             }
 
-            if (!isset($this->data[$id]['url'])) {
-                $this->data[$id]['url'] = Url\Model::translitUrl($this->data[$id]['name']);
-            }
+            $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : '0';
         }
 
         return $this->data;

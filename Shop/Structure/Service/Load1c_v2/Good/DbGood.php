@@ -1,10 +1,10 @@
 <?php
 namespace Shop\Structure\Service\Load1c_v2\Good;
 
-use Ideal\Core\Config;
-use Ideal\Core\Db;
+use Shop\Structure\Service\Load1c_v2\AbstractDb;
 use Ideal\Field\Url;
 use Shop\Structure\Service\Load1c_v2\Category;
+use Ideal\Core\Db;
 
 /**
  * Created by PhpStorm.
@@ -13,14 +13,8 @@ use Shop\Structure\Service\Load1c_v2\Category;
  * Time: 16:31
  */
 
-class DbGood
+class DbGood extends AbstractDb
 {
-    /** @var string префикс таблиц */
-    protected $prefix;
-
-    /** @var string Структуры категорий */
-    protected $structureGood = 'catalogplus_structure_good';
-
     /** @var string Структура для получения prev_structure */
     protected $structurePart = 'ideal_structure_part';
 
@@ -38,12 +32,11 @@ class DbGood
      */
     public function __construct()
     {
-        $config = Config::getInstance();
+        parent::__construct();
         $db = Db::getInstance();
-        $prefix = $config->db['prefix'];
-        $this->structureGood = $prefix . $this->structureGood;
-        $this->structurePart = $prefix . $this->structurePart;
-        $this->structureCat = $prefix . $this->structureCat;
+        $this->table = $this->prefix . 'catalogplus_structure_good';
+        $this->structurePart = $this->prefix . $this->structurePart;
+        $this->structureCat = $this->prefix . $this->structureCat;
         $res = $db->select(
             'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Good" LIMIT 1'
         );
@@ -62,7 +55,7 @@ class DbGood
         // Считываем товары из нашей БД
         $sql = "SELECT sg.ID, sg.prev_structure, sg.name, sg.id_1c, sg.is_active,
             sg.url, sg.articul, sg.description, sc.id_1c as category_id
-            FROM {$this->structureGood} as sg LEFT JOIN {$this->structureCat} as sc ON sg.category_id = sc.ID
+            FROM {$this->table} as sg LEFT JOIN {$this->structureCat} as sc ON sg.category_id = sc.ID
             WHERE sg.prev_structure='{$this->prevGood}'";
 
         $tmp = $db->select($sql);
@@ -87,45 +80,39 @@ class DbGood
     public function save($goods)
     {
         $categoryModel = new Category\DbCategory();
-
         $this->categories = $categoryModel->getCategories();
-        foreach ($goods as $element) {
-            // Если присутствует ID - товар уже был в БД и его надо только обновить
-            if (isset($element['ID'])) {
-                $this->update($element);
-            } else {
-                $this->add($element);
-            }
+
+        parent::save($goods);
+    }
+
+    /**
+     * Получение инфомрации о товарах
+     *
+     * @return array key - id_1c
+     */
+    public function getGoods()
+    {
+        $db = Db::getInstance();
+
+        $sql = "SELECT * FROM {$this->table}";
+        $res = $db->select($sql);
+        $result = array();
+
+        foreach ($res as $item) {
+            $result[$item['id_1c']] = $item;
         }
+
+        return $result;
     }
 
-    /**
-     * Обновление данных о уже существующем товаре
-     *
-     * @param array $element данные для обновление, помимо ID товара
-     */
-    private function update($element)
+    protected function add($element)
     {
-        $db = Db::getInstance();
-
-        $db->update($this->structureGood)->set($element)->where('ID = :ID', $element)->exec();
-    }
-
-    /**
-     * Добавление нового товара в БД
-     *
-     * @param array $element данные для добавления в БД
-     */
-    private function add($element)
-    {
-        $db = Db::getInstance();
-
         $element['date_create'] = time();
         $element['date_mod'] = time();
         $element['prev_structure'] = $this->prevGood;
         $element['category_id'] = $this->categories[$element['category_id']];
         unset($element['category']);
 
-        $db->insert($this->structureGood, $element);
+        parent::add($element);
     }
 }

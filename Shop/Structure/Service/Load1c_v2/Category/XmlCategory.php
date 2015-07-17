@@ -14,8 +14,6 @@ class XmlCategory extends AbstractXml
 {
     /** @var string путь к категориям в XML */
     public $part = 'Классификатор/Группы';
-    /** @var  \SimpleXMLElement */
-    protected $data;
 
     /**
      * Преобразование XML выгрузки к массиву

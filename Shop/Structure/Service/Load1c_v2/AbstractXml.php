@@ -12,6 +12,8 @@ class AbstractXml
 {
     protected $xml;
     protected $ns;
+    protected $configs;
+    protected $data;
 
     public function __construct(Xml $xml)
     {
@@ -25,5 +27,37 @@ class AbstractXml
             $this->xml->registerXPathNamespace('default', $defaultNamespaceUrl);
             $this->ns = 'default:';
         }
+        $path = explode('\\', get_class($this));
+        $path = array_slice($path, -2, 1);
+        $this->configs = include $path[0] . '/config.php';
+    }
+
+    public function parse()
+    {
+        foreach ($this->xml as $item) {
+            $id = (string)  $item->{$this->configs['key']};
+            $this->data[$id] = array();
+
+            $namespaces = $item->getDocNamespaces();
+
+            if (isset($namespaces[''])) {
+                $defaultNamespaceUrl = $namespaces[''];
+                $item->registerXPathNamespace('default', $defaultNamespaceUrl);
+            }
+
+            foreach ($this->configs['fields'] as $key => $value) {
+                if (is_array($value)) {
+                    $path = implode('/' . $this->ns, explode('/', $value['path']));
+                    $path = str_replace('`', $this->ns, $path);
+                    $value = $key;
+                } else {
+                    $path = $key;
+                }
+                $needle = $item->xpath($this->ns . $path);
+                $this->data[$id][$value] = (string) $needle[0];
+            }
+        }
+
+        return $this->data;
     }
 }
