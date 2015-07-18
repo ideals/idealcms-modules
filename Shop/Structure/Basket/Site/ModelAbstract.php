@@ -175,4 +175,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         
         return $tabs;
     }
+
+    public function setEmptyBasket()
+    {
+        $pageData = $this->getPageData();
+        $pageData['template'] = 'Shop/Structure/Basket/Site/empty.twig';
+        $this->setPageData($pageData);
+    }
 }

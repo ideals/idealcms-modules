@@ -12,9 +12,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
         if (empty($basket)) {
             // Если в корзине нет товаров — выводим шаблон с пустой корзиной
-            $pageData = $this->model->getPageData();
-            $pageData['template'] = 'Shop/Structure/Basket/Site/empty.twig';
-            $this->model->setPageData($pageData);
+            $this->model->setEmptyBasket();
             parent::indexAction();
             return;
         } else {
@@ -27,7 +25,18 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function detailAction()
     {
+        $basket = $this->model->getGoods();
+
+        if (empty($basket)) {
+            // Если в корзине нет товаров — выводим шаблон с пустой корзиной
+            $this->model->setEmptyBasket();
+            parent::indexAction();
+            return;
+        }
+
         parent::indexAction();
+        $this->view->goods = $basket;
+
         $this->view->tabs = $this->model->getTabs();
 
         /*if (isset($_GET['tab'])) {
