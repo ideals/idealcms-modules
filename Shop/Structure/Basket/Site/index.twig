@@ -52,10 +52,10 @@
 
                                         <td class="product-name">
                                             <a {{ good.link|raw }}>{{ good.name }}</a>
-                                            {% if good.offer %}
+                                            {% if good.offer_ID is defined %}
                                                 <dl class="variation">
-                                                    <dt class="variation-">{{ good.offer.name }}:</dt>
-                                                    <dd class="variation-"><p>{{ good.offer.value }}</p>
+                                                    <dt class="variation-">{{ good.offer_name }}:</dt>
+                                                    <dd class="variation-"><p>{{ good.offer_value }}</p>
                                                     </dd>
                                                 </dl>
                                             {% endif %}
