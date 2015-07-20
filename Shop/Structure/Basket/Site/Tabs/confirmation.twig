@@ -62,16 +62,44 @@
                 </tr>
             </table>
 
+            {% block formInTab %}
             <h3>Дополнительная информация</h3>
-
-            <p class="form-row notes" id="order_comments_field">
+                <div class="formStart"></div>
+                <div class="formPart">
+                    <input type="hidden" name="mode" value="ajax" />
+                    <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs" />
+                    <input type="hidden" name="action" value="confirmation" />
+                </div>
+                <div class="formPart">
                 <label for="order_comments" class="">
                     Заметки к заказу
                 </label>
                 <textarea name="order_comments" class="input-text" id="order_comments"
                     placeholder="Примечания к вашему заказу, например, особые пожелания отделу доставки."
                     rows="2" cols="50"></textarea>
-            </p>
+                </div>
+                <script type="text/javascript">
+                    var order_comments = getCookie('order_comments');
+                    if (order_comments != null) {
+                        $('#order_comments').val(order_comments);
+                    }
+                    jQuery.ajax({
+                        type: 'GET',
+                        url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site\\Tabs&action=confirmation&target=start',
+                        dataType: 'text',
+                        async: false,
+                        success: function (data) {
+                            $(".formStart").replaceWith(data);
+                            $("#confirmationForm").append($(".formPart"));
+                            $("#confirmationForm .formPart").removeAttr('class');
+                            $('.formPart').remove();
+                        }
+                    });
+                </script>
+                <script type="text/javascript"
+                    src="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=confirmation&target=js"></script>
+                <link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=confirmation&target=css"/>
+            {% endblock %}
             </div>
         <div class="clear"></div>
     </div>
