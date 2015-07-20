@@ -69,6 +69,9 @@ class NewGood
 
         foreach ($dbResult as $id => $dbValue) {
             $diff = array_diff_assoc($xmlResult[$id], $dbValue);
+            if (is_null($diff)) {
+                continue;
+            }
             // Больше 1 т.к. в xml категория товара представлена его id_1c а в бд выгрузке - ключом ID
             if (count($diff) > 0) {
                 $result[$id] = $diff;

@@ -78,7 +78,7 @@ class NewCategory
                 } else {
                     $parentCid = $cid->getCidByLevel($element['cid'], $element['lvl'] - 1, false);
                     $parentCid = $cid->reconstruct($parentCid);
-                    $parent = $dbResult[$parentCid]['id_1c'];
+                    $parent = $this->dbCategory->getParentByCid($parentCid);
                     $data = array(
                         'ID' => $element['ID'],
                         'parent' => $parent,
@@ -95,6 +95,8 @@ class NewCategory
             }
         }
 
+        unset($xmlResult, $data, $element);
+
         $keys = array();
         $cidNum = '001';
         // получаем обновленную сплющенную выгрузку XML
@@ -102,9 +104,6 @@ class NewCategory
         // проставляем cid категориям, обновляем поля
         foreach ($newXmlResult as $k => $element) {
             $i = 1;
-            $newXmlResult[$k]['id_1c'] = $element['Ид'];
-            $newXmlResult[$k]['name'] = $element['Наименование'];
-            unset($newXmlResult[$k]['Ид'], $newXmlResult[$k]['Наименование'], $newXmlResult[$k]['parent']);
 
             if (isset($element['pos'])) {
                 $i = intval($element['pos']);
@@ -139,7 +138,11 @@ class NewCategory
             }
 
             if (!is_null($dbResult[$k]) && count(array_diff($newXmlResult[$k], $dbResult[$k])) === 0) {
-                unset($xmlResult[$k]);
+                unset($newXmlResult[$k]);
+            } else {
+                if (isset($dbResult[$k]['ID'])) {
+                    $newXmlResult[$k]['ID'] = $dbResult[$k]['ID'];
+                }
             }
         }
 

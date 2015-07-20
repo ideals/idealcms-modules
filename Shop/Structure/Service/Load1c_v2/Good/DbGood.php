@@ -81,7 +81,11 @@ class DbGood extends AbstractDb
     {
         $categoryModel = new Category\DbCategory();
         $this->categories = $categoryModel->getCategories();
-
+        foreach ($goods as $k => $good) {
+            if (isset($good['category_id']) && !is_int($good['category_id'])) {
+                $goods[$k]['category_id'] = $this->categories[$good['category_id']];
+            }
+        }
         parent::save($goods);
     }
 

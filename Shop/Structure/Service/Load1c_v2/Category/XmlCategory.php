@@ -49,14 +49,20 @@ class XmlCategory extends AbstractXml
         $path = '//' . $this->ns . 'Группа';
         // Если есть родитель - выбираем его в XML и добавляем новые поля уже к нему
         if ($element['parent'] != null) {
-            $path .= '[' . $this->ns . 'Ид="' . $element['parent'] . '"]/' . $this->ns . 'Группы';
+            $path .= '[' . $this->ns . 'Ид="' . $element['parent'] . '"]';
         // Если нет родителя - добавляем на 1ый уровень
         } else {
             $path = '//' . $this->ns . 'Классификатор/' . $this->ns . 'Группы';
         }
+
         $parent = $this->xml->xpath($path);
 
+        if (!isset($parent[0]->{'Группа'})) {
+            $parent[0] = $parent[0]->addChild('Группы');
+        }
+
         $newElement = $parent[0]->addChild('Группа');
+
         unset($element['parent']);
 
         foreach ($element as $key => $value) {
@@ -69,11 +75,10 @@ class XmlCategory extends AbstractXml
      *
      * @param \SimpleXMLElement $groupsXML - узел для преобразования
      * @param int $i при повторном парсинге есть элементы с not-1c - им ставим порядковый ключ в массиве
-     * @param string $parent родитель элемента - ключ id_1c
      * @param int $lvl уровень вложенности
      * @return array одномерный массив
      */
-    protected function recursiveParse($groupsXML, $i = 0, $parent = '', $lvl = 1)
+    protected function recursiveParse($groupsXML, $i = 0, $lvl = 1)
     {
         $groups = array();
 
@@ -83,17 +88,21 @@ class XmlCategory extends AbstractXml
             } else {
                 $id = (string)$child->{'Ид'};
             }
-            if ($parent != '') {
-                $this->data[$id]['parent'] = $parent;
-            }
+
             $this->data[$id]['lvl'] = $lvl;
-            foreach ($child as $key => $field) {
-                if ($key != 'Группы') {
-                    $this->data[$id][(string) $key] = (string) $field;
-                }
+
+
+            $namespaces = $child->getDocNamespaces();
+
+            if (isset($namespaces[''])) {
+                $defaultNamespaceUrl = $namespaces[''];
+                $child->registerXPathNamespace('default', $defaultNamespaceUrl);
             }
+
+            parent::updateFromConfig($child, $id);
+
             if ($child->{'Группы'}) {
-                $this->recursiveParse($child->{'Группы'}, $i, $id, ++$lvl);
+                $this->recursiveParse($child->{'Группы'}, $i, ++$lvl);
                 $lvl--;
             }
         }

@@ -50,7 +50,7 @@ class DbCategory extends AbstractDb
             $config = Config::getInstance();
             $part = $config->getStructureByName('Ideal_Part');
 
-            $cid = $db->select('SELECT max(cid) as cid FROM ' . $this->structureCat);
+            $cid = $db->select('SELECT max(cid) as cid FROM ' . $this->table);
             $cidModel = new Cid\Model($part['params']['levels'], $part['params']['digits']);
             $cid = $cidModel->getBlock($cid[0]['cid'], 1, '+1');
             $values = array(
@@ -125,6 +125,16 @@ class DbCategory extends AbstractDb
         return $result;
     }
 
+    public function getParentByCid($parentCid)
+    {
+        $db = Db::getInstance();
+
+        $sql = "SELECT id_1c FROM {$this->table} WHERE cid = '{$parentCid}' LIMIT 1";
+        $id = $db->select($sql);
+
+        return $id[0]['id_1c'];
+    }
+
     /**
      * Добавление категории в БД
      *
@@ -143,7 +153,7 @@ class DbCategory extends AbstractDb
             $params[$key] = $item;
         }
 
-        parent::add($element);
+        parent::add($params);
     }
 
     /**

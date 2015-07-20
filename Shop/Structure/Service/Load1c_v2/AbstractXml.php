@@ -45,19 +45,24 @@ class AbstractXml
                 $item->registerXPathNamespace('default', $defaultNamespaceUrl);
             }
 
-            foreach ($this->configs['fields'] as $key => $value) {
-                if (is_array($value)) {
-                    $path = implode('/' . $this->ns, explode('/', $value['path']));
-                    $path = str_replace('`', $this->ns, $path);
-                    $value = $key;
-                } else {
-                    $path = $key;
-                }
-                $needle = $item->xpath($this->ns . $path);
-                $this->data[$id][$value] = (string) $needle[0];
-            }
+            $this->updateFromConfig($item, $id);
         }
 
         return $this->data;
+    }
+
+    protected function updateFromConfig($item, $id)
+    {
+        foreach ($this->configs['fields'] as $key => $value) {
+            if (is_array($value)) {
+                $path = implode('/' . $this->ns, explode('/', $value['path']));
+                $path = str_replace('`', $this->ns, $path);
+                $value = $key;
+            } else {
+                $path = $key;
+            }
+            $needle = $item->xpath($this->ns . $path);
+            $this->data[$id][$value] = (string) $needle[0];
+        }
     }
 }
