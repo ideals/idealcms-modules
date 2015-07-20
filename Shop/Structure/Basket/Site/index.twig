@@ -212,13 +212,13 @@
             var $this = jQuery(e);
             var id = $this.attr('data-id');
             var basket = $.parseJSON(getCookie('basket'));
-            var price = basket['goods'][id]['sale_price'] * $this.val();
-            $('.amount.' + id).text((parseInt(price)).format(2, 3, ',', '.') + ' руб.');
+            var price = parseInt(basket['goods'][id]['sale_price'] * $this.val()) / 100;
+            $('.amount.' + id).text(price.format(2, 3, ',', '.') + ' руб.');
             var total = 0;
             $('.qty').each(function (index, elem) {
-                total += (basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val());
+                total += parseInt(basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val()) / 100;
             });
-            $('.cart_totals .amount').text((parseInt(total)).format(2, 3, ',', '.') + ' руб.');
+            $('.cart_totals .amount').text(total.format(2, 3, ',', '.') + ' руб.');
         }
         function deleteGood(e) {
             fastDelGood(e);
