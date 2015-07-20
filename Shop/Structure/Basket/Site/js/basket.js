@@ -37,10 +37,14 @@ jQuery.fn.hasAttr = function(name) {
 };
 
 function loadBasket(basket) {
-    var $count = jQuery('.cart-items-number');
-    var $price = jQuery('.cart-subtotal > .amount');
-    $count.text(basket.count);
-    $price.text((parseInt(basket.total) / 100).format(2, 3, ',', '.'));
+    var $cart = jQuery('.cart-min-desc');
+    if (basket.count > 0) {
+        var total = parseInt(basket.total) / 100;
+        var str = basket.count + ' продукт(ов):<br/>' + total.format(2, 3, ',', '.') + ' руб.';
+        $cart.html(str);
+    } else {
+        $cart.text('(Пусто)');
+    }
 }
 
 function fastAddGood(e) {
