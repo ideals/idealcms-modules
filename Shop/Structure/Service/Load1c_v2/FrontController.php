@@ -11,9 +11,9 @@ namespace Shop\Structure\Service\Load1c_v2;
 class FrontController
 {
     // категории
-    public function run()
+    public function category()
     {
-        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'import.xml');
+        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'import___6738d00c-9bcb-40c7-900d-a1a3dac5d350.xml');
 
         // инициализируем модель категорий в БД - DbCategory
         $dbCategory = new Category\DbCategory();
@@ -42,15 +42,15 @@ class FrontController
     }
 
     // товары
-    public function run2()
+    public function good()
     {
-        $importXml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'import.xml');
+        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c/1', 'import___93472611-a08d-4698-8772-730908511f5e.xml');
 
         // инициализируем модель товаров в БД - DbGood
         $dbGood = new Good\DbGood();
 
         // инициализируем модель категорий в XML - XmlCategory
-        $xmlGood = new Good\XmlGood($importXml);
+        $xmlGood = new Good\XmlGood($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
         $newGood = new Good\NewGood($dbGood, $xmlGood);
@@ -69,27 +69,84 @@ class FrontController
         echo '<br/>';
     }
 
-    // предложения
-    public function run3()
+    // справочники
+    public function directory()
     {
-        $offersXml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'offers.xml');
+        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'offers___ac2db4eb-e2be-4cf0-9196-0f2eacac296c.xml');
+
+        // инициализируем модель товаров в БД - DbGood
+        $dbDirectory = new Directory\DbDirectory();
+
+        // инициализируем модель категорий в XML - XmlCategory
+        $xmlDirectory = new Directory\XmlDirectory($xml);
+
+        // Инициализируем модель обновления категорий в БД из XML - NewCategory
+        $newDirectory = new Directory\NewDirectory($dbDirectory, $xmlDirectory);
+
+        // Устанавливаем связь БД и XML
+        $directories = $newDirectory->parse();
+
+        // Сохраняем результаты
+        $dbDirectory->save($directories);
+
+        // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
+        $answer = $newDirectory->answer();
+
+        echo 'directory: ';
+        print_r($answer);
+        echo '<br/>';
+    }
+
+    // предложения
+    public function offer()
+    {
+        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c/1', 'offers___b245f08d-d893-42a3-b599-5f562a1698f7.xml');
 
         // инициализируем модель товаров в БД - DbGood
         $dbOffers = new Offer\DbOffer();
 
         // инициализируем модель категорий в XML - XmlCategory
-        $xmlOffers = new Offer\XmlOffer($offersXml);
+        $xmlOffers = new Offer\XmlOffer($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
         $newOffers = new Offer\NewOffer($dbOffers, $xmlOffers);
 
         // Устанавливаем связь БД и XML
-        $offers = $newOffers->parse();
+        $offers1 = $newOffers->parse();
 
+
+        unset ($xml, $xmlOffers, $newOffers);
+
+        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c/1', 'prices___17286cc7-8713-468e-b7a7-c545cd363b59.xml');
+
+        // инициализируем модель категорий в XML - XmlCategory
+        $xmlPrices = new Offer\XmlOffer($xml);
+
+        // Инициализируем модель обновления категорий в БД из XML - NewCategory
+        $newOffers = new Offer\NewOffer($dbOffers, $xmlPrices);
+
+        // Устанавливаем связь БД и XML
+        $offers2 = $newOffers->parsePrice();
+
+
+        unset ($xml, $xmlPrices, $newOffers);
+
+        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c/1', 'rests___58b2c59a-4eef-4ccc-9b59-bf9c82d1d24f.xml');
+
+        // инициализируем модель категорий в XML - XmlCategory
+        $xmlRests = new Offer\XmlOffer($xml);
+
+        // Инициализируем модель обновления категорий в БД из XML - NewCategory
+        $newOffers = new Offer\NewOffer($dbOffers, $xmlRests);
+
+        // Устанавливаем связь БД и XML
+        $offers3 = $newOffers->parseRests();
+
+
+        $offers = array_replace_recursive($offers1, $offers2, $offers3);
         // Сохраняем результаты
         $dbOffers->save($offers);
 
-        // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
         $answer = $newOffers->answer();
 
         echo 'offer: ';

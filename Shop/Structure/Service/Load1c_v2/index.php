@@ -34,6 +34,8 @@ $config->loadSettings();
 
 // сообщения об ошибках добавления insert, например, возвращает false
 $fc = new Load1c_v2\FrontController();
-$fc->run();
-$fc->run2();
-$fc->run3();
+
+//$fc->category();
+//$fc->good();
+//$fc->directory();
+$fc->offer();

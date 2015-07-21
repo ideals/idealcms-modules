@@ -10,15 +10,26 @@ return array(
     'key'    => 'Ид',
     'fields' => array(
         'Наименование'  => 'name',
-        'price' => array(
-            'path' => 'Цены/Цена[not(preceding-sibling::`Цена/ЦенаЗаЕдиницу <= `ЦенаЗаЕдиницу)'.
-                ' and not(following-sibling::`Цена/ЦенаЗаЕдиницу < `ЦенаЗаЕдиницу)]/ЦенаЗаЕдиницу'
+        'dir_params'    => array(
+            'path'  => 'ЗначенияСвойств/ЗначенияСвойства',
+            'field' => array(
+                'dir_id_1c' => 'Ид',
+                'dir_value_id' => 'Значение',
+            ),
         ),
-        'currency' => array(
-            'path' => 'Цены/Цена/Единица[1]',
+    ),
+    'priceFields'   => array(
+        'price'     => array(
+            'path'  =>   'Цены/Цена[not(preceding-sibling::`Цена/ЦенаЗаЕдиницу <= `ЦенаЗаЕдиницу)'.
+                ' and not(following-sibling::`Цена/ЦенаЗаЕдиницу < `ЦенаЗаЕдиницу)]/ЦенаЗаЕдиницу',
         ),
-        'coefficient' => array(
-            'path' => 'Цены/Цена/Коэффициент[1]',
+        'currency'  => array(
+            'path'  => 'Цены/Цена/Валюта[1]',
+        ),
+    ),
+    'priceRests'    => array(
+        'rests' => array(
+            'path'  => 'Остатки/Остаток/Количество',
         ),
     ),
 );
