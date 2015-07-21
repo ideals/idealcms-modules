@@ -38,12 +38,7 @@ class AbstractXml
             $id = (string)  $item->{$this->configs['key']};
             $this->data[$id] = array();
 
-            $namespaces = $item->getDocNamespaces();
-
-            if (isset($namespaces[''])) {
-                $defaultNamespaceUrl = $namespaces[''];
-                $item->registerXPathNamespace('default', $defaultNamespaceUrl);
-            }
+            $this->registerNamespace($item);
 
             $this->updateFromConfig($item, $id);
         }
@@ -62,7 +57,33 @@ class AbstractXml
                 $path = $key;
             }
             $needle = $item->xpath($this->ns . $path);
-            $this->data[$id][$value] = (string) $needle[0];
+
+            if (is_array($this->configs['fields'][$key]['field'])) {
+                foreach ($needle as $node) {
+                    $this->registerNamespace($node);
+
+                    $tmp = array();
+                    foreach ($this->configs['fields'][$key]['field'] as $name => $conf) {
+                        $res = $node->xpath($this->ns . $conf);
+                        $tmp[$name] = (string) $res[0];
+                    }
+
+                    $this->data[$id][$value][] = $tmp;
+                }
+            } else {
+                $this->data[$id][$value] = (string) $needle[0];
+            }
+        }
+    }
+
+    protected function registerNamespace($item)
+    {
+        $namespaces = $item->getDocNamespaces();
+
+        if (isset($namespaces[''])) {
+            $defaultNamespaceUrl = $namespaces[''];
+            $item->registerXPathNamespace('default', $defaultNamespaceUrl);
+            $this->ns = 'default:';
         }
     }
 }

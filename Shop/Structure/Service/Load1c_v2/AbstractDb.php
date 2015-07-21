@@ -57,6 +57,9 @@ class AbstractDb
     {
         $db = Db::getInstance();
 
+        $element['date_create'] = time();
+        $element['date_mod'] = time();
+
         $db->insert($this->table, $element);
     }
 
