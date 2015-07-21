@@ -13,10 +13,10 @@ class NewOffer
     protected $answer = array();
 
     /** @var DbOffer */
-    protected $dbGood;
+    protected $dbOffer;
 
     /** @var XmlOffer */
-    protected $xmlGood;
+    protected $xmlOffer;
 
     /**
      * @param DbOffer $dbOffer
@@ -69,7 +69,7 @@ class NewOffer
 
         foreach ($dbResult as $id => $dbValue) {
             $diff = array_diff_assoc($xmlResult[$id], $dbValue);
-            if (count($diff) > 2) {
+            if (count($diff) > 0) {
                 // currency и coefficient нет в бд выгрузке
                 $result[$id] = $diff;
                 $result[$id]['ID'] = $dbValue['ID'];
@@ -78,5 +78,25 @@ class NewOffer
 
         $this->answer['update'] = count($result) - $this->answer['add'];
         return $result;
+    }
+
+    public function parsePrice()
+    {
+        // Забираем реззультаты категорий из БД 1m
+        $dbResult = $this->dbOffer->parse();
+
+        $xmlResult = $this->xmlOffer->parsePrice();
+
+        return $this->diff($dbResult, $xmlResult);
+    }
+
+    public function parseRests()
+    {
+        // Забираем реззультаты категорий из БД 1m
+        $dbResult = $this->dbOffer->parse();
+
+        $xmlResult = $this->xmlOffer->parseRests();
+
+        return $this->diff($dbResult, $xmlResult);
     }
 }

@@ -16,9 +16,6 @@ use Shop\Structure\Service\Load1c_v2\Good\DbGood;
 
 class DbOffer extends AbstractDb
 {
-    /** @var string Структуры категорий */
-    protected $structureGood = 'catalogplus_structure_good';
-
     /**
      *  Установка полей класса - полного имени таблиц с префикс
      */
@@ -26,7 +23,7 @@ class DbOffer extends AbstractDb
     {
         parent::__construct();
         $this->structureGood = $this->prefix . $this->structureGood;
-        $this->table = $this->prefix . 'offer_good';
+        $this->table = $this->prefix . 'offers_good';
     }
 
     /**
@@ -53,39 +50,5 @@ class DbOffer extends AbstractDb
         return $data;
     }
 
-    public function save($elements)
-    {
-        $this->updateGoods($elements);
-        foreach ($elements as $k => $value) {
-            unset ($elements[$k]['coefficient'], $elements[$k]['currency']);
-        }
-        parent::save($elements);
-    }
-
     // квадрат чилса используя 2 переменных и только + и -
-
-    protected function updateGoods($elements)
-    {
-        $dbGoods = new DbGood();
-
-        $updates = array();
-        $goods = $dbGoods->getGoods();
-        foreach ($elements as $key => $value) {
-            $id1c = $value['good_id'];
-            if (is_null($goods[$id1c]['price']) || $value['price'] < $goods[$id1c]['ID']) {
-                $updates[$id1c]['price'] = $value['price'];
-            }
-            if ($value['currency'] != $goods[$id1c]['currency']) {
-                $updates[$id1c]['currency'] = $value['currency'];
-            }
-            if ($value['coefficient'] != $goods[$id1c]['coefficient']) {
-                $updates[$id1c]['coefficient'] = $value['coefficient'];
-            }
-            if (count($updates[$id1c]) > 0) {
-                $updates[$id1c]['ID'] = $goods[$id1c]['ID'];
-            }
-        }
-
-        $dbGoods->save($updates);
-    }
 }
