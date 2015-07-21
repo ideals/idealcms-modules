@@ -19,6 +19,7 @@ class AjaxController extends \Ideal\Core\AjaxController
         $request = new Request();
         $form = new Forms('confirmationForm');
         $form->setAjaxUrl('/');
+        $form->setSuccessMessage(false);
         $form->add('order_comments', 'text');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
