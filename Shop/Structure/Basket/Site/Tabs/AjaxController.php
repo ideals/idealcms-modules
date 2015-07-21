@@ -32,19 +32,11 @@ class AjaxController extends \Ideal\Core\AjaxController
                 // Генерируем js
                 case 'js':
                     $script = <<<JS
-                    var successSendForm = false;
-                    $('.next').parent('a').on('click', function () {
-                        if (successSendForm == false) {
-                            $('#confirmationForm').submit();
-                            return false;
+                    if (typeof window.checkform != 'undefined') {
+                        window.checkform.push('#confirmationForm');
                         } else {
-                            window.location = $(this).attr('href');
+                        window.checkform = ['#confirmationForm'];
                         }
-                    });
-                    $('#confirmationForm').on('form.successSend', function () {
-                        successSendForm = true;
-                        $('.next').parent('a').click();
-                    });
 JS;
                     $form->setJs($script);
                     $request->mode = 'js';

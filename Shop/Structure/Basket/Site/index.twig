@@ -286,6 +286,24 @@
                 }
             });
         }
+
+        function basketFormSubmit(item) {
+            var href = jQuery(item).attr('href');
+            if (window.checkform instanceof Array && window.checkform.length > 0) {
+                jQuery.each(window.checkform, function( index, value ) {
+                    if (href != undefined && href != '') {
+                        jQuery(value).on('form.successSend', function () {
+                            window.location = href;
+                        });
+                    }
+                    jQuery(value).submit();
+                });
+            } else {
+                if (href != undefined && href != '') {
+                    window.location = href;
+                }
+            }
+        }
     </script>
 {% endblock %}
 
@@ -316,12 +334,12 @@
         </a>
     {% else %}
         {% if tabs[activeTab] %}
-            <a {{ tabs[activeTab]['link']|raw }}>
+            <a {{ tabs[activeTab]['link']|raw }} onclick="basketFormSubmit(this); return false;">
                 <input type="button" class="button next" value="{{ tabs[activeTab]['name'] }} &rarr;"/>
             </a>
         {% else %}
             {% if tabs|length > 1 %}
-                <a>
+            <a onclick="basketFormSubmit(this); return false;">
                     <input type="button" class="button next" value="Завершить оформление заказа &rarr;"/>
                 </a>
             {% endif %}
