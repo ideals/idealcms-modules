@@ -1,6 +1,8 @@
 <?php
 namespace Shop\Structure\Service\Load1c_v2\Good;
 
+use Ideal\Field\Url;
+
 /**
  * Created by PhpStorm.
  * User: Help4
@@ -69,9 +71,15 @@ class NewGood
 
         foreach ($dbResult as $id => $dbValue) {
             $diff = array_diff_assoc($xmlResult[$id], $dbValue);
+
             if (is_null($diff)) {
                 continue;
             }
+
+            if ('' == $dbValue['url']) {
+                $diff['url'] = Url\Model::translitUrl($xmlResult['name']);
+            }
+
             // Больше 1 т.к. в xml категория товара представлена его id_1c а в бд выгрузке - ключом ID
             if (count($diff) > 0) {
                 $result[$id] = $diff;
