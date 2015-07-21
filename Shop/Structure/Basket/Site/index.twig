@@ -343,6 +343,29 @@
                     <input type="button" class="button next" value="Завершить оформление заказа &rarr;"/>
                 </a>
             {% endif %}
+            <div class="formStart"></div>
+            <div class="formPart">
+                <input type="hidden" name="mode" value="ajax" />
+                <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs" />
+                <input type="hidden" name="action" value="finish" />
+            </div>
+            <script type="text/javascript">
+                jQuery.ajax({
+                    type: 'GET',
+                    url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site\\Tabs&action=finish&target=start',
+                    dataType: 'text',
+                    async: false,
+                    success: function (data) {
+                        $(".formStart").replaceWith(data + '</form>');
+                        $("#confirmationForm").append($(".formPart"));
+                        $("#confirmationForm .formPart").removeAttr('class');
+                        $('.formPart').remove();
+                    }
+                });
+            </script>
+            <script type="text/javascript"
+                    src="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=finish&target=js"></script>
+            <link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=finish&target=css"/>
         {% endif %}
     {% endif %}
 {% endmacro %}

@@ -116,4 +116,44 @@ JS;
         }
         exit();
     }
+
+    // Обрабатывает запросы для завершающей формы
+    public function finishAction()
+    {
+        $request = new Request();
+        $form = new Forms('finishForm');
+        $form->setAjaxUrl('/');
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                // Если валидация пройдена успешно, то отправляем заказ менеджерам
+            }
+        } else {
+            // Обработка запросов для получения функциональных частей формы
+            switch ($request->target) {
+                // Генерируем js
+                case 'js':
+                    $script = <<<JS
+                    if (typeof window.checkform != 'undefined') {
+                        window.checkform.push('#finishForm');
+                    } else {
+                        window.checkform = ['#finishForm'];
+                    }
+JS;
+                    $form->setJs($script);
+                    $request->mode = 'js';
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    break;
+                // Генерируем стартовую часть формы
+                case 'start':
+                    echo $form->start();
+                    exit();
+                    break;
+            }
+            $form->render();
+        }
+        exit();
+    }
 }
