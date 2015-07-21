@@ -319,6 +319,12 @@
             <a {{ tabs[activeTab]['link']|raw }}>
                 <input type="button" class="button next" value="{{ tabs[activeTab]['name'] }} &rarr;"/>
             </a>
+        {% else %}
+            {% if tabs|length > 1 %}
+                <a>
+                    <input type="button" class="button next" value="Завершить оформление заказа &rarr;"/>
+                </a>
+            {% endif %}
         {% endif %}
     {% endif %}
 {% endmacro %}
