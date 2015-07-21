@@ -1,16 +1,27 @@
 {# Доставка(адрес) и способ досставки #}
+{% extends "Shop/Structure/Basket/Site/index.twig" %}
+
+{% block tabContent %}
 
 <div class="{{ tab2 }} multistep_step span12" id="multistep_step2" data-step="2">
     <div class="box_style">
-        <h3>Адрес проживания</h3>
 
+        {% block formInTab %}
+        <h3>Адрес проживания</h3>
+            <div class="formStart"></div>
+            <div class="formPart">
+                <input type="hidden" name="mode" value="ajax" />
+                <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs" />
+                <input type="hidden" name="action" value="delivery" />
+            </div>
+            <div class="formPart">
         <p class="form-row form-row-first validate-required" id="billing_first_name_field">
             <label for="billing_first_name" class="">Имя
                 <abbr class="required" title="обязательно">*</abbr>
             </label>
             <input type="text" class="input-text" name="billing_first_name_required"
                    id="billing_first_name" placeholder=""
-                   value="{{ billing_first_name_required }}"/>
+                           value=""/>
         </p>
 
         <p class="form-row form-row-last validate-required" id="billing_last_name_field">
@@ -18,7 +29,7 @@
                 <abbr class="required" title="обязательно">*</abbr></label>
             <input type="text" class="input-text" name="billing_last_name_required"
                    id="billing_last_name" placeholder=""
-                   value="{{ billing_last_name_required }}"/>
+                           value=""/>
         </p>
 
         <div class="clear"></div>
@@ -29,30 +40,69 @@
                 <abbr class="required" title="обязательно">*</abbr></label>
             <input type="text" class="input-text" name="billing_address_required"
                    id="billing_address_1" placeholder="Адрес"
-                   value="{{ billing_address_required }}"/>
+                           value=""/>
         </p>
 
         <p class="form-row form-row-first validate-required" id="billing_email_field">
             <label for="billing_email" class="">Email-адрес
                 <abbr class="required" title="обязательно">*</abbr></label>
             <input type="text" class="input-text " name="billing_email_required"
-                   id="billing_email" placeholder="" value="{{ billing_email_required }}"/></p>
+                           id="billing_email" placeholder="" value=""/></p>
 
         <p class="form-row form-row-last" id="billing_phone_field">
             <label for="billing_phone" class="">Телефон</label>
             <input type="text" class="input-text " name="billing_phone" id="billing_phone"
                    placeholder="" value=""/></p>
+            </div>
+            <script type="text/javascript">
+                var delivery = getCookie('delivery');
+                if (delivery != null) {
+                    delivery = jQuery.parseJSON(delivery);
+                    if (delivery.first_name != null) {
+                        $('#billing_first_name').val(delivery.first_name);
+                    }
+                    if (delivery.last_name != null) {
+                        $('#billing_last_name').val(delivery.last_name);
+                    }
+                    if (delivery.address != null) {
+                        $('#billing_address_1').val(delivery.address);
+                    }
+                    if (delivery.email != null) {
+                        $('#billing_email').val(delivery.email);
+                    }
+                    if (delivery.phone != null) {
+                        $('#billing_phone').val(delivery.phone);
+                    }
+                }
+                jQuery.ajax({
+                    type: 'GET',
+                    url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site\\Tabs&action=delivery&target=start',
+                    dataType: 'text',
+                    async: false,
+                    success: function (data) {
+                        $(".formStart").replaceWith(data + '</form>');
+                        $("#deliveryForm").append($(".formPart"));
+                        $("#deliveryForm .formPart").removeAttr('class');
+                        $('.formPart').remove();
+                    }
+                });
+            </script>
+            <script type="text/javascript"
+                    src="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=delivery&target=js"></script>
+            <link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=delivery&target=css"/>
+        {% endblock %}
 
-        <div class="clear"></div>
 
-        <input type="submit" class="button prev" name="login"
-               value="&larr; Имя пользователя" data-next="1"/>
 
-        <a href="?tab=3" class="nextstep">
-            <input type="button" class="button next" name="login" value="Способ оплаты &rarr;"
-                   data-next="3" data-alternativelabel="Способ оплаты &rarr;"/>
-        </a>
+
 
         <div class="clear"></div>
     </div>
 </div>
+{% endblock %}
+
+{% block tabCss %}
+{% endblock %}
+
+{% block tabJs %}
+{% endblock %}

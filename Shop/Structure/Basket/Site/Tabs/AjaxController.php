@@ -55,4 +55,65 @@ JS;
         }
         exit();
     }
+
+    // Обрабатывает запросы для формы из шаблона поумолчанию "Доставка(адрес) и способ досставки"
+    public function deliveryAction()
+    {
+        $request = new Request();
+        $form = new Forms('deliveryForm');
+        $form->setAjaxUrl('/');
+        $form->setSuccessMessage(false);
+        $form->add('billing_first_name_required', 'text');
+        $form->add('billing_last_name_required', 'text');
+        $form->add('billing_address_required', 'text');
+        $form->add('billing_email_required', 'text');
+        $form->add('billing_phone', 'text');
+        $form->setValidator('billing_first_name_required', 'required');
+        $form->setValidator('billing_last_name_required', 'required');
+        $form->setValidator('billing_address_required', 'required');
+        $form->setValidator('billing_email_required', 'required');
+        $form->setValidator('billing_email_required', 'email');
+        $form->setValidator('billing_phone', 'phone');
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                // Если валидация пройдена успешно, то записываем значение в куки
+                $delivery = array(
+                    'first_name' => $form->getValue('billing_first_name_required'),
+                    'last_name' => $form->getValue('billing_last_name_required'),
+                    'address' => $form->getValue('billing_address_required'),
+                    'email' => $form->getValue('billing_email_required'),
+                    'phone' => $form->getValue('billing_phone'),
+                );
+                $delivery = json_encode($delivery, JSON_FORCE_OBJECT);
+                setcookie("delivery", $delivery);
+            }
+        } else {
+            // Обработка запросов для получения функциональных частей формы
+            switch ($request->target) {
+                // Генерируем js
+                case 'js':
+                    $script = <<<JS
+                    if (typeof window.checkform != 'undefined') {
+                        window.checkform.push('#deliveryForm');
+                    } else {
+                        window.checkform = ['#deliveryForm'];
+                    }
+JS;
+                    $form->setJs($script);
+                    $request->mode = 'js';
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    break;
+                // Генерируем стартовую часть формы
+                case 'start':
+                    echo $form->start();
+                    exit();
+                    break;
+            }
+            $form->render();
+        }
+        exit();
+    }
 }
