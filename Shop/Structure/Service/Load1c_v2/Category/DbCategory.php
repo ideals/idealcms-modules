@@ -144,8 +144,6 @@ class DbCategory extends AbstractDb
     {
         $params = array(
             'url' => Url\Model::translitUrl($element['name']),
-            'date_create' => time(),
-            'date_mod' => time(),
             'template' => 'Ideal_Page',
             'prev_structure' => $this->prevCat,
         );
