@@ -28,6 +28,7 @@ class Xml
     {
         $path = explode('/', $className->part);
         $path = implode('/' . $this->ns, $path);
+        $path = str_replace('`', $this->ns, $path);
         return $this->xml->xpath('//' . $this->ns . $path);
     }
 }
