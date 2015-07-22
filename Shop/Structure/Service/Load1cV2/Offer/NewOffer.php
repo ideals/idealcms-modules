@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Offer;
+namespace Shop\Structure\Service\Load1cV2\Offer;
 
 /**
  * Created by PhpStorm.

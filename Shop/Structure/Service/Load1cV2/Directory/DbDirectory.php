@@ -1,9 +1,9 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Directory;
+namespace Shop\Structure\Service\Load1cV2\Directory;
 
-use Shop\Structure\Service\Load1c_v2\AbstractDb;
+use Shop\Structure\Service\Load1cV2\AbstractDb;
 use Ideal\Field\Url;
-use Shop\Structure\Service\Load1c_v2\Category;
+use Shop\Structure\Service\Load1cV2\Category;
 use Ideal\Core\Db;
 
 /**

@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Good;
+namespace Shop\Structure\Service\Load1cV2\Good;
 
 use Ideal\Field\Url;
 

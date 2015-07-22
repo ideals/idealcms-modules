@@ -11,4 +11,9 @@ return array(
         'Ид'            => 'id_1c',
         'Наименование'  => 'name',
     ),
+    'updateDbFields'  => array(
+        'ID'        => 'ID',
+        'is_active' => 'is_active',
+        'pos'       => 'pos'
+    ),
 );

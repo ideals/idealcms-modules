@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Directory;
+namespace Shop\Structure\Service\Load1cV2\Directory;
 
 use Ideal\Field\Url;
 

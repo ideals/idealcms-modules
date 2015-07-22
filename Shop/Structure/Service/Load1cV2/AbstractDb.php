@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2;
+namespace Shop\Structure\Service\Load1cV2;
 
 use Ideal\Core\Config;
 use Ideal\Core\Db;

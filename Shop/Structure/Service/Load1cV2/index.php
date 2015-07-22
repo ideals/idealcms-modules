@@ -1,10 +1,10 @@
 <?php
-use Shop\Structure\Service\Load1c_v2;
+use Shop\Structure\Service\Load1cV2;
 use Ideal\Core;
 
 ini_set('display_errors', 'On');
 
-$cmsFolder = 'tester';
+$cmsFolder = 'don';
 $subFolder = '';
 
 // Абсолютный адрес корня сервера, не должен оканчиваться на слэш.
@@ -33,11 +33,11 @@ $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
 $config->loadSettings();
 
 // сообщения об ошибках добавления insert, например, возвращает false
-$fc = new Load1c_v2\FrontController();
+$fc = new Load1cV2\FrontController();
 
 
 $fc->import();
-//$fc->category();
-//$fc->good();
-//$fc->directory();
+$fc->category();
+$fc->good();
+$fc->directory();
 $fc->offer();

@@ -1,7 +1,7 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Good;
+namespace Shop\Structure\Service\Load1cV2\Good;
 
-use Shop\Structure\Service\Load1c_v2\AbstractXml;
+use Shop\Structure\Service\Load1cV2\AbstractXml;
 
 /**
  * Created by PhpStorm.

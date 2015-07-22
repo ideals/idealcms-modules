@@ -1,11 +1,11 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Offer;
+namespace Shop\Structure\Service\Load1cV2\Offer;
 
-use Shop\Structure\Service\Load1c_v2\AbstractDb;
+use Shop\Structure\Service\Load1cV2\AbstractDb;
 use Ideal\Field\Url;
 use Ideal\Core\Db;
-use Shop\Structure\Service\Load1c_v2\Category;
-use Shop\Structure\Service\Load1c_v2\Good\DbGood;
+use Shop\Structure\Service\Load1cV2\Category;
+use Shop\Structure\Service\Load1cV2\Good\DbGood;
 
 /**
  * Created by PhpStorm.

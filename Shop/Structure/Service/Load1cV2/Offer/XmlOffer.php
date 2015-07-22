@@ -1,9 +1,9 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Offer;
+namespace Shop\Structure\Service\Load1cV2\Offer;
 
-use Shop\Structure\Service\Load1c_v2\AbstractXml;
+use Shop\Structure\Service\Load1cV2\AbstractXml;
 use Ideal\Field\Url;
-use Shop\Structure\Service\Load1c_v2\Directory\DbDirectory;
+use Shop\Structure\Service\Load1cV2\Directory\DbDirectory;
 
 /**
  * Created by PhpStorm.

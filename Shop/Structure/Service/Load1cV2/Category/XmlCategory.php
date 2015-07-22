@@ -1,7 +1,7 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Category;
+namespace Shop\Structure\Service\Load1cV2\Category;
 
-use Shop\Structure\Service\Load1c_v2\AbstractXml;
+use Shop\Structure\Service\Load1cV2\AbstractXml;
 
 /**
  * Created by PhpStorm.
@@ -37,6 +37,11 @@ class XmlCategory extends AbstractXml
                 $element[0]->addChild($key, $value);
             }
         }
+    }
+
+    public function updateConfigs()
+    {
+        $this->configs['fields'] = array_merge($this->configs['fields'], $this->configs['updateDbFields']);
     }
 
     /**

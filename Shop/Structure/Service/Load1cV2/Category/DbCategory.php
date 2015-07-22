@@ -1,7 +1,7 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Category;
+namespace Shop\Structure\Service\Load1cV2\Category;
 
-use Shop\Structure\Service\Load1c_v2\AbstractDb;
+use Shop\Structure\Service\Load1cV2\AbstractDb;
 use Ideal\Field\Url;
 use Ideal\Core\Config;
 use Ideal\Field\Cid;

@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2;
+namespace Shop\Structure\Service\Load1cV2;
 
 /**
  * Created by PhpStorm.
@@ -71,7 +71,9 @@ class AbstractXml
                     $this->data[$id][$value][] = $tmp;
                 }
             } else {
-                $this->data[$id][$value] = (string) $needle[0];
+                if (strlen((string) $needle[0]) != 0) {
+                    $this->data[$id][$value] = (string) $needle[0];
+                }
             }
         }
     }

@@ -1,5 +1,5 @@
 <?php
-namespace Shop\Structure\Service\Load1c_v2\Category;
+namespace Shop\Structure\Service\Load1cV2\Category;
 
 use Ideal\Field\Cid\Model;
 use Ideal\Core\Config;
@@ -100,6 +100,7 @@ class NewCategory
         $keys = array();
         $cidNum = '001';
         // получаем обновленную сплющенную выгрузку XML
+        $this->xmlCategory->updateConfigs();
         $newXmlResult = $this->xmlCategory->parse();
         // проставляем cid категориям, обновляем поля
         foreach ($newXmlResult as $k => $element) {
@@ -107,15 +108,15 @@ class NewCategory
 
             if (isset($element['pos'])) {
                 $i = intval($element['pos']);
-                $a = $cid->setBlock($cidNum, $element['lvl'], $i, true); // element['pos']
+                $fullCid = $cid->setBlock($cidNum, $element['lvl'], $i, true); // element['pos']
 
-                while (in_array($a, $keys)) {
-                    $a = $cid->setBlock($cidNum, $element['lvl'], ++$i, true);
+                while (in_array($fullCid, $keys)) {
+                    $fullCid = $cid->setBlock($cidNum, $element['lvl'], ++$i, true);
                 }
 
-                $cidNum = $a;
-                $newXmlResult[$k]['cid'] = $a;
-                $keys[] = $a;
+                $cidNum = $fullCid;
+                $newXmlResult[$k]['cid'] = $fullCid;
+                $keys[] = $fullCid;
 
                 unset($newXmlResult[$k]['pos']);
                 if (!is_null($dbResult[$k]) && count(array_diff($newXmlResult[$k], $dbResult[$k])) === 0) {
@@ -124,14 +125,14 @@ class NewCategory
                 continue;
             }
 
-            $a = $cid->setBlock($cidNum, $element['lvl'], $i, true);
+            $fullCid = $cid->setBlock($cidNum, $element['lvl'], $i, true);
 
-            while (in_array($a, $keys)) {
-                $a = $cid->setBlock($cidNum, $element['lvl'], ++$i, true);
+            while (in_array($fullCid, $keys)) {
+                $fullCid = $cid->setBlock($cidNum, $element['lvl'], ++$i, true);
             }
-            $keys[] = $a;
-            $newXmlResult[$k]['cid'] = $a;
-            $cidNum = $a;
+            $keys[] = $fullCid;
+            $newXmlResult[$k]['cid'] = $fullCid;
+            $cidNum = $fullCid;
 
             if (!isset($element['is_active'])) {
                 $newXmlResult[$k]['is_active'] = '1';
