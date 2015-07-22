@@ -10,10 +10,9 @@ namespace Shop\Structure\Service\Load1c_v2;
 
 class Xml
 {
-    public function __construct($source, $file)
+    public function __construct($source)
     {
-        $file_name = realpath($source . '/' . $file);
-        $this->xml = simplexml_load_file($file_name);
+        $this->xml = simplexml_load_file($source);
 
         $namespaces = $this->xml->getDocNamespaces();
 

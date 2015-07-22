@@ -1,6 +1,9 @@
 <?php
 namespace Shop\Structure\Service\Load1c_v2;
 
+use Ideal\Structure\User\Model;
+use Ideal\Core\Request;
+
 /**
  * Created by PhpStorm.
  * User: Help4
@@ -10,10 +13,100 @@ namespace Shop\Structure\Service\Load1c_v2;
 
 class FrontController
 {
+    protected $directory;
+
+    protected $files;
+
+    // импорт файлов из 1с
+    public function import()
+    {
+        $user = new Model();
+        $request = new Request();
+
+        $this->directory = DOCUMENT_ROOT . '/tmp/1c/';
+
+        if (!file_exists($this->directory)) {
+            mkdir($this->directory, 0750, true);
+        }
+
+        $answer = array();
+
+        switch ($request->mode) {
+            case 'checkauth':
+                if (!$user->login($request->PHP_AUTH_USER, $request->PHP_AUTH_PW)) {
+                    $answer['checkauth'] = false;
+                    return $answer;
+                }
+                return $answer['checkauth'] = true;
+
+            case 'init':
+                $tmp_files = glob($this->directory . '*.*');
+                if (is_array($tmp_files)) {
+                    foreach ($tmp_files as $v) {
+                        unlink($v);
+                    }
+                }
+                return $answer['init'] = true;
+
+            case 'file':
+                $filename = basename($request->filename);
+                
+                if ($filename == 'import.xml' || $filename == 'offers.xml') {
+                    $dir = '';
+                } else {
+                    $dir = str_replace('/' . $filename, '', $_GET['filename']);
+                }
+
+                if (!file_exists($this->directory . '' . $dir)) {
+                    mkdir($this->directory . '' . $dir, 0755, true);
+                }
+
+                $f = fopen($this->directory . '' . $dir . '/' . $filename, 'ab');
+                fwrite($f, file_get_contents('php://input'));
+                fclose($f);
+                print "success\n";
+                if ($filename == 'import.xml' OR $filename == 'offers.xml') {
+                    return 0;
+                }
+                if ($this->config['manual'] == 1) return 0;
+                return $this->tmpDir . '' . $dir . '/' . $filename;
+                break;
+
+            case 'import':
+                $this->files = $this->readDir($this->directory);
+                return $answer['improt'] = true;
+
+            default:
+                return false;
+        }
+    }
+
+    protected function readDir($path)
+    {
+        $handle = opendir($path);
+        $files = array();
+
+        while (false !== ($entry = readdir($handle))) {
+            if (0 === strpos($entry, '.')) {
+                continue;
+            }
+
+            if (is_dir($path . $entry)) {
+                $files[$entry] = $this->readDir($path . $entry . '/');
+                continue;
+            }
+
+            preg_match('/(\w*?)_/', $entry, $type);
+            $files[$type[1]] = $path . $entry;
+        }
+
+        return $files;
+    }
+
     // категории
     public function category()
     {
-        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'import___6738d00c-9bcb-40c7-900d-a1a3dac5d350.xml');
+        $xml = new Xml($this->files['import']);
 
         // инициализируем модель категорий в БД - DbCategory
         $dbCategory = new Category\DbCategory();
@@ -44,7 +137,7 @@ class FrontController
     // товары
     public function good()
     {
-        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c/1', 'import___93472611-a08d-4698-8772-730908511f5e.xml');
+        $xml = new Xml($this->files['1']['import']);
 
         // инициализируем модель товаров в БД - DbGood
         $dbGood = new Good\DbGood();
@@ -72,7 +165,7 @@ class FrontController
     // справочники
     public function directory()
     {
-        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c', 'offers___ac2db4eb-e2be-4cf0-9196-0f2eacac296c.xml');
+        $xml = new Xml($this->files['offers']);
 
         // инициализируем модель товаров в БД - DbGood
         $dbDirectory = new Directory\DbDirectory();
@@ -100,7 +193,7 @@ class FrontController
     // предложения
     public function offer()
     {
-        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c/1', 'offers___b245f08d-d893-42a3-b599-5f562a1698f7.xml');
+        $xml = new Xml($this->files['1']['offers']);
 
         // инициализируем модель товаров в БД - DbGood
         $dbOffers = new Offer\DbOffer();
@@ -117,7 +210,7 @@ class FrontController
 
         unset ($xml, $xmlOffers, $newOffers);
 
-        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c/1', 'prices___17286cc7-8713-468e-b7a7-c545cd363b59.xml');
+        $xml = new Xml($this->files['1']['prices']);
 
         // инициализируем модель категорий в XML - XmlCategory
         $xmlPrices = new Offer\XmlOffer($xml);
@@ -131,7 +224,7 @@ class FrontController
 
         unset ($xml, $xmlPrices, $newOffers);
 
-        $xml = new Xml(DOCUMENT_ROOT . '/tmp/1c/1', 'rests___58b2c59a-4eef-4ccc-9b59-bf9c82d1d24f.xml');
+        $xml = new Xml($this->files['1']['rests']);
 
         // инициализируем модель категорий в XML - XmlCategory
         $xmlRests = new Offer\XmlOffer($xml);
