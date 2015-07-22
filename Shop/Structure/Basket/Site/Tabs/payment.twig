@@ -1,16 +1,29 @@
 {# Оплата и способ оплаты #}
+{% extends "Shop/Structure/Basket/Site/index.twig" %}
 
+{% block tabContent %}
 <div class="{{ tab3 }} multistep_step span12" id="multistep_step3" data-step="4">
     <div class="box_style">
 
 
         <h3>Способ оплаты</h3>
 
-        <div class="clear"></div>
-
+            <div class="formStart"></div>
+            <div class="formPart">
+                <input type="hidden" name="mode" value="ajax"/>
+                <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs"/>
+                <input type="hidden" name="action" value="payment"/>
+            </div>
+            <div class="formPart">
         <div id="payment">
-            <ul class="payment_methods methods">
-                <!--<li>
+                    <input type="radio" id="payment_method_cod" class="input-radio"
+                           name="payment_method" value="cod" checked='checked'/>
+                    <label for="payment_method_cod">Наличными </label>
+
+                    <div class="payment_box payment_method_cod"><p>Оплата наличными при
+                            доставке.</p>
+                    </div>
+                    <br/>
                     <input type="radio" id="payment_method_bacs" class="input-radio"
                            name="payment_method" value="bacs"/>
                     <label for="payment_method_bacs">Прямой банковский перевод </label>
@@ -21,8 +34,7 @@
                             Ваш заказ будет отправлен, когда деньги поступят на наш
                             счет.</p>
                     </div>
-                </li>
-                <li>
+                    <br />
                     <input type="radio" id="payment_method_cheque" class="input-radio"
                            name="payment_method" value="cheque"/>
                     <label for="payment_method_cheque">Оплата чеками </label>
@@ -31,35 +43,60 @@
                             Пожалуйста отправьте ваш чек, указав данные магазина: название,
                             улицу, город, страну/штат, почтовый индекс.</p>
                     </div>
-                </li>-->
-                <li>
-                    <input type="radio" id="payment_method_cod" class="input-radio"
-                           name="payment_method" value="cod" checked='checked'/>
-                    <label for="payment_method_cod">Наличными </label>
-
-                    <div class="payment_box payment_method_cod"><p>Оплата наличными при
-                            доставке.</p>
-                    </div>
-                </li>
-                <!--<li>
+                    <br />
                     <input type="radio" id="payment_method_paypal" class="input-radio"
                            name="payment_method" value="paypal"/>
-                    <label for="payment_method_paypal">PayPal
-                        <img src="/i/paypal.png" alt="PayPal"/>
-                    </label>
+                    <label for="payment_method_paypal">PayPal</label>
 
                     <div class="payment_box payment_method_paypal" style="display:none;"><p>
                             Заплатить через PayPal; вы можете заплатить пластиковой картой
                             если у вас нет PayPal аккаунта</p>
                     </div>
-                </li>-->
-            </ul>
-
-
             <div class="clear"></div>
 
         </div>
-
+            </div>
+            <script type="text/javascript">
+                jQuery("input[name='payment_method']").change(function(){
+                    jQuery('#payment div').each(function() {
+                        jQuery(this).hide();
+                    });
+                    jQuery('.payment_method_' + jQuery(this).val()).show();
+                });
+                var payment = getCookie('payment');
+                if (payment != null) {
+                    payment = jQuery.parseJSON(payment);
+                    if (payment.payment_method != null) {
+                        $('#payment_method_' + payment.payment_method).prop('checked', true);
+                        jQuery('#payment div').each(function() {
+                            jQuery(this).hide();
+                        });
+                        jQuery('.payment_method_' + payment.payment_method).show();
+                    }
+                }
+                jQuery.ajax({
+                    type: 'GET',
+                    url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site\\Tabs&action=payment&target=start',
+                    dataType: 'text',
+                    async: false,
+                    success: function (data) {
+                        $(".formStart").replaceWith(data + '</form>');
+                        $("#paymentForm").append($(".formPart"));
+                        $("#paymentForm .formPart").removeAttr('class');
+                        $('.formPart').remove();
+                    }
+                });
+            </script>
+            <script type="text/javascript"
+                    src="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=payment&target=js"></script>
+            <link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=payment&target=css"/>
         <div class="clear"></div>
     </div>
 </div>
+{% endblock %}
+
+{% block tabCss %}
+{% endblock %}
+
+{% block tabJs %}
+{% endblock %}

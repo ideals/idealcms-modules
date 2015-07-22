@@ -178,6 +178,53 @@ JS;
         exit();
     }
 
+    // Обрабатывает запросы для формы из шаблона поумолчанию "Оплата и способ оплаты"
+    public function paymentAction()
+    {
+        $request = new Request();
+        $form = new Forms('paymentForm');
+        $form->setAjaxUrl('/');
+        $form->setSuccessMessage(false);
+        $form->add('payment_method', 'text');
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                // Если валидация пройдена успешно, то записываем значение в куки
+                $payment = array(
+                    'payment_method' => $form->getValue('payment_method')
+                );
+                $payment = json_encode($payment, JSON_FORCE_OBJECT);
+                setcookie("payment", $payment);
+            }
+        } else {
+            // Обработка запросов для получения функциональных частей формы
+            switch ($request->target) {
+                // Генерируем js
+                case 'js':
+                    $script = <<<JS
+                    if (typeof window.checkform != 'undefined') {
+                        window.checkform.push('#paymentForm');
+                    } else {
+                        window.checkform = ['#paymentForm'];
+                    }
+JS;
+                    $form->setJs($script);
+                    $request->mode = 'js';
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    break;
+                // Генерируем стартовую часть формы
+                case 'start':
+                    echo $form->start();
+                    exit();
+                    break;
+            }
+            $form->render();
+        }
+        exit();
+    }
+
     // Обрабатывает запросы для завершающей формы
     public function finishAction()
     {
