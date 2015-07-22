@@ -68,6 +68,7 @@ JS;
         $form->add('billing_address_required', 'text');
         $form->add('billing_email_required', 'text');
         $form->add('billing_phone', 'text');
+        $form->add('deliveryMethod', 'text');
         $form->setValidator('billing_first_name_required', 'required');
         $form->setValidator('billing_last_name_required', 'required');
         $form->setValidator('billing_address_required', 'required');
@@ -83,6 +84,7 @@ JS;
                     'address' => $form->getValue('billing_address_required'),
                     'email' => $form->getValue('billing_email_required'),
                     'phone' => $form->getValue('billing_phone'),
+                    'deliveryMethod' => $form->getValue('deliveryMethod')
                 );
                 $delivery = json_encode($delivery, JSON_FORCE_OBJECT);
                 setcookie("delivery", $delivery);

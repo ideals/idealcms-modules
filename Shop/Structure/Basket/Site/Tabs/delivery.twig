@@ -7,7 +7,7 @@
     <div class="box_style">
 
         {% block formInTab %}
-        <h3>Адрес проживания</h3>
+            <h3>Адрес доставки заказа</h3>
             <div class="formStart"></div>
             <div class="formPart">
                 <input type="hidden" name="mode" value="ajax" />
@@ -53,6 +53,18 @@
             <label for="billing_phone" class="">Телефон</label>
             <input type="text" class="input-text " name="billing_phone" id="billing_phone"
                    placeholder="" value=""/></p>
+                <p class="form-title">Доставка</p>
+                <input type="radio" name="deliveryMethod" id="deliveryMethod1" value="1">
+                <label for="deliveryMethod1">Курьерская доставка по Москве</label>
+                <br>
+                <input type="radio" name="deliveryMethod" id="deliveryMethod2" value="2">
+                <label for="deliveryMethod2">Курьерская доставка по Московской области </label>
+                <br>
+                <input type="radio" name="deliveryMethod" id="deliveryMethod3" value="3">
+                <label for="deliveryMethod3">Почта России</label>
+                <br>
+                <input type="radio" name="deliveryMethod" id="deliveryMethod4" value="4" checked='checked'>
+                <label for="deliveryMethod4">EMS - Почта России</label>
             </div>
             <script type="text/javascript">
                 var delivery = getCookie('delivery');
@@ -72,6 +84,9 @@
                     }
                     if (delivery.phone != null) {
                         $('#billing_phone').val(delivery.phone);
+                    }
+                    if (delivery.deliveryMethod != null) {
+                        $('#deliveryMethod' + delivery.deliveryMethod).prop('checked', true);
                     }
                 }
                 jQuery.ajax({
