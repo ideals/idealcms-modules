@@ -47,7 +47,7 @@ class Model extends Medium\AbstractModel
             }
             $structure = $config->getStructureByName($fileName);
             if ($structure != false) {
-                $this->list[$fileName] = $structure['name'] . ' (модуль)';
+                $this->list[$k] = $structure['name'] . ' (модуль)';
             }
 
         }
