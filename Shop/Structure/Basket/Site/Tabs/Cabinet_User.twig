@@ -1,84 +1,87 @@
 {# Авторизация #}
+{% extends "Shop/Structure/Basket/Site/index.twig" %}
 
+{% block tabContent %}
 <div class="{{ tab1 }} multistep_step span12 user_not_logged_in" id="multistep_step1" data-step="1">
     <div class="box_style">
-        <div class="row">
-            <div class="step1_login_form span6">
-                <h3>Авторизация</h3>
-
-                <form method="post" class="login_checkout">
-                    <p class="form-row form-row-first">
-                        <label for="username">Имя пользователя или e-mail
-                            <span class="required">*</span>
-                        </label>
-                        <input type="text" class="input-text" name="username" id="username"/>
-                    </p>
-
-                    <p class="form-row form-row-last">
-                        <label for="password">Пароль <span class="required">*</span></label>
-                        <input class="input-text" type="password" name="password" id="password"/>
-                    </p>
-
-                    <div class="clear"></div>
-
-                    <p class="form-row">
-                        <input type="submit" class="button" name="login" value="Авторизация"/>
-                        <a class="lost_password" href="/">
-                            Забыли пароль?
-                        </a>
-                    </p>
-                </form>
+        <div class="formStart"></div>
+        <div class="formPart">
+            <input type="hidden" name="mode" value="ajax" />
+            <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs" />
+            <input type="hidden" name="action" value="authorization" />
             </div>
-
-            <div class="step1_create_account span6">
-
-                <h3><span>Впервые на {{ domain }}</span> Зарегистрируйтесь!</h3>
-
-                <form method="post" class="register">
-                    <p class="form-row form-row-first">
-                        <label for="reg_username">Имя пользователя
-                            <span class="required">*</span></label>
-                        <input type="text" class="input-text" name="username" id="reg_username"
-                               value=""/>
-                    </p>
-
-                    <p class="form-row form-row-last">
-                        <label for="reg_email">Email <span class="required">*</span></label>
-                        <input type="email" class="input-text" name="email" id="reg_email"
-                               value=""/>
-                    </p>
-
-                    <div class="clear"></div>
-
-                    <p class="form-row form-row-first">
-                        <label for="reg_password">Пароль <span class="required">*</span></label>
-                        <input type="password" class="input-text" name="password"
-                               id="reg_password" value=""/>
-                    </p>
-
-                    <p class="form-row form-row-last">
-                        <label for="reg_password2">Повторный ввод пароля <span
-                                    class="required">*</span>
-                        </label>
-                        <input type="password" class="input-text" name="password2"
-                               id="reg_password2"
-                               value=""/>
-                    </p>
-
-                    <div class="clear"></div>
-
-                    <p class="form-row">
-                        <input type="submit" class="button" name="register" value="Регистрация"/>
-                    </p>
-
-                </form>
+        <div class="formPart">
+            <table>
+                <tr>
+                    <td><label for="lastname" class="">Фамилия
+                            <abbr class="required" title="обязательно">*</abbr>
+                        </label></td>
+                    <td><input type="text" value="" id="lastname" name="lastname"></td>
+                </tr>
+                <tr>
+                    <td><label for="name" class="">Имя
+                            <abbr class="required" title="обязательно">*</abbr>
+                        </label></td>
+                    <td><input type="text" value="" id="name" name="name"></td>
+                </tr>
+                <tr>
+                    <td><label for="phone" class="">Телефон
+                            <abbr class="required" title="обязательно">*</abbr>
+                        </label></td>
+                    <td><input type="text" value="" id="phone" name="phone"></td>
+                </tr>
+                <tr>
+                    <td><label for="email" class="">E-mail
+                            <abbr class="required" title="обязательно">*</abbr>
+                        </label></td>
+                    <td><input type="text" value="" id="email" name="email"></td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="center"><br></td>
+                </tr>
+            </table>
             </div>
-            <a href="?tab=2" class="nextstep">
-                <input type="button" class="button next" name="next[]"
-                       value="Оформить без регистрации" data-next="2"/>
-            </a>
-        </div>
+        <script type="text/javascript">
+            var userInfo = getCookie('userInfo');
+            if (userInfo != null) {
+                userInfo = jQuery.parseJSON(userInfo);
+                if (userInfo.lastname != null) {
+                    $('#lastname').val(userInfo.lastname);
+                }
+                if (userInfo.name != null) {
+                    $('#name').val(userInfo.name);
+                }
+                if (userInfo.phone != null) {
+                    $('#phone').val(userInfo.phone);
+                }
+                if (userInfo.email != null) {
+                    $('#email').val(userInfo.email);
+                }
+            }
+            jQuery.ajax({
+                type: 'GET',
+                url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site\\Tabs&action=authorization&target=start',
+                dataType: 'text',
+                async: false,
+                success: function (data) {
+                    $(".formStart").replaceWith(data + '</form>');
+                    $("#authorizationForm").append($(".formPart"));
+                    $("#authorizationForm .formPart").removeAttr('class');
+                    $('.formPart').remove();
+                }
+            });
+        </script>
+        <script type="text/javascript"
+                src="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=authorization&target=js"></script>
+        <link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=Shop\Structure\Basket\Site\Tabs&action=authorization&target=css"/>
 
         <div class="clear"></div>
     </div>
 </div>
+{% endblock %}
+
+{% block tabCss %}
+{% endblock %}
+
+{% block tabJs %}
+{% endblock %}

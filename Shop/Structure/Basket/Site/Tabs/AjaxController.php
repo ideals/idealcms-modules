@@ -117,6 +117,65 @@ JS;
         exit();
     }
 
+    // Обрабатывает запросы для формы из шаблона поумолчанию "Авторизация"
+    public function authorizationAction()
+    {
+        $request = new Request();
+        $form = new Forms('authorizationForm');
+        $form->setAjaxUrl('/');
+        $form->setSuccessMessage(false);
+        $form->add('lastname', 'text');
+        $form->add('name', 'text');
+        $form->add('phone', 'text');
+        $form->add('email', 'text');
+        $form->setValidator('lastname', 'required');
+        $form->setValidator('name', 'required');
+        $form->setValidator('phone', 'required');
+        $form->setValidator('email', 'required');
+        $form->setValidator('email', 'email');
+        $form->setValidator('phone', 'phone');
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                // Если валидация пройдена успешно, то записываем значение в куки
+                $userInfo = array(
+                    'lastname' => $form->getValue('lastname'),
+                    'name' => $form->getValue('name'),
+                    'phone' => $form->getValue('phone'),
+                    'email' => $form->getValue('email'),
+                );
+                $userInfo = json_encode($userInfo, JSON_FORCE_OBJECT);
+                setcookie("userInfo", $userInfo);
+            }
+        } else {
+            // Обработка запросов для получения функциональных частей формы
+            switch ($request->target) {
+                // Генерируем js
+                case 'js':
+                    $script = <<<JS
+                    if (typeof window.checkform != 'undefined') {
+                        window.checkform.push('#authorizationForm');
+                    } else {
+                        window.checkform = ['#authorizationForm'];
+                    }
+JS;
+                    $form->setJs($script);
+                    $request->mode = 'js';
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    break;
+                // Генерируем стартовую часть формы
+                case 'start':
+                    echo $form->start();
+                    exit();
+                    break;
+            }
+            $form->render();
+        }
+        exit();
+    }
+
     // Обрабатывает запросы для завершающей формы
     public function finishAction()
     {
