@@ -25,7 +25,10 @@ class AjaxController extends \Ideal\Core\AjaxController
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
-                $orderComments = array('order_comments' => $form->getValue('order_comments'));
+                $orderComments = array(
+                    'order_comments' => $form->getValue('order_comments'),
+                    'tabAppointment' => 'confirmation'
+                );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
                     $basket = json_decode($_COOKIE['basket']);
@@ -94,7 +97,8 @@ JS;
                     'address' => $form->getValue('billing_address_required'),
                     'email' => $form->getValue('billing_email_required'),
                     'phone' => $form->getValue('billing_phone'),
-                    'deliveryMethod' => $form->getValue('deliveryMethod')
+                    'deliveryMethod' => $form->getValue('deliveryMethod'),
+                    'tabAppointment' => 'delivery'
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
@@ -160,7 +164,8 @@ JS;
                     'userinfo_lastname' => $form->getValue('userinfo_lastname'),
                     'userinfo_name' => $form->getValue('userinfo_name'),
                     'userinfo_phone' => $form->getValue('userinfo_phone'),
-                    'userinfo_email' => $form->getValue('userinfo_email')
+                    'userinfo_email' => $form->getValue('userinfo_email'),
+                    'tabAppointment' => 'authorization'
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
@@ -214,7 +219,8 @@ JS;
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $payment = array(
-                    'payment_method' => $form->getValue('payment_method')
+                    'payment_method' => $form->getValue('payment_method'),
+                    'tabAppointment' => 'payment'
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
