@@ -269,7 +269,25 @@ JS;
         $form->setAjaxUrl('/');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
-                // Если валидация пройдена успешно, то отправляем заказ менеджерам
+                // Если валидация пройдена успешно, то отрабатываем финальную часть
+                $name = '';
+                $email = '';
+
+                $basket = json_decode($_COOKIE['basket']);
+                $price = $basket->total / 100;
+                foreach ($basket->tabsInfo as $tabInfo) {
+                    if (isset($tabInfo->tabAppointment) && $tabInfo->tabAppointment == 'authorization') {
+                        $name = $tabInfo->userinfo_name;
+                        $email = $tabInfo->userinfo_email;
+                    }
+                }
+
+                // Сохраняем информацию о заказе в справочник "Заказы с сайта"
+                if (!empty($name) && !empty($email)) {
+                    // TODO заменить "$_COOKIE['basket']" на нормальное содержимое заказа
+                    $form->saveOrder($name, $email, $_COOKIE['basket'], $price);
+                }
+                echo 'Ваш заказ принят';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
