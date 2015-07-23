@@ -9,7 +9,8 @@
 return array(
     'key'    => 'Ид',
     'fields' => array(
-        'Наименование'  => 'name',
+        'Наименование'      => 'name',
+        'ПометкаУдаления'   => 'is_active',
         'dir_params'    => array(
             'path'  => 'ЗначенияСвойств/ЗначенияСвойства',
             'field' => array(
@@ -28,8 +29,9 @@ return array(
         ),
     ),
     'priceRests'    => array(
-        'rests' => array(
-            'path'  => 'Остатки/Остаток/Количество',
+        'rest' => array(
+            'path'  => 'Остатки/Остаток/Склад/Количество'.
+                '[not(preceding-sibling::`Склад/Количество > text() or following-sibling::`Склад/Количество > text())]',
         ),
     ),
 );

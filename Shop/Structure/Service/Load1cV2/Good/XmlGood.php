@@ -2,6 +2,7 @@
 namespace Shop\Structure\Service\Load1cV2\Good;
 
 use Shop\Structure\Service\Load1cV2\AbstractXml;
+use Ideal\Field\Url;
 
 /**
  * Created by PhpStorm.
@@ -30,8 +31,8 @@ class XmlGood extends AbstractXml
                 $this->data[$k]['category_id'] = 'Load1c_default';
             }
 
-            if ('' == $val['url']) {
-                unset($this->data[$k]['url']);
+            if (!isset($val['url'])) {
+                $this->data[$k]['url'] = Url\Model::translitUrl($val['name']);
             }
 
             $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : '0';

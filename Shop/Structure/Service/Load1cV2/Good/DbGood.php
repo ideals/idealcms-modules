@@ -27,6 +27,9 @@ class DbGood extends AbstractDb
     /** @var array массив категорий с ID и id_1c */
     protected $categories;
 
+    /** @var string Структура офферов */
+    protected $offers = 'offers_good';
+
     /**
      *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
      */
@@ -37,6 +40,7 @@ class DbGood extends AbstractDb
         $this->table = $this->prefix . 'catalogplus_structure_good';
         $this->structurePart = $this->prefix . $this->structurePart;
         $this->structureCat = $this->prefix . $this->structureCat;
+        $this->offers = $this->prefix . $this->offers;
         $res = $db->select(
             'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Good" LIMIT 1'
         );
@@ -53,7 +57,7 @@ class DbGood extends AbstractDb
         $db = Db::getInstance();
 
         // Считываем товары из нашей БД
-        $sql = "SELECT sg.ID, sg.prev_structure, sg.name, sg.id_1c, sg.is_active,
+        $sql = "SELECT sg.ID, sg.full_name, sg.prev_structure, sg.name, sg.id_1c, sg.is_active,
             sg.url, sg.articul, sg.description, sc.id_1c as category_id
             FROM {$this->table} as sg LEFT JOIN {$this->structureCat} as sc ON sg.category_id = sc.ID
             WHERE sg.prev_structure='{$this->prevGood}'";
@@ -94,13 +98,14 @@ class DbGood extends AbstractDb
     /**
      * Получение инфомрации о товарах
      *
+     * @param string $select
      * @return array key - id_1c
      */
-    public function getGoods()
+    public function getGoods($select = '*')
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT * FROM {$this->table}";
+        $sql = "SELECT {$select} FROM {$this->table}";
         $res = $db->select($sql);
         $result = array();
 
@@ -111,9 +116,36 @@ class DbGood extends AbstractDb
         return $result;
     }
 
+    public function updateGood()
+    {
+        $db = Db::getInstance();
+
+        $sql = "SELECT ID as offer_id_1c, min(price) as price, good_id, rest, currency, rest as stock "
+            ."FROM {$this->offers} GROUP BY good_id";
+
+        $result = array();
+        $tmp = $db->select($sql);
+        foreach ($tmp as $item) {
+            $result[$item['good_id']] = $item;
+        }
+        $goods = $this->getGoods('ID, id_1c');
+
+        $updates = array();
+        foreach ($result as $k => $item) {
+            if (isset($goods[$k])) {
+                $updates[$k]['stock'] = $item['rest'];
+                unset($item['good_id'], $item['rest']);
+                $updates[$k] = $item;
+                $updates[$k]['ID'] = $goods[$k]['ID'];
+            }
+        }
+        $this->save($updates);
+    }
+
     protected function add($element)
     {
         $element['prev_structure'] = $this->prevGood;
+        $element['measure'] = '';
         unset($element['category']);
 
         parent::add($element);

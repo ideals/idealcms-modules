@@ -5,7 +5,6 @@ use Shop\Structure\Service\Load1cV2\AbstractDb;
 use Ideal\Field\Url;
 use Ideal\Core\Db;
 use Shop\Structure\Service\Load1cV2\Category;
-use Shop\Structure\Service\Load1cV2\Good\DbGood;
 
 /**
  * Created by PhpStorm.
@@ -16,6 +15,7 @@ use Shop\Structure\Service\Load1cV2\Good\DbGood;
 
 class DbOffer extends AbstractDb
 {
+    protected $parse = array();
     /**
      *  Установка полей класса - полного имени таблиц с префикс
      */
@@ -33,21 +33,24 @@ class DbOffer extends AbstractDb
      */
     public function parse()
     {
+        if (count($this->parse) != 0) {
+            return $this->parse;
+        }
+
         $db = Db::getInstance();
 
         $sql = "SELECT * FROM `{$this->table}`";
         $result = $db->select($sql);
-        $data = array();
 
         foreach ($result as $item) {
             if ($item['offer_id'] == $item['good_id']) {
-                $data[$item['good_id']] = $item;
+                $this->parse[$item['good_id']] = $item;
             } else {
-                $data[$item['good_id'] . '#' . $item['offer_id']] = $item;
+                $this->parse[$item['good_id'] . '#' . $item['offer_id']] = $item;
             }
         }
 
-        return $data;
+        return $this->parse;
     }
 
     // квадрат чилса используя 2 переменных и только + и -

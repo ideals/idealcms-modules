@@ -3,6 +3,7 @@ namespace Shop\Structure\Service\Load1cV2;
 
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
+use Ideal\Core\Util;
 
 /**
  * Created by PhpStorm.
@@ -29,52 +30,65 @@ class FrontController
             mkdir($this->directory, 0750, true);
         }
 
-        $answer = array();
+        if (!file_exists($this->directory . '1/')) {
+            mkdir($this->directory . '1/', 0750, true);
+        }
+
+        if (time() - filemtime($this->directory) > 3600) {
+            $this->purge();
+        }
 
         switch ($request->mode) {
             case 'checkauth':
                 if (!$user->login($request->PHP_AUTH_USER, $request->PHP_AUTH_PW)) {
-                    $answer['checkauth'] = false;
-                    return $answer;
+                    print "success\n";
+                    print session_name() . "\n";
+                    print session_id();
                 }
-                return $answer['checkauth'] = true;
+                return 0;
 
             case 'init':
-                $tmp_files = glob($this->directory . '*.*');
-                if (is_array($tmp_files)) {
-                    foreach ($tmp_files as $v) {
-                        unlink($v);
-                    }
-                }
-                return $answer['init'] = true;
+                print "zip=no\n";
+                print "file_limit=1000000\n";
+                return 0;
 
             case 'file':
                 $filename = basename($request->filename);
-                
-                if ($filename == 'import.xml' || $filename == 'offers.xml') {
-                    $dir = '';
+                $exists = array('prices', 'rests');
+
+                $handle = opendir($this->directory);
+                while (false !== ($entry = readdir($handle))) {
+                    if (0 === strpos($entry, '.')) {
+                        continue;
+                    }
+
+                    if (is_dir($this->directory . $entry)) {
+                        continue;
+                    }
+
+
+                    preg_match('/(\w*?)_/', $entry, $type);
+                    $exists[] = $type[1];
+                }
+
+                preg_match('/(\w*?)_/', $request->filename, $type);
+
+                if (in_array($type[1], $exists)) {
+                    $f = fopen($this->directory . '1/' . $filename, 'ab');
                 } else {
-                    $dir = str_replace('/' . $filename, '', $_GET['filename']);
+                    $f = fopen($this->directory . $filename, 'ab');
                 }
 
-                if (!file_exists($this->directory . '' . $dir)) {
-                    mkdir($this->directory . '' . $dir, 0755, true);
-                }
-
-                $f = fopen($this->directory . '' . $dir . '/' . $filename, 'ab');
                 fwrite($f, file_get_contents('php://input'));
                 fclose($f);
+
                 print "success\n";
-                if ($filename == 'import.xml' OR $filename == 'offers.xml') {
-                    return 0;
-                }
-                if ($this->config['manual'] == 1) return 0;
-                return $this->tmpDir . '' . $dir . '/' . $filename;
-                break;
+                return 0;
 
             case 'import':
                 $this->files = $this->readDir($this->directory);
-                return $answer['improt'] = true;
+                print "success";
+                return 0;
 
             default:
                 return false;
@@ -207,6 +221,11 @@ class FrontController
         // Устанавливаем связь БД и XML
         $offers1 = $newOffers->parse();
 
+        $answer = $newOffers->answer();
+
+        echo 'offer: ';
+        print_r($answer);
+        echo '<br/>';
 
         unset ($xml, $xmlOffers, $newOffers);
 
@@ -221,6 +240,11 @@ class FrontController
         // Устанавливаем связь БД и XML
         $offers2 = $newOffers->parsePrice();
 
+        $answer = $newOffers->answer();
+
+        echo 'offer:prices: ';
+        print_r($answer);
+        echo '<br/>';
 
         unset ($xml, $xmlPrices, $newOffers);
 
@@ -237,13 +261,27 @@ class FrontController
 
 
         $offers = array_replace_recursive($offers1, $offers2, $offers3);
+        unset($offers1, $offers2, $offers3);
         // Сохраняем результаты
         $dbOffers->save($offers);
 
         $answer = $newOffers->answer();
 
-        echo 'offer: ';
+        echo 'offer:rests: ';
         print_r($answer);
         echo '<br/>';
+
+        $dbGood = new Good\DbGood();
+        $dbGood->updateGood();
+    }
+
+    private function purge()
+    {
+        $tmp_files = glob($this->directory . '*.*');
+        if (is_array($tmp_files)) {
+            foreach ($tmp_files as $v) {
+                unlink($v);
+            }
+        }
     }
 }

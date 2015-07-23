@@ -76,10 +76,6 @@ class NewGood
                 continue;
             }
 
-            if ('' == $dbValue['url']) {
-                $diff['url'] = Url\Model::translitUrl($xmlResult['name']);
-            }
-
             // Больше 1 т.к. в xml категория товара представлена его id_1c а в бд выгрузке - ключом ID
             if (count($diff) > 0) {
                 $result[$id] = $diff;
