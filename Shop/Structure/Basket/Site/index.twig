@@ -363,8 +363,8 @@
                     async: false,
                     success: function (data) {
                         $(".formStart").replaceWith(data + '</form>');
-                        $("#confirmationForm").append($(".formPart"));
-                        $("#confirmationForm .formPart").removeAttr('class');
+                        $("#finishForm").append($(".formPart"));
+                        $("#finishForm .formPart").removeAttr('class');
                         $('.formPart').remove();
                     }
                 });
