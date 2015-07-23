@@ -142,25 +142,25 @@ JS;
         $form = new Forms('authorizationForm');
         $form->setAjaxUrl('/');
         $form->setSuccessMessage(false);
-        $form->add('lastname', 'text');
-        $form->add('name', 'text');
-        $form->add('phone', 'text');
-        $form->add('email', 'text');
+        $form->add('userinfo_lastname', 'text');
+        $form->add('userinfo_name', 'text');
+        $form->add('userinfo_phone', 'text');
+        $form->add('userinfo_email', 'text');
         $form->add('currentTabId', 'text');
-        $form->setValidator('lastname', 'required');
-        $form->setValidator('name', 'required');
-        $form->setValidator('phone', 'required');
-        $form->setValidator('email', 'required');
-        $form->setValidator('email', 'email');
-        $form->setValidator('phone', 'phone');
+        $form->setValidator('userinfo_lastname', 'required');
+        $form->setValidator('userinfo_name', 'required');
+        $form->setValidator('userinfo_phone', 'required');
+        $form->setValidator('userinfo_email', 'required');
+        $form->setValidator('userinfo_email', 'email');
+        $form->setValidator('userinfo_phone', 'phone');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $userInfo = array(
-                    'lastname' => $form->getValue('lastname'),
-                    'name' => $form->getValue('name'),
-                    'phone' => $form->getValue('phone'),
-                    'email' => $form->getValue('email'),
+                    'userinfo_lastname' => $form->getValue('userinfo_lastname'),
+                    'userinfo_name' => $form->getValue('userinfo_name'),
+                    'userinfo_phone' => $form->getValue('userinfo_phone'),
+                    'userinfo_email' => $form->getValue('userinfo_email')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
