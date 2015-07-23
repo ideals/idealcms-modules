@@ -287,6 +287,9 @@ JS;
                     // TODO заменить "$_COOKIE['basket']" на нормальное содержимое заказа
                     $form->saveOrder($name, $email, $_COOKIE['basket'], $price);
                 }
+
+                // TODO скоре всего стоит перенести метод в модель
+                $this->finishOrder();
                 echo 'Ваш заказ принят';
             }
         } else {
@@ -317,5 +320,15 @@ JS;
             $form->render();
         }
         exit();
+    }
+
+    public function finishOrder()
+    {
+        $this->clearBasket();
+    }
+
+    public function clearBasket()
+    {
+        setcookie("basket", '', time() - 3600);
     }
 }
