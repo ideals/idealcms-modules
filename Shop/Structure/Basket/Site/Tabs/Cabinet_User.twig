@@ -9,6 +9,7 @@
             <input type="hidden" name="mode" value="ajax" />
             <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs" />
             <input type="hidden" name="action" value="authorization" />
+                <input type="hidden" name="currentTabId" value="{{ currentTabId }}"/>
             </div>
         <div class="formPart">
             <table>
@@ -42,20 +43,26 @@
             </table>
             </div>
         <script type="text/javascript">
-            var userInfo = getCookie('userInfo');
-            if (userInfo != null) {
-                userInfo = jQuery.parseJSON(userInfo);
+                var basket = getCookie('basket');
+                if (basket != null) {
+                    basket = jQuery.parseJSON(basket);
+                    if (basket.tabsInfo != null) {
+                        if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
+                            var userInfo = basket.tabsInfo.tab_{{ currentTabId }};
                 if (userInfo.lastname != null) {
-                    $('#lastname').val(userInfo.lastname);
+                                jQuery('#lastname').val(userInfo.lastname);
                 }
                 if (userInfo.name != null) {
-                    $('#name').val(userInfo.name);
+                                jQuery('#name').val(userInfo.name);
                 }
                 if (userInfo.phone != null) {
-                    $('#phone').val(userInfo.phone);
+                                jQuery('#phone').val(userInfo.phone);
                 }
                 if (userInfo.email != null) {
-                    $('#email').val(userInfo.email);
+                                jQuery('#email').val(userInfo.email);
+                            }
+                        }
+
                 }
             }
             jQuery.ajax({

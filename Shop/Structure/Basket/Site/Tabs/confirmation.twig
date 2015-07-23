@@ -69,6 +69,7 @@
                     <input type="hidden" name="mode" value="ajax" />
                     <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs" />
                     <input type="hidden" name="action" value="confirmation" />
+                    <input type="hidden" name="currentTabId" value="{{ currentTabId }}" />
                 </div>
                 <div class="formPart">
                 <label for="order_comments" class="">
@@ -79,9 +80,17 @@
                     rows="2" cols="50"></textarea>
                 </div>
                 <script type="text/javascript">
-                    var order_comments = getCookie('order_comments');
-                    if (order_comments != null) {
-                        $('#order_comments').val(order_comments);
+                    var basket = getCookie('basket');
+                    if (basket != null) {
+                        basket = jQuery.parseJSON(basket);
+                        if (basket.tabsInfo != null) {
+                            if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
+                                var order_comments = basket.tabsInfo.tab_{{ currentTabId }};
+                                if (order_comments.order_comments != null) {
+                                    jQuery('#order_comments').val(order_comments.order_comments);
+                                }
+                            }
+                        }
                     }
                     jQuery.ajax({
                         type: 'GET',

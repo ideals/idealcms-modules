@@ -84,6 +84,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     {
         // Если было установлено правило на пересбор корзины
         if ($this->update) {
+            $tabsInfo = $this->basket['tabsInfo'];
             $goods = $this->basket['goods'];
             $this->basket = array(
                 'goods' => array(), // товары которые находятся в корзине
@@ -92,6 +93,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 'disco' => 0, // общая разница между скидочной и нормальной ценой
                 'total' => 0  // общая цена с учетом скидки
             );
+            if (!empty($tabsInfo)) {
+                $this->basket['tabsInfo'] = $tabsInfo;
+            }
             foreach ($goods as $k => $v) {
                 $this->idGood = $k;
                 $this->quant = $v['count'];

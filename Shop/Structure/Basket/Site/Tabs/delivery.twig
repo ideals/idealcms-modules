@@ -13,6 +13,7 @@
                 <input type="hidden" name="mode" value="ajax" />
                 <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs" />
                 <input type="hidden" name="action" value="delivery" />
+                <input type="hidden" name="currentTabId" value="{{ currentTabId }}" />
             </div>
             <div class="formPart">
         <p class="form-row form-row-first validate-required" id="billing_first_name_field">
@@ -67,26 +68,31 @@
                 <label for="deliveryMethod4">EMS - Почта России</label>
             </div>
             <script type="text/javascript">
-                var delivery = getCookie('delivery');
-                if (delivery != null) {
-                    delivery = jQuery.parseJSON(delivery);
+                var basket = getCookie('basket');
+                if (basket != null) {
+                    basket = jQuery.parseJSON(basket);
+                    if (basket.tabsInfo != null) {
+                        if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
+                            var delivery = basket.tabsInfo.tab_{{ currentTabId }};
                     if (delivery.first_name != null) {
-                        $('#billing_first_name').val(delivery.first_name);
+                                jQuery('#billing_first_name').val(delivery.first_name);
                     }
                     if (delivery.last_name != null) {
-                        $('#billing_last_name').val(delivery.last_name);
+                                jQuery('#billing_last_name').val(delivery.last_name);
                     }
                     if (delivery.address != null) {
-                        $('#billing_address_1').val(delivery.address);
+                                jQuery('#billing_address_1').val(delivery.address);
                     }
                     if (delivery.email != null) {
-                        $('#billing_email').val(delivery.email);
+                                jQuery('#billing_email').val(delivery.email);
                     }
                     if (delivery.phone != null) {
-                        $('#billing_phone').val(delivery.phone);
+                                jQuery('#billing_phone').val(delivery.phone);
                     }
                     if (delivery.deliveryMethod != null) {
-                        $('#deliveryMethod' + delivery.deliveryMethod).prop('checked', true);
+                                jQuery('#deliveryMethod' + delivery.deliveryMethod).prop('checked', true);
+                            }
+                        }
                     }
                 }
                 jQuery.ajax({

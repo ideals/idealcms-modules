@@ -37,7 +37,9 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         parent::indexAction();
         $this->view->goods = $basket;
 
-        $this->view->tabs = $this->model->getTabs();
+        $tabs = $this->model->getTabs();
+        $this->view->tabs = $tabs;
+        $this->view->currentTabId = $this->model->getCurrentTabId($tabs);
 
         /*if (isset($_GET['tab'])) {
             $this->view->tab = (int)$_GET['tab'];

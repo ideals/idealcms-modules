@@ -13,6 +13,7 @@
                 <input type="hidden" name="mode" value="ajax"/>
                 <input type="hidden" name="controller" value="Shop\Structure\Basket\Site\Tabs"/>
                 <input type="hidden" name="action" value="payment"/>
+                <input type="hidden" name="currentTabId" value="{{ currentTabId }}" />
             </div>
             <div class="formPart">
         <div id="payment">
@@ -63,15 +64,22 @@
                     });
                     jQuery('.payment_method_' + jQuery(this).val()).show();
                 });
-                var payment = getCookie('payment');
+                var basket = getCookie('basket');
+                if (basket != null) {
+                    basket = jQuery.parseJSON(basket);
+                    if (basket.tabsInfo != null) {
+                        if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
+                            var payment = basket.tabsInfo.tab_{{ currentTabId }};
                 if (payment != null) {
-                    payment = jQuery.parseJSON(payment);
                     if (payment.payment_method != null) {
                         $('#payment_method_' + payment.payment_method).prop('checked', true);
                         jQuery('#payment div').each(function() {
                             jQuery(this).hide();
                         });
                         jQuery('.payment_method_' + payment.payment_method).show();
+                    }
+                }
+                        }
                     }
                 }
                 jQuery.ajax({

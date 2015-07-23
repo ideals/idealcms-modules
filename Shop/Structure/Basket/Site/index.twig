@@ -15,7 +15,13 @@
                                 {{ item.name|raw }}
                             </a>
                         {% else %}
+                            {% if item.tabWasFilled is defined %}
+                                <a {{ item.link|raw }} class="multistep_section">
+                                    {{ item.name|raw }}
+                                </a>
+                            {% else %}
                             <span class="checkout_progress">{{ item.name|raw }}</span>
+                        {% endif %}
                         {% endif %}
                     </div>
                     {% if item.ID == ID %}{% set activeTab=key %}{% endif %}

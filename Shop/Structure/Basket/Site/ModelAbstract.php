@@ -157,9 +157,19 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // Строим ссылки на табы
         $url = new \Ideal\Field\Url\Model();
         $url->setParentUrl($path);
+        $cookieBasket = 0;
+        if (isset($_COOKIE['basket'])) {
+            $cookieBasket = json_decode($_COOKIE['basket']);
+        }
         foreach ($tabs as $k => $tab) {
             $tabs[$k]['link'] = 'href="' . $url->getUrl($tab) . '"';
             $tabs[$k]['is_current'] = (!empty($active) && $active['ID'] == $tab['ID']);
+            if (!empty($cookieBasket)) {
+                $checkedTab = 'tab_' . ($k + 1);
+                if (isset($cookieBasket->tabsInfo->$checkedTab)) {
+                    $tabs[$k]['tabWasFilled'] = 1;
+                }
+            }
         }
 
         // Добавляем самый первый таб - ссылка на корзину
@@ -181,5 +191,16 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $pageData = $this->getPageData();
         $pageData['template'] = 'Shop/Structure/Basket/Site/empty.twig';
         $this->setPageData($pageData);
+    }
+
+    public function getCurrentTabId($tabs)
+    {
+        $pageData = $this->getPageData();
+        foreach ($tabs as $key => $value) {
+            if (array_search($pageData['ID'], $value, true) !== false) {
+                return $key;
+            }
+        }
+        return false;
     }
 }

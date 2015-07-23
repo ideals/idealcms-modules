@@ -21,10 +21,19 @@ class AjaxController extends \Ideal\Core\AjaxController
         $form->setAjaxUrl('/');
         $form->setSuccessMessage(false);
         $form->add('order_comments', 'text');
+        $form->add('currentTabId', 'text');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
-                setcookie("order_comments", $form->getValue('order_comments'));
+                $orderComments = array('order_comments' => $form->getValue('order_comments'));
+                $tabID = 'tab_' . $form->getValue('currentTabId');
+                if (isset($_COOKIE['basket'])) {
+                    $basket = json_decode($_COOKIE['basket']);
+                    $basket->tabsInfo->$tabID = $orderComments;
+        } else {
+                    $basket = (object) array('tabsInfo' => array($tabID => $orderComments));
+                }
+                setcookie("basket", json_encode($basket));
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -69,6 +78,7 @@ JS;
         $form->add('billing_email_required', 'text');
         $form->add('billing_phone', 'text');
         $form->add('deliveryMethod', 'text');
+        $form->add('currentTabId', 'text');
         $form->setValidator('billing_first_name_required', 'required');
         $form->setValidator('billing_last_name_required', 'required');
         $form->setValidator('billing_address_required', 'required');
@@ -86,8 +96,14 @@ JS;
                     'phone' => $form->getValue('billing_phone'),
                     'deliveryMethod' => $form->getValue('deliveryMethod')
                 );
-                $delivery = json_encode($delivery, JSON_FORCE_OBJECT);
-                setcookie("delivery", $delivery);
+                $tabID = 'tab_' . $form->getValue('currentTabId');
+                if (isset($_COOKIE['basket'])) {
+                    $basket = json_decode($_COOKIE['basket']);
+                    $basket->tabsInfo->$tabID = $delivery;
+        } else {
+                    $basket = (object) array('tabsInfo' => array($tabID => $delivery));
+                }
+                setcookie("basket", json_encode($basket));
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -130,6 +146,7 @@ JS;
         $form->add('name', 'text');
         $form->add('phone', 'text');
         $form->add('email', 'text');
+        $form->add('currentTabId', 'text');
         $form->setValidator('lastname', 'required');
         $form->setValidator('name', 'required');
         $form->setValidator('phone', 'required');
@@ -145,8 +162,14 @@ JS;
                     'phone' => $form->getValue('phone'),
                     'email' => $form->getValue('email'),
                 );
-                $userInfo = json_encode($userInfo, JSON_FORCE_OBJECT);
-                setcookie("userInfo", $userInfo);
+                $tabID = 'tab_' . $form->getValue('currentTabId');
+                if (isset($_COOKIE['basket'])) {
+                    $basket = json_decode($_COOKIE['basket']);
+                    $basket->tabsInfo->$tabID = $userInfo;
+        } else {
+                    $basket = (object) array('tabsInfo' => array($tabID => $userInfo));
+                }
+                setcookie("basket", json_encode($basket));
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -186,14 +209,21 @@ JS;
         $form->setAjaxUrl('/');
         $form->setSuccessMessage(false);
         $form->add('payment_method', 'text');
+        $form->add('currentTabId', 'text');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $payment = array(
                     'payment_method' => $form->getValue('payment_method')
                 );
-                $payment = json_encode($payment, JSON_FORCE_OBJECT);
-                setcookie("payment", $payment);
+                $tabID = 'tab_' . $form->getValue('currentTabId');
+                if (isset($_COOKIE['basket'])) {
+                    $basket = json_decode($_COOKIE['basket']);
+                    $basket->tabsInfo->$tabID = $payment;
+                } else {
+                    $basket = (object) array('tabsInfo' => array($tabID => $payment));
+                }
+                setcookie("basket", json_encode($basket));
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
