@@ -3,7 +3,6 @@ namespace Shop\Structure\Service\Load1cV2;
 
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
-use Ideal\Core\Util;
 
 /**
  * Created by PhpStorm.
@@ -17,6 +16,12 @@ class FrontController
     protected $directory;
 
     protected $files;
+
+    public function loadFiles()
+    {
+        $this->directory = DOCUMENT_ROOT . '/tmp/1c/';
+        $this->files = $this->readDir($this->directory);
+    }
 
     // импорт файлов из 1с
     public function import()
@@ -36,6 +41,11 @@ class FrontController
 
         if (time() - filemtime($this->directory) > 3600) {
             $this->purge();
+        }
+
+        if ($request->mode != 'checkauth' && !$user->checkLogin()) {
+            print "Пользователь не авторизован";
+            die();
         }
 
         switch ($request->mode) {
@@ -86,7 +96,6 @@ class FrontController
                 return 0;
 
             case 'import':
-                $this->files = $this->readDir($this->directory);
                 print "success";
                 return 0;
 

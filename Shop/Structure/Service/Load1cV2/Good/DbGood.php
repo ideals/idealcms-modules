@@ -24,6 +24,9 @@ class DbGood extends AbstractDb
     /** @var string Структуры категорий */
     protected $structureCat = 'catalogplus_structure_category';
 
+    /** @var string Структуры категорий */
+    protected $structureMedium = 'catalogplus_medium_categorylist';
+
     /** @var array массив категорий с ID и id_1c */
     protected $categories;
 
@@ -40,6 +43,7 @@ class DbGood extends AbstractDb
         $this->table = $this->prefix . 'catalogplus_structure_good';
         $this->structurePart = $this->prefix . $this->structurePart;
         $this->structureCat = $this->prefix . $this->structureCat;
+        $this->structureMedium = $this->prefix . $this->structureMedium;
         $this->offers = $this->prefix . $this->offers;
         $res = $db->select(
             'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Good" LIMIT 1'
@@ -76,6 +80,25 @@ class DbGood extends AbstractDb
         return $result;
     }
 
+    protected function truncateCategoryList()
+    {
+        $db = Db::getInstance();
+
+        $sql = "TRUNCATE TABLE {$this->structureMedium}";
+        $db->query($sql);
+    }
+
+    protected function updateCategoryList()
+    {
+        $db = Db::getInstance();
+
+        $goods = $this->getGoods('ID as good_id, category_id, id_1c');
+        foreach ($goods as $good) {
+            unset($good['id_1c']);
+            $db->insert($this->structureMedium, $good);
+        }
+    }
+
     /**
      * Сохранение изменений и добавление новых товаров в БД
      *
@@ -85,6 +108,7 @@ class DbGood extends AbstractDb
     {
         $categoryModel = new Category\DbCategory();
         $this->categories = $categoryModel->getCategories();
+        $this->truncateCategoryList();
 
         foreach ($goods as $k => $good) {
             if (isset($good['category_id']) && !is_int($good['category_id'])) {
@@ -92,6 +116,7 @@ class DbGood extends AbstractDb
             }
         }
 
+        $this->updateCategoryList();
         parent::save($goods);
     }
 
