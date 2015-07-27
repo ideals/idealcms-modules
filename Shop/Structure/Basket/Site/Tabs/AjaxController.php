@@ -10,6 +10,8 @@ namespace Shop\Structure\Basket\Site\Tabs;
 
 use FormPhp\Forms;
 use Ideal\Core\Request;
+use Ideal\Core\Db;
+use Ideal\Core\Config;
 
 class AjaxController extends \Ideal\Core\AjaxController
 {
@@ -292,7 +294,6 @@ JS;
                     $form->saveOrder($name, $email, $_COOKIE['basket'], $price);
                 }
 
-                // TODO скоре всего стоит перенести метод в модель
                 $this->finishOrder();
                 echo 'Ваш заказ принят';
             }
@@ -328,11 +329,59 @@ JS;
 
     public function finishOrder()
     {
+        $this->saveOrderInShopSructure();
         $this->clearBasket();
     }
 
     public function clearBasket()
     {
         setcookie("basket", '', time() - 3600);
+    }
+
+    public function saveOrderInShopSructure()
+    {
+        $config = Config::getInstance();
+        $prefix = $config->db['prefix'];
+        if (class_exists('\Shop\Structure\Order\Site\Model')) {
+            $db = Db::getInstance();
+            $sql = "SELECT COUNT(*) as cnt FROM {$prefix}shop_structure_order";
+            $cnt = $db->select($sql);
+            $orderNumber = $cnt[0]['cnt'] + 1;
+
+            // Получаем идентификатор справочника "Заказы в магазине" для построения поля "prev_structure"
+            $dataList = $config->getStructureByName('Ideal_DataList');
+            $prevStructure = $dataList['ID'] . '-';
+            $par = array('structure' => 'Shop_Order');
+            $fields = array('table' => $config->db['prefix'] . 'ideal_structure_datalist');
+            $row = $db->select('SELECT ID FROM &table WHERE structure = :structure', $par, $fields);
+            $prevStructure .= $row[0]['ID'];
+
+            $basket = json_decode($_COOKIE['basket']);
+
+            // Ищем адрес доставки
+            $address = '';
+            foreach ($basket->tabsInfo as $tabInfo) {
+                if (isset($tabInfo->tabAppointment) && $tabInfo->tabAppointment == 'delivery') {
+                    $address = $tabInfo->address;
+                }
+            }
+
+            // Записываем данные
+            $db->insert(
+                $prefix . 'shop_structure_order',
+                array(
+                    'prev_structure' => $prevStructure,
+                    'name' => 'Заказ № ' . $orderNumber,
+                    'url' => 'zakaz-N-' . $orderNumber,
+                    'price' => $basket->total / 100,
+                    'stock' => $basket->count,
+                    'address' => $address,
+                    'date_create' => time(),
+                    'date_mod' => time(),
+                    'content' => $_COOKIE['basket'],
+                    'is_active' => 1
+                )
+            );
+        }
     }
 }
