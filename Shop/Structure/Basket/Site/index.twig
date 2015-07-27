@@ -219,9 +219,12 @@
             if (basket != null) {
                 basket = jQuery.parseJSON(basket);
                 if (basket.tabsInfo != null) {
-                    if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
+                    if (basket.tabsInfo.tab_{{ currentTabId }} != null && !jQuery.isEmptyObject(basket.tabsInfo.tab_{{ currentTabId }})) {
             basketFormSubmit(this, true);
             return false;
+                    } else {
+                        basket.tabsInfo.tab_{{ currentTabId }} = {};
+                        setCookie('basket', JSON.stringify(basket, null, 2));
                     }
                 }
             }
