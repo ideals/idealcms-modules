@@ -213,6 +213,20 @@
     </style>
 
     <script type="text/javascript" charset="utf-8">
+
+        jQuery('#multistep_resume').on('click', 'a', function () {
+            var basket = getCookie('basket');
+            if (basket != null) {
+                basket = jQuery.parseJSON(basket);
+                if (basket.tabsInfo != null) {
+                    if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
+            basketFormSubmit(this, true);
+            return false;
+                    }
+                }
+            }
+        });
+
         function changeCountCart(e) {
             fastChangeQuant(e);
             var $this = jQuery(e);
@@ -293,7 +307,8 @@
             });
         }
 
-        function basketFormSubmit(item) {
+        function basketFormSubmit(item, stopfinish) {
+            stopfinish = typeof stopfinish !== 'undefined' ? stopfinish : false;
             var href = jQuery(item).attr('href');
             if (window.checkform instanceof Array && window.checkform.length > 0) {
                 jQuery.each(window.checkform, function( index, value ) {
@@ -301,6 +316,9 @@
                         jQuery(value).on('form.successSend', function () {
                             window.location = href;
                         });
+                    }
+                    if (value == '#finishForm' && stopfinish == true) {
+                        return;
                     }
                     jQuery(value).submit();
                 });
