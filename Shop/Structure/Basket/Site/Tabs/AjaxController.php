@@ -20,6 +20,7 @@ class AjaxController extends \Ideal\Core\AjaxController
         $form = new Forms('confirmationForm');
         $form->setAjaxUrl('/');
         $form->setSuccessMessage(false);
+        $form->setClearForm(false);
         $form->add('order_comments', 'text');
         $form->add('currentTabId', 'text');
         if ($form->isPostRequest()) {
@@ -75,6 +76,7 @@ JS;
         $form = new Forms('deliveryForm');
         $form->setAjaxUrl('/');
         $form->setSuccessMessage(false);
+        $form->setClearForm(false);
         $form->add('billing_first_name_required', 'text');
         $form->add('billing_last_name_required', 'text');
         $form->add('billing_address_required', 'text');
@@ -146,6 +148,7 @@ JS;
         $form = new Forms('authorizationForm');
         $form->setAjaxUrl('/');
         $form->setSuccessMessage(false);
+        $form->setClearForm(false);
         $form->add('userinfo_lastname', 'text');
         $form->add('userinfo_name', 'text');
         $form->add('userinfo_phone', 'text');
@@ -213,6 +216,7 @@ JS;
         $form = new Forms('paymentForm');
         $form->setAjaxUrl('/');
         $form->setSuccessMessage(false);
+        $form->setClearForm(false);
         $form->add('payment_method', 'text');
         $form->add('currentTabId', 'text');
         if ($form->isPostRequest()) {
