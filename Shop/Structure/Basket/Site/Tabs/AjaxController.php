@@ -30,7 +30,7 @@ class AjaxController extends \Ideal\Core\AjaxController
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $orderComments = array(
-                    'order_comments' => $form->getValue('order_comments'),
+                    'order_comments' => array('label' => 'Заметки к заказу', 'value' => $form->getValue('order_comments')),
                     'tabAppointment' => 'confirmation',
                     'tabName' => $form->getValue('currentTabName')
                 );
@@ -99,12 +99,12 @@ JS;
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $delivery = array(
-                    'first_name' => $form->getValue('billing_first_name_required'),
-                    'last_name' => $form->getValue('billing_last_name_required'),
-                    'address' => $form->getValue('billing_address_required'),
-                    'email' => $form->getValue('billing_email_required'),
-                    'phone' => $form->getValue('billing_phone'),
-                    'deliveryMethod' => $form->getValue('deliveryMethod'),
+                    'first_name' => array('label' => 'Имя', 'value' => $form->getValue('billing_first_name_required')),
+                    'last_name' => array('label' => 'Фамилия', 'value' => $form->getValue('billing_last_name_required')),
+                    'address' => array('label' => 'Адрес', 'value' => $form->getValue('billing_address_required')),
+                    'email' => array('label' => 'Email-адрес', 'value' => $form->getValue('billing_email_required')),
+                    'phone' => array('label' => 'Телефон', 'value' => $form->getValue('billing_phone')),
+                    'deliveryMethod' => array('label' => 'Доставка', 'value' => $form->getValue('deliveryMethod')),
                     'tabAppointment' => 'delivery',
                     'tabName' => $form->getValue('currentTabName')
                 );
@@ -171,10 +171,10 @@ JS;
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $userInfo = array(
-                    'userinfo_lastname' => $form->getValue('userinfo_lastname'),
-                    'userinfo_name' => $form->getValue('userinfo_name'),
-                    'userinfo_phone' => $form->getValue('userinfo_phone'),
-                    'userinfo_email' => $form->getValue('userinfo_email'),
+                    'userinfo_lastname' => array('label' => 'Фамилия', 'value' => $form->getValue('userinfo_lastname')),
+                    'userinfo_name' =>  array('label' => 'Имя', 'value' => $form->getValue('userinfo_name')),
+                    'userinfo_phone' =>  array('label' => 'Телефон', 'value' => $form->getValue('userinfo_phone')),
+                    'userinfo_email' =>  array('label' => 'E-mail', 'value' => $form->getValue('userinfo_email')),
                     'tabAppointment' => 'authorization',
                     'tabName' => $form->getValue('currentTabName')
                 );
@@ -232,7 +232,7 @@ JS;
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $payment = array(
-                    'payment_method' => $form->getValue('payment_method'),
+                    'payment_method' => array('label' => 'Способ оплаты', 'value' => $form->getValue('payment_method')),
                     'tabAppointment' => 'payment',
                     'tabName' => $form->getValue('currentTabName')
                 );
