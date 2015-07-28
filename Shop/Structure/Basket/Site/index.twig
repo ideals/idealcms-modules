@@ -219,15 +219,18 @@
             if (basket != null) {
                 basket = jQuery.parseJSON(basket);
                 if (basket.tabsInfo != null) {
-                    if (basket.tabsInfo.tab_{{ currentTabId }} != null && !jQuery.isEmptyObject(basket.tabsInfo.tab_{{ currentTabId }})) {
+                    if (basket.tabsInfo.tab_{{ currentTabId }} != null && jQuery.isEmptyObject(basket.tabsInfo.tab_{{ currentTabId }}) == false) {
             basketFormSubmit(this, true);
             return false;
                     } else {
                         basket.tabsInfo.tab_{{ currentTabId }} = {};
                         setCookie('basket', JSON.stringify(basket, null, 2));
+                        var href = jQuery(this).attr('href');
+                        window.location = href;
                     }
                 }
             }
+            return false;
         });
 
         function changeCountCart(e) {
@@ -321,7 +324,7 @@
                         });
                     }
                     if (value == '#finishForm' && stopfinish == true) {
-                        return;
+                        return true;
                     }
                     jQuery(value).submit();
                 });
