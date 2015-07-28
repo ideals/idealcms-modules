@@ -366,6 +366,15 @@ JS;
 
                 // Сохраняем информацию о заказе в справочник "Заказы с сайта"
                 if (!empty($name) && !empty($email)) {
+                    // Отправляем сообщение покупателю
+                    $topic = 'Заказ в магазине "' . $config->domain . '"';
+                    $form->sendMail($config->robotEmail, $email, $topic, $message, true);
+
+                    // Отправляем сообщение менеджеру
+                    $topic = 'Заказ в магазине "' . $config->domain . '"';
+                    $message .= '<br />Источник перехода: ' . $form->getValue('referer');
+                    $form->sendMail($config->robotEmail, $config->mailForm, $topic, $message, true);
+
                     $form->saveOrder($name, $email, $message, $price);
                 }
 
