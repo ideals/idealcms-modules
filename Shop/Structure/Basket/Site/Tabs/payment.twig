@@ -73,11 +73,11 @@
                             var payment = basket.tabsInfo.tab_{{ currentTabId }};
                 if (payment != null) {
                     if (payment.payment_method != null) {
-                        $('#payment_method_' + payment.payment_method).prop('checked', true);
+                                    $('#payment_method_' + payment.payment_method.value).prop('checked', true);
                         jQuery('#payment div').each(function() {
                             jQuery(this).hide();
                         });
-                        jQuery('.payment_method_' + payment.payment_method).show();
+                                    jQuery('.payment_method_' + payment.payment_method.value).show();
                     }
                 }
                         }

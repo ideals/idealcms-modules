@@ -88,7 +88,7 @@
                             if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
                                 var order_comments = basket.tabsInfo.tab_{{ currentTabId }};
                                 if (order_comments.order_comments != null) {
-                                    jQuery('#order_comments').val(order_comments.order_comments);
+                                    jQuery('#order_comments').val(order_comments.order_comments.value);
                                 }
                             }
                         }

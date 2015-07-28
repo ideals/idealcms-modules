@@ -76,22 +76,22 @@
                         if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
                             var delivery = basket.tabsInfo.tab_{{ currentTabId }};
                     if (delivery.first_name != null) {
-                                jQuery('#billing_first_name').val(delivery.first_name);
+                                jQuery('#billing_first_name').val(delivery.first_name.value);
                     }
                     if (delivery.last_name != null) {
-                                jQuery('#billing_last_name').val(delivery.last_name);
+                                jQuery('#billing_last_name').val(delivery.last_name.value);
                     }
                     if (delivery.address != null) {
-                                jQuery('#billing_address_1').val(delivery.address);
+                                jQuery('#billing_address_1').val(delivery.address.value);
                     }
                     if (delivery.email != null) {
-                                jQuery('#billing_email').val(delivery.email);
+                                jQuery('#billing_email').val(delivery.email.value);
                     }
                     if (delivery.phone != null) {
-                                jQuery('#billing_phone').val(delivery.phone);
+                                jQuery('#billing_phone').val(delivery.phone.value);
                     }
                     if (delivery.deliveryMethod != null) {
-                                jQuery('#deliveryMethod' + delivery.deliveryMethod).prop('checked', true);
+                                jQuery('#deliveryMethod' + delivery.deliveryMethod.value).prop('checked', true);
                             }
                         }
                     }

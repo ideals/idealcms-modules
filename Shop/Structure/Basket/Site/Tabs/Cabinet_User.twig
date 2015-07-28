@@ -51,16 +51,16 @@
                         if (basket.tabsInfo.tab_{{ currentTabId }} != null) {
                             var userInfo = basket.tabsInfo.tab_{{ currentTabId }};
                             if (userInfo.userinfo_lastname != null) {
-                                jQuery('#userinfo_lastname').val(userInfo.userinfo_lastname);
+                                jQuery('#userinfo_lastname').val(userInfo.userinfo_lastname.value);
                 }
                             if (userInfo.userinfo_name != null) {
-                                jQuery('#userinfo_name').val(userInfo.userinfo_name);
+                                jQuery('#userinfo_name').val(userInfo.userinfo_name.value);
                 }
                             if (userInfo.userinfo_phone != null) {
-                                jQuery('#userinfo_phone').val(userInfo.userinfo_phone);
+                                jQuery('#userinfo_phone').val(userInfo.userinfo_phone.value);
                 }
                             if (userInfo.userinfo_email != null) {
-                                jQuery('#userinfo_email').val(userInfo.userinfo_email);
+                                jQuery('#userinfo_email').val(userInfo.userinfo_email.value);
                             }
                         }
 
