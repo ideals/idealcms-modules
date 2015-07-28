@@ -84,7 +84,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     {
         // Если было установлено правило на пересбор корзины
         if ($this->update) {
-            $tabsInfo = $this->basket['tabsInfo'];
+            if (isset($this->basket['tabsInfo'])) {
+                $tabsInfo = $this->basket['tabsInfo'];
+            } else {
+                $tabsInfo = array();
+            }
             $goods = $this->basket['goods'];
             $this->basket = array(
                 'goods' => array(), // товары которые находятся в корзине
