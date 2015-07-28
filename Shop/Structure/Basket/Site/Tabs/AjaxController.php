@@ -316,6 +316,7 @@ JS;
     public function finishAction()
     {
         $request = new Request();
+        $config = Config::getInstance();
         $form = new Forms('finishForm');
         $form->setAjaxUrl('/');
         if ($form->isPostRequest()) {
@@ -326,17 +327,46 @@ JS;
 
                 $basket = json_decode($_COOKIE['basket']);
                 $price = $basket->total / 100;
+                $message = '<h2>Товары</h2><br />';
+                $message .= '<table>';
+                $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
+
+                // Собираем итнформацию о заказанных товарах
+                foreach ($basket->goods as $good) {
+                    $summ = intval($good->count) * (intval($good->sale_price) / 100);
+                    $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) / 100 . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+                }
+                $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . $price . '</td></tr>';
+                $message .= '</table>';
+
                 foreach ($basket->tabsInfo as $tabInfo) {
+                    $message .= '<br /><br /><h2>' . $tabInfo->tabName . '</h2><br />';
                     if (isset($tabInfo->tabAppointment) && $tabInfo->tabAppointment == 'authorization') {
-                        $name = $tabInfo->userinfo_name;
-                        $email = $tabInfo->userinfo_email;
+                        $name = $tabInfo->userinfo_name->value;
+                        $email = $tabInfo->userinfo_email->value;
                     }
+                    unset($tabInfo->tabName);
+                    unset($tabInfo->tabAppointment);
+                    foreach ($tabInfo as $key => $field) {
+                        if (isset($field->label)) {
+                            $label = $field->label;
+                        } else {
+                            $label = $key;
+                        }
+                        $value = '';
+                        if (isset($field->selectedValue)) {
+                            $value = $field->selectedValue;
+                        } elseif (isset($field->value)) {
+                            $value = $field->value;
+                        }
+                        $message .= $label . ': ' . $value . '<br />';
+                    }
+
                 }
 
                 // Сохраняем информацию о заказе в справочник "Заказы с сайта"
                 if (!empty($name) && !empty($email)) {
-                    // TODO заменить "$_COOKIE['basket']" на нормальное содержимое заказа
-                    $form->saveOrder($name, $email, $_COOKIE['basket'], $price);
+                    $form->saveOrder($name, $email, $message, $price);
                 }
 
                 $this->finishOrder();
@@ -403,11 +433,41 @@ JS;
 
             $basket = json_decode($_COOKIE['basket']);
 
-            // Ищем адрес доставки
+
+            $message = '<h2>Товары</h2><br />';
+            $message .= '<table>';
+            $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
+
+            // Собираем итнформацию о заказанных товарах
+            foreach ($basket->goods as $good) {
+                $summ = intval($good->count) * (intval($good->sale_price) / 100);
+                $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) / 100 . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+            }
+            $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . intval($basket->total) / 100 . '</td></tr>';
+            $message .= '</table>';
+
+            // Ищем адрес доставки и генерируем сообщение
             $address = '';
             foreach ($basket->tabsInfo as $tabInfo) {
+                $message .= '<br /><br /><h2>' . $tabInfo->tabName . '</h2><br />';
                 if (isset($tabInfo->tabAppointment) && $tabInfo->tabAppointment == 'delivery') {
                     $address = $tabInfo->address;
+                }
+                unset($tabInfo->tabName);
+                unset($tabInfo->tabAppointment);
+                foreach ($tabInfo as $key => $field) {
+                    if (isset($field->label)) {
+                        $label = $field->label;
+                    } else {
+                        $label = $key;
+                    }
+                    $value = '';
+                    if (isset($field->selectedValue)) {
+                        $value = $field->selectedValue;
+                    } elseif (isset($field->value)) {
+                        $value = $field->value;
+                    }
+                    $message .= $label . ': ' . $value . '<br />';
                 }
             }
 
@@ -423,7 +483,7 @@ JS;
                     'address' => $address,
                     'date_create' => time(),
                     'date_mod' => time(),
-                    'content' => $_COOKIE['basket'],
+                    'content' => $message,
                     'is_active' => 1
                 )
             );
