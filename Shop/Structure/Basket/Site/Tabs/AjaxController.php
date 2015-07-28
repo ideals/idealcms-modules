@@ -98,13 +98,32 @@ JS;
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
+                // Получаем название способа доставки
+                switch ($form->getValue('deliveryMethod')) {
+                    case '1':
+                        $selectedValue = 'Курьерская доставка по Москве';
+                        break;
+                    case '2':
+                        $selectedValue = 'Курьерская доставка по Московской области';
+                        break;
+                    case '3':
+                        $selectedValue = 'Почта России';
+                        break;
+                    case '4':
+                        $selectedValue = 'EMS - Почта России';
+                        break;
+                    default:
+                        $selectedValue = '';
+                        break;
+                }
+
                 $delivery = array(
                     'first_name' => array('label' => 'Имя', 'value' => $form->getValue('billing_first_name_required')),
                     'last_name' => array('label' => 'Фамилия', 'value' => $form->getValue('billing_last_name_required')),
                     'address' => array('label' => 'Адрес', 'value' => $form->getValue('billing_address_required')),
                     'email' => array('label' => 'Email-адрес', 'value' => $form->getValue('billing_email_required')),
                     'phone' => array('label' => 'Телефон', 'value' => $form->getValue('billing_phone')),
-                    'deliveryMethod' => array('label' => 'Доставка', 'value' => $form->getValue('deliveryMethod')),
+                    'deliveryMethod' => array('label' => 'Доставка', 'value' => $form->getValue('deliveryMethod'), 'selectedValue' => $selectedValue),
                     'tabAppointment' => 'delivery',
                     'tabName' => $form->getValue('currentTabName')
                 );
@@ -231,8 +250,26 @@ JS;
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
+                // Получаем название способа оплаты
+                switch ($form->getValue('payment_method')) {
+                    case 'cod':
+                        $selectedValue = 'Наличными';
+                        break;
+                    case 'bacs':
+                        $selectedValue = 'Прямой банковский перевод';
+                        break;
+                    case 'cheque':
+                        $selectedValue = 'Оплата чеками';
+                        break;
+                    case 'paypal':
+                        $selectedValue = 'PayPal';
+                        break;
+                    default:
+                        $selectedValue = '';
+                        break;
+                }
                 $payment = array(
-                    'payment_method' => array('label' => 'Способ оплаты', 'value' => $form->getValue('payment_method')),
+                    'payment_method' => array('label' => 'Способ оплаты', 'value' => $form->getValue('payment_method'), 'selectedValue' => $selectedValue),
                     'tabAppointment' => 'payment',
                     'tabName' => $form->getValue('currentTabName')
                 );
