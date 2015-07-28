@@ -25,12 +25,14 @@ class AjaxController extends \Ideal\Core\AjaxController
         $form->setClearForm(false);
         $form->add('order_comments', 'text');
         $form->add('currentTabId', 'text');
+        $form->add('currentTabName', 'text');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $orderComments = array(
                     'order_comments' => $form->getValue('order_comments'),
-                    'tabAppointment' => 'confirmation'
+                    'tabAppointment' => 'confirmation',
+                    'tabName' => $form->getValue('currentTabName')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
@@ -86,6 +88,7 @@ JS;
         $form->add('billing_phone', 'text');
         $form->add('deliveryMethod', 'text');
         $form->add('currentTabId', 'text');
+        $form->add('currentTabName', 'text');
         $form->setValidator('billing_first_name_required', 'required');
         $form->setValidator('billing_last_name_required', 'required');
         $form->setValidator('billing_address_required', 'required');
@@ -102,7 +105,8 @@ JS;
                     'email' => $form->getValue('billing_email_required'),
                     'phone' => $form->getValue('billing_phone'),
                     'deliveryMethod' => $form->getValue('deliveryMethod'),
-                    'tabAppointment' => 'delivery'
+                    'tabAppointment' => 'delivery',
+                    'tabName' => $form->getValue('currentTabName')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
@@ -156,6 +160,7 @@ JS;
         $form->add('userinfo_phone', 'text');
         $form->add('userinfo_email', 'text');
         $form->add('currentTabId', 'text');
+        $form->add('currentTabName', 'text');
         $form->setValidator('userinfo_lastname', 'required');
         $form->setValidator('userinfo_name', 'required');
         $form->setValidator('userinfo_phone', 'required');
@@ -170,7 +175,8 @@ JS;
                     'userinfo_name' => $form->getValue('userinfo_name'),
                     'userinfo_phone' => $form->getValue('userinfo_phone'),
                     'userinfo_email' => $form->getValue('userinfo_email'),
-                    'tabAppointment' => 'authorization'
+                    'tabAppointment' => 'authorization',
+                    'tabName' => $form->getValue('currentTabName')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
@@ -221,12 +227,14 @@ JS;
         $form->setClearForm(false);
         $form->add('payment_method', 'text');
         $form->add('currentTabId', 'text');
+        $form->add('currentTabName', 'text');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $payment = array(
                     'payment_method' => $form->getValue('payment_method'),
-                    'tabAppointment' => 'payment'
+                    'tabAppointment' => 'payment',
+                    'tabName' => $form->getValue('currentTabName')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['basket'])) {
