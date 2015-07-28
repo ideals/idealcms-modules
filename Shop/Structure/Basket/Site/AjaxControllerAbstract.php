@@ -150,7 +150,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             $this->basket['goods'][$id] = array(
                 'price' => $good['price'],
                 'count' => $quant,
-                'sale_price' => $good['sale_price']
+                'sale_price' => $good['sale_price'],
+                'name' => $good['name']
             );
             $this->basket['count'] += 1;
         }
@@ -224,13 +225,13 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $db = Db::getInstance();
         if ($offer === false) {
             // Запрос в базу на получение информации о конкретном товаре
-            $sql = "SELECT e.price, (CEIL(((100-e.sell)/100)*e.price)) AS sale_price
+            $sql = "SELECT e.price, (CEIL(((100-e.sell)/100)*e.price)) AS sale_price, e.name
                     FROM {$this->tableGood} AS e
                     WHERE ID = {$id} AND e.is_active = 1
                     LIMIT 1";
         } else {
             // Запрос в базу на получение информации о конкретном предложении для товара
-            $sql = "SELECT o.price, (CEIL(((100-g.sell)/100)*o.price)) AS sale_price
+            $sql = "SELECT o.price, (CEIL(((100-g.sell)/100)*o.price)) AS sale_price, o.name
                     FROM {$this->tableOffer} AS o
                     INNER JOIN {$this->tableGood} as g ON (g.ID = {$id})
                     WHERE o.ID = {$offer} AND o.is_active = 1
