@@ -35,6 +35,14 @@ class XmlGood extends AbstractXml
                 $this->data[$k]['url'] = Url\Model::translitUrl($val['name']);
             }
 
+            if (isset($val['img'])) {
+                $this->data[$k]['img'] = '/images/' . $val['img'];
+            }
+
+            if (isset($val['imgs'])) {
+                $this->data[$k]['imgs'] = '/images/' . $val['imgs'];
+            }
+
             $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : '0';
         }
 

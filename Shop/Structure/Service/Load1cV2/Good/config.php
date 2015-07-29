@@ -13,6 +13,7 @@ return array(
         'Артикул'       => 'articul',
         'Наименование'  => 'name',
         'ПометкаУдаления' => 'is_active',
+        'Картинка'      => 'img',
         'category_id'   => array(
             'path' => 'Группы/Ид',
         ),

@@ -72,6 +72,10 @@ class AbstractXml
                 }
             } else {
                 if (strlen((string) $needle[0]) != 0) {
+                    if (isset($needle[1]) && strlen((string) $needle[1]) != 0 && $key == 'Картинка') {
+                        $this->data[$id]['imgs'] = (string) $needle[1];
+                    }
+
                     $this->data[$id][$value] = (string) $needle[0];
                 }
             }

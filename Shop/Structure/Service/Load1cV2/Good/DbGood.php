@@ -61,7 +61,7 @@ class DbGood extends AbstractDb
         $db = Db::getInstance();
 
         // Считываем товары из нашей БД
-        $sql = "SELECT sg.ID, sg.full_name, sg.prev_structure, sg.name, sg.id_1c, sg.is_active,
+        $sql = "SELECT sg.ID, sg.img, sg.imgs, sg.full_name, sg.prev_structure, sg.name, sg.id_1c, sg.is_active,
             sg.url, sg.articul, sg.description, sc.id_1c as category_id
             FROM {$this->table} as sg LEFT JOIN {$this->structureCat} as sc ON sg.category_id = sc.ID
             WHERE sg.prev_structure='{$this->prevGood}'";

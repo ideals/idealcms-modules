@@ -42,6 +42,12 @@ class XmlOffer extends AbstractXml
 
         parent::parse();
 
+        foreach ($this->data as $k => $value) {
+            if ($value['price'] == 0) {
+                $this->data[$k]['is_active'] = '0';
+            }
+        }
+
         return $this->data;
     }
 
