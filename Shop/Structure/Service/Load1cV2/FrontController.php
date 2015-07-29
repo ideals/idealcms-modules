@@ -17,19 +17,19 @@ class FrontController
 
     protected $files;
 
-    public function loadFiles()
+    public function loadFiles($dir)
     {
-        $this->directory = DOCUMENT_ROOT . '/tmp/1c/';
+        $this->directory = DOCUMENT_ROOT . $dir;
         $this->files = $this->readDir($this->directory);
     }
 
     // импорт файлов из 1с
-    public function import()
+    public function import($dir)
     {
         $user = new Model();
         $request = new Request();
 
-        $this->directory = DOCUMENT_ROOT . '/tmp/1c/';
+        $this->directory = DOCUMENT_ROOT . $dir;
 
         if (!file_exists($this->directory)) {
             mkdir($this->directory, 0750, true);

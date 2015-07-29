@@ -23,6 +23,7 @@ set_include_path(
 
 // Подключаем автозагрузчик классов
 require_once 'Core/AutoLoader.php';
+$params = require_once 'config.php';
 
 $config = Core\Config::getInstance();
 
@@ -35,4 +36,4 @@ $config->loadSettings();
 // сообщения об ошибках добавления insert, например, возвращает false
 $fc = new Load1cV2\FrontController();
 
-$fc->import();
+$fc->import($params['info']['directory']);
