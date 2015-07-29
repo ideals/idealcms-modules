@@ -33,7 +33,7 @@ return array(
         ),
         'price' => array(
             'label' => 'Сумма заказа',
-            'sql'   => 'int',
+            'sql'   => 'float',
             'type'  => 'Shop_Price'
         ),
         'stock' => array(
