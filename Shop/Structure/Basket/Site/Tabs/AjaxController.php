@@ -374,12 +374,24 @@ JS;
                 if (!empty($basket->name) && !empty($basket->email)) {
                     // Отправляем сообщение покупателю
                     $topic = 'Заказ в магазине "' . $config->domain . '"';
-                    $form->sendMail($config->robotEmail, $basket->email, $topic, $message, false);
+                    $form->sendMail($config->robotEmail, $basket->email, $topic, $message, true);
 
                     // Отправляем сообщение менеджеру
                     $topic = 'Заказ в магазине "' . $config->domain . '"';
-                    $message .= '<br />Источник перехода: ' . $form->getValue('referer');
-                    $form->sendMail($config->robotEmail, $config->mailForm, $topic, $message, false);
+                    $referer = $form->getValue('referer');
+
+                    if ($referer == 'null') { // Отлавливаем прямой переход
+                        $referer = 'Прямой переход';
+                    } elseif (strripos($referer, 'yandex') !== false) { // Отлавливаем яндекс
+                        $referer = 'Яндекс';
+                    } elseif (strripos($referer, 'google') !== false) { // Отлавливаем гугл
+                        $referer = 'Google';
+                    } else { // Отлавливаем другие сайты
+                        $referer = 'Другой сайт';
+                    }
+
+                    $message .= '<br />Источник перехода: ' . $referer;
+                    $form->sendMail($config->robotEmail, $config->mailForm, $topic, $message, true);
 
                     $form->saveOrder($basket->name, $basket->email, $message, $price);
                 }
