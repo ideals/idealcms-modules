@@ -20,7 +20,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /** @var mixed null - если фильтр не установлен, Объект фильтра если фильтр был применён */
     protected $filter = null;
 
-    public function setFilter($filter){
+    public function setFilter($filter)
+    {
         $this->filter = $filter;
         $this->filter->setCategoryModel($this->categoryModel);
         $this->filter->setShowNestedElements($this->showNestedElements);
@@ -345,8 +346,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                     WHERE g.ID IN (" . implode(',', $goodId) . ") AND o.ID IN (" . implode(',', $offerId) . ")";
         }
         $info = $db->select($sql);
-        // Делаем массив с ключом идТовара_идПредложения
+        // Делаем массив с ключом идТовара_идПредложения и дополняем ссылкой на товар
         foreach ($info as $k => $v) {
+            $link = '';
+            $this->getFullUrl($v, $link);
+            $v['link'] = 'href="' . rtrim($link, '/') . '"';
             unset($info[$k]);
             if ($offers) {
                 $info[$v['ID'] . '_' . $v['offer_ID']] = $v;
@@ -355,5 +359,60 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             }
         }
         return $info;
+    }
+
+    /**
+     * Рекурсивная функция, генерирующая ссылку на товар
+     *
+     * @param array $v Массив с данными о текущем элементе структуры
+     * @param string $link Генерируемая ссылка на товар
+     * @param array $structure Массив с данными о текущей структуре
+     */
+    public function getFullUrl($v, &$link, $structure = array())
+    {
+        if (!$v['is_skip']) {
+            $link = $v['url'] . '/' . $link;
+        }
+        $config = Config::getInstance();
+        $db = Db::getInstance();
+
+        if (!isset($v['cid'])) {
+            if (isset($v['prev_structure']) && !empty($v['prev_structure'])) {
+                list($idStructure, $idElement) = explode('-', $v['prev_structure']);
+                $structure = $config->getStructureById($idStructure);
+                $structureTable = $config->getTableByName($structure['structure']);
+                $sql = "SELECT * FROM {$structureTable} WHERE id = {$idElement} LIMIT 1";
+                $info = $db->select($sql);
+                $v = $info[0];
+                $this->getFullUrl($v, $link, $structure);
+            }
+        } else {
+            if (empty($structure)) {
+                $structure = $config->getStructureByName($this->getStructureName());
+            }
+            $nextUpLevel = $v['lvl'] - 1;
+            if (!$nextUpLevel) {
+                if ($v['prev_structure'] == '0-1') {
+                    $link .= '/' . $link;
+                    return;
+                } else {
+                    list($idStructure, $idElement) = explode('-', $v['prev_structure']);
+                    $structure = $config->getStructureById($idStructure);
+                    $structureTable = $config->getTableByName($structure['structure']);
+                }
+                $sql = "SELECT * FROM {$structureTable} WHERE id = {$idElement} LIMIT 1";
+                $info = $db->select($sql);
+                $v = $info[0];
+                $this->getFullUrl($v, $link, $structure);
+            } else {
+                $cid = new Field\Cid\Model($structure['params']['levels'], $structure['params']['digits']);
+                $cid = $cid->getCidByLevel($v['cid'], $nextUpLevel);
+                $structureTable = $config->getTableByName($structure['structure']);
+                $sql = "SELECT * FROM {$structureTable} WHERE cid = '{$cid}%' LIMIT 1";
+                $info = $db->select($sql);
+                $v = $info[0];
+                $this->getFullUrl($v, $link, $structure);
+            }
+        }
     }
 }
