@@ -37,7 +37,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function insetAction()
     {
-        $form = $_POST['form'];
+        $form = htmlspecialchars($_POST['form']);
         parse_str($form, $post);
 
         $user = User\Model::getInstance();
@@ -73,9 +73,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function deleteAction()
     {
-        $post['ID'] = $_POST['ID'];
-        $post['main_parent_id'] = $_POST['main_parent_id'];
-        $post['parent_id'] = $_POST['parent_id'];
+        $post['ID'] = htmlspecialchars($_POST['ID']);
+        $post['main_parent_id'] = htmlspecialchars($_POST['main_parent_id']);
+        $post['parent_id'] = htmlspecialchars($_POST['parent_id']);
         $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
         $result = $this->model->deletePost();
@@ -91,8 +91,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function moderateAction()
     {
-        $post['ID'] = $_POST['ID'];
-        $post['isModerated'] = $_POST['isModerated'];
+        $post['ID'] = htmlspecialchars($_POST['ID']);
+        $post['isModerated'] = htmlspecialchars($_POST['isModerated']);
         $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
         $result = $this->model->moderatedPost();
@@ -108,7 +108,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function updateAction()
     {
-        $form = $_POST['form'];
+        $form = htmlspecialchars($_POST['form']);
         parse_str($form, $post);
 
         $user = User\Model::getInstance();
