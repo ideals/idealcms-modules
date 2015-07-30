@@ -5,8 +5,8 @@ return array(
     'pos'    => 31,
     'info'   => array(
         'directory'         => '/tmp/1c/',
-        'images_directory'  => '/tmp/1c/1/import_files/',
-        'resize'            => '150x150',
+        'images_directory'  => '1/import_files/',
+        'resize'            => '300x300',
     ),
     'structure' => 'Ideal_Service',
     'ID' => 'Shop_Load1cV2'

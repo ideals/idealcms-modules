@@ -13,9 +13,16 @@ use Ideal\Core\Config;
 class NewCategory
 {
     /** @var array ответ о добавленных и удаленных категориях */
-    protected $answer = array();
+    protected $answer = array(
+        'step' => 'Категории'
+    );
+
+    /** @var  bool содержит ли xml только обновления */
+    protected $onlyUpdate;
+
     /** @var  DbCategory */
     protected $dbCategory;
+
     /** @var  XmlCategory */
     protected $xmlCategory;
 
@@ -27,6 +34,7 @@ class NewCategory
     {
         $this->dbCategory = $dbCategory;
         $this->xmlCategory = $xmlCategory;
+        $this->onlyUpdate = $this->xmlCategory->updateInfo();
     }
 
     /**

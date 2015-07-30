@@ -24,22 +24,18 @@ class FrontController
     }
 
     // импорт файлов из 1с
-    public function import($dir)
+    public function import($conf)
     {
         $user = new Model();
         $request = new Request();
 
-        $this->directory = DOCUMENT_ROOT . $dir;
-
-        if (!file_exists($this->directory)) {
-            mkdir($this->directory, 0750, true);
-        }
+        $this->directory = DOCUMENT_ROOT . $conf['directory'];
 
         if (!file_exists($this->directory . '1/')) {
             mkdir($this->directory . '1/', 0750, true);
         }
 
-        if (time() - filemtime($this->directory) > 3600) {
+        if (time() - filemtime($this->directory) > 600) {
             $this->purge();
         }
 
@@ -50,10 +46,12 @@ class FrontController
 
         switch ($request->mode) {
             case 'checkauth':
-                if (!$user->login($request->PHP_AUTH_USER, $request->PHP_AUTH_PW)) {
+                if ($user->login($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
                     print "success\n";
                     print session_name() . "\n";
                     print session_id();
+                } else {
+                    print "Пользователь не авторизован\n";
                 }
                 return 0;
 
@@ -92,10 +90,30 @@ class FrontController
                 fwrite($f, file_get_contents('php://input'));
                 fclose($f);
 
+                if (isset($path) && getimagesize($path)) {
+                    list($w, $h) = explode('x', $conf['resize']);
+                    new Image($path, $w, $h);
+//                    unlink($path);
+                }
+
                 print "success\n";
                 return 0;
 
             case 'import':
+                $this->readDir($this->directory);
+                if (basename($this->files['import']) == $request->filename) {
+                    $this->category();
+                } elseif (basename($this->files['1']['import']) == $request->filename) {
+                    $this->good();
+                } elseif (basename($this->files['offers']) == $request->filename) {
+                    $this->directory();
+                } elseif (
+                    isset($this->files['1']['prices']) &&
+                    isset($this->files['1']['rests']) &&
+                    isset($this->files['1']['offers'])
+                ) {
+                    $this->offer();
+                }
                 print "success";
                 return 0;
 
@@ -110,7 +128,9 @@ class FrontController
         $files = array();
 
         while (false !== ($entry = readdir($handle))) {
-            if (0 === strpos($entry, '.')) {
+            if (0 === strpos($entry, '.')
+                || false !== strpos($entry, 'jpeg')
+                || false !== strpos($entry, 'jpg')) {
                 continue;
             }
 
@@ -150,11 +170,7 @@ class FrontController
         $dbCategory->createDefaultCategory();
 
         // Уведомление пользователя о количестве добавленных, удалённых и обновлённых категорий
-        $answer = $newCategory->answer();
-
-        echo 'category: ';
-        print_r($answer);
-        echo '<br/>';
+        return $newCategory->answer();
     }
 
     // товары
@@ -178,11 +194,7 @@ class FrontController
         $dbGood->save($goods);
 
         // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
-        $answer = $newGood->answer();
-
-        echo 'good: ';
-        print_r($answer);
-        echo '<br/>';
+        return $newGood->answer();
     }
 
     // справочники
@@ -206,11 +218,7 @@ class FrontController
         $dbDirectory->save($directories);
 
         // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
-        $answer = $newDirectory->answer();
-
-        echo 'directory: ';
-        print_r($answer);
-        echo '<br/>';
+        return $newDirectory->answer();
     }
 
     // предложения
@@ -230,11 +238,7 @@ class FrontController
         // Устанавливаем связь БД и XML
         $offers1 = $newOffers->parse();
 
-        $answer = $newOffers->answer();
-
-        echo 'offer: ';
-        print_r($answer);
-        echo '<br/>';
+        $answer['offer'] = $newOffers->answer();
 
         unset ($xml, $xmlOffers, $newOffers);
 
@@ -249,11 +253,7 @@ class FrontController
         // Устанавливаем связь БД и XML
         $offers2 = $newOffers->parsePrice();
 
-        $answer = $newOffers->answer();
-
-        echo 'offer:prices: ';
-        print_r($answer);
-        echo '<br/>';
+        $answer['prices'] = $newOffers->answer();
 
         unset ($xml, $xmlPrices, $newOffers);
 
@@ -274,14 +274,12 @@ class FrontController
         // Сохраняем результаты
         $dbOffers->save($offers);
 
-        $answer = $newOffers->answer();
-
-        echo 'offer:rests: ';
-        print_r($answer);
-        echo '<br/>';
+        $answer['rests'] = $newOffers->answer();
 
         $dbGood = new Good\DbGood();
         $dbGood->updateGood();
+
+        return $answer;
     }
 
     private function purge()

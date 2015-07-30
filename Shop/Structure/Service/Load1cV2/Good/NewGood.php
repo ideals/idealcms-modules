@@ -12,7 +12,12 @@ use Ideal\Field\Url;
 class NewGood
 {
     /** @var array ответ пользователю об обновленных и добавленных */
-    protected $answer = array();
+    protected $answer = array(
+        'step'  => 'Товары'
+    );
+
+    /** @var  bool содержит ли xml только обновления */
+    protected $onlyUpdate;
 
     /** @var DbGood */
     protected $dbGood;
@@ -28,6 +33,7 @@ class NewGood
     {
         $this->dbGood = $dbGood;
         $this->xmlGood = $xmlGood;
+        $this->onlyUpdate = $this->xmlGood->updateInfo();
     }
 
     /**

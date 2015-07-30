@@ -1,43 +1,29 @@
 <?php
 use Shop\Structure\Service\Load1cV2;
-use Ideal\Core;
 
-ini_set('display_errors', 'On');
-
-$cmsFolder = 'don';
-$subFolder = '';
-
-// Абсолютный адрес корня сервера, не должен оканчиваться на слэш.
-define('DOCUMENT_ROOT', getenv('SITE_ROOT') ? getenv('SITE_ROOT') : $_SERVER['DOCUMENT_ROOT']);
-
-// В пути поиска по умолчанию включаем корень сайта, путь к Ideal и папке кастомизации CMS
-set_include_path(
-    get_include_path()
-    . PATH_SEPARATOR . DOCUMENT_ROOT
-    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal.c/'
-    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/'
-    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Mods.c/'
-    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Mods/'
-    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/Library/'
+$fc = new Load1cV2\FrontController();
+$answer = array(
+    'continue' => true,
 );
 
-// Подключаем автозагрузчик классов
-require_once 'Core/AutoLoader.php';
-$params = require_once 'config.php';
+switch ($step) {
+    case 1:
+        $fc->loadFiles($item['info']['directory']);
+        $answer = array_merge($answer, $fc->category());
+        break;
+    case 2:
+        $fc->loadFiles($item['info']['directory']);
+        $answer = array_merge($answer, $fc->good());
+        break;
+    case 3:
+        $fc->loadFiles($item['info']['directory']);
+        $answer = array_merge($answer, $fc->directory());
+        break;
+    case 4:
+        $fc->loadFiles($item['info']['directory']);
+        $answer = array_merge($answer, $fc->offer());
+        $answer['continue'] = false;
+        break;
+}
 
-$config = Core\Config::getInstance();
-
-// Каталог, в котором находятся модифицированные скрипты CMS
-$config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
-
-// Загружаем список структур из конфигурационных файлов структур
-$config->loadSettings();
-
-// сообщения об ошибках добавления insert, например, возвращает false
-$fc = new Load1cV2\FrontController();
-
-$fc->loadFiles($params['info']['directory']);
-$fc->category();
-$fc->good();
-$fc->directory();
-$fc->offer();
+die(json_encode($answer));

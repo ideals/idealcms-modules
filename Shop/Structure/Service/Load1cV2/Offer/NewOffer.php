@@ -10,7 +10,12 @@ namespace Shop\Structure\Service\Load1cV2\Offer;
 class NewOffer
 {
     /** @var array ответ пользователю об обновленных и добавленных */
-    protected $answer = array();
+    protected $answer = array(
+        'step'  => 'Предложения'
+    );
+
+    /** @var  bool содержит ли xml только обновления */
+    protected $onlyUpdate;
 
     /** @var DbOffer */
     protected $dbOffer;
@@ -26,6 +31,7 @@ class NewOffer
     {
         $this->dbOffer = $dbOffer;
         $this->xmlOffer = $xmlOffer;
+        $this->onlyUpdate = $this->xmlOffer->updateInfo();
     }
 
     /**

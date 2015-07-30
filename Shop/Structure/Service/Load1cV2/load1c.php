@@ -36,4 +36,4 @@ $config->loadSettings();
 // сообщения об ошибках добавления insert, например, возвращает false
 $fc = new Load1cV2\FrontController();
 
-$fc->import($params['info']['directory']);
+$fc->import($params['info']);

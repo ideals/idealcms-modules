@@ -12,7 +12,12 @@ use Ideal\Field\Url;
 class NewDirectory
 {
     /** @var array ответ пользователю об обновленных и добавленных */
-    protected $answer = array();
+    protected $answer = array(
+        'step'  => 'Справочники'
+    );
+
+    /** @var  bool содержит ли xml только обновления */
+    protected $onlyUpdate;
 
     /** @var DbDirectory */
     protected $dbGood;
@@ -28,6 +33,7 @@ class NewDirectory
     {
         $this->dbGood = $dbGood;
         $this->xmlGood = $xmlGood;
+        $this->onlyUpdate = $this->xmlGood->updateInfo();
     }
 
     /**

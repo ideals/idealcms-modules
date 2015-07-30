@@ -14,6 +14,7 @@ class AbstractXml
     protected $ns;
     protected $configs;
     protected $data;
+    protected $updateInfo;
 
     public function __construct(Xml $xml)
     {
@@ -30,6 +31,11 @@ class AbstractXml
         $path = explode('\\', get_class($this));
         $path = array_slice($path, -2, 1);
         $this->configs = include $path[0] . '/config.php';
+    }
+
+    public function updateInfo()
+    {
+        return $this->updateInfo;
     }
 
     public function parse()
