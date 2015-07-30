@@ -206,6 +206,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     }
 
     /**
+     * Функция на запрос состояние корзины
+     */
+    public function clearBasketAction()
+    {
+        setcookie("basket", '', time() - 3600);
+        exit();
+    }
+
+    /**
      * TODO Удаление корзины полностью
      */
     public function delBasket()
