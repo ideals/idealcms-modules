@@ -504,7 +504,7 @@ JS;
                     'prev_structure' => $prevStructure,
                     'name' => 'Заказ № ' . $orderNumber,
                     'url' => 'zakaz-N-' . $orderNumber,
-                    'price' => preg_replace(array('/,/', '/,/'), '.', strval($basket->total / 100)),
+                    'price' => $basket->total,
                     'stock' => $basket->count,
                     'address' => $address,
                     'date_create' => time(),
