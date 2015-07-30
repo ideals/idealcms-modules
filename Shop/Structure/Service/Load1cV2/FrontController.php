@@ -3,6 +3,7 @@ namespace Shop\Structure\Service\Load1cV2;
 
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
+use Shop\Structure\Service\Load1cV2\Image;
 
 /**
  * Created by PhpStorm.
@@ -83,6 +84,7 @@ class FrontController
 
                 if (in_array($type[1], $exists)) {
                     $f = fopen($this->directory . '1/' . $filename, 'ab');
+                    $path = $this->directory . '1/' . $filename;
                 } else {
                     $f = fopen($this->directory . $filename, 'ab');
                 }
@@ -93,7 +95,7 @@ class FrontController
                 if (isset($path) && getimagesize($path)) {
                     list($w, $h) = explode('x', $conf['resize']);
                     new Image($path, $w, $h);
-//                    unlink($path);
+                    unlink($path);
                 }
 
                 print "success\n";
@@ -101,11 +103,12 @@ class FrontController
 
             case 'import':
                 $this->readDir($this->directory);
-                if (basename($this->files['import']) == $request->filename) {
+                $file = basename($request->filename);
+                if (basename($this->files['import']) == $file) {
                     $this->category();
-                } elseif (basename($this->files['1']['import']) == $request->filename) {
+                } elseif (basename($this->files['1']['import']) == $file) {
                     $this->good();
-                } elseif (basename($this->files['offers']) == $request->filename) {
+                } elseif (basename($this->files['offers']) == $file) {
                     $this->directory();
                 } elseif (
                     isset($this->files['1']['prices']) &&
@@ -129,8 +132,8 @@ class FrontController
 
         while (false !== ($entry = readdir($handle))) {
             if (0 === strpos($entry, '.')
-                || false !== strpos($entry, 'jpeg')
-                || false !== strpos($entry, 'jpg')) {
+                || false !== strpos($entry, '.jpeg')
+                || false !== strpos($entry, '.jpg')) {
                 continue;
             }
 
@@ -280,6 +283,42 @@ class FrontController
         $dbGood->updateGood();
 
         return $answer;
+    }
+
+    public function loadImages($dir)
+    {
+        $count = 0;
+        $this->directory = DOCUMENT_ROOT . $dir['directory'] . $dir['images_directory'];
+
+        $handle = opendir($this->directory);
+        list($w, $h) = explode('x', $dir['resize']);
+
+        while (false !== ($entry = readdir($handle))) {
+            if (0 === strpos($entry, '.')) {
+                continue;
+            }
+
+            if (is_dir($this->directory . $entry)) {
+                $incHandle = opendir($this->directory . $entry);
+
+                while (false !== ($img = readdir($incHandle))) {
+                    if (0 === strpos($img, '.')) {
+                        continue;
+                    }
+                    if (false !== strpos($img, '.jpeg') || false !== strpos($img, '.jpg')) {
+                        $path = $this->directory . $entry . '/' .$img;
+                        new Image($path, $w, $h);
+                        $count++;
+                        unlink($path);
+                    }
+                }
+            }
+            unlink($entry);
+        }
+        return array(
+            'step' => 'Ресайз изображений',
+            'count'  => $count
+        );
     }
 
     private function purge()

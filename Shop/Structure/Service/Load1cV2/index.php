@@ -22,7 +22,10 @@ switch ($step) {
     case 4:
         $fc->loadFiles($item['info']['directory']);
         $answer = array_merge($answer, $fc->offer());
+        break;
+    case 5:
         $answer['continue'] = false;
+        $answer = array_merge($answer, $fc->loadImages($item['info']));
         break;
 }
 

@@ -36,11 +36,11 @@ class XmlGood extends AbstractXml
             }
 
             if (isset($val['img'])) {
-                $this->data[$k]['img'] = '/images/' . $val['img'];
+                $this->data[$k]['img'] = '/images/1c/' . basename($val['img']);
             }
 
             if (isset($val['imgs'])) {
-                $this->data[$k]['imgs'] = '/images/' . $val['imgs'];
+                $this->data[$k]['imgs'] = '/images/1c/' . basename($val['imgs']);
             }
 
             $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : '0';

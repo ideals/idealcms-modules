@@ -102,6 +102,9 @@ include('modalUpdate.html');
                         modal_body.append('<div class="alert alert-success fade in">Добавлено: ' +
                             data[i]['add'] + '<br />Обновлено: ' + data[i]['update'] + '</div>');
                     }
+                } else if (data['step'] == 'Ресайз изображений') {
+                    modal_body.append('<div class="alert alert-success fade in">Изменений: ' +
+                        data['count'] + '</div>');
                 } else {
                     modal_body.append('<div class="alert alert-success fade in">Добавлено: ' +
                         data['add'] + '<br />Обновлено: ' + data['update'] + '</div>');

@@ -31,11 +31,11 @@ class Image
         $filename = "{$this->dirImage}/" . $image;
 
 
-        if (!file_exists($filename)) {
-            $this->resize($this->img, $width, $height, "{$this->dirImage}/", $border);
-            $this->res = true;
+        if (file_exists($filename)) {
+            unlink($filename);
         }
-        $this->res = false;
+        $this->resize($this->img, $width, $height, "{$this->dirImage}/", $border);
+        $this->res = true;
     }
 
     public function getName()
