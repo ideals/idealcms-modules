@@ -64,6 +64,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $basket['total'] += $basket['goods'][$k]['total_price'];
             $basket['count'] += 1;
         }
+        // Применяем скидку, если она есть
+        if (!empty($basket['disco'])) {
+            $basket['total'] -= $basket['disco'];
+        }
         return $basket;
     }
 

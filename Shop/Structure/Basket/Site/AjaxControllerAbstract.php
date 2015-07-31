@@ -10,6 +10,7 @@ namespace Shop\Structure\Basket\Site;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
+use Ideal\Structure\Service\SiteData\ConfigPhp;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
@@ -30,6 +31,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
     /** @var int кол-во товара(предложений) которые планируется добавить в корзину, если пусто то +1 */
     protected $quant;
+
+    /** @var string Значение скидки (может приутствовать знак "%") */
+    protected $disco = '';
 
     /** @var int время жизни корзины в секундах, если время обновления(создания) корзины больше, то она обновляется */
     protected $timeLive = 7200;
@@ -107,6 +111,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 unset($goods[$k]);
             }
             $this->basket['versi'] = time();
+            if (stripos($this->disco, '%') !== false) {
+                $this->disco = intval(str_replace('%', '', $this->disco));
+                $tempTotal = intval($this->basket['total']) / 100;
+                $this->basket['disco'] =  round($tempTotal / 100 * $this->disco);
+            } else {
+                $this->basket['disco'] = $this->disco;
+            }
+            $this->basket['total'] -= $this->basket['disco'] * 100;
+            setcookie("basket", json_encode($this->basket, JSON_FORCE_OBJECT));
         }
         $this->answer['basket'] = $this->basket;
         print json_encode($this->answer);
@@ -211,6 +224,42 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     public function clearBasketAction()
     {
         setcookie("basket", '', time() - 3600);
+        exit();
+    }
+
+    /**
+     * Функция на запрос примененния промо кода
+     */
+    public function discountApplyAction()
+    {
+        $file = new ConfigPhp();
+        $filePath = stream_resolve_include_path("Shop/Structure/Service/ShopSettings/shop_settings.php");
+        $file->loadFile($filePath);
+        $params = $file->getParams();
+        // Ищем в промо кодах введённый
+        $promoCodesInfo = json_decode(htmlspecialchars_decode($params['default']['arr']['promoCodes']['value']));
+        $discountInfo = array();
+        foreach ($promoCodesInfo as $promoCodeInfo) {
+            if (stripos($promoCodeInfo, $_REQUEST['promoCode']) !== false) {
+                $discountInfo = $promoCodeInfo;
+                break;
+            }
+        }
+        if (!empty($discountInfo)) {
+            $discountInfo = explode('|', $discountInfo);
+            $promoFromDate = strtotime(str_replace('.', '-', $discountInfo[2]));
+            $promoToDate = strtotime(str_replace('.', '-', $discountInfo[3]));
+            if ($promoFromDate <= time() && $promoToDate >= time()) {
+                $this->disco = $discountInfo[1];
+                $this->update = true;
+            } else {
+                $this->answer['error'] = true;
+                $this->answer['text'] = 'Данный промо код не удовлетворяет периоду проведения акции';
+            }
+        } else {
+            $this->answer['error'] = true;
+            $this->answer['text'] = 'Промо код не найден';
+        }
         exit();
     }
 
