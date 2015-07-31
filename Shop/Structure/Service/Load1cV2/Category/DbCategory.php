@@ -132,6 +132,10 @@ class DbCategory extends AbstractDb
         $sql = "SELECT id_1c FROM {$this->table} WHERE cid = '{$parentCid}' LIMIT 1";
         $id = $db->select($sql);
 
+        if (!isset($id[0]['id_1c'])) {
+            return null;
+        }
+
         return $id[0]['id_1c'];
     }
 

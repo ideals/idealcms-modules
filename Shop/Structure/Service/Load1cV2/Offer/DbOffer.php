@@ -22,7 +22,6 @@ class DbOffer extends AbstractDb
     public function __construct()
     {
         parent::__construct();
-        $this->structureGood = $this->prefix . $this->structureGood;
         $this->table = $this->prefix . 'offers_good';
     }
 
