@@ -4,43 +4,36 @@ namespace Shop\Structure\Service\Load1cV2;
 
 class Image
 {
-    public $res;
     private $config;
     private $color = array();
     private $water;
     private $minSizeWater;
-    private $nameDir;
     private $img;
 
     public function __construct($img, $width, $height, $border = true)
     {
         $this->img = $img;
         $image = basename($img);
+        $entry = substr($image, 0, 2);
 
         $this->water = 'TEXT';
         $this->tmpDir = DOCUMENT_ROOT . '/tmp/1c/1/';
         $this->dirImage = DOCUMENT_ROOT . '/images/1c';
 
-        if (!file_exists("{$this->dirImage}/")) {
-            mkdir("{$this->dirImage}/", 0777, true);
+        if (!file_exists("{$this->dirImage}/{$entry}")) {
+            mkdir("{$this->dirImage}/{$entry}", 0750, true);
         }
         $this->minSizeWater = "140*140";
         $this->config['font'] = 'arial.ttf';
         $this->color1("e6e6e6");
 
-        $filename = "{$this->dirImage}/" . $image;
+        $filename = "{$this->dirImage}/{$entry}/" . $image;
 
 
         if (file_exists($filename)) {
             unlink($filename);
         }
-        $this->resize($this->img, $width, $height, "{$this->dirImage}/", $border);
-        $this->res = true;
-    }
-
-    public function getName()
-    {
-        return "images/1c/{$this->nameDir}/" . basename($this->img);
+        $this->resize($this->img, $width, $height, "{$this->dirImage}/{$entry}/", $border);
     }
 
     private function color1($tmp)

@@ -64,7 +64,7 @@ class AbstractXml
             }
             $needle = $item->xpath($this->ns . $path);
 
-            if (is_array($this->configs['fields'][$key]['field'])) {
+            if (isset($this->configs['fields'][$key]['field']) && is_array($this->configs['fields'][$key]['field'])) {
                 foreach ($needle as $node) {
                     $this->registerNamespace($node);
 

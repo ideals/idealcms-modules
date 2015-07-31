@@ -27,6 +27,10 @@ class XmlDirectory extends AbstractXml
         $this->data = array();
 
         foreach ($tmp as $key => $item) {
+            if (!isset($item['dir_values'])) {
+                unset($this->data[$key]);
+                continue;
+            }
             foreach ($item['dir_values'] as $dict) {
                 $this->data[$dict['dir_value_id']] = $dict;
                 $this->data[$dict['dir_value_id']]['dir_id_1c'] = $key;

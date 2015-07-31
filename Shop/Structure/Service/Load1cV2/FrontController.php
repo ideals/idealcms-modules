@@ -1,6 +1,7 @@
 <?php
 namespace Shop\Structure\Service\Load1cV2;
 
+use Ideal\Core\Config;
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
 use Shop\Structure\Service\Load1cV2\Image;
@@ -57,52 +58,34 @@ class FrontController
                 return 0;
 
             case 'init':
-                print "zip=no\n";
-                print "file_limit=1000000\n";
+                print "zip=yes\n";
+                print "file_limit=0\n";
                 return 0;
 
             case 'file':
                 $filename = basename($request->filename);
-                $exists = array('prices', 'rests');
 
-                $handle = opendir($this->directory);
-                while (false !== ($entry = readdir($handle))) {
-                    if (0 === strpos($entry, '.')) {
-                        continue;
-                    }
-
-                    if (is_dir($this->directory . $entry)) {
-                        continue;
-                    }
-
-
-                    preg_match('/(\w*?)_/', $entry, $type);
-                    $exists[] = $type[1];
-                }
-
-                preg_match('/(\w*?)_/', $request->filename, $type);
-
-                if (in_array($type[1], $exists)) {
-                    $f = fopen($this->directory . '1/' . $filename, 'ab');
-                    $path = $this->directory . '1/' . $filename;
+                if (strpos($filename, '.zip') !== false) {
+                    $this->unzip($filename);
                 } else {
-                    $f = fopen($this->directory . $filename, 'ab');
-                }
+                    $path = $this->directory . '1/' . $filename;
+                    $f = fopen($this->directory . '1/' . $filename, 'ab');
+                    fwrite($f, file_get_contents('php://input'));
+                    fclose($f);
 
-                fwrite($f, file_get_contents('php://input'));
-                fclose($f);
-
-                if (isset($path) && getimagesize($path)) {
-                    list($w, $h) = explode('x', $conf['resize']);
-                    new Image($path, $w, $h);
-                    unlink($path);
+                    if (isset($path) && getimagesize($path)) {
+                        list($w, $h) = explode('x', $conf['resize']);
+                        new Image($path, $w, $h);
+                        unlink($path);
+                    }
                 }
 
                 print "success\n";
                 return 0;
 
             case 'import':
-                $this->readDir($this->directory);
+                print_r($request->filename);
+                $this->files = $this->readDir($this->directory);
                 $file = basename($request->filename);
                 if (basename($this->files['import']) == $file) {
                     $this->category();
@@ -312,9 +295,11 @@ class FrontController
                         unlink($path);
                     }
                 }
+
+                rmdir($this->directory . $entry);
             }
-            unlink($entry);
         }
+
         return array(
             'step' => 'Ресайз изображений',
             'count'  => $count
@@ -328,6 +313,51 @@ class FrontController
             foreach ($tmp_files as $v) {
                 unlink($v);
             }
+        }
+    }
+
+    private function unzip($filename)
+    {
+        $exists = array('prices', 'rests');
+        $config = Config::getInstance();
+        $tmp = DOCUMENT_ROOT . $config->cms['tmpFolder'];
+
+        $f = fopen($tmp . $filename, 'ab');
+        $pathFile = $tmp . $filename;
+        fwrite($f, file_get_contents('php://input'));
+        fclose($f);
+
+        $zip = new \ZipArchive;
+        $res = $zip->open($pathFile);
+        if ($res === true) {
+            $unzipName = $zip->getNameIndex(0);
+            $zip->extractTo($tmp);
+            $zip->close();
+        } else {
+            die('Не смог распаковать файл');
+        }
+        unlink($pathFile);
+
+        $handle = opendir($this->directory);
+        while (false !== ($entry = readdir($handle))) {
+            if (0 === strpos($entry, '.')) {
+                continue;
+            }
+
+            if (is_dir($this->directory . $entry)) {
+                continue;
+            }
+
+            preg_match('/(\w*?)_/', $entry, $type);
+            $exists[] = $type[1];
+        }
+
+        preg_match('/(\w*?)_/', $unzipName, $type);
+
+        if (in_array($type[1], $exists)) {
+            rename($tmp .'/'. $unzipName, $this->directory . '1/' . $unzipName);
+        } else {
+            rename($tmp .'/'. $unzipName, $this->directory . $unzipName);
         }
     }
 }
