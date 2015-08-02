@@ -33,12 +33,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     }
 
     /**
-     * Добавление сообщение на форум
+     * Добавление сообщения на форум
      */
     public function insetAction()
     {
-        $form = htmlspecialchars($_POST['form']);
-        parse_str($form, $post);
+        parse_str($_POST['form'], $post);
+        foreach ($post as $k => $v) {
+            $post[$k] = htmlspecialchars($v);
+        }
+
 
         $user = User\Model::getInstance();
         if (($post['email'] == '') && (isset($user->data['email']))) {
@@ -183,7 +186,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if ((strlen($post['author']) === 0) || (strlen($post['content']) === 0)) {
             $msgValidation = 'Необходимо заполнить все поля формы';
         }
-        if ((strlen($post['email']) != 0) && (!Util::is_email($post['email']))) {
+        if ((strlen($post['email']) != 0) && (!Util::isEmail($post['email']))) {
             $msgValidation = 'Вы ввели неправильный почтовый адрес';
         }
         if (strlen($msgValidation) !== 0) {
