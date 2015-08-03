@@ -35,6 +35,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     /** @var string Значение скидки (может приутствовать знак "%") */
     protected $disco = '';
 
+    /** @var string Общая разница между скидочной и нормальной ценой */
+    protected $discoValue = '';
+
     /** @var int время жизни корзины в секундах, если время обновления(создания) корзины больше, то она обновляется */
     protected $timeLive = 7200;
 
@@ -67,7 +70,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 'price' => 0,
                 'count' => 0,
                 'versi' => time(),
-                'disco' => 0,
+                'disco' => '',
+                'discoValue' => 0,
                 'total' => 0
             );
         }
@@ -98,12 +102,14 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 'goods' => array(), // товары которые находятся в корзине
                 'price' => 0, // общая цена без учета скидки
                 'count' => 0, // кол-во наименнований в корзине
-                'disco' => 0, // общая разница между скидочной и нормальной ценой
+                'disco' => 0, // значенеи скидки
+                'discoValue' => 0, // общая разница между скидочной и нормальной ценой
                 'total' => 0  // общая цена с учетом скидки
             );
             if (!empty($tabsInfo)) {
                 $this->basket['tabsInfo'] = $tabsInfo;
             }
+            $this->basket['disco'] = $this->disco;
             foreach ($goods as $k => $v) {
                 $this->idGood = $k;
                 $this->quant = $v['count'];
@@ -112,13 +118,13 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             }
             $this->basket['versi'] = time();
             if (stripos($this->disco, '%') !== false) {
-                $this->disco = intval(str_replace('%', '', $this->disco));
+                $this->discoValue = intval(str_replace('%', '', $this->disco));
                 $tempTotal = intval($this->basket['total']) / 100;
-                $this->basket['disco'] =  round($tempTotal / 100 * $this->disco);
+                $this->basket['discoValue'] =  round($tempTotal / 100 * $this->discoValue, 2) * 100;
             } else {
-                $this->basket['disco'] = $this->disco;
+                $this->basket['discoValue'] = $this->disco * 100;
             }
-            $this->basket['total'] -= $this->basket['disco'] * 100;
+            $this->basket['total'] -= $this->basket['discoValue'];
             setcookie("basket", json_encode($this->basket, JSON_FORCE_OBJECT));
         }
         $this->answer['basket'] = $this->basket;
@@ -202,6 +208,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     public function quantGoodAction($local = false)
     {
         $this->basket['goods'][$this->idGood]['count'] = (int)$this->quant;
+        $this->disco = $this->basket['disco'];
         $this->update = true;
         if (!$local) {
             exit();

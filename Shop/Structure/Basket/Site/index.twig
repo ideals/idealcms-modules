@@ -244,6 +244,9 @@
             $('.qty').each(function (index, elem) {
                 total += parseInt(basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val()) / 100;
             });
+            if (basket.discoValue != '' && basket.discoValue != 0) {
+                total = total - basket.discoValue / 100;
+            }
             $('.cart_totals .amount').text(total.format(2, 3, ',', '.') + ' руб.');
         }
         function deleteGood(e) {
