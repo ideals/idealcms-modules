@@ -370,7 +370,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     public function getFullUrl($v, &$link, $structure = array())
     {
-        if (!$v['is_skip']) {
+        if (!isset($v['is_skip']) || !$v['is_skip']) {
             $link = $v['url'] . '/' . $link;
         }
         $config = Config::getInstance();
