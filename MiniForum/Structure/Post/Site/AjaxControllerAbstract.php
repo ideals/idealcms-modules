@@ -164,6 +164,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     public function getAnswerFormAction()
     {
         parse_str($_POST['formValues'], $formValues);
+        $formValues = array_map('htmlspecialchars', $formValues);
         if ((isset($formValues['mainParentId']) && ($formValues['mainParentId'] != '0'))
             && (isset($formValues['pageStructurePostId']) && ($formValues['pageStructurePostId'] != '0'))) {
             $goToPost = true;
