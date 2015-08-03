@@ -37,11 +37,17 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function insetAction()
     {
+        if (!isset($_POST['form'])) {
+            exit;
+        }
         parse_str($_POST['form'], $post);
-        foreach ($post as $k => $v) {
-            $post[$k] = htmlspecialchars($v);
+        $post = array_map('htmlspecialchars', $post);
+
+        if (!isset($post['parent_id']) && !isset($post['main_parent_id']) && !isset($post['page_structure'])) {
+            exit;
         }
 
+        $post['email'] = isset($post['email']) ? $post['email'] : '';
 
         $user = User\Model::getInstance();
         if (($post['email'] == '') && (isset($user->data['email']))) {
@@ -76,6 +82,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function deleteAction()
     {
+        if (!isset($_POST['ID']) || !isset($_POST['main_parent_id']) || !isset($_POST['parent_id'])) {
+            exit;
+        }
         $post['ID'] = htmlspecialchars($_POST['ID']);
         $post['main_parent_id'] = htmlspecialchars($_POST['main_parent_id']);
         $post['parent_id'] = htmlspecialchars($_POST['parent_id']);
@@ -111,8 +120,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function updateAction()
     {
-        $form = htmlspecialchars($_POST['form']);
-        parse_str($form, $post);
+        parse_str($_POST['form'], $post);
+        $post = array_map('htmlspecialchars', $post);
 
         $user = User\Model::getInstance();
         if (($post['email'] == '') && (isset($user->data['email']))) {
@@ -184,6 +193,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     protected function validation($post)
     {
         $msgValidation = '';
+        $post['author'] = isset($post['author']) ? $post['author'] : '';
+        $post['content'] = isset($post['content']) ? $post['content'] : '';
+        $post['email'] = isset($post['email']) ? $post['email'] : '';
         if ((strlen($post['author']) === 0) || (strlen($post['content']) === 0)) {
             $msgValidation = 'Необходимо заполнить все поля формы';
         }
