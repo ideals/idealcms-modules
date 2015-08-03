@@ -84,7 +84,6 @@ class FrontController
                 return 0;
 
             case 'import':
-                print_r($request->filename);
                 $this->files = $this->readDir($this->directory);
                 $file = basename($request->filename);
                 if (basename($this->files['import']) == $file) {
@@ -334,7 +333,9 @@ class FrontController
             $zip->extractTo($tmp);
             $zip->close();
         } else {
-            die('Не смог распаковать файл');
+            $unzipName = '';
+            print_r('не удалось открыть архив' . $pathFile);
+            // todo не смог распаковать архив
         }
         unlink($pathFile);
 

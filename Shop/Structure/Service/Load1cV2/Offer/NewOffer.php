@@ -11,7 +11,9 @@ class NewOffer
 {
     /** @var array ответ пользователю об обновленных и добавленных */
     protected $answer = array(
-        'step'  => 'Предложения'
+        'step'  => 'Предложения',
+        'add'   => 0,
+        'update'=> 0,
     );
 
     /** @var  bool содержит ли xml только обновления */
@@ -70,10 +72,24 @@ class NewOffer
      */
     protected function diff(array $dbResult, array $xmlResult)
     {
-        $result = array_diff_assoc($xmlResult, $dbResult);
-        $this->answer['add'] = count($result);
+        $result = array();
+        foreach ($xmlResult as $k => $val) {
+            $res = array_diff_assoc($val, $dbResult[$k]);
+            if (count($res) > 0) {
+                $result[$k] = $res;
+                $this->answer['add']++;
+            }
+        }
 
         foreach ($dbResult as $id => $dbValue) {
+            if (!isset($xmlResult[$id])) {
+                if ($dbValue['is_active'] == 1) {
+                    $result[$id]['is_active'] = 0;
+                    $result[$id]['ID'] = $dbValue['ID'];
+                }
+                continue;
+            }
+
             $diff = array_diff_assoc($xmlResult[$id], $dbValue);
             if (count($diff) > 0) {
                 // currency и coefficient нет в бд выгрузке

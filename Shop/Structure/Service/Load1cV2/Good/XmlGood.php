@@ -35,12 +35,12 @@ class XmlGood extends AbstractXml
                 $this->data[$k]['url'] = Url\Model::translitUrl($val['name']);
             }
 
-            if (isset($val['img'])) {
+            if (isset($val['img']) && $val['img'] != '') {
                 $entry = substr(basename($val['img']), 0, 2);
                 $this->data[$k]['img'] = "/images/1c/{$entry}/" . basename($val['img']);
             }
 
-            if (isset($val['imgs'])) {
+            if (isset($val['imgs']) && $val['imgs'] != '') {
                 $entry = substr(basename($val['imgs']), 0, 2);
                 $this->data[$k]['imgs'] = "/images/1c/{$entry}/" . basename($val['imgs']);
             }
