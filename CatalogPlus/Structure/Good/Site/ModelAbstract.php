@@ -410,8 +410,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 $structureTable = $config->getTableByName($structure['structure']);
                 $sql = "SELECT * FROM {$structureTable} WHERE cid = '{$cid}%' LIMIT 1";
                 $info = $db->select($sql);
-                $v = $info[0];
-                $this->getFullUrl($v, $link, $structure);
+                if (!empty($info)) {
+                    $v = $info[0];
+                    $this->getFullUrl($v, $link, $structure);
+                }
             }
         }
     }
