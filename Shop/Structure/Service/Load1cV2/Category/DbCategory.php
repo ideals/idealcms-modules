@@ -34,7 +34,7 @@ class DbCategory extends AbstractDb
         $res = $db->select(
             'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Category" LIMIT 1'
         );
-        $this->prevCat = '0-' . $res[0]['ID'];
+        $this->prevCat = '1-' . $res[0]['ID'];
     }
 
 

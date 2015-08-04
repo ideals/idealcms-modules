@@ -37,7 +37,7 @@ class FrontController
             mkdir($this->directory . '1/', 0750, true);
         }
 
-        if (time() - filemtime($this->directory) > 600) {
+        if (time() - filemtime($this->directory) > 1800) {
             $this->purge();
         }
 
@@ -63,7 +63,11 @@ class FrontController
                 return 0;
 
             case 'file':
+                print "accept file\n";
                 $filename = basename($request->filename);
+                if (substr($filename, -1) == '&') {
+                    $filename = substr($filename, 0, -1);
+                }
 
                 if (strpos($filename, '.zip') !== false) {
                     $this->unzip($filename);
@@ -86,11 +90,11 @@ class FrontController
             case 'import':
                 $this->files = $this->readDir($this->directory);
                 $file = basename($request->filename);
-                if (basename($this->files['import']) == $file) {
+                if (isset($this->files['import']) && basename($this->files['import']) == $file) {
                     $this->category();
-                } elseif (basename($this->files['1']['import']) == $file) {
+                } elseif (isset($this->files['1']['import']) && basename($this->files['1']['import']) == $file) {
                     $this->good();
-                } elseif (basename($this->files['offers']) == $file) {
+                } elseif (isset($this->files['offers']) && basename($this->files['offers']) == $file) {
                     $this->directory();
                 } elseif (
                     isset($this->files['1']['prices']) &&
@@ -175,8 +179,11 @@ class FrontController
         // Устанавливаем связь БД и XML
         $goods = $newGood->parse();
 
+        $dbGood->truncateCategoryList();
         // Сохраняем результаты
         $dbGood->save($goods);
+
+        $dbGood->updateCategoryList();
 
         // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
         return $newGood->answer();
@@ -341,11 +348,7 @@ class FrontController
 
         $handle = opendir($this->directory);
         while (false !== ($entry = readdir($handle))) {
-            if (0 === strpos($entry, '.')) {
-                continue;
-            }
-
-            if (is_dir($this->directory . $entry)) {
+            if (0 === strpos($entry, '.') || is_dir($this->directory . $entry)) {
                 continue;
             }
 
@@ -356,7 +359,11 @@ class FrontController
         preg_match('/(\w*?)_/', $unzipName, $type);
 
         if (in_array($type[1], $exists)) {
-            rename($tmp .'/'. $unzipName, $this->directory . '1/' . $unzipName);
+            if (!file_exists($this->directory . $unzipName)) {
+                rename($tmp .'/'. $unzipName, $this->directory . '1/' . $unzipName);
+            } else {
+                unlink($tmp .'/'. $unzipName);
+            }
         } else {
             rename($tmp .'/'. $unzipName, $this->directory . $unzipName);
         }

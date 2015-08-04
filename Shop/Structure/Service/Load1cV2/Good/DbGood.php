@@ -80,22 +80,28 @@ class DbGood extends AbstractDb
         return $result;
     }
 
-    protected function truncateCategoryList()
+    public function truncateCategoryList()
     {
+        $categoryModel = new Category\DbCategory();
+        $this->categories = $categoryModel->getCategories();
         $db = Db::getInstance();
 
         $sql = "TRUNCATE TABLE {$this->structureMedium}";
         $db->query($sql);
     }
 
-    protected function updateCategoryList()
+    public function updateCategoryList()
     {
         $db = Db::getInstance();
 
         $goods = $this->getGoods('ID as good_id, category_id, id_1c');
-        foreach ($goods as $good) {
-            unset($good['id_1c']);
-            $db->insert($this->structureMedium, $good);
+        foreach ($goods as $k => $good) {
+            unset($goods[$k]['id_1c']);
+
+        }
+        while (count($goods) > 24) {
+            $part = array_splice($goods, 0, 25);
+            $db->insertMultiple($this->structureMedium, $part);
         }
     }
 
@@ -106,17 +112,12 @@ class DbGood extends AbstractDb
      */
     public function save($goods)
     {
-        $categoryModel = new Category\DbCategory();
-        $this->categories = $categoryModel->getCategories();
-        $this->truncateCategoryList();
-
         foreach ($goods as $k => $good) {
             if (isset($good['category_id']) && !is_int($good['category_id'])) {
                 $goods[$k]['category_id'] = $this->categories[$good['category_id']];
             }
         }
 
-        $this->updateCategoryList();
         parent::save($goods);
     }
 
@@ -153,15 +154,16 @@ class DbGood extends AbstractDb
         foreach ($tmp as $item) {
             $result[$item['good_id']] = $item;
         }
-        $goods = $this->getGoods('ID, id_1c');
+        $goods = $this->getGoods('ID, id_1c, price, offer_id_1c, stock, currency');
 
         $updates = array();
         foreach ($result as $k => $item) {
             if (isset($goods[$k])) {
-                $updates[$k]['stock'] = $item['rest'];
-                unset($item['good_id'], $item['rest']);
-                $updates[$k] = $item;
-                $updates[$k]['ID'] = $goods[$k]['ID'];
+                $diff = array_diff($item, $goods[$k]);
+                if (count($diff) > 1) {
+                    // ID товара всегда в диффе
+                    $updates[$k] = $diff;
+                }
             }
         }
         $this->save($updates);

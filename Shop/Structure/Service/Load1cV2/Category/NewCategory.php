@@ -34,7 +34,7 @@ class NewCategory
     {
         $this->dbCategory = $dbCategory;
         $this->xmlCategory = $xmlCategory;
-        $this->onlyUpdate = $this->xmlCategory->updateInfo();
+        $this->dbCategory->onlyUpdate($this->xmlCategory->updateInfo());
     }
 
     /**
@@ -114,7 +114,7 @@ class NewCategory
         foreach ($newXmlResult as $k => $element) {
             $i = 1;
 
-            if (isset($element['pos'])) {
+            if (isset($element['pos']) && $element['pos'] != '') {
                 $i = intval($element['pos']);
                 $fullCid = $cid->setBlock($cidNum, $element['lvl'], $i, true); // element['pos']
 
@@ -142,15 +142,19 @@ class NewCategory
             $newXmlResult[$k]['cid'] = $fullCid;
             $cidNum = $fullCid;
 
-            if (!isset($element['is_active'])) {
+            if (!isset($element['is_active']) || $element['is_active'] == '') {
                 $newXmlResult[$k]['is_active'] = '1';
             }
+
+            unset($newXmlResult[$k]['pos']);
 
             if (!is_null($dbResult[$k]) && count(array_diff($newXmlResult[$k], $dbResult[$k])) === 0) {
                 unset($newXmlResult[$k]);
             } else {
                 if (isset($dbResult[$k]['ID'])) {
                     $newXmlResult[$k]['ID'] = $dbResult[$k]['ID'];
+                } else {
+                    unset($newXmlResult[$k]['ID']);
                 }
             }
         }

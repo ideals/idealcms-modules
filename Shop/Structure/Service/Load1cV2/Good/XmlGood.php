@@ -31,7 +31,7 @@ class XmlGood extends AbstractXml
                 $this->data[$k]['category_id'] = 'Load1c_default';
             }
 
-            if (!isset($val['url'])) {
+            if (!isset($val['url']) || $val['url'] == '') {
                 $this->data[$k]['url'] = Url\Model::translitUrl($val['name']);
             }
 

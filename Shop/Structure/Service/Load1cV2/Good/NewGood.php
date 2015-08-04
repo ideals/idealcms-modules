@@ -35,7 +35,7 @@ class NewGood
     {
         $this->dbGood = $dbGood;
         $this->xmlGood = $xmlGood;
-        $this->onlyUpdate = $this->xmlGood->updateInfo();
+        $this->dbGood->onlyUpdate($this->xmlGood->updateInfo());
     }
 
     /**
@@ -76,6 +76,12 @@ class NewGood
     {
         $result = array();
         foreach ($xmlResult as $k => $val) {
+            if (!isset($dbResult[$k])) {
+                $this->answer['add']++;
+                $result[$k] = $val;
+                continue;
+            }
+
             $res = array_diff_assoc($val, $dbResult[$k]);
             if (count($res) > 0) {
                 $result[$k] = $res;

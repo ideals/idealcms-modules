@@ -33,7 +33,7 @@ class NewOffer
     {
         $this->dbOffer = $dbOffer;
         $this->xmlOffer = $xmlOffer;
-        $this->onlyUpdate = $this->xmlOffer->updateInfo();
+        $this->dbOffer->onlyUpdate($this->xmlOffer->updateInfo());
     }
 
     /**
@@ -74,6 +74,12 @@ class NewOffer
     {
         $result = array();
         foreach ($xmlResult as $k => $val) {
+            if (!isset($dbResult[$k])) {
+                $result[$k] = $val;
+                $this->answer['add']++;
+                continue;
+            }
+
             $res = array_diff_assoc($val, $dbResult[$k]);
             if (count($res) > 0) {
                 $result[$k] = $res;

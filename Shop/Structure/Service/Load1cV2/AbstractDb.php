@@ -22,6 +22,12 @@ class AbstractDb
     /** @var array массив конфигурация для таблицы */
     protected $configs;
 
+    /** @var bool выгрузка содержит только изменения */
+    protected $onlyUpdate;
+
+    /** @var int количество вставляемых строк за 1 insert запрос */
+    protected $multipleInsert = 5;
+
     /**
      *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
      */
@@ -74,8 +80,27 @@ class AbstractDb
             if (isset($element['ID'])) {
                 $this->update($element);
             } else {
-                $this->add($element);
+                if (!$this->onlyUpdate) {
+                    $element['date_create'] = time();
+                    $element['date_mod'] = time();
+                    $add[] = $element;
+                } else {
+                    $this->add($element);
+                }
             }
         }
+
+        if (isset($add)) {
+            $db = Db::getInstance();
+            while (count($add) >= $this->multipleInsert) {
+                $part = array_splice($add, 0, $this->multipleInsert);
+                $db->insertMultiple($this->table, $part);
+            }
+        }
+    }
+
+    public function onlyUpdate($onlyUpdate)
+    {
+        $this->onlyUpdate = $onlyUpdate;
     }
 }

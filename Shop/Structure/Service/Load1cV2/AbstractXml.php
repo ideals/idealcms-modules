@@ -15,22 +15,25 @@ class AbstractXml
     protected $configs;
     protected $data;
     protected $updateInfo;
+    protected $namespaces;
+    protected $part;
 
     public function __construct(Xml $xml)
     {
         $this->xml = $xml->getPart($this);
         $this->xml = $this->xml[0];
 
-        $namespaces = $this->xml->getDocNamespaces();
+        $this->namespaces = $this->xml->getDocNamespaces();
 
-        if (isset($namespaces[''])) {
-            $defaultNamespaceUrl = $namespaces[''];
-            $this->xml->registerXPathNamespace('default', $defaultNamespaceUrl);
-            $this->ns = 'default:';
-        }
+        $this->registerNamespace($this->xml);
+
         $path = explode('\\', get_class($this));
         $path = array_slice($path, -2, 1);
         $this->configs = include $path[0] . '/config.php';
+        $firsPart = explode('/', $this->part);
+        $part = array_shift($firsPart);
+        $updateInfo = $this->xml->xpath('//' . $this->ns . $part . '/@СодержитТолькоИзменения');
+        $this->updateInfo = (string)$updateInfo[0] == 'false' ? false : true;
     }
 
     public function updateInfo()
@@ -91,12 +94,11 @@ class AbstractXml
 
     protected function registerNamespace($item)
     {
-        $namespaces = $item->getDocNamespaces();
-
-        if (isset($namespaces[''])) {
-            $defaultNamespaceUrl = $namespaces[''];
-            $item->registerXPathNamespace('default', $defaultNamespaceUrl);
-            $this->ns = 'default:';
+        if (isset($this->namespaces[''])) {
+            $item->registerXPathNamespace('default', $this->namespaces['']);
+            if (!isset($this->ns)) {
+                $this->ns = 'default:';
+            }
         }
     }
 }
