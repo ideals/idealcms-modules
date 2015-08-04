@@ -51,6 +51,11 @@ return array(
             'sql'   => 'text not null',
             'type'  => 'Ideal_Area'
         ),
+        'referer' => array(
+            'label' => 'Источник перехода',
+            'sql' => 'varchar(255) not null',
+            'type' => 'Ideal_Referer'
+        ),
         'date_create' => array(
             'label' => 'Дата создания',
             'sql'   => 'int(11) not null',

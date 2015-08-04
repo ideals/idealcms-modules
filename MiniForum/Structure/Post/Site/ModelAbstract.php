@@ -356,6 +356,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $values['author'] = $this->post['author'];
         $values['email'] = $this->post['email'];
         $values['content'] = $this->isModerator ? $this->post['content'] : strip_tags($this->post['content']);
+        $values['referer'] = isset($_COOKIE['referer']) ? $_COOKIE['referer'] : 'empty';
         $values['date_create'] = $time;
         $values['is_active'] = 1;
         $values['get_mail'] = $this->post['get_mail'] ? 1 : 0;
