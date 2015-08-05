@@ -4,7 +4,6 @@ namespace Shop\Structure\Service\Load1cV2;
 use Ideal\Core\Config;
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
-use Shop\Structure\Service\Load1cV2\Image;
 
 /**
  * Created by PhpStorm.
@@ -42,7 +41,7 @@ class FrontController
         }
 
         if ($request->mode != 'checkauth' && !$user->checkLogin()) {
-            print "Пользователь не авторизован";
+            print "Ошибка: Вы не авторизованы";
             die();
         }
 
@@ -53,17 +52,17 @@ class FrontController
                     print session_name() . "\n";
                     print session_id();
                 } else {
-                    print "Пользователь не авторизован\n";
+                    print "Ошибка: пользователь не авторизован\n";
                 }
                 return 0;
 
             case 'init':
+                var_dump($_REQUEST);
                 print "zip=yes\n";
                 print "file_limit=0\n";
                 return 0;
 
             case 'file':
-                print "accept file\n";
                 $filename = basename($request->filename);
                 if (substr($filename, -1) == '&') {
                     $filename = substr($filename, 0, -1);
@@ -276,10 +275,17 @@ class FrontController
 
     public function loadImages($dir)
     {
-        $count = 0;
+        $answer = array(
+            'step'      => 'Ресайз изображений',
+            'count'     => 0,
+        );
         $this->directory = DOCUMENT_ROOT . $dir['directory'] . $dir['images_directory'];
 
+        if (!file_exists($this->directory)) {
+            return $answer;
+        }
         $handle = opendir($this->directory);
+
         list($w, $h) = explode('x', $dir['resize']);
 
         while (false !== ($entry = readdir($handle))) {
@@ -297,7 +303,7 @@ class FrontController
                     if (false !== strpos($img, '.jpeg') || false !== strpos($img, '.jpg')) {
                         $path = $this->directory . $entry . '/' .$img;
                         new Image($path, $w, $h);
-                        $count++;
+                        $answer['count']++;
                         unlink($path);
                     }
                 }
@@ -306,10 +312,7 @@ class FrontController
             }
         }
 
-        return array(
-            'step' => 'Ресайз изображений',
-            'count'  => $count
-        );
+        return $answer;
     }
 
     private function purge()
@@ -322,7 +325,7 @@ class FrontController
         }
     }
 
-    private function unzip($filename)
+    public function unzip($filename)
     {
         $exists = array('prices', 'rests');
         $config = Config::getInstance();
@@ -333,18 +336,21 @@ class FrontController
         fwrite($f, file_get_contents('php://input'));
         fclose($f);
 
-        $zip = new \ZipArchive;
-        $res = $zip->open($pathFile);
-        if ($res === true) {
-            $unzipName = $zip->getNameIndex(0);
-            $zip->extractTo($tmp);
-            $zip->close();
-        } else {
-            $unzipName = '';
-            print_r('не удалось открыть архив' . $pathFile);
-            // todo не смог распаковать архив
+        $zip = new \PclZip($pathFile);
+        $fileList = $zip->listContent();
+
+        if ($fileList == 0) {
+            unlink($pathFile);  // удаляем загруженный файл
+            print "Ошибка распаковки архива 1: ".$zip->errorInfo(true);
+            die;
         }
-        unlink($pathFile);
+
+        $file = $fileList[0];
+        if (!($file['status'] == 'ok' && $file['size'] > 0)) {
+            unlink($pathFile);  // удаляем загруженный файл
+            print "Ошибка распаковки архива 2: ".$zip->errorInfo(true);
+            die;
+        }
 
         $handle = opendir($this->directory);
         while (false !== ($entry = readdir($handle))) {
@@ -356,16 +362,25 @@ class FrontController
             $exists[] = $type[1];
         }
 
-        preg_match('/(\w*?)_/', $unzipName, $type);
+        $a = $zip->extract(PCLZIP_OPT_BY_INDEX, '0', PCLZIP_OPT_PATH, $tmp . '/');
+        if ($a == 0) {
+            var_dump($file);
+            print $pathFile . "\n";
+            print "Ошибка распаковки архива 3:".$zip->errorInfo(true);
+        }
+
+        preg_match('/(\w*?)_/', $file['filename'], $type);
 
         if (in_array($type[1], $exists)) {
-            if (!file_exists($this->directory . $unzipName)) {
-                rename($tmp .'/'. $unzipName, $this->directory . '1/' . $unzipName);
+            if (!file_exists($this->directory . $file['filename'])) {
+                rename($tmp .'/'. $file['filename'], $this->directory . '1/' . $file['filename']);
             } else {
-                unlink($tmp .'/'. $unzipName);
+                unlink($tmp .'/'. $file['filename']);
             }
         } else {
-            rename($tmp .'/'. $unzipName, $this->directory . $unzipName);
+            rename($tmp .'/'. $file['filename'], $this->directory . $file['filename']);
         }
+
+        unlink($pathFile);
     }
 }

@@ -49,7 +49,7 @@ include('modalUpdate.html');
             saveSettings();
         });
         $('#load1c').on('click', function(e) {
-            modal_body.html = '';
+            modal_body.html('');
             e.preventDefault();
             load1c();
         });
@@ -91,10 +91,20 @@ include('modalUpdate.html');
                 modal_body.append('<div class="alert alert-info fade in">Обновление - ' +
                     data['step'] + '</div>');
 
+                if (data['errors'].length > 0) {
+                    modal_body.append('<div class="alert alert-danger fade in">При обновлении произошли ошибки, обновление прекращено:</div>');
+                    for (var i in data['errors']) {
+                        if (!data['errors'].hasOwnProperty(i)) {
+                            continue;
+                        }
+                        modal_body.append('<div class="alert alert-danger fade in">' + data['errors'][i] + '<br /></div>');
+                    }
+                }
+                delete data['errors'];
+
                 if ('offer' in data) {
-                    delete data['continue'];
                     for(var i in data) {
-                        if (!data.hasOwnProperty(i)) {
+                        if (!data.hasOwnProperty(i) || i == 'continue' || i == 'step') {
                             continue;
                         }
                         modal_body.append('<div class="alert alert-info fade in">Обновление - ' +

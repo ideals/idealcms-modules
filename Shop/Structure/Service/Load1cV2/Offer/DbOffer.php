@@ -51,6 +51,4 @@ class DbOffer extends AbstractDb
 
         return $this->parse;
     }
-
-    // квадрат чилса используя 2 переменных и только + и -
 }

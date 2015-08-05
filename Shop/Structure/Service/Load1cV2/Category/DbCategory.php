@@ -158,6 +158,10 @@ class DbCategory extends AbstractDb
         parent::add($params);
     }
 
+    public function onlyUpdate()
+    {
+    }
+
     /**
      * Проверка таблицы категорий на присутствие полей id_1c и count_sale
      * Если их не существует - ALTER TABLE с соответствующими значениями

@@ -23,6 +23,7 @@ set_include_path(
 
 // Подключаем автозагрузчик классов
 require_once 'Core/AutoLoader.php';
+require_once 'Library/pclzip.lib.php';
 $params = require_once 'config.php';
 
 $config = Core\Config::getInstance();

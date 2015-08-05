@@ -146,7 +146,7 @@ class DbGood extends AbstractDb
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT ID as offer_id_1c, min(price) as price, good_id, rest, currency, rest as stock "
+        $sql = "SELECT ID as offer_id_1c, min(price) as price, good_id, currency, rest as stock "
             ."FROM {$this->offers} GROUP BY good_id";
 
         $result = array();
@@ -163,6 +163,7 @@ class DbGood extends AbstractDb
                 if (count($diff) > 1) {
                     // ID товара всегда в диффе
                     $updates[$k] = $diff;
+                    $updates[$k]['ID'] = $goods[$k]['ID'];
                 }
             }
         }

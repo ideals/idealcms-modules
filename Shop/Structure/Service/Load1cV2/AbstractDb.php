@@ -40,6 +40,15 @@ class AbstractDb
         $this->configs = include $path[0] . '/config.php';
     }
 
+    protected function truncate()
+    {
+        $db = Db::getInstance();
+
+        $sql = "TRUNCATE {$this->table}";
+
+        $db->query($sql);
+    }
+
     /**
      * Обновление данных в БД
      *
@@ -101,6 +110,9 @@ class AbstractDb
 
     public function onlyUpdate($onlyUpdate)
     {
+        if ($onlyUpdate) {
+            $this->truncate();
+        }
         $this->onlyUpdate = $onlyUpdate;
     }
 }
