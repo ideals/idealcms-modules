@@ -116,7 +116,8 @@ jQuery(document).ready(function ($) {
         url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site&action=getBasket',
         dataType: 'json',
         success: function (data) {
-            deleteCookie('basket');
+            // TODO уточнить необходимость удаления перед записью значения, перезапись работает и без этого
+//            deleteCookie('basket');
             setCookie('basket', JSON.stringify(data.basket, null, 2));
             loadBasket(data.basket);
         },
