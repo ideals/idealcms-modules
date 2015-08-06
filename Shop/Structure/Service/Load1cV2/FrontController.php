@@ -4,6 +4,7 @@ namespace Shop\Structure\Service\Load1cV2;
 use Ideal\Core\Config;
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
+use Mail\Sender;
 
 /**
  * Created by PhpStorm.
@@ -89,19 +90,40 @@ class FrontController
                 $this->files = $this->readDir($this->directory);
                 $file = basename($request->filename);
                 if (isset($this->files['import']) && basename($this->files['import']) == $file) {
-                    $this->category();
+                    $response = $this->category();
                 } elseif (isset($this->files['1']['import']) && basename($this->files['1']['import']) == $file) {
-                    $this->good();
+                    $response = $this->good();
                 } elseif (isset($this->files['offers']) && basename($this->files['offers']) == $file) {
-                    $this->directory();
+                    $response = $this->directory();
                 } elseif (
                     isset($this->files['1']['prices']) &&
                     isset($this->files['1']['rests']) &&
                     isset($this->files['1']['offers'])
                 ) {
-                    $this->offer();
+                    $response = $this->offer();
                 }
                 print "success";
+
+                $vals = array();
+                if (isset($response['offer'])) {
+                    unset ($response['step']);
+                    foreach ($response as $value) {
+                        $vals[] = "Шаг: {$value['step']} - <br/>".
+                            "Добавлено:{$value['add']}<br/>".
+                            "Обновлено:{$value['update']}<br/>";
+                    }
+                } else {
+                    $vals[] = "Добавлено:{$response['add']}<br/>Обновлено:{$response['update']}<br/>";
+                }
+
+                $str = implode('<br/>', $vals);
+                $html = "Выгрузка 1с<br/> Файл:{$request->filename},<br/>Шаг: {$response['step']}, <br/>" . $str;
+
+                $con = Config::getInstance();
+                $sender = new Sender();
+                $sender->setSubj('Выгрузка 1с, версия 2, на сайте ' . $_SERVER['SERVER_NAME']);
+                $sender->setPlainBody($html);
+                $sender->sent($con->robotEmail, $con->cms['adminEmail']);
                 return 0;
 
             default:
@@ -380,16 +402,6 @@ class FrontController
             print "Ошибка распаковки архива 3:".$zip->errorInfo(true);
         }
 
-        if (count($fileList) > 1) {
-            $zip->extract(
-                PCLZIP_OPT_PATH, DOCUMENT_ROOT . $conf['directory'] . $conf['images_directory'],
-                PCLZIP_OPT_BY_PREG, '/jpg|jpeg/',
-                PCLZIP_OPT_REMOVE_ALL_PATH
-            );
-
-            $this->loadImages($conf);
-        }
-
         preg_match('/(\w*?)_/', $file['filename'], $type);
 
         if (in_array($type[1], $exists)) {
@@ -400,6 +412,16 @@ class FrontController
             }
         } else {
             rename($tmp .'/'. $file['filename'], $this->directory . $file['filename']);
+        }
+
+        if (count($fileList) > 1) {
+            $zip->extract(
+                PCLZIP_OPT_PATH, DOCUMENT_ROOT . $conf['directory'] . $conf['images_directory'],
+                PCLZIP_OPT_BY_PREG, '/jpg|jpeg/',
+                PCLZIP_OPT_REMOVE_ALL_PATH
+            );
+
+            $this->loadImages($conf);
         }
 
         unlink($pathFile);
