@@ -45,12 +45,12 @@ class DbCategory extends AbstractDb
     {
         $db = Db::getInstance();
 
-        $res = $db->select('SELECT ID FROM ' . $this->table . ' WHERE name="Load1c_default"');
+        $res = $db->select('SELECT ID FROM ' . $this->table . $this->tablePostfix . ' WHERE name="Load1c_default"');
         if (count($res) == 0) {
             $config = Config::getInstance();
             $part = $config->getStructureByName('Ideal_Part');
 
-            $cid = $db->select('SELECT max(cid) as cid FROM ' . $this->table);
+            $cid = $db->select('SELECT max(cid) as cid FROM ' . $this->table . $this->tablePostfix);
             $cidModel = new Cid\Model($part['params']['levels'], $part['params']['digits']);
             $cid = $cidModel->getBlock($cid[0]['cid'], 1, '+1');
             $values = array(
@@ -65,7 +65,7 @@ class DbCategory extends AbstractDb
                 'date_mod' => time(),
                 'is_active' => '0'
             );
-            $db->insert($this->table, $values);
+            $db->insert($this->table . $this->tablePostfix, $values);
         }
     }
 
@@ -79,7 +79,7 @@ class DbCategory extends AbstractDb
         $db = Db::getInstance();
 
         $categories = array();
-        $res = $db->select('SELECT ID, id_1c FROM ' . $this->table);
+        $res = $db->select('SELECT ID, id_1c FROM ' . $this->table . $this->tablePostfix);
         foreach ($res as $category) {
             $categories[$category['id_1c']] = $category['ID'];
         }
@@ -103,12 +103,13 @@ class DbCategory extends AbstractDb
             'count_sale' => 0,
             'is_not_menu' => 0,
         );
-        $db->update($this->table)
+        $db->update($this->table . $this->tablePostfix)
             ->set($values)
             ->exec();
 
         // Считываем категории из нашей БД
-        $sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title FROM `{$this->table}` ORDER BY cid";
+        $sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title FROM `" .
+            $this->table . $this->tablePostfix . "` ORDER BY cid";
 
         $tmp = $db->select($sql);
 
@@ -129,7 +130,7 @@ class DbCategory extends AbstractDb
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT id_1c FROM {$this->table} WHERE cid = '{$parentCid}' LIMIT 1";
+        $sql = "SELECT id_1c FROM " . $this->table . $this->tablePostfix . " WHERE cid = '{$parentCid}' LIMIT 1";
         $id = $db->select($sql);
 
         if (!isset($id[0]['id_1c'])) {
@@ -160,6 +161,10 @@ class DbCategory extends AbstractDb
 
     public function onlyUpdate($onlyUpdate)
     {
+        $this->onlyUpdate = $onlyUpdate;
+        $this->dropTestTable();
+        $this->createEmptyTestTable();
+        $this->copyOrigTable();
     }
 
     /**
@@ -171,7 +176,7 @@ class DbCategory extends AbstractDb
         $db = Db::getInstance();
 
         $params = array(
-            array('table' => $this->table),
+            array('table' => $this->table . $this->tablePostfix),
         );
         $sql = 'SHOW COLUMNS FROM &table';
         $res = $db->select($sql, null, $params[0]);
@@ -183,7 +188,7 @@ class DbCategory extends AbstractDb
         $res = array_values($res);
         $idSql = "ADD COLUMN `id_1c` varchar(75) DEFAULT 'not-1c' AFTER ID";
         $saleSql = "ADD COLUMN `count_sale` int(11) DEFAULT 0 AFTER `description`";
-        $sql = "ALTER TABLE {$this->table} ";
+        $sql = "ALTER TABLE " . $this->table . $this->tablePostfix . " ";
         if (empty($res)) {
             $sql .=  " {$idSql}, {$saleSql}";
             $db->query($sql);

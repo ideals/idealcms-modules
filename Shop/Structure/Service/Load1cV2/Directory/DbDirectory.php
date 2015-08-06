@@ -34,7 +34,7 @@ class DbDirectory extends AbstractDb
         $db = Db::getInstance();
 
         // Считываем товары из нашей БД
-        $sql = "SELECT * FROM {$this->table}";
+        $sql = "SELECT * FROM " . $this->table . $this->tablePostfix;
 
         $tmp = $db->select($sql);
 
@@ -58,7 +58,7 @@ class DbDirectory extends AbstractDb
         $where = implode('OR', $where);
 
         // Считываем товары из нашей БД
-        $sql = "SELECT ID FROM {$this->table} WHERE {$where}";
+        $sql = "SELECT ID FROM " . $this->table . $this->tablePostfix . " WHERE {$where}";
         $result = $db->select($sql);
 
         return json_encode($result);

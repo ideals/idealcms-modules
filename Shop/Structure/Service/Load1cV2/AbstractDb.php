@@ -16,6 +16,9 @@ class AbstractDb
     /** @var string основная таблица */
     protected $table;
 
+    /** @var string промежуточная таблица */
+    protected $tablePostfix = '_test';
+
     /** @var string префикс таблиц */
     protected $prefix;
 
@@ -40,12 +43,46 @@ class AbstractDb
         $this->configs = include $path[0] . '/config.php';
     }
 
-    protected function truncate()
+    protected function createEmptyTestTable()
+    {
+        $db = Db::getInstance();
+        $testTable = $this->table . $this->tablePostfix;
+
+        $sql = "CREATE TABLE {$testTable} LIKE {$this->table}";
+        $db->query($sql);
+    }
+
+    protected function dropTestTable()
     {
         $db = Db::getInstance();
 
-        $sql = "TRUNCATE {$this->table}";
+        $testTable = $this->table . $this->tablePostfix;
+        $sql = "show tables like '{$testTable}'";
+        $result = $db->query($sql);
+        $res = $result->fetch_all(MYSQLI_ASSOC);
+        if (count($res) > 0) {
+            $sql = "DROP TABLE {$testTable}";
+            $db->query($sql);
+        }
+    }
 
+    protected function copyOrigTable()
+    {
+        $db = Db::getInstance();
+
+        $testTable = $this->table . $this->tablePostfix;
+        $sql = "INSERT INTO {$testTable} SELECT * FROM {$this->table}";
+        $db->query($sql);
+    }
+
+    public function updateOrigTable()
+    {
+        $db = Db::getInstance();
+
+        $testTable = $this->table . $this->tablePostfix;
+        $sql = "RENAME TABLE {$this->table} TO {$this->table}_tmp,
+             {$testTable} TO {$this->table},
+             {$this->table}_tmp TO {$testTable}";
         $db->query($sql);
     }
 
@@ -60,7 +97,7 @@ class AbstractDb
 
         $element['date_mod'] = time();
 
-        $db->update($this->table)->set($element)->where('ID=:ID', $element)->exec();
+        $db->update($this->table . $this->tablePostfix)->set($element)->where('ID=:ID', $element)->exec();
     }
 
     /**
@@ -75,7 +112,7 @@ class AbstractDb
         $element['date_create'] = time();
         $element['date_mod'] = time();
 
-        $db->insert($this->table, $element);
+        $db->insert($this->table . $this->tablePostfix, $element);
     }
 
     /**
@@ -103,16 +140,18 @@ class AbstractDb
             $db = Db::getInstance();
             while (count($add) >= $this->multipleInsert) {
                 $part = array_splice($add, 0, $this->multipleInsert);
-                $db->insertMultiple($this->table, $part);
+                $db->insertMultiple($this->table . $this->tablePostfix, $part);
             }
         }
     }
 
     public function onlyUpdate($onlyUpdate)
     {
-        if (!$onlyUpdate) {
-            $this->truncate();
-        }
         $this->onlyUpdate = $onlyUpdate;
+        $this->dropTestTable();
+        $this->createEmptyTestTable();
+        if ($onlyUpdate) {
+            $this->copyOrigTable();
+        }
     }
 }

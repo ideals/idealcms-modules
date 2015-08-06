@@ -38,7 +38,7 @@ class DbOffer extends AbstractDb
 
         $db = Db::getInstance();
 
-        $sql = "SELECT * FROM `{$this->table}`";
+        $sql = "SELECT * FROM " . $this->table . $this->tablePostfix;
         $result = $db->select($sql);
 
         foreach ($result as $item) {

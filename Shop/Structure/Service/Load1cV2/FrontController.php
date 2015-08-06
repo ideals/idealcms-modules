@@ -19,6 +19,8 @@ class FrontController
 
     protected $files;
 
+    protected $countFiles = 0;
+
     public function loadFiles($dir)
     {
         $this->directory = DOCUMENT_ROOT . $dir;
@@ -87,25 +89,26 @@ class FrontController
                 return 0;
 
             case 'import':
-                $this->files = $this->readDir($this->directory);
-                $file = basename($request->filename);
-                if (isset($this->files['import']) && basename($this->files['import']) == $file) {
-                    $response = $this->category();
-                } elseif (isset($this->files['1']['import']) && basename($this->files['1']['import']) == $file) {
-                    $response = $this->good();
-                } elseif (isset($this->files['offers']) && basename($this->files['offers']) == $file) {
-                    $response = $this->directory();
-                } elseif (
-                    isset($this->files['1']['prices']) &&
-                    isset($this->files['1']['rests']) &&
-                    isset($this->files['1']['offers'])
-                ) {
-                    $response = $this->offer();
-                }
                 print "success";
+                break;
 
-                $vals = array();
-                if (isset($response['offer'])) {
+            default:
+                break;
+        }
+
+        $this->countFiles = 0;
+        $this->files = $this->readDir($this->directory);
+        if ($this->countFiles == 6) {
+            $result[] = $this->category();
+            // <Группы>\n(\s*)<Ид>.*</Ид>\n\s*<Ид, несколько групп у товара в медиумкатегорилист
+            $result[] = $this->good();
+            $result[] = $this->directory();
+            $result[] = $this->offer();
+
+            $vals = array();
+            foreach ($result as $response) {
+                if (isset($response['offer']) || isset($response['prices']) || isset($response['rests'])) {
+                    $vals[] = "Шаг: {$response['step']} - <br/>";
                     unset ($response['step']);
                     foreach ($response as $value) {
                         $vals[] = "Шаг: {$value['step']} - <br/>".
@@ -113,22 +116,27 @@ class FrontController
                             "Обновлено:{$value['update']}<br/>";
                     }
                 } else {
-                    $vals[] = "Добавлено:{$response['add']}<br/>Обновлено:{$response['update']}<br/>";
+                    $vals[] = "Шаг: {$response['step']} - <br/>".
+                        "Добавлено:{$response['add']}<br/>".
+                        "Обновлено:{$response['update']}<br/>";
                 }
+            }
 
-                $str = implode('<br/>', $vals);
-                $html = "Выгрузка 1с<br/> Файл:{$request->filename},<br/>Шаг: {$response['step']}, <br/>" . $str;
+            $str = implode('<br/>', $vals);
+            $html = "Выгрузка 1с<br/>" . $str;
 
-                $con = Config::getInstance();
-                $sender = new Sender();
-                $sender->setSubj('Выгрузка 1с, версия 2, на сайте ' . $_SERVER['SERVER_NAME']);
-                $sender->setPlainBody($html);
-                $sender->sent($con->robotEmail, $con->cms['adminEmail']);
-                return 0;
+            $con = Config::getInstance();
+            $sender = new Sender();
+            $sender->setSubj('Выгрузка 1с, версия 2, на сайте ' . $_SERVER['SERVER_NAME']);
+            $sender->setHtmlBody($html);
+            $sender->sent($con->robotEmail, $con->cms['adminEmail']);
 
-            default:
-                return false;
+            $this->renameTables();
+
+            $this->loadImages($conf['info']);
         }
+
+        return 0;
     }
 
     protected function readDir($path)
@@ -139,16 +147,18 @@ class FrontController
         while (false !== ($entry = readdir($handle))) {
             if (0 === strpos($entry, '.')
                 || false !== strpos($entry, '.jpeg')
-                || false !== strpos($entry, '.jpg')) {
+                || false !== strpos($entry, '.jpg')
+                || 'import_files' == $entry) {
                 continue;
             }
 
-            if (is_dir($path . $entry)) {
+            if ($entry != 'import_files' && is_dir($path . $entry)) {
                 $files[$entry] = $this->readDir($path . $entry . '/');
                 continue;
             }
 
             preg_match('/(\w*?)_/', $entry, $type);
+            $this->countFiles++;
             $files[$type[1]] = $path . $entry;
         }
 
@@ -289,6 +299,7 @@ class FrontController
         $answer['rests'] = $newOffers->answer();
 
         $dbGood = new Good\DbGood();
+        $dbGood->onlyUpdate(true);
         $dbGood->updateGood();
 
         return $answer;
@@ -420,10 +431,21 @@ class FrontController
                 PCLZIP_OPT_BY_PREG, '/jpg|jpeg/',
                 PCLZIP_OPT_REMOVE_ALL_PATH
             );
-
-            $this->loadImages($conf);
         }
 
         unlink($pathFile);
+    }
+
+    private function renameTables()
+    {
+        $dbCategory     = new Category\DbCategory();
+        $dbGood         = new Good\DbGood();
+        $dbDirectory    = new Directory\DbDirectory();
+        $dbOffers       = new Offer\DbOffer();
+
+        $dbCategory->updateOrigTable();
+        $dbGood->updateOrigTable();
+        $dbDirectory->updateOrigTable();
+        $dbOffers->updateOrigTable();
     }
 }

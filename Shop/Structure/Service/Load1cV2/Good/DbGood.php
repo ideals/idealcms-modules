@@ -63,7 +63,8 @@ class DbGood extends AbstractDb
         // Считываем товары из нашей БД
         $sql = "SELECT sg.ID, sg.img, sg.imgs, sg.full_name, sg.name, sg.id_1c, sg.is_active,
             sg.url, sg.articul, sc.id_1c as category_id
-            FROM {$this->table} as sg LEFT JOIN {$this->structureCat} as sc ON sg.category_id = sc.ID
+            FROM " . $this->table . $this->tablePostfix .
+            " as sg LEFT JOIN {$this->structureCat} as sc ON sg.category_id = sc.ID
             WHERE sg.prev_structure='{$this->prevGood}'";
 
         $tmp = $db->select($sql);
@@ -131,7 +132,7 @@ class DbGood extends AbstractDb
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT {$select} FROM {$this->table}";
+        $sql = "SELECT {$select} FROM " . $this->table . $this->tablePostfix;
         $res = $db->select($sql);
         $result = array();
 
@@ -147,7 +148,7 @@ class DbGood extends AbstractDb
         $db = Db::getInstance();
 
         $sql = "SELECT ID as offer_id_1c, min(price) as price, good_id, currency, rest as stock "
-            ."FROM {$this->offers} GROUP BY good_id";
+            ."FROM " . $this->offers . $this->tablePostfix . "GROUP BY good_id";
 
         $result = array();
         $tmp = $db->select($sql);
