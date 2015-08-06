@@ -445,6 +445,7 @@ JS;
     // Сохраняет информацию о заказе в структуре "Order" модуля "Shop"
     public function saveOrderInShopSructure()
     {
+        $response = false;
         $config = Config::getInstance();
         $prefix = $config->db['prefix'];
         if (class_exists('\Shop\Structure\Order\Site\Model')) {
@@ -452,6 +453,7 @@ JS;
             $sql = "SELECT ID as last_id FROM {$prefix}shop_structure_order ORDER BY ID DESC LIMIT 1";
             $lastId = $db->select($sql);
             $orderNumber = $lastId[0]['last_id'] + 1;
+            $response = $orderNumber;
 
             // Получаем идентификатор справочника "Заказы в магазине" для построения поля "prev_structure"
             $dataList = $config->getStructureByName('Ideal_DataList');
@@ -517,5 +519,6 @@ JS;
                 )
             );
         }
+        return $response;
     }
 }
