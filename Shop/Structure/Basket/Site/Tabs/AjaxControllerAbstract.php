@@ -449,9 +449,9 @@ JS;
         $prefix = $config->db['prefix'];
         if (class_exists('\Shop\Structure\Order\Site\Model')) {
             $db = Db::getInstance();
-            $sql = "SELECT COUNT(*) as cnt FROM {$prefix}shop_structure_order";
-            $cnt = $db->select($sql);
-            $orderNumber = $cnt[0]['cnt'] + 1;
+            $sql = "SELECT ID as last_id FROM {$prefix}shop_structure_order ORDER BY ID DESC LIMIT 1";
+            $lastId = $db->select($sql);
+            $orderNumber = $lastId[0]['last_id'] + 1;
 
             // Получаем идентификатор справочника "Заказы в магазине" для построения поля "prev_structure"
             $dataList = $config->getStructureByName('Ideal_DataList');
