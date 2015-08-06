@@ -158,7 +158,7 @@ class DbCategory extends AbstractDb
         parent::add($params);
     }
 
-    public function onlyUpdate()
+    public function onlyUpdate($onlyUpdate)
     {
     }
 

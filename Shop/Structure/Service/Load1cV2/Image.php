@@ -119,13 +119,9 @@ class Image
         }
 
         switch ($extension) {
-            case 'gif':
-                //imagegif($newImage, $uri . $i['filename'] . '.' . $extension);
-                //break;
-            case 'png':
-                //imagepng($newImage, $uri . $i['filename'] . '.' . $extension);
-                //break;
             case 'jpg':
+                imagejpeg($newImage, $uri . $i['filename'] . '.jpg');
+                break;
             case 'jpeg':
                 imagejpeg($newImage, $uri . $i['filename'] . '.jpeg');
                 break;

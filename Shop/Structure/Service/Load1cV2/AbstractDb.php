@@ -110,7 +110,7 @@ class AbstractDb
 
     public function onlyUpdate($onlyUpdate)
     {
-        if ($onlyUpdate) {
+        if (!$onlyUpdate) {
             $this->truncate();
         }
         $this->onlyUpdate = $onlyUpdate;

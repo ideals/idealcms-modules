@@ -27,6 +27,7 @@ require_once 'Library/pclzip.lib.php';
 $params = require_once 'config.php';
 
 $config = Core\Config::getInstance();
+$config->cms = array_merge($config->cms, array('errorLog'=>'log'));
 
 // Каталог, в котором находятся модифицированные скрипты CMS
 $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');

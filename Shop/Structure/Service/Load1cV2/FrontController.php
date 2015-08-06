@@ -57,7 +57,6 @@ class FrontController
                 return 0;
 
             case 'init':
-                var_dump($_REQUEST);
                 print "zip=yes\n";
                 print "file_limit=0\n";
                 return 0;
@@ -69,7 +68,7 @@ class FrontController
                 }
 
                 if (strpos($filename, '.zip') !== false) {
-                    $this->unzip($filename);
+                    $this->unzip($filename, $conf);
                 } else {
                     $path = $this->directory . '1/' . $filename;
                     $f = fopen($this->directory . '1/' . $filename, 'ab');
@@ -309,6 +308,13 @@ class FrontController
                 }
 
                 rmdir($this->directory . $entry);
+            } else {
+                if (false !== strpos($entry, '.jpeg') || false !== strpos($entry, '.jpg')) {
+                    $path = $this->directory . $entry;
+                    new Image($path, $w, $h);
+                    $answer['count']++;
+                    unlink($path);
+                }
             }
         }
 
@@ -325,16 +331,22 @@ class FrontController
         }
     }
 
-    public function unzip($filename)
+    public function unzip($filename, $conf)
     {
         $exists = array('prices', 'rests');
         $config = Config::getInstance();
         $tmp = DOCUMENT_ROOT . $config->cms['tmpFolder'];
 
-        $f = fopen($tmp . $filename, 'ab');
+        gc_collect_cycles();
+        $file = fopen($tmp . $filename, 'ab');
         $pathFile = $tmp . $filename;
-        fwrite($f, file_get_contents('php://input'));
-        fclose($f);
+        $handle = fopen('php://input', 'rb');
+
+        while (!feof($handle)) {
+            fwrite($file, fgets($handle));
+        }
+        fclose($file);
+        fclose($handle);
 
         $zip = new \PclZip($pathFile);
         $fileList = $zip->listContent();
@@ -364,9 +376,18 @@ class FrontController
 
         $a = $zip->extract(PCLZIP_OPT_BY_INDEX, '0', PCLZIP_OPT_PATH, $tmp . '/');
         if ($a == 0) {
-            var_dump($file);
             print $pathFile . "\n";
             print "Ошибка распаковки архива 3:".$zip->errorInfo(true);
+        }
+
+        if (count($fileList) > 1) {
+            $zip->extract(
+                PCLZIP_OPT_PATH, DOCUMENT_ROOT . $conf['directory'] . $conf['images_directory'],
+                PCLZIP_OPT_BY_PREG, '/jpg|jpeg/',
+                PCLZIP_OPT_REMOVE_ALL_PATH
+            );
+
+            $this->loadImages($conf);
         }
 
         preg_match('/(\w*?)_/', $file['filename'], $type);
