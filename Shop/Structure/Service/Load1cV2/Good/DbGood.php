@@ -81,14 +81,17 @@ class DbGood extends AbstractDb
         return $result;
     }
 
-    public function truncateCategoryList()
+    public function truncateCategoryList($goods)
     {
         $categoryModel = new Category\DbCategory();
         $this->categories = $categoryModel->getCategories();
         $db = Db::getInstance();
 
-        $sql = "TRUNCATE TABLE {$this->structureMedium}";
-        $db->query($sql);
+        foreach ($goods as $value) {
+            $sql = "DELETE FROM {$this->structureMedium} WHERE " .
+                "good_id='{$value['good_id']}' AND category_id='{$value['category_id']}'";
+            $db->query($sql);
+        }
     }
 
     public function updateCategoryList($goodToGroup)

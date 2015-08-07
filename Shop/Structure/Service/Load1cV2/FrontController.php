@@ -215,8 +215,7 @@ class FrontController
 
         unset($xmlGood, $newGood);
 
-
-        $dbGood->truncateCategoryList();
+        $dbGood->truncateCategoryList($groups);
         // Сохраняем результаты
         $dbGood->save($goods);
 
