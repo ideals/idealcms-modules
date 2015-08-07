@@ -75,6 +75,7 @@ class NewGood
     protected function diff(array $dbResult, array $xmlResult)
     {
         $result = array();
+        $diffDb = array_diff(array_keys($dbResult), array_keys($xmlResult));
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $this->answer['add']++;
@@ -82,36 +83,32 @@ class NewGood
                 continue;
             }
 
+            if (isset($val['category_id']['category_id'])) {
+                $val['category_id'] = $val['category_id']['category_id'];
+            } else {
+                if (!isset($val['category_id'][0])) {
+                    unset($val['category_id']);
+                } else {
+                    $val['category_id'] = $val['category_id'][0];
+                }
+            }
+
+
             $res = array_diff_assoc($val, $dbResult[$k]);
             if (count($res) > 0) {
                 $result[$k] = $res;
-                $this->answer['add']++;
+                $result[$k]['ID'] = $dbResult[$k]['ID'];
+                $this->answer['update']++;
             }
         }
 
-        foreach ($dbResult as $id => $dbValue) {
-            if (!isset($xmlResult[$id])) {
-                if ($dbValue['is_active'] == 1) {
-                    $result[$id]['is_active'] = 0;
-                    $result[$id]['ID'] = $dbValue['ID'];
-                }
-                continue;
-            }
-
-            $diff = array_diff_assoc($xmlResult[$id], $dbValue);
-
-            if (is_null($diff)) {
-                continue;
-            }
-
-            // Больше 1 т.к. в xml категория товара представлена его id_1c а в бд выгрузке - ключом ID
-            if (count($diff) > 0) {
-                $result[$id] = $diff;
-                $result[$id]['ID'] = $dbValue['ID'];
+        foreach ($diffDb as $id) {
+            if ($dbResult[$id]['is_active'] == 1) {
+                $result[$id]['is_active'] = 0;
+                $result[$id]['ID'] = $dbResult[$id]['ID'];
             }
         }
 
-        $this->answer['update'] = count($result) - $this->answer['add'];
         return $result;
     }
 }

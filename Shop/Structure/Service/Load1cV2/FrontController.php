@@ -209,14 +209,21 @@ class FrontController
         // Устанавливаем связь БД и XML
         $goods = $newGood->parse();
 
+        $answer = $newGood->answer();
+
+        $groups = $xmlGood->groups;
+
+        unset($xmlGood, $newGood);
+
+
         $dbGood->truncateCategoryList();
         // Сохраняем результаты
         $dbGood->save($goods);
 
-        $dbGood->updateCategoryList();
+        $dbGood->updateCategoryList($groups);
 
         // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
-        return $newGood->answer();
+        return $answer;
     }
 
     // справочники
@@ -436,7 +443,7 @@ class FrontController
         unlink($pathFile);
     }
 
-    private function renameTables()
+    public function renameTables()
     {
         $dbCategory     = new Category\DbCategory();
         $dbGood         = new Good\DbGood();

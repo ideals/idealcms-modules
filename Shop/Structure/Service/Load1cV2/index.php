@@ -31,6 +31,7 @@ switch ($step) {
     case 5:
         $answer['continue'] = false;
         $answer = array_merge($answer, $fc->loadImages($item['info']));
+        $fc->renameTables();
         break;
 }
 

@@ -51,8 +51,6 @@ class AbstractXml
 
             $this->updateFromConfig($item, $id);
         }
-
-        return $this->data;
     }
 
     protected function updateFromConfig($item, $id)
@@ -74,7 +72,15 @@ class AbstractXml
                     $tmp = array();
                     foreach ($this->configs['fields'][$key]['field'] as $name => $conf) {
                         $res = $node->xpath($this->ns . $conf);
-                        $tmp[$name] = (string) $res[0];
+                        if (count($res) > 1) {
+                            foreach ($res as $val) {
+                                $tmp[] = (string) $val;
+                            }
+                            $this->data[$id][$value] = $tmp;
+                            continue;
+                        } elseif (count($res) == 1) {
+                            $tmp[$name] = (string) $res[0];
+                        }
                     }
 
                     $this->data[$id][$value][] = $tmp;

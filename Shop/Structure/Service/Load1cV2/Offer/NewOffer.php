@@ -73,6 +73,7 @@ class NewOffer
     protected function diff(array $dbResult, array $xmlResult)
     {
         $result = array();
+        $diffDb = array_diff(array_keys($dbResult), array_keys($xmlResult));
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
@@ -83,28 +84,18 @@ class NewOffer
             $res = array_diff_assoc($val, $dbResult[$k]);
             if (count($res) > 0) {
                 $result[$k] = $res;
-                $this->answer['add']++;
+                $result[$k]['ID'] = $dbResult[$k]['ID'];
+                $this->answer['update']++;
             }
         }
 
-        foreach ($dbResult as $id => $dbValue) {
-            if (!isset($xmlResult[$id])) {
-                if ($dbValue['is_active'] == 1) {
-                    $result[$id]['is_active'] = 0;
-                    $result[$id]['ID'] = $dbValue['ID'];
-                }
-                continue;
-            }
-
-            $diff = array_diff_assoc($xmlResult[$id], $dbValue);
-            if (count($diff) > 0) {
-                // currency и coefficient нет в бд выгрузке
-                $result[$id] = $diff;
-                $result[$id]['ID'] = $dbValue['ID'];
+        foreach ($diffDb as $id) {
+            if ($dbResult[$id]['is_active'] == 1) {
+                $result[$id]['is_active'] = 0;
+                $result[$id]['ID'] = $dbResult[$id]['ID'];
             }
         }
 
-        $this->answer['update'] = count($result) - $this->answer['add'];
         return $result;
     }
 

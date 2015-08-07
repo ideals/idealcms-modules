@@ -16,6 +16,8 @@ class XmlGood extends AbstractXml
     /** @var string путь к категориям в XML */
     public $part = 'Каталог/Товары';
 
+    public $groups = array();
+
     /**
      * Парсинг xml выгрузки import.xml
      *
@@ -27,6 +29,8 @@ class XmlGood extends AbstractXml
         parent::parse();
 
         foreach ($this->data as $k => $val) {
+            $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : '0';
+
             if ($val['category_id'] == '') {
                 $this->data[$k]['category_id'] = 'Load1c_default';
             }
@@ -45,7 +49,31 @@ class XmlGood extends AbstractXml
                 $this->data[$k]['imgs'] = "/images/1c/{$entry}/" . basename($val['imgs']);
             }
 
-            $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : '0';
+            if (is_array($val['category_id'])) {
+                foreach ($val['category_id'] as $cid) {
+                    if (is_array($cid) && isset($cid['category_id'])) {
+                        $this->groups[] = array(
+                            'good_id' => $val['id_1c'],
+                            'category_id' => $cid['category_id']
+                        );
+                    } else {
+                        if (is_array($cid)) {
+                            foreach ($cid as $id) {
+                                $this->groups[] = array(
+                                    'good_id' => $val['id_1c'],
+                                    'category_id' => $id
+                                );
+                            }
+                        } else {
+                            $this->groups[] = array(
+                                'good_id' => $val['id_1c'],
+                                'category_id' => $cid
+                            );
+                        }
+                    }
+                }
+                $this->data[$k]['category_id'] = $cid;
+            }
         }
 
         return $this->data;

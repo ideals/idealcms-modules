@@ -91,17 +91,24 @@ class DbGood extends AbstractDb
         $db->query($sql);
     }
 
-    public function updateCategoryList()
+    public function updateCategoryList($goodToGroup)
     {
         $db = Db::getInstance();
 
-        $goods = $this->getGoods('ID as good_id, category_id, id_1c');
-        foreach ($goods as $k => $good) {
-            unset($goods[$k]['id_1c']);
-
+        $result = array();
+        $goods = $this->getGoods('ID, id_1c');
+        foreach ($goodToGroup as $item) {
+            if (!isset($goods[$item['good_id']])) {
+                continue;
+            }
+            $result[] = array(
+                'good_id' => $goods[$item['good_id']]['ID'],
+                'category_id' => $this->categories[$item['category_id']]
+            );
         }
-        while (count($goods) > 24) {
-            $part = array_splice($goods, 0, 25);
+
+        while (count($result) > 24) {
+            $part = array_splice($result, 0, 25);
             $db->insertMultiple($this->structureMedium, $part);
         }
     }
@@ -114,9 +121,19 @@ class DbGood extends AbstractDb
     public function save($goods)
     {
         foreach ($goods as $k => $good) {
-            if (isset($good['category_id']) && !is_int($good['category_id'])) {
+            if (isset($good['category_id']['category_id'])) {
+                $goods[$k]['category_id'] = $this->categories[$good['category_id']['category_id']];
+            } elseif (is_array($good['category_id'])) {
+                if (!empty($good['category_id'])) {
+                    $goods[$k]['category_id'] = $this->categories[$good['category_id'][0]];
+                } else {
+                    $goods[$k]['category_id'] = $this->categories['Load1c_default'];
+                }
+            } else {
                 $goods[$k]['category_id'] = $this->categories[$good['category_id']];
             }
+
+            $goods[$k]['imgs'] = (isset($good['imgs'])) ? $good['imgs'] : '';
         }
 
         parent::save($goods);
@@ -148,7 +165,7 @@ class DbGood extends AbstractDb
         $db = Db::getInstance();
 
         $sql = "SELECT ID as offer_id_1c, min(price) as price, good_id, currency, rest as stock "
-            ."FROM " . $this->offers . $this->tablePostfix . "GROUP BY good_id";
+            ."FROM " . $this->offers . $this->tablePostfix . " GROUP BY good_id";
 
         $result = array();
         $tmp = $db->select($sql);

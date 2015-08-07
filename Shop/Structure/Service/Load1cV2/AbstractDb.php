@@ -129,6 +129,7 @@ class AbstractDb
                 if (!$this->onlyUpdate) {
                     $element['date_create'] = time();
                     $element['date_mod'] = time();
+                    ksort($element);
                     $add[] = $element;
                 } else {
                     $this->add($element);
