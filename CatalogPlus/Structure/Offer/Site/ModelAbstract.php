@@ -51,9 +51,10 @@ class ModelAbstract extends GoodAbstract
      *
      * Вызывается при копировании данных из одной модели в другую
      * @param Model $model Массив переменных объекта
+     * @param bool $bypass Признак того что этот метод нужно пропустить и перейти к родительскому
      * @return object Либо ссылка на самого себя, либо новый объект модели
      */
-    public function setVars($model)
+    public function setVars($model, $bypass = false)
     {
         $model = parent::setVars($model, true);
         $pageData = $model->getPageData();
