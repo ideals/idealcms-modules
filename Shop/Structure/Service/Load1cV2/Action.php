@@ -26,6 +26,14 @@ include('modalUpdate.html');
                    value="<?=$item['info']['resize']?>" type="text">
         </div>
     </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="filesize">Максимальный размер файла в Мб:</label>
+
+        <div class="col-sm-10">
+            <input class="form-control" name="filesize"
+                   value="<?=$item['info']['filesize']?>" type="text">
+        </div>
+    </div>
 
     <div class="form-inline">
         <div class="col-sm-offset-2 col-sm-10">

@@ -35,6 +35,7 @@ class FrontController
         $user = new Model();
         $request = new Request();
 
+        $this->filesize = intval($conf['filesize']) * 1024 * 1024;
         $this->directory = DOCUMENT_ROOT . $conf['directory'];
 
         if (!file_exists($this->directory . '1/')) {
@@ -349,6 +350,7 @@ class FrontController
                     }
                 }
 
+                closedir($incHandle);
                 rmdir($this->directory . $entry);
             } else {
                 if (false !== strpos($entry, '.jpeg') || false !== strpos($entry, '.jpg')) {
@@ -363,13 +365,27 @@ class FrontController
         return $answer;
     }
 
-    private function purge()
+    private function purge($dir = null)
     {
-        $tmp_files = glob($this->directory . '*.*');
-        if (is_array($tmp_files)) {
-            foreach ($tmp_files as $v) {
-                unlink($v);
+        $path = is_null($dir) ? $this->directory : $dir;
+
+        if (is_dir($path)) {
+            $path = realpath($path);
+            if (substr($path, -1) != DIRECTORY_SEPARATOR) {
+                $path = $path . DIRECTORY_SEPARATOR;
             }
+            if ($dh = opendir($path)) {
+                while (($file = readdir($dh)) !== false) {
+                    if (strpos($file, '.') === 0) {
+                        continue;
+                    }
+                    $this->purge($path . $file);
+                }
+                closedir($dh);
+            }
+            rmdir($path);
+        } else {
+            unlink($path);
         }
     }
 

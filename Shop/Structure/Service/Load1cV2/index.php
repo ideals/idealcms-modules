@@ -27,11 +27,11 @@ switch ($step) {
         $fc->loadFiles($item['info']['directory']);
         $answer['step'] = 'Предложения';
         $answer = array_merge($answer, $fc->offer());
+        $fc->renameTables();
         break;
     case 5:
         $answer['continue'] = false;
         $answer = array_merge($answer, $fc->loadImages($item['info']));
-        $fc->renameTables();
         break;
 }
 
