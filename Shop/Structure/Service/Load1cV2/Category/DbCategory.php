@@ -95,7 +95,6 @@ class DbCategory extends AbstractDb
     public function parse()
     {
         $db = Db::getInstance();
-        $this->checkTable();
 
         // Сбрасываем счетчик товаров для групп
         $values = array(
@@ -108,7 +107,7 @@ class DbCategory extends AbstractDb
             ->exec();
 
         // Считываем категории из нашей БД
-        $sql = "SELECT ID, name, cid, lvl, id_1c, is_active, title FROM `" .
+        $sql = "SELECT ID, name, cid, lvl, id_1c, is_active FROM `" .
             $this->table . $this->tablePostfix . "` ORDER BY cid";
 
         $tmp = $db->select($sql);
@@ -126,6 +125,12 @@ class DbCategory extends AbstractDb
         return $result;
     }
 
+    /**
+     * Получение id_1c предка cid
+     *
+     * @param $parentCid string полный сид
+     * @return null|string id_1c
+     */
     public function getParentByCid($parentCid)
     {
         $db = Db::getInstance();
@@ -159,42 +164,16 @@ class DbCategory extends AbstractDb
         parent::add($params);
     }
 
-    public function onlyUpdate($onlyUpdate)
+    /**
+     * Подготовка временной таблицы для выгрузки
+     *
+     * @param $onlyUpdate bool Файл Содержит Только Обновления
+     */
+    public function prepareTable($onlyUpdate)
     {
         $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();
         $this->createEmptyTestTable();
         $this->copyOrigTable();
-    }
-
-    /**
-     * Проверка таблицы категорий на присутствие полей id_1c и count_sale
-     * Если их не существует - ALTER TABLE с соответствующими значениями
-     */
-    protected function checkTable()
-    {
-        $db = Db::getInstance();
-
-        $params = array(
-            array('table' => $this->table . $this->tablePostfix),
-        );
-        $sql = 'SHOW COLUMNS FROM &table';
-        $res = $db->select($sql, null, $params[0]);
-        foreach ($res as $key => $value) {
-            if ($value['Field'] != 'id_1c' && $value['Field'] != 'count_sale') {
-                unset ($res[$key]);
-            }
-        }
-        $res = array_values($res);
-        $idSql = "ADD COLUMN `id_1c` varchar(75) DEFAULT 'not-1c' AFTER ID";
-        $saleSql = "ADD COLUMN `count_sale` int(11) DEFAULT 0 AFTER `description`";
-        $sql = "ALTER TABLE " . $this->table . $this->tablePostfix . " ";
-        if (empty($res)) {
-            $sql .=  " {$idSql}, {$saleSql}";
-            $db->query($sql);
-        } elseif (count($res) === 1) {
-            $sql .= ($res[0]['Field'] == 'id_1c' ? $saleSql : $idSql);
-            $db->query($sql);
-        }
     }
 }

@@ -2,7 +2,7 @@
 use Shop\Structure\Service\Load1cV2;
 use Ideal\Core;
 
-ini_set('display_errors', 'On');
+ini_set('display_errors', 'Off');
 
 $cmsFolder = 'don';
 $subFolder = '';

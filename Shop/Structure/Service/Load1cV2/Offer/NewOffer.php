@@ -33,7 +33,7 @@ class NewOffer
     {
         $this->dbOffer = $dbOffer;
         $this->xmlOffer = $xmlOffer;
-        $this->dbOffer->onlyUpdate($this->xmlOffer->updateInfo());
+        $this->dbOffer->prepareTable($this->xmlOffer->updateInfo());
     }
 
     /**

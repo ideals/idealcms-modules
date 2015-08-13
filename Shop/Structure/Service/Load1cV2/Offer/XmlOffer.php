@@ -45,6 +45,8 @@ class XmlOffer extends AbstractXml
         foreach ($this->data as $k => $value) {
             if ($value['price'] == 0) {
                 $this->data[$k]['is_active'] = '0';
+            } else {
+                $this->data[$k]['price'] *= 100;
             }
         }
 

@@ -20,10 +20,10 @@ class NewCategory
     /** @var  bool содержит ли xml только обновления */
     protected $onlyUpdate;
 
-    /** @var  DbCategory */
+    /** @var  DbCategory объект модели БД */
     protected $dbCategory;
 
-    /** @var  XmlCategory */
+    /** @var  XmlCategory объект модели XML */
     protected $xmlCategory;
 
     /**
@@ -34,7 +34,7 @@ class NewCategory
     {
         $this->dbCategory = $dbCategory;
         $this->xmlCategory = $xmlCategory;
-        $this->dbCategory->onlyUpdate($this->xmlCategory->updateInfo());
+        $this->dbCategory->prepareTable($this->xmlCategory->updateInfo());
     }
 
     /**
@@ -148,7 +148,8 @@ class NewCategory
 
             unset($newXmlResult[$k]['pos']);
 
-            if (!is_null($dbResult[$k]) && count(array_diff($newXmlResult[$k], $dbResult[$k])) === 0) {
+            if (array_key_exists($k, $dbResult) &&
+                count(array_diff($newXmlResult[$k], $dbResult[$k])) === 0) {
                 unset($newXmlResult[$k]);
             } else {
                 if (isset($dbResult[$k]['ID'])) {

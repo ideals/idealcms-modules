@@ -146,7 +146,7 @@ class AbstractDb
         }
     }
 
-    public function onlyUpdate($onlyUpdate)
+    public function prepareTable($onlyUpdate)
     {
         $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();

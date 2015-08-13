@@ -31,7 +31,9 @@ class DbGood extends AbstractDb
     protected $categories;
 
     /** @var string Структура офферов */
-    protected $offers = 'offers_good';
+    protected $offers = 'catalogplus_structure_offer';
+
+    protected $goodToCat = array();
 
     /**
      *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
@@ -81,15 +83,14 @@ class DbGood extends AbstractDb
         return $result;
     }
 
-    public function truncateCategoryList($goods)
+    public function truncateCategoryList()
     {
         $categoryModel = new Category\DbCategory();
         $this->categories = $categoryModel->getCategories();
         $db = Db::getInstance();
 
-        foreach ($goods as $value) {
-            $sql = "DELETE FROM {$this->structureMedium} WHERE " .
-                "good_id='{$value['good_id']}' AND category_id='{$value['category_id']}'";
+        if (!$this->onlyUpdate) {
+            $sql = "TRUNCATE {$this->structureMedium}";
             $db->query($sql);
         }
     }
@@ -104,10 +105,15 @@ class DbGood extends AbstractDb
             if (!isset($goods[$item['good_id']])) {
                 continue;
             }
-            $result[] = array(
-                'good_id' => $goods[$item['good_id']]['ID'],
-                'category_id' => $this->categories[$item['category_id']]
-            );
+
+            $categories = $this->getCategories($goods[$item['good_id']]['ID']);
+
+            if (!in_array($this->categories[$item['category_id']], $categories)) {
+                $result[] = array(
+                    'good_id' => $goods[$item['good_id']]['ID'],
+                    'category_id' => $this->categories[$item['category_id']]
+                );
+            }
         }
 
         while (count($result) > 24) {
@@ -188,15 +194,32 @@ class DbGood extends AbstractDb
                 }
             }
         }
-        $this->save($updates);
+        parent::save($updates);
     }
 
     protected function add($element)
     {
         $element['prev_structure'] = $this->prevGood;
         $element['measure'] = '';
-        unset($element['category']);
 
         parent::add($element);
+    }
+
+    protected function getCategories($goodId)
+    {
+        $db = Db::getInstance();
+
+        if (!array_key_exists($goodId, $this->goodToCat)) {
+            $sql = "SELECT DISTINCT category_id FROM {$this->structureMedium} ".
+                "WHERE good_id = {$goodId}";
+            $categories = $db->select($sql);
+
+            $this->goodToCat[$goodId] = array();
+            foreach ($categories as $item) {
+                $this->goodToCat[$goodId][] = $item['category_id'];
+            }
+        }
+
+        return $this->goodToCat[$goodId];
     }
 }

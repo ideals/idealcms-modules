@@ -22,7 +22,7 @@ class DbOffer extends AbstractDb
     public function __construct()
     {
         parent::__construct();
-        $this->table = $this->prefix . 'offers_good';
+        $this->table = $this->prefix . 'catalogplus_structure_offer';
     }
 
     /**

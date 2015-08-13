@@ -19,6 +19,8 @@ class FrontController
 
     protected $files;
 
+    protected $filesize = 40960000;
+
     protected $countFiles = 0;
 
     public function loadFiles($dir)
@@ -61,7 +63,7 @@ class FrontController
 
             case 'init':
                 print "zip=yes\n";
-                print "file_limit=0\n";
+                print "file_limit={$this->filesize}\n";
                 return 0;
 
             case 'file':
@@ -78,7 +80,7 @@ class FrontController
                     fwrite($f, file_get_contents('php://input'));
                     fclose($f);
 
-                    if (isset($path) && getimagesize($path)) {
+                    if (getimagesize($path)) {
                         list($w, $h) = explode('x', $conf['resize']);
                         new Image($path, $w, $h);
                         unlink($path);
@@ -99,8 +101,8 @@ class FrontController
         $this->countFiles = 0;
         $this->files = $this->readDir($this->directory);
         if ($this->countFiles == 6) {
+            $result = array();
             $result[] = $this->category();
-            // <Группы>\n(\s*)<Ид>.*</Ид>\n\s*<Ид, несколько групп у товара в медиумкатегорилист
             $result[] = $this->good();
             $result[] = $this->directory();
             $result[] = $this->offer();
@@ -215,7 +217,7 @@ class FrontController
 
         unset($xmlGood, $newGood);
 
-        $dbGood->truncateCategoryList($groups);
+        $dbGood->truncateCategoryList();
         // Сохраняем результаты
         $dbGood->save($goods);
 
@@ -305,7 +307,8 @@ class FrontController
         $answer['rests'] = $newOffers->answer();
 
         $dbGood = new Good\DbGood();
-        $dbGood->onlyUpdate(true);
+        $dbGood->updateOrigTable();
+        $dbGood->prepareTable(true);
         $dbGood->updateGood();
 
         return $answer;
@@ -377,8 +380,9 @@ class FrontController
         $tmp = DOCUMENT_ROOT . $config->cms['tmpFolder'];
 
         gc_collect_cycles();
-        $file = fopen($tmp . $filename, 'ab');
         $pathFile = $tmp . $filename;
+        $file = fopen($pathFile, 'ab');
+
         $handle = fopen('php://input', 'rb');
 
         while (!feof($handle)) {
@@ -386,6 +390,12 @@ class FrontController
         }
         fclose($file);
         fclose($handle);
+
+        // если включено zip и установлен max filesize - ждем, пока не скачается весь файл
+        if ($this->filesize != 0 && $_SERVER['CONTENT_LENGTH'] == $this->filesize) {
+            print "success";
+            exit;
+        }
 
         $zip = new \PclZip($pathFile);
         $fileList = $zip->listContent();

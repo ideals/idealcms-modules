@@ -46,6 +46,12 @@ class DbDirectory extends AbstractDb
         return $result;
     }
 
+    /**
+     * Получение ИД справочников для товара по id_1c и значению справочника
+     *
+     * @param $params array
+     * @return string json строка с значениями справочников
+     */
     public function getDirectory($params)
     {
         $db = Db::getInstance();

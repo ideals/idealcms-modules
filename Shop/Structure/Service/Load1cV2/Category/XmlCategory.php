@@ -26,19 +26,27 @@ class XmlCategory extends AbstractXml
         return $this->data;
     }
 
-    public function updateElement($array)
+    /**
+     * Запись в xml новых данных по ИД
+     *
+     * @param $elem array массив значений для добавления в xml node
+     */
+    public function updateElement($elem)
     {
-        $path = '//' . $this->ns . '*[' . $this->ns . 'Ид="' . $array['Ид'] . '"]';
-        unset($array['id_1c']);
+        $path = '//' . $this->ns . '*[' . $this->ns . 'Ид="' . $elem['Ид'] . '"]';
+        unset($elem['id_1c']);
         $element = $this->xml->xpath($path);
 
-        foreach ($array as $key => $value) {
+        foreach ($elem as $key => $value) {
             if (!isset($element[0]->{$key})) {
                 $element[0]->addChild($key, $value);
             }
         }
     }
 
+    /**
+     * Подмена значений конфигурационного файла выгрузки
+     */
     public function updateConfigs()
     {
         $this->configs['fields'] = array_merge($this->configs['fields'], $this->configs['updateDbFields']);

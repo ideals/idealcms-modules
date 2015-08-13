@@ -35,7 +35,7 @@ class NewGood
     {
         $this->dbGood = $dbGood;
         $this->xmlGood = $xmlGood;
-        $this->dbGood->onlyUpdate($this->xmlGood->updateInfo());
+        $this->dbGood->prepareTable($this->xmlGood->updateInfo());
     }
 
     /**
