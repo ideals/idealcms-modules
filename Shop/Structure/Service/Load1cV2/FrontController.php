@@ -15,21 +15,42 @@ use Mail\Sender;
 
 class FrontController
 {
+    /** @var string абсолютный путь к папке для выгрузки */
     protected $directory;
 
+    /** @var array массив, содержащий абсолютные пути и названия файлов выгрузки */
     protected $files;
 
+    /** @var int максимальный размер получаемых архивов от 1с. Если файл больше - высылается в несколько частей */
     protected $filesize = 40960000;
 
+    /** @var int количество полученных файлов от 1с. Необходимо для определения окончания выгрузки 1с */
     protected $countFiles = 0;
 
+    /**
+     * Установка директории и получение списка файлов и путями
+     *
+     * @param string $dir путь до папки с выгрузкой от docs папки.
+     */
     public function loadFiles($dir)
     {
         $this->directory = DOCUMENT_ROOT . $dir;
         $this->files = $this->readDir($this->directory);
     }
 
-    // импорт файлов из 1с
+    /**
+     * API часть, вызываемая 1с базой.
+     * в GET параметрах от 1с приходят следующие mode:
+     * checkauth    - запрос авторизации
+     * init         - конфигурирование выгрузки (использование сжатия, размер файла)
+     * file         - передача файла
+     * import       - запрос на импорт файла (в виду обеспечения целостности выгрузки импорт производится после
+     *                  получения всех файлов от 1с)
+     * В случае успешного выполнения запроса 1с ждет ответ success.
+     *
+     * @param array $conf данные из корневого конфигурационного файла
+     * @return int ВОЙД
+     */
     public function import($conf)
     {
         $user = new Model();
@@ -38,15 +59,19 @@ class FrontController
         $this->filesize = intval($conf['filesize']) * 1024 * 1024;
         $this->directory = DOCUMENT_ROOT . $conf['directory'];
 
+        // создание директории для выгрузки
         if (!file_exists($this->directory . '1/')) {
             mkdir($this->directory . '1/', 0750, true);
         }
 
+        // удаление файлов от предыдущей выгрузки
         if (time() - filemtime($this->directory) > 1800) {
             $this->purge();
         }
 
+        // если запрос не на авторизацию и пользователь не залогинен - мрём
         if ($request->mode != 'checkauth' && !$user->checkLogin()) {
+            print "failure\n";
             print "Ошибка: Вы не авторизованы";
             die();
         }
@@ -58,6 +83,7 @@ class FrontController
                     print session_name() . "\n";
                     print session_id();
                 } else {
+                    print "failure\n";
                     print "Ошибка: пользователь не авторизован\n";
                 }
                 return 0;
@@ -69,9 +95,6 @@ class FrontController
 
             case 'file':
                 $filename = basename($request->filename);
-                if (substr($filename, -1) == '&') {
-                    $filename = substr($filename, 0, -1);
-                }
 
                 if (strpos($filename, '.zip') !== false) {
                     $this->unzip($filename, $conf);
@@ -101,6 +124,7 @@ class FrontController
 
         $this->countFiles = 0;
         $this->files = $this->readDir($this->directory);
+        // если пришли все файлы начинаем выгрузку
         if ($this->countFiles == 6) {
             $result = array();
             $result[] = $this->category();
@@ -109,6 +133,7 @@ class FrontController
             $result[] = $this->offer();
 
             $vals = array();
+            // подготовка для сообщения на почту
             foreach ($result as $response) {
                 if (isset($response['offer']) || isset($response['prices']) || isset($response['rests'])) {
                     $vals[] = "Шаг: {$response['step']} - <br/>";
@@ -134,14 +159,22 @@ class FrontController
             $sender->setHtmlBody($html);
             $sender->sent($con->robotEmail, $con->cms['adminEmail']);
 
+            // переименовываем временные таблицы на оригинальное название
             $this->renameTables();
 
+            // запускаем resizer
             $this->loadImages($conf['info']);
         }
 
         return 0;
     }
 
+    /**
+     * Получение списка файла в директории $path. Вызывается рекурсивно для обхода вложенных директорий
+     *
+     * @param string $path абсолютный путь к директории
+     * @return array массив данных о файлах в директории array('название' => 'абсолютный путь')
+     */
     protected function readDir($path)
     {
         $handle = opendir($path);
@@ -155,11 +188,13 @@ class FrontController
                 continue;
             }
 
+            // выгрузка изображений производится в ту же директорию, что и xml, но её обходить не надо
             if ($entry != 'import_files' && is_dir($path . $entry)) {
                 $files[$entry] = $this->readDir($path . $entry . '/');
                 continue;
             }
 
+            // название файлов выгрузки имеет вид import___хэш.xml
             preg_match('/(\w*?)_/', $entry, $type);
             $this->countFiles++;
             $files[$type[1]] = $path . $entry;
@@ -168,7 +203,11 @@ class FrontController
         return $files;
     }
 
-    // категории
+    /**
+     * Обновление категорий из xml выгрузки
+     *
+     * @return array информация о проведенных изменениях - add => count, update => count
+     */
     public function category()
     {
         $xml = new Xml($this->files['import']);
@@ -195,7 +234,11 @@ class FrontController
         return $newCategory->answer();
     }
 
-    // товары
+    /**
+     * Обновление товаров из выгрузки
+     *
+     * @return array информация о проведенных изменениях - add => count, update => count
+     */
     public function good()
     {
         $xml = new Xml($this->files['1']['import']);
@@ -209,40 +252,49 @@ class FrontController
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
         $newGood = new Good\NewGood($dbGood, $xmlGood);
 
-        // Устанавливаем связь БД и XML
+        // Устанавливаем связь БД и XML и производим сравнение данных
         $goods = $newGood->parse();
 
+        // получение данных о проведённых изменениях
         $answer = $newGood->answer();
 
+        // данные для medium_categorylist
         $groups = $xmlGood->groups;
 
         unset($xmlGood, $newGood);
 
+        // удаление данных из medium_categorylist если необходимо (onlyUpdate = false)
         $dbGood->truncateCategoryList();
+
         // Сохраняем результаты
         $dbGood->save($goods);
 
+        // обновление информации в medium_categorylist
         $dbGood->updateCategoryList($groups);
 
         // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
         return $answer;
     }
 
-    // справочники
+    /**
+     * Обновление справочников из выгрузки
+     *
+     * @return array информация о проведенных изменениях - add => count, update => count
+     */
     public function directory()
     {
         $xml = new Xml($this->files['offers']);
 
-        // инициализируем модель товаров в БД - DbGood
+        // инициализируем модель справочников в БД - DbDirectory
         $dbDirectory = new Directory\DbDirectory();
 
-        // инициализируем модель категорий в XML - XmlCategory
+        // инициализируем модель справочников в XML - XmlDirectory
         $xmlDirectory = new Directory\XmlDirectory($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
         $newDirectory = new Directory\NewDirectory($dbDirectory, $xmlDirectory);
 
-        // Устанавливаем связь БД и XML
+        // Устанавливаем связь БД и XML, производим сравнение
         $directories = $newDirectory->parse();
 
         // Сохраняем результаты
@@ -252,27 +304,33 @@ class FrontController
         return $newDirectory->answer();
     }
 
-    // предложения
+    /**
+     * Обновление предложений из выгрузки
+     *
+     * @return array информация о проведенных изменениях - add => count, update => count
+     */
     public function offer()
     {
+        // получение xml с данными о предложениях
         $xml = new Xml($this->files['1']['offers']);
 
-        // инициализируем модель товаров в БД - DbGood
+        // инициализируем модель предложений в БД - DbOffer
         $dbOffers = new Offer\DbOffer();
 
-        // инициализируем модель категорий в XML - XmlCategory
+        // инициализируем модель предложений в XML - XmlOffer
         $xmlOffers = new Offer\XmlOffer($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
         $newOffers = new Offer\NewOffer($dbOffers, $xmlOffers);
 
         // Устанавливаем связь БД и XML
-        $offers1 = $newOffers->parse();
+        $offers = $newOffers->parse();
 
         $answer['offer'] = $newOffers->answer();
 
         unset ($xml, $xmlOffers, $newOffers);
 
+        // получение xml с данными о ценах
         $xml = new Xml($this->files['1']['prices']);
 
         // инициализируем модель категорий в XML - XmlCategory
@@ -282,12 +340,13 @@ class FrontController
         $newOffers = new Offer\NewOffer($dbOffers, $xmlPrices);
 
         // Устанавливаем связь БД и XML
-        $offers2 = $newOffers->parsePrice();
+        $prices = $newOffers->parsePrice();
 
         $answer['prices'] = $newOffers->answer();
 
         unset ($xml, $xmlPrices, $newOffers);
 
+        // получение xml с данными об остатках
         $xml = new Xml($this->files['1']['rests']);
 
         // инициализируем модель категорий в XML - XmlCategory
@@ -297,24 +356,35 @@ class FrontController
         $newOffers = new Offer\NewOffer($dbOffers, $xmlRests);
 
         // Устанавливаем связь БД и XML
-        $offers3 = $newOffers->parseRests();
+        $rests = $newOffers->parseRests();
 
 
-        $offers = array_replace_recursive($offers1, $offers2, $offers3);
-        unset($offers1, $offers2, $offers3);
+        $result = array_replace_recursive($offers, $prices, $rests);
+
+        unset($offers, $prices, $rests);
         // Сохраняем результаты
-        $dbOffers->save($offers);
+        $dbOffers->save($result);
 
         $answer['rests'] = $newOffers->answer();
 
+        // обновление данных для товаров - установка из выгрузки (часть данных идёт в cp_offer, другая - в cp_good)
         $dbGood = new Good\DbGood();
+        // сохранение предыдущих изменений (rename tables)
         $dbGood->updateOrigTable();
+        // создание новой временной таблицы
         $dbGood->prepareTable(true);
+        // обновление записей
         $dbGood->updateGood();
 
         return $answer;
     }
 
+    /**
+     * Ресайз изображений, находящихся в директории с выгрузкой. Оригинальные файлы удаляются
+     *
+     * @param array $dir данные из конфигурационного файла
+     * @return array данные о количестве отредактированных изображений
+     */
     public function loadImages($dir)
     {
         $answer = array(
@@ -365,7 +435,12 @@ class FrontController
         return $answer;
     }
 
-    private function purge($dir = null)
+    /**
+     * Метод рекурсивного удаления файлов и директорий
+     *
+     * @param string|null $dir абсолютный путь к директории
+     */
+    protected function purge($dir = null)
     {
         $path = is_null($dir) ? $this->directory : $dir;
 
@@ -389,6 +464,11 @@ class FrontController
         }
     }
 
+    /**
+     * Распаковка архива.
+     * @param string $filename basename файла
+     * @param array $conf данные из конфигурационного файла
+     */
     public function unzip($filename, $conf)
     {
         $exists = array('prices', 'rests');
@@ -400,7 +480,7 @@ class FrontController
         $file = fopen($pathFile, 'ab');
 
         $handle = fopen('php://input', 'rb');
-
+        // построковое считывание файла. file_get_content может привести к фаталу из-за mapping'a в RAM
         while (!feof($handle)) {
             fwrite($file, fgets($handle));
         }
@@ -418,6 +498,7 @@ class FrontController
 
         if ($fileList == 0) {
             unlink($pathFile);  // удаляем загруженный файл
+            print "failure\n";
             print "Ошибка распаковки архива 1: ".$zip->errorInfo(true);
             die;
         }
@@ -425,6 +506,7 @@ class FrontController
         $file = $fileList[0];
         if (!($file['status'] == 'ok' && $file['size'] > 0)) {
             unlink($pathFile);  // удаляем загруженный файл
+            print "failure\n";
             print "Ошибка распаковки архива 2: ".$zip->errorInfo(true);
             die;
         }
@@ -435,14 +517,17 @@ class FrontController
                 continue;
             }
 
+            // важно сохранять очередность полученных файлов. первыми приходят мелкие import и offer, их кладем в 1с
             preg_match('/(\w*?)_/', $entry, $type);
             $exists[] = $type[1];
         }
 
         $a = $zip->extract(PCLZIP_OPT_BY_INDEX, '0', PCLZIP_OPT_PATH, $tmp . '/');
         if ($a == 0) {
-            print $pathFile . "\n";
+            unlink($pathFile);
+            print "failure\n";
             print "Ошибка распаковки архива 3:".$zip->errorInfo(true);
+            die;
         }
 
         preg_match('/(\w*?)_/', $file['filename'], $type);
@@ -459,8 +544,10 @@ class FrontController
 
         if (count($fileList) > 1) {
             $zip->extract(
-                PCLZIP_OPT_PATH, DOCUMENT_ROOT . $conf['directory'] . $conf['images_directory'],
-                PCLZIP_OPT_BY_PREG, '/jpg|jpeg/',
+                PCLZIP_OPT_PATH,
+                DOCUMENT_ROOT . $conf['directory'] . $conf['images_directory'],
+                PCLZIP_OPT_BY_PREG,
+                '/jpg|jpeg/',
                 PCLZIP_OPT_REMOVE_ALL_PATH
             );
         }
@@ -468,6 +555,10 @@ class FrontController
         unlink($pathFile);
     }
 
+    /**
+     * Заключительный этап выгрузки - если в процессе импорта не было ошибок
+     * меняем название временных таблиц на оригинальные
+     */
     public function renameTables()
     {
         $dbCategory     = new Category\DbCategory();

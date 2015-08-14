@@ -50,12 +50,14 @@ class XmlGood extends AbstractXml
             }
 
             if (is_array($val['category_id'])) {
+                $category = 'Load1c_default';
                 foreach ($val['category_id'] as $cid) {
                     if (is_array($cid) && isset($cid['category_id'])) {
                         $this->groups[] = array(
                             'good_id' => $val['id_1c'],
                             'category_id' => $cid['category_id']
                         );
+                        $category = $cid['category_id'];
                     } else {
                         if (is_array($cid)) {
                             foreach ($cid as $id) {
@@ -63,16 +65,18 @@ class XmlGood extends AbstractXml
                                     'good_id' => $val['id_1c'],
                                     'category_id' => $id
                                 );
+                                $category = $id;
                             }
                         } else {
                             $this->groups[] = array(
                                 'good_id' => $val['id_1c'],
                                 'category_id' => $cid
                             );
+                            $category = $cid;
                         }
                     }
                 }
-                $this->data[$k]['category_id'] = $cid;
+                $this->data[$k]['category_id'] = $category;
             }
         }
 

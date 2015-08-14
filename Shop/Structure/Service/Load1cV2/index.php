@@ -8,31 +8,37 @@ $answer = array(
 );
 
 $configs = \Ideal\Core\Config::getInstance();
+// для отправки ошибок в json - меняем значение errorlog
 $configs->cms = array_merge($configs->cms, array('errorLog'=>'var'));
-
-switch ($step) {
-    case 1:
-        $fc->loadFiles($item['info']['directory']);
-        $answer = array_merge($answer, $fc->category());
-        break;
-    case 2:
-        $fc->loadFiles($item['info']['directory']);
-        $answer = array_merge($answer, $fc->good());
-        break;
-    case 3:
-        $fc->loadFiles($item['info']['directory']);
-        $answer = array_merge($answer, $fc->directory());
-        break;
-    case 4:
-        $fc->loadFiles($item['info']['directory']);
-        $answer['step'] = 'Предложения';
-        $answer = array_merge($answer, $fc->offer());
-        $fc->renameTables();
-        break;
-    case 5:
-        $answer['continue'] = false;
-        $answer = array_merge($answer, $fc->loadImages($item['info']));
-        break;
+try {
+    switch ($step) {
+        case 1:
+            $fc->loadFiles($item['info']['directory']);
+            $answer = array_merge($answer, $fc->category());
+            break;
+        case 2:
+            $fc->loadFiles($item['info']['directory']);
+            $answer = array_merge($answer, $fc->good());
+            break;
+        case 3:
+            $fc->loadFiles($item['info']['directory']);
+            $answer = array_merge($answer, $fc->directory());
+            break;
+        case 4:
+            $fc->loadFiles($item['info']['directory']);
+            $answer['step'] = 'Предложения';
+            $answer = array_merge($answer, $fc->offer());
+            $fc->renameTables();
+            break;
+        case 5:
+            $answer['continue'] = false;
+            $answer = array_merge($answer, $fc->loadImages($item['info']));
+            break;
+    }
+} catch (Exception $e) {
+    $answer['continue'] = false;
+    $answer['errors'][] = $e->getMessage();
+    die(json_encode($answer));
 }
 
 $errors = \Ideal\Core\Util::$errorArray;

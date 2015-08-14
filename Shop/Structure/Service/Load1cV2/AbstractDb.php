@@ -32,7 +32,7 @@ class AbstractDb
     protected $multipleInsert = 5;
 
     /**
-     *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
+     *  Установка полей класса - префикса таблиц, конфигураций из config.php
      */
     public function __construct()
     {
@@ -43,6 +43,9 @@ class AbstractDb
         $this->configs = include $path[0] . '/config.php';
     }
 
+    /**
+     * Создание временной таблицы для сохранения данных со схемой оригинальной таблицы
+     */
     protected function createEmptyTestTable()
     {
         $db = Db::getInstance();
@@ -52,6 +55,9 @@ class AbstractDb
         $db->query($sql);
     }
 
+    /**
+     * Удаление временной таблицы
+     */
     protected function dropTestTable()
     {
         $db = Db::getInstance();
@@ -66,6 +72,10 @@ class AbstractDb
         }
     }
 
+    /**
+     * Копирование данных из оригинальной таблицы во временную.
+     * Необходимо при обновлении данных ($onlyUpdates = true)
+     */
     protected function copyOrigTable()
     {
         $db = Db::getInstance();
@@ -75,6 +85,9 @@ class AbstractDb
         $db->query($sql);
     }
 
+    /**
+     * Свап временной и оригинальной таблицы
+     */
     public function updateOrigTable()
     {
         $db = Db::getInstance();
@@ -116,7 +129,8 @@ class AbstractDb
     }
 
     /**
-     * Сохранение полученных из XML изменений
+     * Сохранение полученных из XML изменений. Возможна как построчная вставка, так и вставка массивом значений
+     * INSERT INTO `table` (col1, col2, col3) VALUES (1,2,3), (5,6,7) ...
      *
      * @param array $elements массив данных для записи в базу данных
      */
@@ -146,6 +160,11 @@ class AbstractDb
         }
     }
 
+    /**
+     * Подготовка временной таблицы для занесения данных
+     *
+     * @param bool $onlyUpdate значение СодержитТолькоИзменения из xml выгрузки
+     */
     public function prepareTable($onlyUpdate)
     {
         $this->onlyUpdate = $onlyUpdate;

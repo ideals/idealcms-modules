@@ -67,13 +67,19 @@ class Image
                 break;
         }
 
-        if ($srcH < $newHeight) $newHeight = $srcH;
-        if ($srcW < $newWidth) $newWidth = $srcW;
+        if ($srcH < $newHeight) {
+            $newHeight = $srcH;
+        }
+        if ($srcW < $newWidth) {
+            $newWidth = $srcW;
+        }
         // Пропорциональное уменьшение изображения
         $tmp = $srcW / $newWidth;
         $tmp2 = $srcH / $newHeight;
         $k = $tmp2;
-        if ($tmp > $tmp2) $k = $tmp;
+        if ($tmp > $tmp2) {
+            $k = $tmp;
+        }
         // Подсчет новой высоты и ширины
         $h2 = $srcH / $k;
         $w2 = $srcW / $k;
@@ -81,7 +87,7 @@ class Image
         $color = imagecolorallocate($newImage, $this->color['r'], $this->color['g'], $this->color['b']);
         imagefilledrectangle($newImage, 0, 0, $w2, $h2, $color);
         imagecopyresampled($newImage, $img, 0, 0, 0, 0, $w2, $h2, $srcW, $srcH);
-        if (($w2 != $newWidth OR $h2 != $newHeight) AND $border) {
+        if (($w2 != $newWidth || $h2 != $newHeight) && $border) {
             // Если картинка была уменьшина в пропорциях
             // То она будет доведена до требуемого размера
             $tmpImage = imagecreatetruecolor($newWidth, $newHeight);
@@ -94,7 +100,7 @@ class Image
             $newImage = $tmpImage;
         }
         $tmp = explode('*', $this->minSizeWater);
-        if ($tmp[0] < $newWidth AND $tmp[1] < $newHeight AND $water != NULL) {
+        if ($tmp[0] < $newWidth && $tmp[1] < $newHeight && $water != null) {
             $tmp = ($newWidth - 10) / strlen($water);
             if (floor($tmp) >= 20) {
                 $fontSize = 20;
@@ -112,7 +118,8 @@ class Image
 
                 $x = $w2 - ($bbox[2] - $bbox[0] + 10); // отступ с левого края
                 $y = $h2 - ($bbox[1] - $bbox[7] + 10); // отступ с нижнего края
-                imagettftext($newImage, $fontSize + 2, 45, $x - 2, $y + 2, $gray, $font, $water); // вывод текста на картинку
+                // вывод текста на картинку
+                imagettftext($newImage, $fontSize + 2, 45, $x - 2, $y + 2, $gray, $font, $water);
                 imagettftext($newImage, $fontSize, 45, $x, $y, $white, $font, $water); // вывод текста на картинку
             }
 
@@ -130,5 +137,4 @@ class Image
         }
 
     }
-
 }

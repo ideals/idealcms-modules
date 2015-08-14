@@ -154,7 +154,6 @@ class DbCategory extends AbstractDb
     {
         $params = array(
             'url' => Url\Model::translitUrl($element['name']),
-            'template' => 'Ideal_Page',
             'prev_structure' => $this->prevCat,
         );
         foreach ($element as $key => $item) {

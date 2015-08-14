@@ -83,17 +83,6 @@ class NewGood
                 continue;
             }
 
-            if (isset($val['category_id']['category_id'])) {
-                $val['category_id'] = $val['category_id']['category_id'];
-            } else {
-                if (!isset($val['category_id'][0])) {
-                    unset($val['category_id']);
-                } else {
-                    $val['category_id'] = $val['category_id'][0];
-                }
-            }
-
-
             $res = array_diff_assoc($val, $dbResult[$k]);
             if (count($res) > 0) {
                 $result[$k] = $res;
