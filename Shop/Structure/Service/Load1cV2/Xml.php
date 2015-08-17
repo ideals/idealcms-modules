@@ -14,7 +14,7 @@ class Xml
     {
         libxml_use_internal_errors(true);
         if (!file_exists($source)) {
-            throw new \Exception('Отсутствует файл выгрузки:' . $source);
+            throw new \RuntimeException("Отсутствует файл выгрузки: {$source}");
         }
         $this->xml = simplexml_load_file($source);
 
@@ -23,7 +23,7 @@ class Xml
             foreach (libxml_get_errors() as $error) {
                 $errors .= $error->message;
             }
-            throw new \Exception('Не удалось загрузить файл: ' . $source . " \nВозникли следующие ошибки: " . $errors);
+            throw new \RuntimeException("Во время загрузки файла: {$source} \nвозникли следующие ошибки: {$errors}");
         }
         $namespaces = $this->xml->getDocNamespaces();
 

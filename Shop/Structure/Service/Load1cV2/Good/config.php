@@ -14,6 +14,10 @@ return array(
         'Наименование'  => 'name',
         'ПометкаУдаления' => 'is_active',
         'Картинка'      => 'img',
+        'imgs'          => array(
+            'path'      => 'Картинка[position()>1]'
+        ),
+        'Описание'      => 'content',
         'category_id'   => array(
             'path' => 'Группы',
             'field' => array(

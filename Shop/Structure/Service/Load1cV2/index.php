@@ -35,7 +35,7 @@ try {
             $answer = array_merge($answer, $fc->loadImages($item['info']));
             break;
     }
-} catch (Exception $e) {
+} catch (RuntimeException $e) {
     $answer['continue'] = false;
     $answer['errors'][] = $e->getMessage();
     die(json_encode($answer));

@@ -362,13 +362,25 @@ class FrontController
         $result = array_replace_recursive($offers, $prices, $rests);
 
         unset($offers, $prices, $rests);
+
+        // обновление данных для товаров - установка из выгрузки (часть данных идёт в cp_offer, другая - в cp_good)
+        $dbGood = new Good\DbGood();
+
+        $goods = $dbGood->getGoods('ID, id_1c');
+
+        $struct = explode('-', $dbGood->prevGood);
+
+        foreach ($result as $k => $item) {
+            if (array_key_exists('good_id', $goods)) {
+                $itemStructure = $struct[1] . '-' . $goods[$item['good_id']]['ID'];
+                $result[$k]['prev_structure'] = $itemStructure;
+            }
+        }
         // Сохраняем результаты
         $dbOffers->save($result);
 
         $answer['rests'] = $newOffers->answer();
 
-        // обновление данных для товаров - установка из выгрузки (часть данных идёт в cp_offer, другая - в cp_good)
-        $dbGood = new Good\DbGood();
         // сохранение предыдущих изменений (rename tables)
         $dbGood->updateOrigTable();
         // создание новой временной таблицы

@@ -19,7 +19,7 @@ class DbGood extends AbstractDb
     protected $structurePart = 'ideal_structure_part';
 
     /** @var string Предыдущая категория для prev_structure */
-    protected $prevGood;
+    public $prevGood;
 
     /** @var string Структуры категорий */
     protected $structureCat = 'catalogplus_structure_category';
@@ -64,7 +64,7 @@ class DbGood extends AbstractDb
 
         // Считываем товары из нашей БД
         $sql = "SELECT sg.ID, sg.img, sg.imgs, sg.full_name, sg.name, sg.id_1c, sg.is_active,
-            sg.url, sg.articul, sc.id_1c as category_id
+            sg.url, sg.articul, sc.id_1c as category_id, sg.content
             FROM " . $this->table . $this->tablePostfix .
             " as sg LEFT JOIN {$this->structureCat} as sc ON sg.category_id = sc.ID
             WHERE sg.prev_structure='{$this->prevGood}'";
@@ -133,8 +133,6 @@ class DbGood extends AbstractDb
             if (array_key_exists('category_id', $good)) {
                 $goods[$k]['category_id'] = $this->categories[$good['category_id']];
             }
-
-            $goods[$k]['imgs'] = (isset($good['imgs'])) ? $good['imgs'] : '';
         }
 
         parent::save($goods);
@@ -165,8 +163,8 @@ class DbGood extends AbstractDb
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT ID as offer_id_1c, min(price) as price, good_id, currency, rest as stock "
-            ."FROM " . $this->offers . $this->tablePostfix . " GROUP BY good_id";
+        $sql = "SELECt ID as offer_id_1c, price, good_id, currency, rest as stock FROM "
+            . $this->offers . $this->tablePostfix . " group by good_id having price = min(price)";
 
         $result = array();
         $tmp = $db->select($sql);
