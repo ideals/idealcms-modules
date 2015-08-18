@@ -20,6 +20,7 @@ class DbGood extends AbstractDb
 
     /** @var string Предыдущая категория для prev_structure */
     public $prevGood;
+    public $prevOffer;
 
     /** @var string Структуры категорий */
     protected $structureCat = 'catalogplus_structure_category';
@@ -108,10 +109,10 @@ class DbGood extends AbstractDb
 
             $categories = $this->getCategories($goods[$item['good_id']]['ID']);
 
-            if (!in_array($this->categories[$item['category_id']], $categories)) {
+            if (!in_array($this->categories[$item['category_id']]['ID'], $categories)) {
                 $result[] = array(
                     'good_id' => $goods[$item['good_id']]['ID'],
-                    'category_id' => $this->categories[$item['category_id']]
+                    'category_id' => $this->categories[$item['category_id']]['ID']
                 );
             }
         }
@@ -131,8 +132,12 @@ class DbGood extends AbstractDb
     {
         foreach ($goods as $k => $good) {
             if (array_key_exists('category_id', $good)) {
-                $goods[$k]['category_id'] = $this->categories[$good['category_id']];
+                $goods[$k]['category_id'] = $this->categories[$good['category_id']]['ID'];
             }
+            if (!isset($good['prev_structure'])) {
+                $goods[$k]['prev_structure'] = $this->prevGood;
+            }
+            $goods[$k]['structure'] = 'CatalogPlus_Offer';
         }
 
         parent::save($goods);
@@ -154,6 +159,22 @@ class DbGood extends AbstractDb
 
         foreach ($res as $item) {
             $result[$item['id_1c']] = $item;
+        }
+
+        return $result;
+    }
+
+    public function countGoodsToGroup()
+    {
+        $db = Db::getInstance();
+
+        $sql = "SELECT category_id as ID, count(ID) as num from "
+            . $this->table . $this->tablePostfix . " group by category_id";
+        $res = $db->select($sql);
+        $result = array();
+
+        foreach ($res as $item) {
+            $result[$item['ID']] = $item['num'];
         }
 
         return $result;
@@ -191,6 +212,7 @@ class DbGood extends AbstractDb
     {
         $element['prev_structure'] = $this->prevGood;
         $element['measure'] = '';
+        $element['structure'] = 'CatalogPlus_Offer';
 
         parent::add($element);
     }

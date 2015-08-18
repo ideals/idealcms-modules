@@ -79,9 +79,9 @@ class DbCategory extends AbstractDb
         $db = Db::getInstance();
 
         $categories = array();
-        $res = $db->select('SELECT ID, id_1c FROM ' . $this->table . $this->tablePostfix);
+        $res = $db->select('SELECT ID, id_1c, cid, lvl FROM ' . $this->table . $this->tablePostfix . ' ORDER BY cid');
         foreach ($res as $category) {
-            $categories[$category['id_1c']] = $category['ID'];
+            $categories[$category['id_1c']] = $category;
         }
 
         return $categories;
@@ -143,6 +143,50 @@ class DbCategory extends AbstractDb
         }
 
         return $id[0]['id_1c'];
+    }
+
+    public function recursiveRestruct(array &$categories, array $goodsCount, $cid = null, $lvl = 0, $k = null)
+    {
+        $config = Config::getInstance();
+        $part = $config->getStructureByName('Ideal_Part');
+        $cidModel = new Cid\Model($part['params']['levels'], $part['params']['digits']);
+
+        foreach ($categories as $key => $category) {
+            if (!isset($category['cid'])) {
+                continue;
+            }
+            if (!is_null($cid)) {
+                if (strpos($category['cid'], $cid) !== 0) {
+                    // пропускаем если не родительский сид
+                    continue;
+                } else {
+                    if ($category['lvl'] == $lvl) {
+                        // пропускаем если тотже сид и уровень - также категория
+                        continue;
+                    }
+                }
+            }
+
+            $cidNum = $cid . $cidModel->getBlock($category['cid'], $category['lvl']);
+            $tmp = $this->recursiveRestruct($categories, $goodsCount, $cidNum, $category['lvl'], $key);
+
+            if (!isset($categories[$key]['num'])) {
+                $categories[$key] = array();
+                $categories[$key]['ID'] = $category['ID'];
+                $categories[$key]['num'] = $tmp;
+            }
+
+            if (!isset($count)) {
+                $count = $tmp;
+            } else {
+                $count += $tmp;
+            }
+        }
+
+        if (!isset($count)) {
+            $count = isset($goodsCount[$categories[$k]['ID']]) ? $goodsCount[$categories[$k]['ID']] : 0;
+        }
+        return $count;
     }
 
     /**

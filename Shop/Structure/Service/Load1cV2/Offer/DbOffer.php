@@ -1,6 +1,7 @@
 <?php
 namespace Shop\Structure\Service\Load1cV2\Offer;
 
+use CatalogPlus\Structure\Offer\Site\Model;
 use Shop\Structure\Service\Load1cV2\AbstractDb;
 use Ideal\Field\Url;
 use Ideal\Core\Db;
@@ -50,5 +51,30 @@ class DbOffer extends AbstractDb
         }
 
         return $this->parse;
+    }
+
+    public function save($elements)
+    {
+        if (!$this->onlyUpdate) {
+            $offerModel = new Model('');
+
+            foreach ($elements as $k => $element) {
+                if (isset($element['ID'])) {
+                    continue;
+                }
+
+                foreach ($offerModel->fields as $fieldName => $item) {
+                    if ($fieldName == 'ID') {
+                        continue;
+                    }
+
+                    if (!isset($element[$fieldName])) {
+                        $elements[$k][$fieldName] = '';
+                    }
+                }
+            }
+        }
+
+        parent::save($elements);
     }
 }

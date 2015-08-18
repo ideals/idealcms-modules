@@ -272,6 +272,16 @@ class FrontController
         // обновление информации в medium_categorylist
         $dbGood->updateCategoryList($groups);
 
+        $goodsCount = $dbGood->countGoodsToGroup();
+
+        $dbCategory = new Category\DbCategory();
+
+        $categories = $dbCategory->getCategories();
+
+        $dbCategory->recursiveRestruct($categories, $goodsCount);
+
+        $dbCategory->save($categories);
+
         // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
         return $answer;
     }
@@ -299,7 +309,6 @@ class FrontController
 
         // Сохраняем результаты
         $dbDirectory->save($directories);
-
         // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
         return $newDirectory->answer();
     }
@@ -371,7 +380,7 @@ class FrontController
         $struct = explode('-', $dbGood->prevGood);
 
         foreach ($result as $k => $item) {
-            if (array_key_exists('good_id', $goods)) {
+            if (isset($goods[$item['good_id']])) {
                 $itemStructure = $struct[1] . '-' . $goods[$item['good_id']]['ID'];
                 $result[$k]['prev_structure'] = $itemStructure;
             }
