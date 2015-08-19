@@ -119,10 +119,10 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             $this->basket['versi'] = time();
             if (stripos($this->disco, '%') !== false) {
                 $this->discoValue = intval(str_replace('%', '', $this->disco));
-                $tempTotal = intval($this->basket['total']) / 100;
-                $this->basket['discoValue'] =  round($tempTotal / 100 * $this->discoValue, 2) * 100;
+                $tempTotal = intval($this->basket['total']);
+                $this->basket['discoValue'] =  round($tempTotal / 100 * $this->discoValue, 2);
             } else {
-                $this->basket['discoValue'] = $this->disco * 100;
+                $this->basket['discoValue'] = $this->disco;
             }
             $this->basket['total'] -= $this->basket['discoValue'];
             setcookie("basket", json_encode($this->basket, JSON_FORCE_OBJECT));
