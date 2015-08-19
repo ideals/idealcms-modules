@@ -337,15 +337,15 @@ JS;
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то отрабатываем финальную часть
                 $basket = json_decode($_COOKIE['basket']);
-                $price = $basket->total / 100;
+                $price = $basket->total;
                 $message = '<h2>Товары</h2><br />';
                 $message .= '<table>';
                 $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
 
                 // Собираем итнформацию о заказанных товарах
                 foreach ($basket->goods as $good) {
-                    $summ = intval($good->count) * (intval($good->sale_price) / 100);
-                    $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) / 100 . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+                    $summ = intval($good->count) * (intval($good->sale_price));
+                    $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
                 }
                 $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . $price . '</td></tr>';
                 $message .= '</table>';
@@ -393,7 +393,7 @@ JS;
                     $message .= '<br />Источник перехода: ' . $referer;
                     $form->sendMail($config->robotEmail, $config->mailForm, $topic, $message, true);
 
-                    $form->saveOrder($basket->name, $basket->email, $message, $basket->total);
+                    $form->saveOrder($basket->name, $basket->email, $message, $basket->total * 100);
                 }
 
                 $this->finishOrder();
@@ -472,10 +472,10 @@ JS;
 
             // Собираем итнформацию о заказанных товарах
             foreach ($basket->goods as $good) {
-                $summ = intval($good->count) * (intval($good->sale_price) / 100);
-                $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) / 100 . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+                $summ = intval($good->count) * (intval($good->sale_price));
+                $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
             }
-            $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . intval($basket->total) / 100 . '</td></tr>';
+            $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . intval($basket->total) . '</td></tr>';
             $message .= '</table>';
 
             $address = '';
@@ -509,7 +509,7 @@ JS;
                     'prev_structure' => $prevStructure,
                     'name' => 'Заказ № ' . $orderNumber,
                     'url' => 'zakaz-N-' . $orderNumber,
-                    'price' => $basket->total,
+                    'price' => $basket->total * 100,
                     'stock' => $basket->count,
                     'address' => $address,
                     'date_create' => time(),
