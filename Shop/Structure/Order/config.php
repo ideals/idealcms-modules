@@ -34,7 +34,7 @@ return array(
         'price' => array(
             'label' => 'Сумма заказа',
             'sql'   => 'int',
-            'type'  => 'Shop_Price'
+            'type'  => 'Ideal_Price'
         ),
         'stock' => array(
             'label' => 'Количество',
