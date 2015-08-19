@@ -118,54 +118,51 @@ class FrontController
                 print "success";
                 break;
 
+            case 'deactivate':
+                $result = array();
+                $result[] = $this->category();
+                $result[] = $this->good();
+                $result[] = $this->directory();
+                $result[] = $this->offer();
+
+                $vals = array();
+                // подготовка для сообщения на почту
+                foreach ($result as $response) {
+                    if (isset($response['offer']) || isset($response['prices']) || isset($response['rests'])) {
+                        $vals[] = "Шаг: {$response['step']} - <br/>";
+                        unset ($response['step']);
+                        foreach ($response as $value) {
+                            $vals[] = "Шаг: {$value['step']} - <br/>".
+                                "Добавлено:{$value['add']}<br/>".
+                                "Обновлено:{$value['update']}<br/>";
+                        }
+                    } else {
+                        $vals[] = "Шаг: {$response['step']} - <br/>".
+                            "Добавлено:{$response['add']}<br/>".
+                            "Обновлено:{$response['update']}<br/>";
+                    }
+                }
+
+                $str = implode('<br/>', $vals);
+                $html = "Выгрузка 1с<br/>" . $str;
+
+                $con = Config::getInstance();
+                $sender = new Sender();
+                $sender->setSubj('Выгрузка 1с, версия 2, на сайте ' . $_SERVER['SERVER_NAME']);
+                $sender->setHtmlBody($html);
+                $sender->sent($con->robotEmail, $con->cms['adminEmail']);
+
+                // переименовываем временные таблицы на оригинальное название
+                $this->renameTables();
+
+                $this->loadImages($conf['info']);
+
+                echo "success\n";
+                return 0;
+
             default:
                 break;
         }
-
-        $this->countFiles = 0;
-        $this->files = $this->readDir($this->directory);
-        // если пришли все файлы начинаем выгрузку
-        if ($this->countFiles == 6) {
-            $result = array();
-            $result[] = $this->category();
-            $result[] = $this->good();
-            $result[] = $this->directory();
-            $result[] = $this->offer();
-
-            $vals = array();
-            // подготовка для сообщения на почту
-            foreach ($result as $response) {
-                if (isset($response['offer']) || isset($response['prices']) || isset($response['rests'])) {
-                    $vals[] = "Шаг: {$response['step']} - <br/>";
-                    unset ($response['step']);
-                    foreach ($response as $value) {
-                        $vals[] = "Шаг: {$value['step']} - <br/>".
-                            "Добавлено:{$value['add']}<br/>".
-                            "Обновлено:{$value['update']}<br/>";
-                    }
-                } else {
-                    $vals[] = "Шаг: {$response['step']} - <br/>".
-                        "Добавлено:{$response['add']}<br/>".
-                        "Обновлено:{$response['update']}<br/>";
-                }
-            }
-
-            $str = implode('<br/>', $vals);
-            $html = "Выгрузка 1с<br/>" . $str;
-
-            $con = Config::getInstance();
-            $sender = new Sender();
-            $sender->setSubj('Выгрузка 1с, версия 2, на сайте ' . $_SERVER['SERVER_NAME']);
-            $sender->setHtmlBody($html);
-            $sender->sent($con->robotEmail, $con->cms['adminEmail']);
-
-            // переименовываем временные таблицы на оригинальное название
-            $this->renameTables();
-
-            // запускаем resizer
-            $this->loadImages($conf['info']);
-        }
-
         return 0;
     }
 
@@ -380,7 +377,7 @@ class FrontController
         $struct = explode('-', $dbGood->prevGood);
 
         foreach ($result as $k => $item) {
-            if (isset($goods[$item['good_id']])) {
+            if (isset($item['good_id']) && isset($goods[$item['good_id']])) {
                 $itemStructure = $struct[1] . '-' . $goods[$item['good_id']]['ID'];
                 $result[$k]['prev_structure'] = $itemStructure;
             }

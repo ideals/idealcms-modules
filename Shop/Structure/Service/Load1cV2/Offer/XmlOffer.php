@@ -43,8 +43,9 @@ class XmlOffer extends AbstractXml
         parent::parse();
 
         foreach ($this->data as $k => $value) {
+            $this->data[$k]['is_active'] = '1';
             if ($value['price'] == 0) {
-                $this->data[$k]['is_active'] = '0';
+//                $this->data[$k]['is_active'] = '0';
             } else {
                 $this->data[$k]['price'] *= 100;
             }

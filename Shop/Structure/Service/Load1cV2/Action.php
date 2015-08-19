@@ -40,6 +40,9 @@ include('modalUpdate.html');
             <button type="submit" class="btn btn-success pull-right" id="load1c">
                 Запустить выгрузку
             </button>
+            <button type="submit" class="btn btn-success pull-right" id="resizer" style="margin-right: 5px">
+                Запустить ресайз картинок
+            </button>
             <button type="submit" class="btn btn-primary pull-right" id="save_settings" style="margin-right: 5px">
                 Сохранить настройки
             </button>
@@ -61,6 +64,11 @@ include('modalUpdate.html');
             e.preventDefault();
             load1c();
         });
+        $('#resizer').on('click', function(e) {
+            modal_body.html('');
+            e.preventDefault();
+            load1c(5);
+        });
     }) (jQuery);
 
     // Сохраненяет текст комментария из модального окна
@@ -77,8 +85,8 @@ include('modalUpdate.html');
             url: url,
             type: 'POST',
             data: data,
-            success: function () {
-                console.log('success');
+            success: function (data) {
+                console.log(data);
             }
         });
     }
