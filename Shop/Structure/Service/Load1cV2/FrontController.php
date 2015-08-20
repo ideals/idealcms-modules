@@ -99,6 +99,32 @@ class FrontController
                 if (strpos($filename, '.zip') !== false) {
                     $this->unzip($filename, $conf);
                 } else {
+                    $exists = array('prices', 'rests');
+                    $config = Config::getInstance();
+                    $tmp = DOCUMENT_ROOT . $config->cms['tmpFolder'];
+                    $handle = opendir($this->directory);
+
+                    while (false !== ($entry = readdir($handle))) {
+                        if (0 === strpos($entry, '.') || is_dir($this->directory . $entry)) {
+                            continue;
+                        }
+
+                        preg_match('/(\w*?)_/', $entry, $type);
+                        $exists[] = $type[1];
+                    }
+
+                    preg_match('/(\w*?)_/', $filename, $type);
+
+                    if (in_array($type[1], $exists)) {
+                        if (!file_exists($this->directory . $filename)) {
+                            rename($tmp .'/'. $filename, $this->directory . '1/' . $filename);
+                        } else {
+                            unlink($tmp .'/'. $filename);
+                        }
+                    } else {
+                        rename($tmp .'/'. $filename, $this->directory . $filename);
+                    }
+
                     $path = $this->directory . '1/' . $filename;
                     $f = fopen($this->directory . '1/' . $filename, 'ab');
                     fwrite($f, file_get_contents('php://input'));
