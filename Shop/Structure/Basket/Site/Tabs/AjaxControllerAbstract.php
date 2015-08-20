@@ -469,9 +469,17 @@ JS;
             $message = '<h2>Товары</h2><br />';
             $message .= '<table>';
             $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
+            $Id1c = array();
 
             // Собираем итнформацию о заказанных товарах
-            foreach ($basket->goods as $good) {
+            foreach ($basket->goods as $key => $good) {
+                $goodId = explode('_', $key);
+                $goodId = $goodId[0];
+                $par = array('ID' => $goodId);
+                $fields = array('table' => $config->db['prefix'] . 'catalogplus_structure_good');
+                $row = $db->select('SELECT id_1c FROM &table WHERE ID = :ID LIMIT 1', $par, $fields);
+                $Id1c[] = $row[0]['id_1c'];
+
                 $summ = intval($good->count) * (intval($good->sale_price));
                 $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
             }
@@ -515,7 +523,8 @@ JS;
                     'date_create' => time(),
                     'date_mod' => time(),
                     'content' => $message,
-                    'is_active' => 1
+                    'is_active' => 1,
+                    'goods_id'  => implode(',', $Id1c)
                 )
             );
         }

@@ -171,6 +171,9 @@ class DbCategory extends AbstractDb
             $tmp = $this->recursiveRestruct($categories, $goodsCount, $cidNum, $category['lvl'], $key);
 
             if (!isset($categories[$key]['num'])) {
+                if (isset($goodsCount[$categories[$key]['ID']])) {
+                    $tmp += $goodsCount[$categories[$key]['ID']];
+                }
                 $categories[$key] = array();
                 $categories[$key]['ID'] = $category['ID'];
                 $categories[$key]['num'] = $tmp;
