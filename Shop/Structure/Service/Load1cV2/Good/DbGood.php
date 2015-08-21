@@ -131,7 +131,7 @@ class DbGood extends AbstractDb
     public function save($goods)
     {
         foreach ($goods as $k => $good) {
-            if (array_key_exists('category_id', $good)) {
+            if (isset($good['category_id'])) {
                 $goods[$k]['category_id'] = $this->categories[$good['category_id']]['ID'];
             }
             if (!isset($good['prev_structure'])) {

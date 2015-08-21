@@ -24,7 +24,7 @@ set_include_path(
 // Подключаем автозагрузчик классов
 require_once 'Core/AutoLoader.php';
 require_once 'Library/pclzip.lib.php';
-$params = require_once 'config.php';
+$params = require 'config.php';
 
 $config = Core\Config::getInstance();
 $config->cms = array_merge($config->cms, array('errorLog'=>'email'));
@@ -38,4 +38,4 @@ $config->loadSettings();
 // сообщения об ошибках добавления insert, например, возвращает false
 $fc = new Load1cV2\FrontController();
 
-$fc->import($params['info']);
+$fc->import($params['info'], $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);

@@ -51,7 +51,7 @@ class FrontController
      * @param array $conf данные из корневого конфигурационного файла
      * @return int ВОЙД
      */
-    public function import($conf)
+    public function import($conf, $url)
     {
         $user = new Model();
         $request = new Request();
@@ -141,10 +141,11 @@ class FrontController
                 return 0;
 
             case 'import':
-                print "success";
+                print "success\n";
                 break;
 
             case 'deactivate':
+                $timeStart = $_SERVER['REQUEST_TIME'];
                 $result = array();
                 $result[] = $this->category();
                 $result[] = $this->good();
@@ -181,7 +182,11 @@ class FrontController
                 // переименовываем временные таблицы на оригинальное название
                 $this->renameTables();
 
-                $this->loadImages($conf['info']);
+                $result = $this->loadImages($conf, $timeStart);
+
+                if ($result['repeat'] === true) {
+                    http_get($url, array('cookies'=>$_COOKIE));
+                }
 
                 echo "success\n";
                 return 0;
@@ -429,11 +434,21 @@ class FrontController
      * @param array $dir данные из конфигурационного файла
      * @return array данные о количестве отредактированных изображений
      */
-    public function loadImages($dir)
+    public function loadImages($dir, $timeStart = 0)
     {
+        $maxExecutionTime = (ini_get('max_execution_time') == 0) ?
+            ini_get('max_input_time') :
+            ini_get('max_execution_time');
+
+        if ($timeStart == 0) {
+            $timeStart = time();
+        }
+        $endTime = $timeStart + (int) $maxExecutionTime;
+
         $answer = array(
             'step'      => 'Ресайз изображений',
             'count'     => 0,
+            'repeat'  => false
         );
         $this->directory = DOCUMENT_ROOT . $dir['directory'] . $dir['images_directory'];
 
@@ -456,6 +471,11 @@ class FrontController
                     if (0 === strpos($img, '.')) {
                         continue;
                     }
+                    if ($this->stopResize($endTime)) {
+                        $answer['repeat'] = true;
+                        return $answer;
+                    }
+
                     if (false !== strpos($img, '.jpeg') || false !== strpos($img, '.jpg')) {
                         $path = $this->directory . $entry . '/' .$img;
                         new Image($path, $w, $h);
@@ -467,6 +487,11 @@ class FrontController
                 closedir($incHandle);
                 rmdir($this->directory . $entry);
             } else {
+                if ($this->stopResize($endTime)) {
+                    $answer['repeat'] = true;
+                    return $answer;
+                }
+
                 if (false !== strpos($entry, '.jpeg') || false !== strpos($entry, '.jpg')) {
                     $path = $this->directory . $entry;
                     new Image($path, $w, $h);
@@ -614,5 +639,13 @@ class FrontController
         $dbGood->updateOrigTable();
         $dbDirectory->updateOrigTable();
         $dbOffers->updateOrigTable();
+    }
+
+    private function stopResize($endTime)
+    {
+        if ($endTime - time() <= 1) {
+            return true;
+        }
+        return false;
     }
 }

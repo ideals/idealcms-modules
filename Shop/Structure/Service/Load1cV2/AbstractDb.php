@@ -121,9 +121,10 @@ class AbstractDb
     protected function add($element)
     {
         $db = Db::getInstance();
+        $now = time();
 
-        $element['date_create'] = time();
-        $element['date_mod'] = time();
+        $element['date_create'] = $now;
+        $element['date_mod'] = $now;
 
         $db->insert($this->table . $this->tablePostfix, $element);
     }
@@ -141,8 +142,9 @@ class AbstractDb
                 $this->update($element);
             } else {
                 if (!$this->onlyUpdate) {
-                    $element['date_create'] = time();
-                    $element['date_mod'] = time();
+                    $now = time();
+                    $element['date_create'] = $now;
+                    $element['date_mod'] = $now;
                     ksort($element);
                     $add[] = $element;
                 } else {

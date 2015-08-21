@@ -139,7 +139,11 @@ include('modalUpdate.html');
                 if (data['continue']) {
                     load1c(++step);
                 } else {
-                    modal.find('.close, .btn-close').removeAttr('disabled');
+                    if (data['repeat']) {
+                        load1c(step)
+                    } else {
+                        modal.find('.close, .btn-close').removeAttr('disabled');
+                    }
                 }
             }
         });

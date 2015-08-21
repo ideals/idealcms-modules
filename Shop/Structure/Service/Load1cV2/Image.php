@@ -24,7 +24,11 @@ class Image
             mkdir("{$this->dirImage}/{$entry}", 0750, true);
         }
         $this->minSizeWater = "140*140";
-        $this->config['font'] = 'arial.ttf';
+        $font = array_pop(explode('\\', __FILE__));
+        array_push($font, 'arial.ttf');
+        $font = implode('\\', $font);
+
+        $this->config['font'] = $font;
         $this->color1("e6e6e6");
 
         $filename = "{$this->dirImage}/{$entry}/" . $image;
