@@ -2,6 +2,8 @@
 
 namespace Cabinet\Structure\User\Site;
 
+use Ideal\Field;
+
 class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
 {
     /** @var  Model model */
@@ -19,6 +21,11 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         } else {
             $this->view->step = 'login';
         }
+
+        $pageData = $this->model->getPageData();
+        $url = new Field\Url\Model();
+        $link = $url->getUrl($pageData);
+        $this->view->link = $link;
 
     }
 
