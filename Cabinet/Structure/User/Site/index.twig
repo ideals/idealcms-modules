@@ -6,7 +6,7 @@
         <span class="error"></span>
 
         {#  #}
-        {% if step == 'login' %}FIX
+        {% if step == 'login' %}
             <div id="login">
                 <form method="POST" id="flogin" class="form">
                     <table>
@@ -131,7 +131,7 @@
         {% endif %}
         {#  #}
         {% if step == 'lk' %}
-            <p class="logout"><a href="?action=logout">Выйти</a></p>
+            <p class="logout"><a href="{{ link }}?action=logout">Выйти</a></p>
 
             <div id="formzakaz">
                 <form method="POST" id="fchange" class="form">
