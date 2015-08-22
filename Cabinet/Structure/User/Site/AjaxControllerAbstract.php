@@ -109,6 +109,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             $_SESSION['login']['ID'] = $tmp[0]['ID'];
             $_SESSION['login']['input'] = true;
             $_SESSION['login']['is_active'] = boolval($tmp[0]['is_active']);
+            $this->answer['refresh'] = true;
             $this->answer['text'] = 'Вы успешно вошли';
         } else {
             $this->answer['text'] = 'Ошибка в логине(email) или пароле';
