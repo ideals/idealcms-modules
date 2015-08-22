@@ -24,7 +24,7 @@ return array(
         ),
         'email' => array(
             'label' => 'E-mail',
-            'sql'   => 'varchar(128)',
+            'sql'   => 'varchar(128) NOT NULL',
             'type'  => 'Ideal_Text'
         ),
         'comment' => array(
