@@ -25,6 +25,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
     public function __construct()
     {
+        if (function_exists('session_status')) {
+            if (session_status() == PHP_SESSION_NONE) {
+                session_start();
+            }
+        } else {
+            if (session_id() == '') {
+                session_start();
+            }
+        }
         $this->answer = array(
             'error' => false, // Состояние ошибки
             'text' => '', // Текст о выполнении задачи
@@ -33,9 +42,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->loadData();
         if ($this->answer['error']) {
             exit();
-        }
-        if (session_id() == '') {
-            session_start();
         }
     }
 
@@ -117,8 +123,10 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     public function registrationAction()
     {
         // Проверка данных из формы
-        if (!(isset($this->data['fio']) && (strlen($this->data['fio']) > 1))
+        if (!(isset($this->data['lastname']) && (strlen($this->data['lastname']) > 1))
+            || !(isset($this->data['name']) && (strlen($this->data['name']) > 1))
             || !(isset($this->data['phone']) && (strlen($this->data['phone']) > 1))
+            || !(isset($this->data['email']) && (strlen($this->data['email']) > 1))
             || !(isset($this->data['addr']) && (strlen($this->data['addr']) > 1))
         ) {
             $this->answer['error'] = true;
@@ -334,15 +342,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     break;
                 case 'captha':
                 case 'int':
-                    if (function_exists('session_status')) {
-                        if (session_status() == PHP_SESSION_NONE) {
-                            session_start();
-                        }
-                    } else {
-                        if (session_id() == '') {
-                            session_start();
-                        }
-                    }
                     $captcha = md5($v);
                     if ($_SESSION['cryptcode'] !== $captcha) {
                         $this->answer['text'] .= ' Не верно введена капча.';
