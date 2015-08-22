@@ -2,8 +2,6 @@
 
 namespace Cabinet\Structure\User\Site;
 
-use Ideal\Field;
-
 class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
 {
     /** @var  Model model */
@@ -22,10 +20,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
             $this->view->step = 'login';
         }
 
-        $pageData = $this->model->getPageData();
-        $url = new Field\Url\Model();
-        $link = $url->getUrl($pageData);
-        $this->view->link = $link;
+        $this->view->link = $this->model->getFullUrl();
 
     }
 
@@ -33,6 +28,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     {
         parent::indexAction();
         $this->view->step = 'reg';
+        $this->view->link = $this->model->getFullUrl();
     }
 
     public function recAction()
@@ -71,5 +67,4 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         header('Location: ' . $url[0]);
         exit;
     }
-
 }

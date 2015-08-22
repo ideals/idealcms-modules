@@ -186,8 +186,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->view->fio = $fio;
         $this->view->email = $email;
         $this->view->pass = $clearPass;
-        $link = 'http://' . $config->domain . '/?';
-        $link .= 'mode=ajax&controller=Cabinet\\Structure\\User\\Site&action=finish';
+        $link = 'http://' . $config->domain . $this->data['link'] . '?';
+        $link .= 'action=finishReg';
         $link .= '&email=' . urlencode($email);
         $link .= '&key=' . urlencode($key);
         $this->view->link = $link;

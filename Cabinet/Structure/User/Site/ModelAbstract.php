@@ -3,6 +3,7 @@ namespace Cabinet\Structure\User\Site;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
+use Ideal\Field;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\Model
 {
@@ -147,4 +148,15 @@ EOT;
         return substr(str_shuffle($chars), 0, $length);
     }
 
+    /**
+     * Генерация абсолютного пути до страницы логина/регистрации/подтверждения
+     *
+     * @return string Абсолютный путь до страницы логина/регистрации/подтверждения
+     */
+    public function getFullUrl() {
+        $pageData = $this->getPageData();
+        $url = new Field\Url\Model();
+        $link = $url->getUrl($pageData);
+        return $link;
+    }
 }
