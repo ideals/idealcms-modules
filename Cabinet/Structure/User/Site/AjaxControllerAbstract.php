@@ -334,6 +334,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     break;
                 case 'captha':
                 case 'int':
+                    if (function_exists('session_status')) {
+                        if (session_status() == PHP_SESSION_NONE) {
+                            session_start();
+                        }
+                    } else {
+                        if (session_id() == '') {
+                            session_start();
+                        }
+                    }
                     $captcha = md5($v);
                     if ($_SESSION['cryptcode'] !== $captcha) {
                         $this->answer['text'] .= ' Не верно введена капча.';
