@@ -100,8 +100,6 @@ class FrontController
                     $this->unzip($filename, $conf);
                 } else {
                     $exists = array('prices', 'rests');
-                    $config = Config::getInstance();
-                    $tmp = DOCUMENT_ROOT . $config->cms['tmpFolder'];
                     $handle = opendir($this->directory);
 
                     while (false !== ($entry = readdir($handle))) {
@@ -117,23 +115,22 @@ class FrontController
 
                     if (in_array($type[1], $exists)) {
                         if (!file_exists($this->directory . $filename)) {
-                            rename($tmp .'/'. $filename, $this->directory . '1/' . $filename);
-                        } else {
-                            unlink($tmp .'/'. $filename);
+                            $f = fopen($this->directory . '1/' . $filename, 'ab');
+                            fwrite($f, file_get_contents('php://input'));
+                            fclose($f);
+
+                            $path = $this->directory . '1/' . $filename;
+
+                            if (getimagesize($path)) {
+                                list($w, $h) = explode('x', $conf['resize']);
+                                new Image($path, $w, $h);
+                                unlink($path);
+                            }
                         }
                     } else {
-                        rename($tmp .'/'. $filename, $this->directory . $filename);
-                    }
-
-                    $path = $this->directory . '1/' . $filename;
-                    $f = fopen($this->directory . '1/' . $filename, 'ab');
-                    fwrite($f, file_get_contents('php://input'));
-                    fclose($f);
-
-                    if (getimagesize($path)) {
-                        list($w, $h) = explode('x', $conf['resize']);
-                        new Image($path, $w, $h);
-                        unlink($path);
+                        $f = fopen($this->directory . $filename, 'ab');
+                        fwrite($f, file_get_contents('php://input'));
+                        fclose($f);
                     }
                 }
 
