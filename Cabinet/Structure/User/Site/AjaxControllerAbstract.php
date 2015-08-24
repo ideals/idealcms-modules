@@ -206,92 +206,165 @@ HTML;
     /**
      * Регистрация пользователя
      */
-    public function registrationAction()
+    public function registrationAction($link = '')
     {
-        // Проверка данных из формы
-        if (!(isset($this->data['lastname']) && (strlen($this->data['lastname']) > 1))
-            || !(isset($this->data['name']) && (strlen($this->data['name']) > 1))
-            || !(isset($this->data['phone']) && (strlen($this->data['phone']) > 1))
-            || !(isset($this->data['email']) && (strlen($this->data['email']) > 1))
-            || !(isset($this->data['addr']) && (strlen($this->data['addr']) > 1))
-        ) {
-            $this->answer['error'] = true;
-            $this->answer['text'] .= ' Заполнены не все поля.';
-            exit();
-        }
-        $fio = $this->data['fio'];
-        $phone = $this->data['phone'];
-        $address = $this->data['addr'];
-        $email = $this->data['email'];
-        if (isset($data['pass']) && (strlen($this->data['pass']) > 4)) {
-            $clearPass = $this->data['pass'];
+        $this->notPrint = true;
+        $request = new Request();
+        $form = new FormPhp\Forms('registrationForm');
+        $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\User\\\\Site&action=registration');
+        $form->add('lastname', 'text');
+        $form->add('name', 'text');
+        $form->add('phone', 'text');
+        $form->add('addr', 'text');
+        $form->add('email', 'text');
+        $form->add('int', 'text');
+        $form->add('link', 'text');
+        $form->setValidator('lastname', 'required');
+        $form->setValidator('name', 'required');
+        $form->setValidator('phone', 'required');
+        $form->setValidator('phone', 'phone');
+        $form->setValidator('addr', 'required');
+        $form->setValidator('email', 'required');
+        $form->setValidator('email', 'email');
+        $form->setValidator('int', 'required');
+        $form->setValidator('int', 'captcha');
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                $fio = $form->getValue('lastname') . ' ' . $form->getValue('name');
+                $phone = $form->getValue('phone');
+                $address = $form->getValue('addr');
+                $email = $form->getValue('email');
+                $clearPass = $this->randPassword();
+                $pass = crypt($clearPass);
+                $config = Config::getInstance();
+                $db = Db::getInstance();
+
+                // Установка таблицы в базе данных
+                $table = $config->db['prefix'] . 'cabinet_structure_user';
+
+                $par = array('email' => strtolower($email));
+                $fields = array('table' => $table);
+                $tmp = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
+                if (count($tmp) > 0) {
+                    echo ' Такой Email уже зарегестрирован.';
+                } else {
+                    $prevStructure = $config->getStructureByName('Cabinet_User');
+                    $prevStructure = '0-' . $prevStructure['ID'];
+                    $key = md5(time());
+                    $db->insert($table, array(
+                        'email' => $email,
+                        'address' => $address,
+                        'phone' => $phone,
+                        'password' => $pass,
+                        'fio' => $fio,
+                        'is_active' => 0,
+                        'prev_structure' => $prevStructure,
+                        'act_key' => $key,
+                        'reg_date' => time()
+                    ));
+
+                    $title = 'Регистрация на ' . $config->domain;
+
+                    $this->templateInit('Cabinet/Structure/User/Site/letter.twig');
+                    $this->loadHelpVar();
+
+                    $this->view->reg = true;
+                    $this->view->fio = $fio;
+                    $this->view->email = $email;
+                    $this->view->pass = $clearPass;
+                    $link = 'http://' . $config->domain . $form->getValue('link') . '?';
+                    $link .= 'action=finishReg';
+                    $link .= '&email=' . urlencode($email);
+                    $link .= '&key=' . urlencode($key);
+                    $this->view->link = $link;
+                    $this->view->title = $title;
+                    $msg = $this->view->render();
+
+                    if ($form->sendMail($config->robotEmail, $email, $title, $msg, true)) {
+                        echo 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
+                    } else {
+                        echo 'Ошибка. Попробуйте чуть позже';
+                    }
+
+                }
+                die();
+            } else {
+                echo "Заполнены не все поля.";
+                die();
+            }
         } else {
-            // Создаем пароль
-            $clearPass = $this->randPassword();
+            $response = '';
+            switch ($request->subMode) {
+                // Генерируем js
+                case 'js':
+                    $request->mode = 'js';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    $form->render();
+                    die();
+                    break;
+                case false:
+            $formHtml = <<<HTML
+            <script type="text/javascript"
+        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=registration&subMode=js"></script>
+<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=registration&subMode=css"/>
+{$form->start()}
+                    <table>
+                        <tr>
+                            <td>Фамилия*:</td>
+                            <td><input type="text" value="" name="lastname"></td>
+                        </tr>
+                        <tr>
+                            <td>Имя*:</td>
+                            <td><input type="text" value="" name="name"></td>
+                        </tr>
+                        <tr>
+                            <td>Телефон*:</td>
+                            <td><input type="text" value="" name="phone"></td>
+                        </tr>
+                        <tr>
+                            <td>Адрес*:</td>
+                            <td><textarea name="addr"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td>E-mail*:</td>
+                            <td><input class="required" type="text" value="" name="email"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="center"><br></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <img src="/images/captcha.jpg" onclick="getCaptcha(this)"
+                                     title="нажмите что бы обновить" style="cursor: pointer">
+                            </td>
+                            <td>
+                                <input style="textalign:center;width:100px;" type="text" name="int" size="6">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="center">
+                                <input type="hidden" value="{$link}" name="link">
+                                <p style="margin: auto;">Введите защитный код с картинки</p>
+                                <br><br>
+                                <br><br>
+                                <input type="submit" value="ЗАРЕГИСТРИРОВАТЬСЯ">
+                                <br>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+HTML;
+                $form->setText($formHtml);
+                $response = $form->getText();
+                break;
+            }
+            return $response;
         }
-        // Хешируем пароль
-        $pass = crypt($clearPass);
-
-        $config = Config::getInstance();
-        $db = Db::getInstance();
-
-        $email = mysqli_real_escape_string($db->getInstance(), $email);
-        $email = strtolower($email);
-        // Установка таблицы в базе данных
-        $table = $config->db['prefix'] . 'cabinet_structure_user';
-        // Проверка на существование в базе данных email
-        $tmp = $db->select("SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1");
-        if (count($tmp) > 0) {
-            $this->answer['text'] .= ' Такой Email уже зарегестрирован.';
-            $this->answer['error'] = true;
-            exit();
-        }
-        // Определние правильного prevStructure при помощи конфига
-        $prevStructure = $config->getStructureByName('Cabinet_User');
-        $prevStructure = '0-' . $prevStructure['ID'];
-
-        // Ключ который высылается пользователю для подтверждения почты и активации пользователя
-        $key = md5(time());
-        $db->insert($config->db['prefix'] . 'cabinet_structure_user', array(
-            'email' => $email,
-            'address' => $address,
-            'phone' => $phone,
-            'password' => $pass,
-            'fio' => $fio,
-            'is_active' => 0,
-            'prev_structure' => $prevStructure,
-            'act_key' => $key,
-            'reg_date' => time()
-        ));
-        $title = 'Регистрация на ' . $config->domain;
-
-        $this->templateInit('Cabinet/Structure/User/Site/letter.twig');
-        $this->loadHelpVar();
-
-        $this->view->reg = true;
-        $this->view->fio = $fio;
-        $this->view->email = $email;
-        $this->view->pass = $clearPass;
-        $link = 'http://' . $config->domain . $this->data['link'] . '?';
-        $link .= 'action=finishReg';
-        $link .= '&email=' . urlencode($email);
-        $link .= '&key=' . urlencode($key);
-        $this->view->link = $link;
-        $this->view->title = $title;
-
-        $msg = $this->view->render();
-
-        $mail = new Sender();
-        $mail->setSubj($title);
-        $mail->setHtmlBody($msg);
-
-        if ($mail->sent($config->robotEmail, $this->data['email'])) {
-            $this->answer['text'] = 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
-        } else {
-            $this->answer['text'] = 'Ошибка. Попробуйте чуть позже';
-            $this->answer['error'] = 1;
-        }
-        exit();
     }
 
     /**

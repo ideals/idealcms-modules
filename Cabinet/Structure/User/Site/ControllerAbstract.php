@@ -31,6 +31,11 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     {
         parent::indexAction();
         $this->view->step = 'reg';
+
+        $link = $this->model->getFullUrl();
+        $ajaxController = new AjaxController();
+        $this->view->regForm = $ajaxController->registrationAction($link);
+
         $this->view->link = $this->model->getFullUrl();
     }
 

@@ -50,55 +50,7 @@
             <br>
 
             <div id="formzakaz">
-                <form method="POST" id="freg" class="form">
-                    <table>
-                        <tr>
-                            <td>Фамилия:</td>
-                            <td><input type="text" value="" name="lastname"></td>
-                        </tr>
-                        <tr>
-                            <td>Имя:</td>
-                            <td><input type="text" value="" name="name"></td>
-                        </tr>
-                        <tr>
-                            <td>Телефон:</td>
-                            <td><input type="text" value="" name="phone"></td>
-                        </tr>
-                        <tr>
-                            <td>Адрес:</td>
-                            <td><textarea name="addr"></textarea></td>
-                        </tr>
-                        <tr>
-                            <td>E-mail:</td>
-                            <td><input class="required" type="text" value="" name="email"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="center"><br></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <img src="/images/captcha.jpg" onclick="getCaptcha(this)"
-                                     title="нажмите что бы обновить" style="cursor: pointer">
-                            </td>
-                            <td>
-                                <input style="textalign:center;width:100px;" type="text" name="int" size="6">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="center">
-                                <input type="hidden" value="{{ link|raw }}" name="link">
-                                <center>Введите защитный код с картинки</center>
-                                <br><br>
-                                <br><br>
-                                <button class="submit"
-                                        onclick="sendForm(this,'\\Cabinet\\Structure\\User\\Site','registration');return false;"
-                                        type="button">ЗАРЕГИСТРИРОВАТЬСЯ
-                                </button>
-                                <br>
-                            </td>
-                        </tr>
-                    </table>
-                </form>
+                {{ regForm | raw }}
             </div>
         {% endif %}
         {#  #}
