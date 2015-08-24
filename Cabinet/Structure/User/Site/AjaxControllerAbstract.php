@@ -414,29 +414,114 @@ HTML;
      * Сохранение данных о пользователе
      * @throws \Exception
      */
-    public function saveAction()
+    public function saveAction($user = array())
     {
-        session_start();
-        $update['fio'] = @ htmlspecialchars($_POST['name']);
-        $update['phone'] = @ htmlspecialchars($_POST['phone']);
-        $update['address'] = @ htmlspecialchars($_POST['address']);
-        $update['city'] = @ htmlspecialchars($_POST['city']);
-        $update['postcode'] = @ htmlspecialchars($_POST['postcode']);
-        if (isset($_POST['password'])) {
-            $pass = mysql_real_escape_string($_POST['password']);
-            if (strlen($pass) > 0) {
-                $update['password'] = crypt($pass);
+        $this->notPrint = true;
+        $request = new Request();
+        $form = new FormPhp\Forms('lkForm');
+        $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\User\\\\Site&action=save');
+        $form->add('fname', 'text');
+        $form->add('phone', 'text');
+        $form->add('addr', 'text');
+        $form->add('pass', 'text');
+        $form->setValidator('phone', 'phone');
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                $db = Db::getInstance();
+                $config = Config::getInstance();
+                $update['fio'] = $form->getValue('fname');
+                $update['phone'] = $form->getValue('phone');
+                $update['address'] = $form->getValue('addr');
+                $pass = $form->getValue('pass');
+                if (!empty($pass)) {
+                    $pass = mysqli_real_escape_string($db->getInstance(), $pass);
+                    if (strlen($pass) > 0) {
+                        $update['password'] = crypt($pass);
+                    }
+                }
+                $table = $config->db['prefix'] . 'cabinet_structure_user';
+                $db->update($table)->set($update)->where('ID = :ID', array('ID' => $_SESSION['login']['ID']))->exec();
+                echo 'Данные сохранены';
+                die();
+            } else {
+                echo "Заполнены не все поля.";
+                die();
             }
+        } else {
+            $response = '';
+            switch ($request->subMode) {
+                // Генерируем js
+                case 'js':
+                    $script = <<<JS
+                    $('#lkForm').on('form.successSend', function () {
+                        location.reload();
+                    });
+JS;
+                    $form->setJs($script);
+                    $request->mode = 'js';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    $form->render();
+                    die();
+                    break;
+                case false:
+                    $formHtml = <<<HTML
+            <script type="text/javascript"
+        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=save&subMode=js"></script>
+<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=save&subMode=css"/>
+{$form->start()}
+                    <table>
+                        <tr>
+                            <td>Ваше имя:</td>
+                            <td><input type="text" value="{$user['fio']}" name="fname"></td>
+                        </tr>
+                        <tr>
+                            <td>Телефон:</td>
+                            <td><input type="text" value="{$user['phone']}" name="phone"></td>
+                        </tr>
+                        <tr>
+                            <td>Адрес</td>
+                            <td><textarea name="addr">{$user['address']}</textarea></td>
+                        </tr>
+                        <tr>
+                            <td><br>Email при регистрации (login)</td>
+                            <td><br>{$user['email']}</td>
+                        </tr>
+                        <tr>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="center">
+                                <br>
+                                <hr>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Новый пароль</td>
+                            <td><input type="password" value="" name="pass"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="center">
+                                Оставьте поле пустым, что бы не менять пароль
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><br><br><br>
+                                <input type="submit" value="СОХРАНИТЬ">
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+HTML;
+                    $form->setText($formHtml);
+                    $response = $form->getText();
+                    break;
+            }
+            return $response;
         }
-
-        $db = Db::getInstance();
-        $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'cabinet_structure_user';
-        $db->update($table, $_SESSION['login']['ID'], $update);
-        $this->answer['text'] = 'Данные сохранены';
-
-        print json_encode($this->answer);
-        exit;
     }
 
     /**

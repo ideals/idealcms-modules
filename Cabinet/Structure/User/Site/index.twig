@@ -62,51 +62,7 @@
             <p class="logout"><a href="{{ link }}?action=logout">Выйти</a></p>
 
             <div id="formzakaz">
-                <form method="POST" id="fchange" class="form">
-                    <table>
-                        <tr>
-                            <td>Ваше имя:</td>
-                            <td><input type="text" value="{{ user.fio }}" name="fname"></td>
-                        </tr>
-                        <tr>
-                            <td>Телефон:</td>
-                            <td><input type="text" value="{{ user.phone }}" name="phone"></td>
-                        </tr>
-                        <tr>
-                            <td>Адрес</td>
-                            <td><textarea name="addr">{{ user.address }}</textarea></td>
-                        </tr>
-                        <tr>
-                            <td><br>Email при регистрации (login)</td>
-                            <td><br>{{ user.email }}</td>
-                        </tr>
-                        <tr>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="center">
-                                <br>
-                                <hr>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Новый пароль</td>
-                            <td><input type="password" value="" name="pass"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="center">
-                                Оставьте поле пустым, что бы не менять пароль
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2"><br><br><br>
-                                <button class="submit"
-                                        onclick="sendForm(this,'\\Cabinet\\Structure\\User','save');return false;"
-                                        type="button">СОХРАНИТЬ
-                                </button>
-                            </td>
-                        </tr>
-                    </table>
-                </form>
+                {{ lkForm | raw }}
             </div>
         {% endif %}
     </div>

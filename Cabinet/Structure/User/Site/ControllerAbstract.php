@@ -10,20 +10,23 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     public function indexAction()
     {
         parent::indexAction();
+        $link = $this->model->getFullUrl();
         if (session_id() == "") {
             session_start();
         }
         if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
-            $this->view->user = $this->model->getUser();
+            $user = $this->model->getUser();
+            $this->view->user = $user;
             $this->view->step = 'lk';
+            $ajaxController = new AjaxController();
+            $this->view->lkForm = $ajaxController->saveAction($user);
         } else {
             $this->view->step = 'login';
-            $link = $this->model->getFullUrl();
             $ajaxController = new AjaxController();
             $this->view->loginForm = $ajaxController->loginAction($link);
         }
 
-        $this->view->link = $this->model->getFullUrl();
+        $this->view->link = $link;
 
     }
 
