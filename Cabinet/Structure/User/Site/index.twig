@@ -16,27 +16,7 @@
             Для восстановления доступа, введите email с которым вы регистрировались на сайте.
             <br><br>
             <div id="formzakaz">
-                <form method="POST" id="flogin" class="form">
-                    <br>
-                    <table>
-                        <tr>
-                            <td width="100">Login (email)</td>
-                            <td><input type="text" value="" name="login"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2"><br><br></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">
-                                <button class="submit" onclick="sendForm(this,'\\Cabinet\\Structure\\User\\Site','recover');return false;"
-                                        type="button">ВОССТАНОВИТЬ
-                                </button>
-                            </td>
-
-
-                        </tr>
-                    </table>
-                </form>
+               {{ recForm | raw }}
             </div>
         {% endif %}
         {# Регистрация нового пользователя #}

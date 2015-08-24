@@ -373,41 +373,91 @@ HTML;
      */
     public function recoverAction()
     {
-        $db = Db::getInstance();
-        $config = Config::getInstance();
-        $email = mysqli_real_escape_string($db->getInstance(), $this->data['email']);
-        $email = strtolower($email);
-        $table = $config->db['prefix'] . 'cabinet_structure_user';
-        $_sql = "SELECT ID FROM {$table} WHERE email='{$email}' LIMIT 1";
-        $user = $db->select($_sql);
-        if (count($user) == 0) {
-            $this->answer['error'] = true;
-            $this->answer['text'] .= ' Данный E-mail еще не зарегистрирован.';
-            exit();
-        }
-        $clearPass = $this->randPassword();
-        $pass = crypt($clearPass);
-        $mail = new Sender();
-        $title = 'Восстановление пароля на ' . $config->domain;
-        $mail->setSubj($title);
-        $this->templateInit('Cabinet/Structure/User/Site/letter.twig');
-        $this->loadHelpVar();
-
-        $this->view->title = $title;
-        $this->view->clearPass = $clearPass;
-        $this->view->recover = true;
-
-        $html = $this->view->render();
-        $mail->setHtmlBody($html);
-        if ($mail->sent($config->robotEmail, $this->data['email'])) {
-            $_sql = "UPDATE {$table} SET password='{$pass}' WHERE email='{$email}'";
-            $db->query($_sql);
-            $this->answer['text'] .= ' Вам выслан новый пароль.';
+        $this->notPrint = true;
+        $request = new Request();
+        $form = new FormPhp\Forms('recoverForm');
+        $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\User\\\\Site&action=recover');
+        $form->add('login', 'text');
+        $form->setValidator('login', 'required');
+        $form->setValidator('login', 'email');
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                $db = Db::getInstance();
+                $config = Config::getInstance();
+                $email = strtolower($form->getValue('login'));
+                $table = $config->db['prefix'] . 'cabinet_structure_user';
+                $par = array('email' => $email);
+                $fields = array('table' => $table);
+                $user = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
+                if (count($user) == 0) {
+                    echo ' Данный E-mail еще не зарегистрирован.';
+                } else {
+                    $clearPass = $this->randPassword();
+                    $pass = crypt($clearPass);
+                    $title = 'Восстановление пароля на ' . $config->domain;
+                    $this->templateInit('Cabinet/Structure/User/Site/letter.twig');
+                    $this->loadHelpVar();
+                    $this->view->title = $title;
+                    $this->view->clearPass = $clearPass;
+                    $this->view->recover = true;
+                    $html = $this->view->render();
+                    if ($form->sendMail($config->robotEmail, $email, $title, $html, true)) {
+                        $db->update($table)->set(array('password' => $pass))->where('email = :email', array('email' => $email))->exec();
+                        echo ' Вам выслан новый пароль.';
+                    } else {
+                        echo ' Услуга временно недоступна попробуйте позже.';
+                    }
+                }
+                die();
+            } else {
+                echo 'Указан не верный e-mail';
+                die();
+            }
         } else {
-            $this->answer['error'] = true;
-            $this->answer['text'] .= ' Услуга временно недоступна попробуйте позже.';
+            $response = '';
+            switch ($request->subMode) {
+                // Генерируем js
+                case 'js':
+                    $request->mode = 'js';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем стартовую часть формы
+                case false:
+                    $formHtml = <<<HTML
+<script type="text/javascript"
+        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=recover&subMode=js"></script>
+<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=recover&subMode=css"/>
+{$form->start()}
+    <br>
+                    <table>
+                        <tr>
+                            <td width="100">Login (email)*:</td>
+                            <td><input type="text" value="" name="login"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><br><br></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <input type="submit" value="ВОССТАНОВИТЬ">
+                            </td>
+                        </tr>
+                    </table>
+</form>
+HTML;
+                    $form->setText($formHtml);
+                    $response = $form->getText();
+                    break;
+            }
+            return $response;
         }
-        exit();
     }
 
     /**

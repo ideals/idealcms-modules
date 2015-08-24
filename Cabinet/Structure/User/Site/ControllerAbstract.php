@@ -46,7 +46,8 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     {
         parent::indexAction();
         $this->view->step = 'rec';
-
+        $ajaxController = new AjaxController();
+        $this->view->recForm = $ajaxController->recoverAction();
     }
 
     /**
