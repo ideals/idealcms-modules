@@ -5,6 +5,8 @@ use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Core\Util;
 use Mail\Sender;
+use FormPhp;
+use Ideal\Core\Request;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
@@ -15,6 +17,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
     /** @var \Ideal\Core\View */
     protected $view;
+
+    /** @var bool Печатать ли ответ при завершении работы класса */
+    protected $notPrint = false;
 
     /**
      * TODO
@@ -50,9 +55,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function __destruct()
     {
-        $this->answer['text'] = trim($this->answer['text']);
-        print json_encode($this->answer);
-        exit();
+        if (!$this->notPrint) {
+            $this->answer['text'] = trim($this->answer['text']);
+            print json_encode($this->answer);
+            exit();
+        }
     }
 
     /**
@@ -83,39 +90,117 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
     /**
      * Авторизация
+     *
+     * @param string $link Абсолютный путь до страницы авторизации
+     * @throws \Exception
      */
-    public function loginAction()
+    public function loginAction($link = '')
     {
-        if (isset($_SESSION['login']['input']) && $_SESSION['login']['input']) {
-            exit();
-        }
-        if (!isset($this->data['email']) || !isset($this->data['pass'])) {
-            $this->answer['text'] = 'Вы указали не все данные';
-            $this->answer['error'] = true;
-            exit();
-        }
+        $this->notPrint = true;
+        $request = new Request();
+        $form = new FormPhp\Forms('loginForm');
+        $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\User\\\\Site&action=login');
+        $form->add('login', 'text');
+        $form->add('pass', 'text');
+        $form->setValidator('login', 'required');
+        $form->setValidator('login', 'email');
+        $form->setValidator('pass', 'required');
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                if (isset($_SESSION['login']['input']) && $_SESSION['login']['input']) {
+                    exit();
+                }
+                $email = strtolower($form->getValue('login'));
+                $pass = htmlspecialchars($form->getValue('pass'));
+                $db = Db::getInstance();
+                $config = Config::getInstance();
+                $table = $config->db['prefix'] . 'cabinet_structure_user';
 
-        $email = strtolower($this->data['email']);
-        $pass = htmlspecialchars($this->data['pass']);
 
-        $db = Db::getInstance();
-        $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'cabinet_structure_user';
+                $par = array('email' => $email);
+                $fields = array('table' => $table);
+                $tmp = $db->select('SELECT ID,password,last_visit,is_active FROM &table WHERE email= :email LIMIT 1', $par, $fields);
 
-        $tmp = $db->select("SELECT ID,password,last_visit,is_active FROM {$table} WHERE email='{$email}' LIMIT 1");
-
-        if ((count($tmp) === 1) && (crypt($pass, $tmp[0]['password']) === $tmp[0]['password'])) {
-            $_SESSION['login']['user'] = $email;
-            $_SESSION['login']['ID'] = $tmp[0]['ID'];
-            $_SESSION['login']['input'] = true;
-            $_SESSION['login']['is_active'] = boolval($tmp[0]['is_active']);
-            $this->answer['refresh'] = true;
-            $this->answer['text'] = 'Вы успешно вошли';
+                if ((count($tmp) === 1) && (crypt($pass, $tmp[0]['password']) === $tmp[0]['password'])) {
+                    $_SESSION['login']['user'] = $email;
+                    $_SESSION['login']['ID'] = $tmp[0]['ID'];
+                    $_SESSION['login']['input'] = true;
+                    $_SESSION['login']['is_active'] = boolval($tmp[0]['is_active']);
+                    echo 'Вы успешно вошли';
+                } else {
+                    echo 'Ошибка в логине(email) или пароле';
+                }
+                die();
+            } else {
+                echo 'Вы указали не все данные';
+                die();
+            }
         } else {
-            $this->answer['text'] = 'Ошибка в логине(email) или пароле';
-            $this->answer['error'] = true;
+            $response = '';
+            switch ($request->subMode) {
+                // Генерируем js
+                case 'js':
+                    $script = <<<JS
+                    $('#loginForm').on('form.successSend', function () {
+                        location.reload();
+                    });
+JS;
+                    $form->setJs($script);
+                    $request->mode = 'js';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем стартовую часть формы
+                case false:
+                    $formHtml = <<<HTML
+<script type="text/javascript"
+        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=login&subMode=js"></script>
+<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=login&subMode=css"/>
+{$form->start()}
+    <table>
+      <tr>
+        <td width="100px">Login (email)*</td>
+        <td>
+          <div>
+            <input type="text" value="" name="login">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td width="100px">Пароль*</td>
+        <td>
+          <div>
+            <input type="password" value="" name="pass">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2"><br><br></td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <input type="submit" value="ВОЙТИ">
+          <br/>
+          <br/>
+          <a class="submit" href="{$link}?action=rec">ВОССТАНОВИТЬ ПАРОЛЬ</a>
+          <a class="submit" href="{$link}?action=reg">ЗАРЕГИСТРИРОВАТЬСЯ</a>
+        </td>
+      </tr>
+    </table>
+</form>
+HTML;
+                    $form->setText($formHtml);
+                    $response = $form->getText();
+                    break;
+            }
+            return $response;
         }
-        exit();
     }
 
     /**
@@ -323,11 +408,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 case 'email':
                 case 'e-mail':
                 case 'login':
-                    if (!$this->isEmail($v)) {
+                    /*if (!$this->isEmail($v)) {
                         $this->answer['error'] = true;
                         $this->answer['text'] .= ' E-mail указан неверно.';
                     }
-                    $this->data['email'] = strtolower($v);
+                    $this->data['email'] = strtolower($v);*/
                     break;
                 case 'pass':
                 case 'password':

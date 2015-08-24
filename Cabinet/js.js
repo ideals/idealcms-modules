@@ -53,6 +53,7 @@ function sendForm(e, controller, action) {
         tmp = tmp.parent();
         i++;
     }
+
     var form = tmp.find('form');
     if (validator(form)) {
         url = '/?mode=ajax&controller=' + controller + '&action=' + action;

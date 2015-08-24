@@ -18,6 +18,9 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
             $this->view->step = 'lk';
         } else {
             $this->view->step = 'login';
+            $link = $this->model->getFullUrl();
+            $ajaxController = new AjaxController();
+            $this->view->loginForm = $ajaxController->loginAction($link);
         }
 
         $this->view->link = $this->model->getFullUrl();

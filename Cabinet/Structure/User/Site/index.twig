@@ -8,31 +8,7 @@
         {#  #}
         {% if step == 'login' %}
             <div id="login">
-                <form method="POST" id="flogin" class="form">
-                    <table>
-                        <tr>
-                            <td width="100px">Login (email)</td>
-                            <td><input class="required" type="text" value="" name="login"></td>
-                        </tr>
-                        <tr>
-                            <td width="100px">Пароль</td>
-                            <td><input class="required" type="password" value="" name="pass"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2"><br><br></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">
-                                <button class="submit" onclick="sendForm(this,'\\Cabinet\\Structure\\User\\Site','login');return false;"
-                                        type="button">ВОЙТИ
-                                </button>
-                                <br/><br/>
-                                <a class="submit" href="{{ link }}?action=rec">ВОССТАНОВИТЬ ПАРОЛЬ</a>
-                                <a class="submit" href="{{ link }}?action=reg">ЗАРЕГИСТРИРОВАТЬСЯ</a>
-                            </td>
-                        </tr>
-                    </table>
-                </form>
+                {{ loginForm | raw }}
             </div>
         {% endif %}
         {# Востановление пароля #}
