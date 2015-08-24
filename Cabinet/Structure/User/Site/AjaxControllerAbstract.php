@@ -107,10 +107,14 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $form->setValidator('pass', 'required');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
-                if (isset($_SESSION['login']['input']) && $_SESSION['login']['input']) {
-                    exit();
-                }
                 $email = strtolower($form->getValue('login'));
+                if (isset($_SESSION['login']['input']) && $_SESSION['login']['input']) {
+                    if ($email != $_SESSION['login']['user']) {
+                        die('Пользователь с указанными данными ещё не зарегистрирован');
+                    } elseif (!$_SESSION['login']['is_active']) {
+                        die('Пользователь с указанными данными ещё не активирован');
+                    }
+                }
                 $pass = htmlspecialchars($form->getValue('pass'));
                 $db = Db::getInstance();
                 $config = Config::getInstance();
@@ -158,43 +162,10 @@ JS;
                     break;
                 // Генерируем стартовую часть формы
                 case false:
-                    $formHtml = <<<HTML
-<script type="text/javascript"
-        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=login&subMode=js"></script>
-<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=login&subMode=css"/>
-{$form->start()}
-    <table>
-      <tr>
-        <td width="100px">Login (email)*</td>
-        <td>
-          <div>
-            <input type="text" value="" name="login">
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td width="100px">Пароль*</td>
-        <td>
-          <div>
-            <input type="password" value="" name="pass">
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2"><br><br></td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <input type="submit" value="ВОЙТИ">
-          <br/>
-          <br/>
-          <a class="submit" href="{$link}?action=rec">ВОССТАНОВИТЬ ПАРОЛЬ</a>
-          <a class="submit" href="{$link}?action=reg">ЗАРЕГИСТРИРОВАТЬСЯ</a>
-        </td>
-      </tr>
-    </table>
-</form>
-HTML;
+                    $this->templateInit('Cabinet/Structure/User/Site/loginForm.twig');
+                    $this->view->start = $form->start();
+                    $this->view->link = $link;
+                    $formHtml = $this->view->render();
                     $form->setText($formHtml);
                     $response = $form->getText();
                     break;
@@ -212,6 +183,7 @@ HTML;
         $request = new Request();
         $form = new FormPhp\Forms('registrationForm');
         $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\User\\\\Site&action=registration');
+        $form->setClearForm(false);
         $form->add('lastname', 'text');
         $form->add('name', 'text');
         $form->add('phone', 'text');
@@ -308,59 +280,12 @@ HTML;
                     die();
                     break;
                 case false:
-            $formHtml = <<<HTML
-            <script type="text/javascript"
-        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=registration&subMode=js"></script>
-<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=registration&subMode=css"/>
-{$form->start()}
-                    <table>
-                        <tr>
-                            <td>Фамилия*:</td>
-                            <td><input type="text" value="" name="lastname"></td>
-                        </tr>
-                        <tr>
-                            <td>Имя*:</td>
-                            <td><input type="text" value="" name="name"></td>
-                        </tr>
-                        <tr>
-                            <td>Телефон*:</td>
-                            <td><input type="text" value="" name="phone"></td>
-                        </tr>
-                        <tr>
-                            <td>Адрес*:</td>
-                            <td><textarea name="addr"></textarea></td>
-                        </tr>
-                        <tr>
-                            <td>E-mail*:</td>
-                            <td><input class="required" type="text" value="" name="email"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="center"><br></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <img src="/images/captcha.jpg" onclick="getCaptcha(this)"
-                                     title="нажмите что бы обновить" style="cursor: pointer">
-                            </td>
-                            <td>
-                                <input style="textalign:center;width:100px;" type="text" name="int" size="6">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="center">
-                                <input type="hidden" value="{$link}" name="link">
-                                <p style="margin: auto;">Введите защитный код с картинки</p>
-                                <br><br>
-                                <br><br>
-                                <input type="submit" value="ЗАРЕГИСТРИРОВАТЬСЯ">
-                                <br>
-                            </td>
-                        </tr>
-                    </table>
-                </form>
-HTML;
-                $form->setText($formHtml);
-                $response = $form->getText();
+                    $this->templateInit('Cabinet/Structure/User/Site/registrationForm.twig');
+                    $this->view->start = $form->start();
+                    $this->view->link = $link;
+                    $formHtml = $this->view->render();
+                    $form->setText($formHtml);
+                    $response = $form->getText();
                 break;
             }
             return $response;
@@ -430,28 +355,9 @@ HTML;
                     break;
                 // Генерируем стартовую часть формы
                 case false:
-                    $formHtml = <<<HTML
-<script type="text/javascript"
-        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=recover&subMode=js"></script>
-<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=recover&subMode=css"/>
-{$form->start()}
-    <br>
-                    <table>
-                        <tr>
-                            <td width="100">Login (email)*:</td>
-                            <td><input type="text" value="" name="login"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2"><br><br></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">
-                                <input type="submit" value="ВОССТАНОВИТЬ">
-                            </td>
-                        </tr>
-                    </table>
-</form>
-HTML;
+                    $this->templateInit('Cabinet/Structure/User/Site/recoverForm.twig');
+                    $this->view->start = $form->start();
+                    $formHtml = $this->view->render();
                     $form->setText($formHtml);
                     $response = $form->getText();
                     break;
@@ -519,53 +425,10 @@ JS;
                     die();
                     break;
                 case false:
-                    $formHtml = <<<HTML
-            <script type="text/javascript"
-        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=save&subMode=js"></script>
-<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=save&subMode=css"/>
-{$form->start()}
-                    <table>
-                        <tr>
-                            <td>Ваше имя:</td>
-                            <td><input type="text" value="{$user['fio']}" name="fname"></td>
-                        </tr>
-                        <tr>
-                            <td>Телефон:</td>
-                            <td><input type="text" value="{$user['phone']}" name="phone"></td>
-                        </tr>
-                        <tr>
-                            <td>Адрес</td>
-                            <td><textarea name="addr">{$user['address']}</textarea></td>
-                        </tr>
-                        <tr>
-                            <td><br>Email при регистрации (login)</td>
-                            <td><br>{$user['email']}</td>
-                        </tr>
-                        <tr>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="center">
-                                <br>
-                                <hr>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Новый пароль</td>
-                            <td><input type="password" value="" name="pass"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="center">
-                                Оставьте поле пустым, что бы не менять пароль
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2"><br><br><br>
-                                <input type="submit" value="СОХРАНИТЬ">
-                            </td>
-                        </tr>
-                    </table>
-                </form>
-HTML;
+                    $this->templateInit('Cabinet/Structure/User/Site/lkForm.twig');
+                    $this->view->start = $form->start();
+                    $this->view->user = $user;
+                    $formHtml = $this->view->render();
                     $form->setText($formHtml);
                     $response = $form->getText();
                     break;
