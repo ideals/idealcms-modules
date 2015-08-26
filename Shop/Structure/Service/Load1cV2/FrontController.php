@@ -2,9 +2,11 @@
 namespace Shop\Structure\Service\Load1cV2;
 
 use Ideal\Core\Config;
+use Ideal\Core\Db;
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
 use Mail\Sender;
+use Shop\Structure\Service\Load1cV2\Good\DbGood;
 
 /**
  * Created by PhpStorm.
@@ -15,6 +17,7 @@ use Mail\Sender;
 
 class FrontController
 {
+    const DEBUG = true;
     /** @var string абсолютный путь к папке для выгрузки */
     protected $directory;
 
@@ -26,6 +29,7 @@ class FrontController
 
     /** @var int количество полученных файлов от 1с. Необходимо для определения окончания выгрузки 1с */
     protected $countFiles = 0;
+    protected $goods = array();
 
     /**
      * Установка директории и получение списка файлов и путями
@@ -81,7 +85,7 @@ class FrontController
                 if ($user->login($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
                     print "success\n";
                     print session_name() . "\n";
-                    print session_id();
+                    print session_id() . "\n";
                 } else {
                     print "failure\n";
                     print "Ошибка: пользователь не авторизован\n";
@@ -141,6 +145,13 @@ class FrontController
                 print "success\n";
                 break;
 
+            case 'query':
+                $xml = $this->generateExportXml();
+                header("Content-type: text/xml; charset=utf-8");
+                print $xml;
+                print "success\n";
+                break;
+
             case 'deactivate':
                 $timeStart = $_SERVER['REQUEST_TIME'];
                 $result = array();
@@ -189,6 +200,7 @@ class FrontController
                 return 0;
 
             default:
+                print "success\n";
                 break;
         }
         return 0;
@@ -644,5 +656,97 @@ class FrontController
             return true;
         }
         return false;
+    }
+
+    public function exportDebug($value)
+    {
+        if (self::DEBUG) {
+            $fp = fopen(DOCUMENT_ROOT . '/temp.log', 'a');
+            fwrite($fp, var_export($value, true));
+            fwrite($fp, "\n---------------------------------------------------------------------------\n");
+            fclose($fp);
+        }
+    }
+
+    private function generateExportXml($from = null)
+    {
+        $fileTemplate = array_slice(explode('\\', __FILE__), 0, -1);
+        array_push($fileTemplate, 'export.xml');
+        $fileTemplate = implode('\\', $fileTemplate);
+
+        $template = simplexml_load_file($fileTemplate);
+        $template->addAttribute('ВерсияСхемы', '2.08');
+        $template->addAttribute('ДатаФормирования', date('Y-m-d_h:i:s', time()));
+        $template->addAttribute('ФорматДаты', 'yyyy-MM-dd');
+        $template->addAttribute('ФорматВремени', 'ЧЧ:мм:сс');
+        $template->addAttribute('РазделительДатаВремя', '_');
+
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $dbGood = new DbGood();
+
+        $orderSql = "SELECT * FROM {$config->db['prefix']}shop_structure_order where goods_id<>''";
+        if (!is_null($from)) {
+            $orderSql .= " AND date_create > {$from}";
+        }
+        $orderList = $db->select($orderSql);
+
+        foreach ($orderList as $item) {
+            $charid = strtolower(md5($item['ID'] . $item['date_create']));
+            $guid = substr($charid, 0, 8) . '-' . substr($charid, 8, 4) . '-' . substr($charid, 12, 4) . '-' .
+                substr($charid, 16, 4) . '-' . substr($charid, 20, 12);
+
+            $doc = $template->xpath("//КоммерческаяИнформация");
+            /* @var $doc \SimpleXMLElement */
+            $doc = $doc[0]->addChild("Документ");
+
+            $doc->addChild("Ид", $guid);
+            $doc->addChild("Номер", $item['ID']);
+            $doc->addChild("Дата", date('Y-m-d', $item['date_create']));
+            $doc->addChild("ХозОперация", "Заказ товара");
+            $doc->addChild("Роль", "Продавец");
+            $doc->addChild("Курс", 1);
+            $doc->addChild("Сумма", $item['price'] / 100);
+            $doc->addChild("Время", date('H:m:s', $item['date_create']));
+
+            $agent = $doc->addChild('Контрагент');
+            $agent->addChild("Наименование", "Физ лицо");
+            $agent->addChild("Роль", "Покупатель");
+            $agent->addChild("ПолноеНаименование", "Физ лицо");
+
+            $goods = explode(',', $item['goods_id']);
+            $xmlGoods = $doc->addChild('Товары');
+            foreach ($goods as $id) {
+                if (!isset($this->goods[$id])) {
+                    $info = $dbGood->getGoods('*', "id_1c='{$id}'");
+                    $this->goods[$id] = $info[$id];
+                }
+
+                $xmlGood = $xmlGoods->addChild('Товар');
+
+                $xmlGood->addChild('Ид', $this->goods[$id]['id_1c']);
+                $xmlGood->addChild('Наименование', $this->goods[$id]['name']);
+                $xmlGood->addChild('ЦенаЗаЕдиницу', (int) $this->goods[$id]['price']/100);
+                $props = $xmlGood->addChild('ЗначенияРеквизитов');
+                $prop = $props->addChild('ЗначениеРеквизита');
+                $prop->addChild("Наименование", "ВидНоменклатуры");
+                $prop->addChild("Значение", "Товар");
+
+                $prop = $props->addChild('ЗначениеРеквизита');
+                $prop->addChild("Наименование", "ТипНоменклатуры");
+                $prop->addChild("Значение", "Товар");
+
+                if (!isset($currency) && isset($this->goods[$id]['currency'])) {
+                    $currency = $this->goods[$id]['currency'];
+                }
+            }
+
+            if (!isset($currency)) {
+                $currency = "RUB";
+            }
+            $doc->addChild("Валюта", $currency);
+        }
+
+        return $template->asXML();
     }
 }

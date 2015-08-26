@@ -4,10 +4,8 @@ namespace Shop\Structure\Service\Load1cV2;
 
 class Image
 {
-    private $config;
     private $color = array();
     private $water;
-    private $minSizeWater;
     private $img;
 
     public function __construct($img, $width, $height, $border = true)
@@ -23,12 +21,6 @@ class Image
         if (!file_exists("{$this->dirImage}/{$entry}")) {
             mkdir("{$this->dirImage}/{$entry}", 0750, true);
         }
-//        $this->minSizeWater = "140*140";
-//        $font = array_slice(explode('\\', __FILE__), 0, -1);
-//        array_push($font, 'arial.ttf');
-//        $font = implode('\\', $font);
-
-//        $this->config['font'] = $font;
         $this->color1("e6e6e6");
 
         $filename = "{$this->dirImage}/{$entry}/" . $image;
@@ -50,7 +42,6 @@ class Image
     private function resize($image, $newWidth = 100, $newHeight = 100, $uri = 'images/', $border = true)
     {
         $img = null;
-//        $water = $this->water;
         $i = pathinfo($image);
         $size = getimagesize($image);
         $srcW = $size[0];
@@ -103,31 +94,6 @@ class Image
             imagecopy($tmpImage, $newImage, $margeX, $margeY, 0, 0, $w2, $h2);
             $newImage = $tmpImage;
         }
-//        $tmp = explode('*', $this->minSizeWater);
-//        if ($tmp[0] < $newWidth && $tmp[1] < $newHeight && $water != null) {
-//            $tmp = ($newWidth - 10) / strlen($water);
-//            if (floor($tmp) >= 20) {
-//                $fontSize = 20;
-//            } elseif (floor($tmp) <= 6) {
-//                $fontSize = 0;
-//            } else {
-//                $fontSize = floor($tmp);
-//            }
-//            if ($fontSize > 5) {
-//                // Вывод текста на картинку
-//                $white = imagecolorallocatealpha($newImage, 250, 250, 250, 75);
-//                $gray = imagecolorallocatealpha($newImage, 100, 100, 100, 75);
-//                $font = $this->config['font']; // Шрифт
-//                $bbox = imagettfbbox($fontSize, 0, $font, $water); // определяем размер картинки со шрифтом
-//
-//                $x = $w2 - ($bbox[2] - $bbox[0] + 10); // отступ с левого края
-//                $y = $h2 - ($bbox[1] - $bbox[7] + 10); // отступ с нижнего края
-//                // вывод текста на картинку
-//                imagettftext($newImage, $fontSize + 2, 45, $x - 2, $y + 2, $gray, $font, $water);
-//                imagettftext($newImage, $fontSize, 45, $x, $y, $white, $font, $water); // вывод текста на картинку
-//            }
-//
-//        }
 
         switch ($extension) {
             case 'jpg':
@@ -139,6 +105,5 @@ class Image
             default:
                 break;
         }
-
     }
 }

@@ -149,11 +149,14 @@ class DbGood extends AbstractDb
      * @param string $select
      * @return array key - id_1c
      */
-    public function getGoods($select = '*')
+    public function getGoods($select = '*', $where = '')
     {
         $db = Db::getInstance();
 
         $sql = "SELECT {$select} FROM " . $this->table . $this->tablePostfix;
+        if ($where !== '') {
+            $sql .= " WHERE {$where}";
+        }
         $res = $db->select($sql);
         $result = array();
 
