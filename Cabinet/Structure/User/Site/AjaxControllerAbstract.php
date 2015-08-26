@@ -108,32 +108,13 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 $email = strtolower($form->getValue('login'));
-                if (isset($_SESSION['login']['input']) && $_SESSION['login']['input']) {
-                    if ($email != $_SESSION['login']['user']) {
-                        die('Пользователь с указанными данными ещё не зарегистрирован');
-                    } elseif (!$_SESSION['login']['is_active']) {
-                        die('Пользователь с указанными данными ещё не активирован');
-                    }
-                }
                 $pass = htmlspecialchars($form->getValue('pass'));
-                $db = Db::getInstance();
                 $config = Config::getInstance();
-                $table = $config->db['prefix'] . 'cabinet_structure_user';
-
-
-                $par = array('email' => $email);
-                $fields = array('table' => $table);
-                $tmp = $db->select('SELECT ID,password,last_visit,is_active FROM &table WHERE email= :email LIMIT 1', $par, $fields);
-
-                if ((count($tmp) === 1) && (crypt($pass, $tmp[0]['password']) === $tmp[0]['password'])) {
-                    $_SESSION['login']['user'] = $email;
-                    $_SESSION['login']['ID'] = $tmp[0]['ID'];
-                    $_SESSION['login']['input'] = true;
-                    $_SESSION['login']['is_active'] = boolval($tmp[0]['is_active']);
-                    echo 'Вы успешно вошли';
-                } else {
-                    echo 'Ошибка в логине(email) или пароле';
-                }
+                $prevStructure = $config->getStructureByName('Cabinet_User');
+                $prevStructure = '0-' . $prevStructure['ID'];
+                $cabinetUserModel = new Model($prevStructure);
+                $response = $cabinetUserModel->userAuthorization($email, $pass);
+                echo $response;
                 die();
             } else {
                 echo 'Вы указали не все данные';

@@ -7,6 +7,9 @@ use Ideal\Field;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\Model
 {
+    /** @var int Количество найденных в базе пользователей по предоставленным данным*/
+    protected $userCount = 1;
+
     protected function getWhere($where)
     {
         $where = $where;
@@ -118,17 +121,69 @@ EOT;
         return false;
     }
 
+    /**
+     * Пытается получить данные пользователя из базы
+     *
+     * @param mixed $email Значение электронной почты (если известно), false в противном случае
+     * @return mixed Null или массив с данными о пользователе
+     */
     public function getUser($email = false)
     {
         $db = Db::getInstance();
+
+        $fields = array('table' => $this->_table);
+
         if ($email !== false) {
-            $where = 'email=\'' . strtolower($email) . "'";
+            $par = array('email' => strtolower($email));
+            $_sql = "SELECT * FROM &table WHERE email= :email LIMIT 1";
         } else {
-            $where = 'ID=' . $_SESSION['login']['ID'];
+            $par = array('ID' => $_SESSION['login']['ID']);
+            $_sql = "SELECT * FROM &table WHERE ID= :ID LIMIT 1";
         }
-        $_sql = "SELECT email, address, fio, phone FROM {$this->_table} WHERE {$where} LIMIT 1";
-        $result = $db->select($_sql);
+        $result = $db->select($_sql, $par, $fields);
+        $this->userCount = count($result);
         return $result[0];
+    }
+
+    /**
+     * Заносит данные авторизованного пользователя в сессию иначе отдаёт сообщение о неудачной авторизации
+     *
+     * @param string $email Электронная почта
+     * @param string $pass Пароль
+     *
+     * @return string Ответ на попытку войти в систему
+     */
+    public function userAuthorization($email = '', $pass = '') {
+        $response = 'Предоставлены не верные данные';
+        if (!empty($email) && !empty($pass)) {
+            $firstStepCheck = true;
+            if (isset($_SESSION['login']['input']) && $_SESSION['login']['input']) {
+                if ($email != $_SESSION['login']['user']) {
+                    $response = 'Пользователь с указанными данными ещё не зарегистрирован';
+                    $firstStepCheck = false;
+                } elseif (!$_SESSION['login']['is_active']) {
+                    $response = 'Пользователь с указанными данными ещё не активирован';
+                    $firstStepCheck = false;
+                }
+            }
+            if ($firstStepCheck) {
+                $userData = $this->getUser($email);
+                if (!empty($userData)) {
+                    if (($this->userCount === 1) && (crypt($pass, $userData['password']) === $userData['password'])) {
+                        $_SESSION['login']['user'] = $email;
+                        $_SESSION['login']['ID'] = $userData['ID'];
+                        $_SESSION['login']['input'] = true;
+                        $_SESSION['login']['is_active'] = boolval($userData['is_active']);
+                        $response = 'Вы успешно вошли';
+                    } else {
+                        $response = 'Ошибка в логине(email) или пароле';
+                    }
+                } else {
+                    $response = 'Пользователя с указанными данными не существует';
+                }
+            }
+        }
+        return $response;
     }
 
     public function getStructureElements()
