@@ -67,5 +67,10 @@ return array(
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),
+        'export' => array(
+            'label' => 'Попадает в выгрузку 1с',
+            'sql'   => 'bool',
+            'type'  => 'Ideal_Checkbox'
+        ),
     ),
 );
