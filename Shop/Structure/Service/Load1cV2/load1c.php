@@ -37,10 +37,9 @@ $config->loadSettings();
 
 // сообщения об ошибках добавления insert, например, возвращает false
 $fc = new Load1cV2\FrontController();
-$fc->exportDebug(array('SERVER'=>$_SERVER,'REQUEST'=>$_REQUEST, 'time'=>date('h:i:s A')));
 ob_clean();
 ob_start();
 $fc->import($params['info'], $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-$a = ob_get_contents();
-$fc->exportDebug(array('$a'=>$a));
+$a = ob_get_flush();
+$fc->exportDebug(array('$a'=>$a, 'REQUEST'=>$_REQUEST));
 print $a;

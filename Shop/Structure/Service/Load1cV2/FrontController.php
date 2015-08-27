@@ -17,7 +17,7 @@ use Shop\Structure\Service\Load1cV2\Good\DbGood;
 
 class FrontController
 {
-    const DEBUG = true;
+    const DEBUG = false;
     /** @var string абсолютный путь к папке для выгрузки */
     protected $directory;
 
@@ -147,10 +147,9 @@ class FrontController
 
             case 'query':
                 $xml = $this->generateExportXml();
-                header("Content-type: text/xml; charset=utf-8");
+                header("Content-type: text/xml; charset=windows-1251");
                 print $xml;
-                print "success\n";
-                break;
+                die();
 
             case 'deactivate':
                 $timeStart = $_SERVER['REQUEST_TIME'];
@@ -668,7 +667,7 @@ class FrontController
         }
     }
 
-    private function generateExportXml($from = null)
+    private function generateExportXml()
     {
         $fileTemplate = array_slice(explode('\\', __FILE__), 0, -1);
         array_push($fileTemplate, 'export.xml');
@@ -676,57 +675,78 @@ class FrontController
 
         $template = simplexml_load_file($fileTemplate);
         $template->addAttribute('ВерсияСхемы', '2.08');
-        $template->addAttribute('ДатаФормирования', date('Y-m-d_h:i:s', time()));
-        $template->addAttribute('ФорматДаты', 'yyyy-MM-dd');
-        $template->addAttribute('ФорматВремени', 'ЧЧ:мм:сс');
-        $template->addAttribute('РазделительДатаВремя', '_');
+        $template->addAttribute('ДатаФормирования', date('Y-m-d', time()) . "T" . date('h:i:s', time()));
+        $template->addAttribute('ФорматДаты', 'yyyy-MM-dd; ДЛФ=DT');
+        $template->addAttribute('ФорматВремени', 'ЧЧ:мм:сс; ДЛФ=T');
+        $template->addAttribute('РазделительДатаВремя', 'T');
 
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $dbGood = new DbGood();
 
-        $orderSql = "SELECT * FROM {$config->db['prefix']}shop_structure_order where goods_id<>''";
-        if (!is_null($from)) {
-            $orderSql .= " AND date_create > {$from}";
-        }
+        $i = $config->db['prefix'];
+        $orderSql = "SELECT sho.id, sho.date_create, sho.name, sho.price, d.good_id_1c, d.offer_id_1c, d.count, d.sum,".
+            " stg.currency, sto.name as full_name, stg.coefficient, sto.price as fe FROM {$i}shop_structure_order sho".
+            " LEFT JOIN {$i}shop_detail_order d on d.order_id=sho.id".
+            " LEFT JOIN {$i}catalogplus_structure_good stg on d.good_id_1c=stg.id_1c".
+            " LEFT JOIN {$i}catalogplus_structure_offer sto on sto.offer_id=d.offer_id_1c".
+            " where sho.goods_id<>'' AND sho.export=1 LIMIT 0,200";
+
         $orderList = $db->select($orderSql);
-
-        foreach ($orderList as $item) {
-            $charid = strtolower(md5($item['ID'] . $item['date_create']));
+        if (count($orderList) === 0) {
+            die(print "success\n");
+        }
+        $items = array();
+        foreach ($orderList as $element) {
+            if (isset($items[$element['id']])) {
+                $items[$element['id']]['goods'][] = array_slice($element, 4);
+            } else {
+                $items[$element['id']] = array_slice($element, 0, 4);
+                $items[$element['id']]['goods'][] = array_slice($element, 4);
+            }
+        }
+        unset($orderList);
+        $upd = array();
+        foreach ($items as $k => $item) {
+            $charid = strtolower(md5($item['id'] . $item['date_create']));
             $guid = substr($charid, 0, 8) . '-' . substr($charid, 8, 4) . '-' . substr($charid, 12, 4) . '-' .
                 substr($charid, 16, 4) . '-' . substr($charid, 20, 12);
 
             $doc = $template->xpath("//КоммерческаяИнформация");
-            /* @var $doc \SimpleXMLElement */
+            /* @var $doc[0] \SimpleXMLElement */
             $doc = $doc[0]->addChild("Документ");
 
             $doc->addChild("Ид", $guid);
-            $doc->addChild("Номер", $item['ID']);
+            $doc->addChild("Номер", $item['id']);
+            $doc->addChild("НомерВерсии", 1);
             $doc->addChild("Дата", date('Y-m-d', $item['date_create']));
+            $doc->addChild("Дата1С", date('Y-m-d', $item['date_create']));
+            $doc->addChild("Номер1С", $item['id']);
             $doc->addChild("ХозОперация", "Заказ товара");
             $doc->addChild("Роль", "Продавец");
             $doc->addChild("Курс", 1);
             $doc->addChild("Сумма", $item['price'] / 100);
             $doc->addChild("Время", date('H:m:s', $item['date_create']));
 
-            $agent = $doc->addChild('Контрагент');
+            $agents = $doc->addChild('Контрагенты');
+            $agent = $agents->addChild('Контрагент');
+            $charid = strtolower(md5('Физ лицо'));
+            $guid = substr($charid, 0, 8) . '-' . substr($charid, 8, 4) . '-' . substr($charid, 12, 4) . '-' .
+                substr($charid, 16, 4) . '-' . substr($charid, 20, 12);
+            $agent->addChild("Ид", $guid);
             $agent->addChild("Наименование", "Физ лицо");
             $agent->addChild("Роль", "Покупатель");
             $agent->addChild("ПолноеНаименование", "Физ лицо");
 
-            $goods = explode(',', $item['goods_id']);
             $xmlGoods = $doc->addChild('Товары');
-            foreach ($goods as $id) {
-                if (!isset($this->goods[$id])) {
-                    $info = $dbGood->getGoods('*', "id_1c='{$id}'");
-                    $this->goods[$id] = $info[$id];
-                }
-
+            foreach ($item['goods'] as $good) {
                 $xmlGood = $xmlGoods->addChild('Товар');
 
-                $xmlGood->addChild('Ид', $this->goods[$id]['id_1c']);
-                $xmlGood->addChild('Наименование', $this->goods[$id]['name']);
-                $xmlGood->addChild('ЦенаЗаЕдиницу', (int) $this->goods[$id]['price']/100);
+                $xmlGood->addChild('Ид', $good['good_id_1c'] . '#' . $good['offer_id_1c']);
+                $xmlGood->addChild('Наименование', $good['full_name']);
+                $xmlGood->addChild('ЦенаЗаЕдиницу', (int) $good['fe']/100);
+                $xmlGood->addChild('Количество', $good['count']);
+                $xmlGood->addChild('Сумма', $good['sum']/100);
+                $xmlGood->addChild('Коэффициент', $good['coefficient']);
                 $props = $xmlGood->addChild('ЗначенияРеквизитов');
                 $prop = $props->addChild('ЗначениеРеквизита');
                 $prop->addChild("Наименование", "ВидНоменклатуры");
@@ -736,8 +756,8 @@ class FrontController
                 $prop->addChild("Наименование", "ТипНоменклатуры");
                 $prop->addChild("Значение", "Товар");
 
-                if (!isset($currency) && isset($this->goods[$id]['currency'])) {
-                    $currency = $this->goods[$id]['currency'];
+                if (!isset($currency) && isset($good['currency'])) {
+                    $currency = $good['currency'];
                 }
             }
 
@@ -745,8 +765,13 @@ class FrontController
                 $currency = "RUB";
             }
             $doc->addChild("Валюта", $currency);
+
+            $upd[] = $item['id'];
         }
 
+        foreach ($upd as $item) {
+            $db->query("UPDATE {$i}shop_structure_order SET export=0 WHERE id={$item}");
+        }
         return $template->asXML();
     }
 }
