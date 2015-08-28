@@ -395,19 +395,6 @@ JS;
     }
 
     /**
-     * Генерация пароля
-     * @param int $min Минимальное количество в пароле
-     * @param int $max Максимальное количество в пароле
-     * @return string
-     */
-    protected function randPassword($min = 8, $max = 12)
-    {
-        $length = rand($min, $max);
-        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        return substr(str_shuffle($chars), 0, $length);
-    }
-
-    /**
      * Проверка корректности введенного email
      *
      * @param $email
