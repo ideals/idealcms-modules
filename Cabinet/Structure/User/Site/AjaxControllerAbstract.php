@@ -340,21 +340,18 @@ JS;
         $form->setValidator('phone', 'phone');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
-                $db = Db::getInstance();
+                $userData = array();
+                $userData['fio'] = $form->getValue('fname');
+                $userData['phone'] = $form->getValue('phone');
+                $userData['address'] = $form->getValue('addr');
+                $userData['password'] = $form->getValue('pass');
+
                 $config = Config::getInstance();
-                $update['fio'] = $form->getValue('fname');
-                $update['phone'] = $form->getValue('phone');
-                $update['address'] = $form->getValue('addr');
-                $pass = $form->getValue('pass');
-                if (!empty($pass)) {
-                    $pass = mysqli_real_escape_string($db->getInstance(), $pass);
-                    if (strlen($pass) > 0) {
-                        $update['password'] = crypt($pass);
-                    }
-                }
-                $table = $config->db['prefix'] . 'cabinet_structure_user';
-                $db->update($table)->set($update)->where('ID = :ID', array('ID' => $_SESSION['login']['ID']))->exec();
-                echo 'Данные сохранены';
+                $prevStructure = $config->getStructureByName('Cabinet_User');
+                $prevStructure = '0-' . $prevStructure['ID'];
+                $cabinetUserModel = new Model($prevStructure);
+                $response = $cabinetUserModel->saveUserData($userData);
+                echo $response;
                 die();
             } else {
                 echo "Заполнены не все поля.";
