@@ -474,14 +474,29 @@ JS;
             // Собираем итнформацию о заказанных товарах
             foreach ($basket->goods as $key => $good) {
                 $goodId = explode('_', $key);
+                $offerId = $goodId[1];
                 $goodId = $goodId[0];
-                $par = array('ID' => $goodId);
-                $fields = array('table' => $config->db['prefix'] . 'catalogplus_structure_good');
-                $row = $db->select('SELECT id_1c FROM &table WHERE ID = :ID LIMIT 1', $par, $fields);
-                $Id1c[] = $row[0]['id_1c'];
+                $par = array('ID' => $offerId);
+                $fields = array('table' => $config->db['prefix'] . 'catalogplus_structure_offer');
+                $row = $db->select('SELECT offer_id, good_id FROM &table WHERE ID = :ID LIMIT 1', $par, $fields);
+                $Id1c[] = $row[0]['good_id'];
 
                 $summ = intval($good->count) * (intval($good->sale_price));
                 $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+
+                $prevOrder = $config->getStructureByName('Shop_Order');
+                $insert = array();
+                $insert['prev_structure'] = $prevOrder['ID'] . '-' . $response;
+                $insert['order_id'] = $response;
+                $insert['good_id_1c'] = $row[0]['good_id'];
+                $insert['offer_id_1c'] = $row[0]['offer_id'];
+                $insert['count'] = intval($good->count);
+                $insert['sum'] = $summ * 100;
+
+                $db->insert(
+                    $prefix . 'shop_structure_orderdetail',
+                    $insert
+                );
             }
             $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . intval($basket->total) . '</td></tr>';
             $message .= '</table>';
@@ -524,7 +539,8 @@ JS;
                     'date_mod' => time(),
                     'content' => $message,
                     'is_active' => 1,
-                    'goods_id'  => implode(',', $Id1c)
+                    'goods_id'  => implode(',', $Id1c),
+                    'structure' => 'Shop_OrderDetail'
                 )
             );
         }
