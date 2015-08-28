@@ -183,62 +183,42 @@ JS;
         $form->setValidator('int', 'captcha');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
-                $fio = $form->getValue('lastname') . ' ' . $form->getValue('name');
-                $phone = $form->getValue('phone');
-                $address = $form->getValue('addr');
-                $email = $form->getValue('email');
-                $clearPass = $this->randPassword();
-                $pass = crypt($clearPass);
+                $newUserData = array();
+                $newUserData['fio'] = $form->getValue('lastname') . ' ' . $form->getValue('name');
+                $newUserData['phone'] = $form->getValue('phone');
+                $newUserData['address'] = $form->getValue('addr');
+                $newUserData['email'] = $form->getValue('email');
+
                 $config = Config::getInstance();
-                $db = Db::getInstance();
-
-                // Установка таблицы в базе данных
-                $table = $config->db['prefix'] . 'cabinet_structure_user';
-
-                $par = array('email' => strtolower($email));
-                $fields = array('table' => $table);
-                $tmp = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
-                if (count($tmp) > 0) {
-                    echo ' Такой Email уже зарегестрирован.';
-                } else {
-                    $prevStructure = $config->getStructureByName('Cabinet_User');
-                    $prevStructure = '0-' . $prevStructure['ID'];
-                    $key = md5(time());
-                    $db->insert($table, array(
-                        'email' => $email,
-                        'address' => $address,
-                        'phone' => $phone,
-                        'password' => $pass,
-                        'fio' => $fio,
-                        'is_active' => 0,
-                        'prev_structure' => $prevStructure,
-                        'act_key' => $key,
-                        'reg_date' => time()
-                    ));
-
+                $prevStructure = $config->getStructureByName('Cabinet_User');
+                $prevStructure = '0-' . $prevStructure['ID'];
+                $cabinetUserModel = new Model($prevStructure);
+                $response = $cabinetUserModel->userRegistration($newUserData);
+                if ($response['success']) {
                     $title = 'Регистрация на ' . $config->domain;
 
                     $this->templateInit('Cabinet/Structure/User/Site/letter.twig');
                     $this->loadHelpVar();
 
                     $this->view->reg = true;
-                    $this->view->fio = $fio;
-                    $this->view->email = $email;
-                    $this->view->pass = $clearPass;
+                    $this->view->fio = $newUserData['fio'];
+                    $this->view->email = $newUserData['email'];
+                    $this->view->pass = $response['pass'];
                     $link = 'http://' . $config->domain . $form->getValue('link') . '?';
                     $link .= 'action=finishReg';
-                    $link .= '&email=' . urlencode($email);
-                    $link .= '&key=' . urlencode($key);
+                    $link .= '&email=' . urlencode($newUserData['email']);
+                    $link .= '&key=' . urlencode($response['key']);
                     $this->view->link = $link;
                     $this->view->title = $title;
                     $msg = $this->view->render();
 
-                    if ($form->sendMail($config->robotEmail, $email, $title, $msg, true)) {
+                    if ($form->sendMail($config->robotEmail, $newUserData['email'], $title, $msg, true)) {
                         echo 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
                     } else {
                         echo 'Ошибка. Попробуйте чуть позже';
                     }
-
+                } else {
+                    echo $response['text'];
                 }
                 die();
             } else {

@@ -7,7 +7,7 @@ use Ideal\Field;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\Model
 {
-    /** @var int Количество найденных в базе пользователей по предоставленным данным*/
+    /** @var int Количество найденных в базе пользователей по предоставленным данным */
     protected $userCount = 1;
 
     protected function getWhere($where)
@@ -30,8 +30,18 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
         return $where;
     }
 
+    /**
+     * Регистрация нового пользователя в системе
+     *
+     * @param string $email Электронная почта
+     * @param string $key Ключ
+     *
+     * @return string Ответ
+     * @deprecated
+     */
     public function reg($email, $key)
     {
+        // TODO Узнать используется ли данный метод хоть где-нибудь хотябы на каком-нибудь проекте?
         $table = $this->_table;
         $config = Config::getInstance();
 
@@ -71,6 +81,68 @@ EOT;
             return 'Ошибка! Такой E-mail не зарегестрирован.';
         }
         return 'Вы успешно зарегистрированы';
+    }
+
+    /**
+     * Регистрация нового пользователя в системе
+     *
+     * @param array $userData Данные пользователя желающего зарегистрироваться
+     *
+     * @return array Ответ на попытку региистрации в системе, а так же пароль сгенерированны для нового пользователя и ключ авторизации
+     */
+    public function userRegistration(array $userData)
+    {
+        $response = array(
+            'success' => false,
+            'text' => 'Нет данных о новом пользователе',
+            'pass' => '',
+            'key' => ''
+        );
+        if (!empty($userData)) {
+            if (!isset($userData['email']) || !isset($userData['address']) || !isset($userData['phone']) || !isset($userData['fio'])) {
+                $response = array(
+                    'success' => false,
+                    'text' => 'Недостаточно данных для регистрации нового пользователя',
+                    'pass' => '',
+                    'key' => ''
+                );
+            } else {
+                $db = Db::getInstance();
+                $par = array('email' => strtolower($userData['email']));
+                $fields = array('table' => $this->_table);
+                $tmp = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
+                if (count($tmp) > 0) {
+                    $response = array(
+                        'success' => false,
+                        'text' => 'Такой Email уже зарегестрирован',
+                        'pass' => '',
+                        'key' => ''
+                    );
+                } else {
+                    $key = md5(time());
+                    $pass = $this->randPassword();
+                    $db->insert($this->_table, array(
+                        'email' => $userData['email'],
+                        'address' => $userData['address'],
+                        'phone' => $userData['phone'],
+                        'password' => $pass,
+                        'fio' => $userData['fio'],
+                        'is_active' => 0,
+                        'prev_structure' => $this->getPrevStructure(),
+                        'act_key' => $key,
+                        'reg_date' => time()
+                    ));
+
+                    $response = array(
+                        'success' => true,
+                        'text' => 'Пользователь успешно зарегистрирован',
+                        'pass' => $pass,
+                        'key' => $key
+                    );
+                }
+            }
+        }
+        return $response;
     }
 
     /**
@@ -153,7 +225,8 @@ EOT;
      *
      * @return string Ответ на попытку войти в систему
      */
-    public function userAuthorization($email = '', $pass = '') {
+    public function userAuthorization($email = '', $pass = '')
+    {
         $response = 'Предоставлены не верные данные';
         if (!empty($email) && !empty($pass)) {
             $firstStepCheck = true;
@@ -208,7 +281,8 @@ EOT;
      *
      * @return string Абсолютный путь до страницы логина/регистрации/подтверждения
      */
-    public function getFullUrl() {
+    public function getFullUrl()
+    {
         $pageData = $this->getPageData();
         $url = new Field\Url\Model();
         $link = $url->getUrl($pageData);
