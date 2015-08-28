@@ -686,7 +686,7 @@ class FrontController
         $i = $config->db['prefix'];
         $orderSql = "SELECT sho.id, sho.date_create, sho.name, sho.price, d.good_id_1c, d.offer_id_1c, d.count, d.sum,".
             " stg.currency, sto.name as full_name, stg.coefficient, sto.price as fe FROM {$i}shop_structure_order sho".
-            " LEFT JOIN {$i}shop_detail_order d on d.order_id=sho.id".
+            " LEFT JOIN {$i}shop_structure_orderdetail d on d.order_id=sho.id".
             " LEFT JOIN {$i}catalogplus_structure_good stg on d.good_id_1c=stg.id_1c".
             " LEFT JOIN {$i}catalogplus_structure_offer sto on sto.offer_id=d.offer_id_1c".
             " where sho.goods_id<>'' AND sho.export=1 LIMIT 0,200";
