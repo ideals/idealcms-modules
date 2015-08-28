@@ -268,27 +268,23 @@ JS;
         $form->setValidator('login', 'email');
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
-                $db = Db::getInstance();
-                $config = Config::getInstance();
                 $email = strtolower($form->getValue('login'));
-                $table = $config->db['prefix'] . 'cabinet_structure_user';
-                $par = array('email' => $email);
-                $fields = array('table' => $table);
-                $user = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
-                if (count($user) == 0) {
-                    echo ' Данный E-mail еще не зарегистрирован.';
+                $config = Config::getInstance();
+                $prevStructure = $config->getStructureByName('Cabinet_User');
+                $prevStructure = '0-' . $prevStructure['ID'];
+                $cabinetUserModel = new Model($prevStructure);
+                $response = $cabinetUserModel->recoverPassword($email);
+                if (!$response['success']) {
+                    echo $response['text'];
                 } else {
-                    $clearPass = $this->randPassword();
-                    $pass = crypt($clearPass);
                     $title = 'Восстановление пароля на ' . $config->domain;
                     $this->templateInit('Cabinet/Structure/User/Site/letter.twig');
                     $this->loadHelpVar();
                     $this->view->title = $title;
-                    $this->view->clearPass = $clearPass;
+                    $this->view->clearPass = $response['pass'];
                     $this->view->recover = true;
                     $html = $this->view->render();
                     if ($form->sendMail($config->robotEmail, $email, $title, $html, true)) {
-                        $db->update($table)->set(array('password' => $pass))->where('email = :email', array('email' => $email))->exec();
                         echo ' Вам выслан новый пароль.';
                     } else {
                         echo ' Услуга временно недоступна попробуйте позже.';

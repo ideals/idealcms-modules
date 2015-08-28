@@ -146,6 +146,46 @@ EOT;
     }
 
     /**
+     * Регистрация нового пользователя в системе
+     *
+     * @param string $email Электронная почта
+     *
+     * @return array Ответ на попытку восстановления пароля, а так же новый сгенерированны пароль для пользователя
+     */
+    public function recoverPassword($email = '')
+    {
+        $response = array(
+            'success' => false,
+            'text' => 'Не известно для кого восстанавливать пароль',
+            'pass' => '',
+        );
+        if (!empty($email)) {
+            $db = Db::getInstance();
+            $par = array('email' => $email);
+            $fields = array('table' => $this->_table);
+            $user = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
+            if (count($user) == 0) {
+                $response = array(
+                    'success' => false,
+                    'text' => 'Данный E-mail еще не зарегистрирован',
+                    'pass' => '',
+                    'key' => ''
+                );
+            } else {
+                $pass = $this->randPassword();
+                $db->update($this->_table)->set(array('password' => crypt($pass)))->where('email = :email', array
+                ('email' => $email))->exec();
+                $response = array(
+                    'success' => true,
+                    'text' => 'Пароль обновлён',
+                    'pass' => $pass,
+                );
+            }
+        }
+        return $response;
+    }
+
+    /**
      * Функция используеться если подключен модуль Shop_Order
      * @param $arr
      */
