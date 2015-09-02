@@ -353,4 +353,28 @@ EOT;
         $link = $url->getUrl($pageData);
         return $link;
     }
+
+    /**
+     * Сохраняет текущее состояние корзины для активного пользователя
+     */
+    public function saveBasket()
+    {
+        if (isset($_SESSION['login']['ID'])) {
+            $userId = $_SESSION['login']['ID'];
+        } else {
+            $userId = 0;
+        }
+        if (isset($_COOKIE['basket'])) {
+            $basket = serialize(json_decode($_COOKIE['basket']));
+        } else {
+            $basket = '';
+        }
+        if ($userId) {
+            $db = Db::getInstance();
+            $db->update($this->_table)
+                ->set(array('basket' => $basket))
+                ->where('ID = :ID', array('ID' => $userId))
+                ->exec();
+        }
+    }
 }

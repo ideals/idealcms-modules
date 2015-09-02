@@ -82,5 +82,10 @@ return array(
             'sql'   => "bool not null default '0'",
             'type'  => 'Ideal_Checkbox'
         ),
+        'basket' => array(
+            'label' => 'Состояние корзины пользователя',
+            'sql' => 'text',
+            'type' => 'Cabinet_SerializeHidden'
+        ),
     ),
 );

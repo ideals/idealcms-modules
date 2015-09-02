@@ -2,6 +2,8 @@
 
 namespace Cabinet\Structure\User\Site;
 
+use Ideal\Core\Config;
+
 class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
 {
     /** @var  Model model */
@@ -9,7 +11,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
 
     public function indexAction()
     {
-        parent::indexAction();
+        parent::indexAction();Field
         $link = $this->model->getFullUrl();
         if (session_id() == "") {
             session_start();
@@ -71,8 +73,23 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
      */
     public function logoutAction()
     {
-        if (!isset($_SESSION)) {
-            session_start();
+        $config = Config::getInstance();
+        // Проверяем подключена ли структуры корзины
+        if ($config->getStructureByName('Shop_Basket') !== false) {
+            // Если корзина не пуста, то вызываем метод её сохранения для выходящего пользователя
+            $this->model->saveBasket();
+
+            // Удаляем информацию о корзине из куки
+            header("Set-Cookie: basket=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+        }
+        if (function_exists('session_status')) {
+            if (session_status() == PHP_SESSION_NONE) {
+                session_start();
+            }
+        } else {
+            if (session_id() == '') {
+                session_start();
+            }
         }
         unset($_SESSION['login']);
         $url = explode('?', $_SERVER['HTTP_REFERER']);
