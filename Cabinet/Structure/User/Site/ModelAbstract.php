@@ -286,7 +286,15 @@ EOT;
                         $_SESSION['login']['user'] = $email;
                         $_SESSION['login']['ID'] = $userData['ID'];
                         $_SESSION['login']['input'] = true;
-                        $_SESSION['login']['is_active'] = boolval($userData['is_active']);
+                        if (function_exists('boolval')) {
+                            $_SESSION['login']['is_active'] = boolval($userData['is_active']);
+                        } else {
+                            if ($userData['is_active']) {
+                                $_SESSION['login']['is_active'] = true;
+                            } else {
+                                $_SESSION['login']['is_active'] = false;
+                            }
+                        }
                         $response = 'Вы успешно вошли';
                     } else {
                         $response = 'Ошибка в логине(email) или пароле';
