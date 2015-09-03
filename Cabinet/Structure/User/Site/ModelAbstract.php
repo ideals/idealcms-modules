@@ -295,6 +295,10 @@ EOT;
                                 $_SESSION['login']['is_active'] = false;
                             }
                         }
+                        if (!empty($userData['basket'])) {
+                            $basket = json_encode(unserialize($userData['basket']), JSON_FORCE_OBJECT);
+                            setcookie("basket", $basket, time()+60*60*24*30, '/');
+                        }
                         $response = 'Вы успешно вошли';
                     } else {
                         $response = 'Ошибка в логине(email) или пароле';
