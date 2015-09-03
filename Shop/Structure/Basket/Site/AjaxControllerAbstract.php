@@ -57,6 +57,20 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if (isset($_REQUEST['quantity'])) {
             $this->quant = $_REQUEST['quantity'];
         }
+        if (function_exists('session_status')) {
+            if (session_status() == PHP_SESSION_NONE) {
+                session_start();
+            }
+        } else {
+            if (session_id() == '') {
+                session_start();
+            }
+        }
+        if (isset($_SESSION['login']['basket'])) {
+            // Если пользователь авторизуется, то пытаемся вернуть старое состояние его корзины
+            $_COOKIE['basket'] = $_SESSION['login']['basket'];
+            unset($_SESSION['login']['basket']);
+        }
         if (isset($_COOKIE['basket'])) {
             $this->basket = json_decode($_COOKIE['basket'], true);
             // Определяем как давно была обновлена(создан) корзина

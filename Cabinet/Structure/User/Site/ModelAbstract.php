@@ -297,7 +297,7 @@ EOT;
                         }
                         if (!empty($userData['basket'])) {
                             $basket = json_encode(unserialize($userData['basket']), JSON_FORCE_OBJECT);
-                            setcookie("basket", $basket, time()+60*60*24*30, '/');
+                            $_SESSION['login']['basket'] = $basket;
                         }
                         $response = 'Вы успешно вошли';
                     } else {
