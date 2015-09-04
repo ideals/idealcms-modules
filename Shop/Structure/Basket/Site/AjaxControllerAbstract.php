@@ -70,6 +70,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             // Если пользователь авторизуется, то пытаемся вернуть старое состояние его корзины
             $cookieBasket = json_decode($_COOKIE['basket']);
             $sessionBasket = json_decode($_SESSION['login']['basket']);
+
             // Если список товаров не равен, то склеиваем
             if (count($cookieBasket->goods) != 0 && $cookieBasket->goods != $sessionBasket->goods) {
                 foreach ($cookieBasket->goods as $key => $good) {
@@ -77,6 +78,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     // приоритетной считается информация хранящаяся в куках
                     $sessionBasket->goods->$key = $good;
                 }
+
+                // Проверяем на наличие других свойств в текущем состоянии корзины.
+                // Переносим их в старую версию если это нужно
+                foreach ($cookieBasket as $key => $value) {
+                    if (!isset($sessionBasket->$key)) {
+                        $sessionBasket->$key = $value;
+                    }
+                }
+
                 $this->update = true;
                 $_SESSION['login']['basket'] = json_encode($sessionBasket, JSON_FORCE_OBJECT);
             }
