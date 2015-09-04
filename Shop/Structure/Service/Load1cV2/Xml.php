@@ -14,7 +14,7 @@ class Xml
     {
         libxml_use_internal_errors(true);
         if (!file_exists($source)) {
-            throw new \RuntimeException("Отсутствует файл выгрузки: {$source}");
+            throw new \RuntimeException("Отсутствует файл выгрузки");
         }
         $this->xml = simplexml_load_file($source);
 

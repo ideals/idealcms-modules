@@ -2,7 +2,7 @@
 use Shop\Structure\Service\Load1cV2;
 use Ideal\Core;
 
-ini_set('display_errors', 'Off');
+ini_set('display_errors', 'On');
 
 $cmsFolder = 'don';
 $subFolder = '';
@@ -39,7 +39,7 @@ $config->loadSettings();
 $fc = new Load1cV2\FrontController();
 ob_clean();
 ob_start();
-$fc->import($params['info'], $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+$fc->import($params['info']);
 $a = ob_get_flush();
 $fc->exportDebug(array('$a'=>$a, 'REQUEST'=>$_REQUEST));
 print $a;

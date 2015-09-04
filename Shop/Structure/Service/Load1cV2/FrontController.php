@@ -17,7 +17,7 @@ use Shop\Structure\Service\Load1cV2\Good\DbGood;
 
 class FrontController
 {
-    const DEBUG = false;
+    const DEBUG = true;
     /** @var string абсолютный путь к папке для выгрузки */
     protected $directory;
 
@@ -26,6 +26,9 @@ class FrontController
 
     /** @var int максимальный размер получаемых архивов от 1с. Если файл больше - высылается в несколько частей */
     protected $filesize = 40960000;
+
+    /** @var string ипсользовать ли сжатие yes|no */
+    protected $useZip = 'yes';
 
     /** @var int количество полученных файлов от 1с. Необходимо для определения окончания выгрузки 1с */
     protected $countFiles = 0;
@@ -55,12 +58,13 @@ class FrontController
      * @param array $conf данные из корневого конфигурационного файла
      * @return int ВОЙД
      */
-    public function import($conf, $url)
+    public function import($conf)
     {
         $user = new Model();
         $request = new Request();
 
         $this->filesize = intval($conf['filesize']) * 1024 * 1024;
+        $this->filesize = $conf['enable_zip'];
         $this->directory = DOCUMENT_ROOT . $conf['directory'];
 
         // создание директории для выгрузки
@@ -93,7 +97,7 @@ class FrontController
                 return 0;
 
             case 'init':
-                print "zip=yes\n";
+                print "zip={$this->useZip}\n";
                 print "file_limit={$this->filesize}\n";
                 return 0;
 
@@ -154,6 +158,7 @@ class FrontController
             case 'deactivate':
                 $timeStart = $_SERVER['REQUEST_TIME'];
                 $result = array();
+                $this->loadFiles($conf['directory']);
                 $result[] = $this->category();
                 $result[] = $this->good();
                 $result[] = $this->directory();
@@ -186,14 +191,12 @@ class FrontController
                 $sender->setHtmlBody($html);
                 $sender->sent($con->robotEmail, $con->cms['adminEmail']);
 
-                // переименовываем временные таблицы на оригинальное название
-                $this->renameTables();
-
-                $result = $this->loadImages($conf, $timeStart);
-
-                if ($result['repeat'] === true) {
-                    http_get($url, array('cookies'=>$_COOKIE));
+                if (empty($request->curl)) {
+                    // переименовываем временные таблицы на оригинальное название
+                    $this->renameTables();
                 }
+
+                $this->loadImages($conf, $timeStart);
 
                 echo "success\n";
                 return 0;
@@ -651,7 +654,7 @@ class FrontController
 
     private function stopResize($endTime)
     {
-        if ($endTime - time() <= 1) {
+        if ($endTime - time() <= 2) {
             return true;
         }
         return false;

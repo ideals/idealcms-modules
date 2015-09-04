@@ -35,6 +35,15 @@ include('modalUpdate.html');
         </div>
     </div>
 
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="enable_zip" title="Включите архивирование при 'больших' выгрузках">Разрешить архивирование):</label>
+
+        <div class="col-sm-10">
+            <input class="form-control" name="enable_zip"
+                   value="<?=$item['info']['enable_zip']?>" type="checkbox">
+        </div>
+    </div>
+
     <div class="form-inline">
         <div class="col-sm-offset-2 col-sm-10">
             <button type="submit" class="btn btn-success pull-right" id="load1c">
@@ -74,7 +83,7 @@ include('modalUpdate.html');
     // Сохраненяет текст комментария из модального окна
     function saveSettings() {
         var
-            url = window.location.href + "&action=ajaxUpdateSettings",
+            url = window.location.href + "&action=ajaxUpdateSettings&controller=Shop\\Structure\\Service\\Load1cV2&mode=ajax",
             data = {};
 
         $('.form-horizontal input[type="text"]').each(function(k, val) {
@@ -93,7 +102,7 @@ include('modalUpdate.html');
 
     function load1c(step) {
         step = step || 1;
-        var url = window.location.href + "&action=ajaxIndexLoad";
+        var url = window.location.href + "&action=ajaxIndexLoad&controller=Shop\\Structure\\Service\\Load1cV2&mode=ajax";
         modal.modal('show');
 
         $.ajax({
