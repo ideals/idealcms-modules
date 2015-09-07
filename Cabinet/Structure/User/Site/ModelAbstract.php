@@ -254,6 +254,9 @@ EOT;
         }
         $result = $db->select($_sql, $par, $fields);
         $this->userCount = count($result);
+        if ($this->userCount == 1) {
+            $result[0]['orderCount'] = $this->getOrderCount($result[0]['ID']);
+        }
         return $result[0];
     }
 
@@ -388,5 +391,23 @@ EOT;
                 ->where('ID = :ID', array('ID' => $userId))
                 ->exec();
         }
+    }
+
+    public function getOrderCount($userId = 0)
+    {
+        $count = 0;
+        $config = Config::getInstance();
+        $shopOrderStructure = $config->getStructureByName('Shop_Order');
+        if ($shopOrderStructure !== false && $shopOrderStructure['hasTable']) {
+            if ($userId > 0) {
+                $db = Db::getInstance();
+                $fields = array('table' => $config->db['prefix'] . 'shop_structure_order');
+                $par = array('user_id' => $userId);
+                $_sql = "SELECT COUNT(*) as orderCount FROM &table WHERE user_id = :user_id";
+                $result = $db->select($_sql, $par, $fields);
+                $count = $result[0]['orderCount'];
+            }
+        }
+        return $count;
     }
 }
