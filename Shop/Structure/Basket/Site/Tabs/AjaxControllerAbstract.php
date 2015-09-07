@@ -525,6 +525,12 @@ JS;
                 }
             }
 
+            // Получаем идентификатор пользователя
+            $userId = 0;
+            if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
+                $userId = intval($_SESSION['login']['ID']);
+            }
+
             // Записываем данные
             $db->insert(
                 $prefix . 'shop_structure_order',
@@ -540,7 +546,8 @@ JS;
                     'content' => $message,
                     'is_active' => 1,
                     'goods_id'  => implode(',', $Id1c),
-                    'structure' => 'Shop_OrderDetail'
+                    'structure' => 'Shop_OrderDetail',
+                    'user_id' => $userId
                 )
             );
         }

@@ -73,5 +73,10 @@ return array(
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),
+        'user_id' => array(
+            'label' => 'Идентификатор пользователя совершившего заказ',
+            'sql' => "int(11) DEFAULT '0' NOT NULL",
+            'type' => 'Ideal_Hidden'
+        )
     ),
 );
