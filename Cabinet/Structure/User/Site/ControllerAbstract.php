@@ -103,4 +103,29 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         header('Location: ' . $url[0]);
         exit;
     }
+
+    /**
+     * Проверка пользователя на авторизованность
+     *
+     * @return mixed признак того что пользователь авторизован либо перенаправление на страницу авторизации
+     */
+    public function checkUserAuthorization()
+    {
+        if (function_exists('session_status')) {
+            if (session_status() == PHP_SESSION_NONE) {
+                session_start();
+            }
+        } else {
+            if (session_id() == '') {
+                session_start();
+            }
+        }
+        if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
+            return true;
+        } else {
+            $link = str_replace('?' . $_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']);
+            header('Location: ' . $link);
+        }
+    }
+
 }
