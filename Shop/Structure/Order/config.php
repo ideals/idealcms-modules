@@ -68,6 +68,11 @@ return array(
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),
+        'goods_id' => array(
+            'label' => '1С идентификаторы заказанных товаров',
+            'sql' => "text",
+            'type' => 'Ideal_Hidden'
+        ),
         'export' => array(
             'label' => 'Попадает в выгрузку 1с',
             'sql'   => 'bool',
