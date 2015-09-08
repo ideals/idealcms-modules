@@ -9,34 +9,32 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     /** @var  Model model */
     protected $model;
 
-    public function indexAction($bypass = false)
+    public function indexAction()
     {
         parent::indexAction();
-        if (!$bypass) {
-            $link = $this->model->getFullUrl();
-            if (function_exists('session_status')) {
-                if (session_status() == PHP_SESSION_NONE) {
-                    session_start();
-                }
-            } else {
-                if (session_id() == '') {
-                    session_start();
-                }
+        $link = $this->model->getFullUrl();
+        if (function_exists('session_status')) {
+            if (session_status() == PHP_SESSION_NONE) {
+                session_start();
             }
-            if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
-                $user = $this->model->getUser();
-                $this->view->user = $user;
-                $this->view->step = 'lk';
-                $ajaxController = new AjaxController();
-                $this->view->lkForm = $ajaxController->saveAction($user);
-            } else {
-                $this->view->step = 'login';
-                $ajaxController = new AjaxController();
-                $this->view->loginForm = $ajaxController->loginAction($link);
+        } else {
+            if (session_id() == '') {
+                session_start();
             }
-
-            $this->view->link = $link;
         }
+        if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
+            $user = $this->model->getUser();
+            $this->view->user = $user;
+            $this->view->step = 'lk';
+            $ajaxController = new AjaxController();
+            $this->view->lkForm = $ajaxController->saveAction($user);
+        } else {
+            $this->view->step = 'login';
+            $ajaxController = new AjaxController();
+            $this->view->loginForm = $ajaxController->loginAction($link);
+        }
+
+        $this->view->link = $link;
     }
 
     public function regAction()
