@@ -301,8 +301,10 @@ EOT;
                             }
                         }
                         if (!empty($userData['basket'])) {
-                            $basket = json_encode(unserialize($userData['basket']), JSON_FORCE_OBJECT);
-                            $_SESSION['login']['basket'] = $basket;
+                            $basket = unserialize($userData['basket']);
+                            if ($basket->count > 0) {
+                                $_SESSION['login']['basket'] = json_encode($basket, JSON_FORCE_OBJECT);
+                            }
                         }
                         $response = 'Вы успешно вошли';
                     } else {
