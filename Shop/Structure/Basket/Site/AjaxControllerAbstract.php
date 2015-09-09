@@ -262,11 +262,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     }
 
     /**
-     * Функция на запрос состояние корзины
+     * Очищает корзину
      */
     public function clearBasketAction()
     {
-        setcookie("basket", '', time() - 3600);
+        setcookie("basket", null, -1, '/');
         exit();
     }
 
