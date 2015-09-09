@@ -385,9 +385,9 @@ EOT;
         }
         $basket = '';
         if (isset($_COOKIE['basket'])) {
-            $basket = json_decode($_COOKIE['basket']);
-            if ($basket->count > 0) {
-                $basket = serialize($basket);
+            $tempBasket = json_decode($_COOKIE['basket']);
+            if ($tempBasket->count > 0) {
+                $basket = serialize($tempBasket);
             }
         }
         if ($userId) {
