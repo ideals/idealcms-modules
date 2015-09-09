@@ -383,10 +383,12 @@ EOT;
         } else {
             $userId = 0;
         }
+        $basket = '';
         if (isset($_COOKIE['basket'])) {
-            $basket = serialize(json_decode($_COOKIE['basket']));
-        } else {
-            $basket = '';
+            $basket = json_decode($_COOKIE['basket']);
+            if ($basket->count > 0) {
+                $basket = serialize($basket);
+            }
         }
         if ($userId) {
             $db = Db::getInstance();
