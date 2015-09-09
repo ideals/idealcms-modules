@@ -250,18 +250,23 @@
             $('.cart_totals .amount').text(total.format(2, 3, ',', '.') + ' руб.');
         }
         function deleteGood(e) {
-            fastDelGood(e);
-            var $this = jQuery(e);
-            var id = $this.attr('data-id');
-            var basket = $.parseJSON(getCookie('basket'));
-            delete basket.goods[id];
-            var total = 0;
-            $('.qty').each(function (index, elem) {
-                if ($(elem).attr('data-id') != id) {
-                    total += (basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val());
+            var deleteResponse = fastDelGood(e);
+            if (deleteResponse == 'true') {
+                var $this = jQuery(e);
+                var id = $this.attr('data-id');
+                var basket = $.parseJSON(getCookie('basket'));
+                delete basket.goods[id];
+                var total = 0;
+                $('.qty').each(function (index, elem) {
+                    if ($(elem).attr('data-id') != id) {
+                        total += (basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val());
+                    }
+                });
+                $('.cart_totals .amount').text((parseInt(total)).format(2, 3, ',', '.') + ' руб.');
+                if (total == 0) {
+                    location.reload();
                 }
-            });
-            $('.cart_totals .amount').text((parseInt(total)).format(2, 3, ',', '.') + ' руб.');
+            }
         }
         function update() {
             var $ = jQuery;

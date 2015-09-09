@@ -98,6 +98,7 @@ function fastDelGood(e) {
         type: 'POST',
         data: 'add-to-cart=' + $this.attr('data-id'),
         url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site&action=delGood',
+        async: false,
         dataType: 'json',
         success: function (data) {
             if (!data.error) {
@@ -108,6 +109,7 @@ function fastDelGood(e) {
             }
         }
     });
+    return 'true';
 }
 
 jQuery(document).ready(function ($) {
