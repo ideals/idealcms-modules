@@ -439,7 +439,7 @@ JS;
     // Очищает информацию о корзине
     public function clearBasket()
     {
-        setcookie("basket", '', time() - 3600);
+        setcookie("basket", null, -1, '/');
     }
 
     // Сохраняет информацию о заказе в структуре "Order" модуля "Shop"
