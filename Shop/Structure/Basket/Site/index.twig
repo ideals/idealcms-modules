@@ -215,16 +215,17 @@
     <script type="text/javascript" charset="utf-8">
 
         jQuery('#multistep_resume').on('click', 'a', function () {
-            var basket = getCookie('basket');
-            if (basket != null) {
-                basket = jQuery.parseJSON(basket);
-                if (basket.tabsInfo != null) {
-                    if (basket.tabsInfo.tab_{{ currentTabId }} != null && jQuery.isEmptyObject(basket.tabsInfo.tab_{{ currentTabId }}) == false) {
-            basketFormSubmit(this, true);
-            return false;
+            var tabsInfo = getCookie('tabsInfo');
+            if (tabsInfo != null) {
+                tabsInfo = jQuery.parseJSON(tabsInfo);
+                if (tabsInfo != null) {
+                    if (tabsInfo.tab_{{ currentTabId }} != null && jQuery.isEmptyObject(tabsInfo.tab_
+                            {{ currentTabId }}) == false) {
+                        basketFormSubmit(this, true);
+                        return false;
                     } else {
-                        basket.tabsInfo.tab_{{ currentTabId }} = {};
-                        setCookie('basket', JSON.stringify(basket, null, 2));
+                        tabsInfo.tab_{{ currentTabId }} = {};
+                        setCookie('tabsInfo', JSON.stringify(tabsInfo, null, 2));
                         var href = jQuery(this).attr('href');
                         window.location = href;
                     }

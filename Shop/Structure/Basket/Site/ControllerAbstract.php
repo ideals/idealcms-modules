@@ -26,6 +26,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     public function detailAction()
     {
         $basket = $this->model->getGoods();
+        $tabsInfo = $this->model->getTabsInfo();
 
         if (empty($basket)) {
             // Если в корзине нет товаров — выводим шаблон с пустой корзиной
@@ -36,6 +37,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
         parent::indexAction();
         $this->view->goods = $basket;
+        $this->view->tabsInfo = $tabsInfo;
 
         $tabs = $this->model->getTabs();
         $this->view->tabs = $tabs;

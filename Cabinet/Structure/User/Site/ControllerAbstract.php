@@ -85,7 +85,11 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
             $this->model->saveBasket();
 
             // Удаляем информацию о корзине из куки
-            header("Set-Cookie: basket=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+            $delCookieBasket = 'basket=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+
+            // Удаляем информацию полученную на этапах оформления заказа
+            $delCookieTabsInfo = 'tabsInfo=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+            header("Set-Cookie: {$delCookieBasket} {$delCookieTabsInfo}");
         }
         if (function_exists('session_status')) {
             if (session_status() == PHP_SESSION_NONE) {

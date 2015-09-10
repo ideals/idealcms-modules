@@ -26,6 +26,20 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     }
 
     /**
+     * Получение информации с каждого этапа оформления заказа
+     *
+     * @return array
+     */
+    public function getTabsInfo()
+    {
+        $tabsInfo = array();
+        if (isset($_COOKIE['tabsInfo'])) {
+            $tabsInfo = json_decode($_COOKIE['tabsInfo'], true);
+        }
+        return $tabsInfo;
+    }
+
+    /**
      * Получение полной информации о товарах в корзине
      *
      * @return array
@@ -161,16 +175,16 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // Строим ссылки на табы
         $url = new \Ideal\Field\Url\Model();
         $url->setParentUrl($path);
-        $cookieBasket = 0;
-        if (isset($_COOKIE['basket'])) {
-            $cookieBasket = json_decode($_COOKIE['basket']);
+        $cookieTabsInfo = 0;
+        if (isset($_COOKIE['tabsInfo'])) {
+            $cookieTabsInfo = json_decode($_COOKIE['tabsInfo']);
         }
         foreach ($tabs as $k => $tab) {
             $tabs[$k]['link'] = 'href="' . $url->getUrl($tab) . '"';
             $tabs[$k]['is_current'] = (!empty($active) && $active['ID'] == $tab['ID']);
-            if (!empty($cookieBasket)) {
+            if (!empty($cookieTabsInfo)) {
                 $checkedTab = 'tab_' . ($k + 1);
-                if (isset($cookieBasket->tabsInfo->$checkedTab)) {
+                if (isset($cookieTabsInfo->$checkedTab)) {
                     $tabs[$k]['tabWasFilled'] = 1;
                 }
             }
