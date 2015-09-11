@@ -83,13 +83,8 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         if ($config->getStructureByName('Shop_Basket') !== false) {
             // Если корзина не пуста, то вызываем метод её сохранения для выходящего пользователя
             $this->model->saveBasket();
-
-            // Удаляем информацию о корзине из куки
-            $delCookieBasket = 'basket=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
-
-            // Удаляем информацию полученную на этапах оформления заказа
-            $delCookieTabsInfo = 'tabsInfo=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
-            header("Set-Cookie: {$delCookieBasket} {$delCookieTabsInfo}");
+            setcookie("basket", null, 1, '/');
+            setcookie("tabsInfo", null, 1, '/');
         }
         if (function_exists('session_status')) {
             if (session_status() == PHP_SESSION_NONE) {
