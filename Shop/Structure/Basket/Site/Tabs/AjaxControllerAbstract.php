@@ -536,7 +536,13 @@ JS;
                 $Id1c[] = $row[0]['good_id'];
 
                 $summ = intval($good->count) * (intval($good->sale_price));
-                $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+                $goodsItemId = explode('_', $key);
+                if (count($goodsItemId) > 1) {
+                    $name = $this->getGoodName($goodsItemId[0], $goodsItemId[1]);
+                } else {
+                    $name = $this->getGoodName($goodsItemId[0]);
+                }
+                $message .= '<tr><td>' . $name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
 
                 $prevOrder = $config->getStructureByName('Shop_Order');
                 $insert = array();
