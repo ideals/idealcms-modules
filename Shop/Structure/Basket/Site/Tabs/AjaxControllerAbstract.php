@@ -15,6 +15,25 @@ use Ideal\Core\Config;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
+
+    // Таблицы с товарами и предложениями в конструкторе
+    // TODO определять автоматически модуль из которых надо брать, сейчас прописано CatalogPlus
+    protected $tableGood;
+    protected $tableOffer;
+
+    /**
+     * Генерация данных и установка значений по умолчанию
+     */
+    public function __construct()
+    {
+        // Указываем таблицы где хранятся данные
+        $config = Config::getInstance();
+        $prefix = $config->db['prefix'];
+        $this->tableGood = $prefix . 'catalogplus_structure_good';
+        $this->tableOffer = $prefix . 'catalogplus_structure_offer';
+
+    }
+
     // Обрабатывает запросы для формы из шаблона поумолчанию "Подтверждение заказа"
     public function confirmationAction()
     {
@@ -361,10 +380,16 @@ JS;
                 $message .= '<table>';
                 $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
 
-                // Собираем итнформацию о заказанных товарах
-                foreach ($basket->goods as $good) {
+                // Собираем информацию о заказанных товарах
+                foreach ($basket->goods as $key => $good) {
                     $summ = intval($good->count) * (intval($good->sale_price));
-                    $message .= '<tr><td>' . $good->name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+                    $goodsItemId = explode('_', $key);
+                    if (count($goodsItemId) > 1) {
+                        $name = $this->getGoodName($goodsItemId[0], $goodsItemId[1]);
+                    } else {
+                        $name = $this->getGoodName($goodsItemId[0]);
+                    }
+                    $message .= '<tr><td>' . $name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
                 }
                 $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . $price . '</td></tr>';
                 $message .= '</table>';
@@ -583,5 +608,34 @@ JS;
             );
         }
         return $response;
+    }
+
+    /**
+     * Получение наименования товара(предложения)
+     *
+     * @param $id Идентификатор торгового предложения
+     * @param mixed $offer false если рассматривается товар, идентификатор торгового предложения в противном случае
+     * @return string Пустая строка если нет товара(предложения), наименование в противном случае.
+     */
+    private function getGoodName($id, $offer = false)
+    {
+        $db = Db::getInstance();
+        if ($offer === false) {
+            $sql = "SELECT e.name
+                    FROM {$this->tableGood} AS e
+                    WHERE ID = {$id} AND e.is_active = 1
+                    LIMIT 1";
+        } else {
+            $sql = "SELECT o.name
+                    FROM {$this->tableOffer} AS o
+                    INNER JOIN {$this->tableGood} as g ON (g.ID = {$id})
+                    WHERE o.ID = {$offer} AND o.is_active = 1
+                    LIMIT 1";
+        }
+        $name = $db->select($sql);
+        if (count($name) === 0) {
+            return '';
+        }
+        return $name[0]['name'];
     }
 }
