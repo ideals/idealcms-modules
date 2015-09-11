@@ -303,7 +303,27 @@ EOT;
                         if (!empty($userData['basket'])) {
                             $basket = unserialize($userData['basket']);
                             if ($basket->count > 0) {
-                                $_SESSION['login']['basket'] = json_encode($basket, JSON_FORCE_OBJECT);
+                                $cookieBasket = json_decode($_COOKIE['basket']);
+
+                                // Если список товаров не равен, то склеиваем
+                                if (count($cookieBasket->goods) != 0 && $cookieBasket->goods != $basket->goods) {
+                                    foreach ($cookieBasket->goods as $key => $good) {
+                                        // Если есть одинаковые товары в обоих экземплярах корзины, то
+                                        // приоритетной считается информация хранящаяся в куках
+                                        $basket->goods->$key = $good;
+                                    }
+
+                                    // Проверяем на наличие других свойств в текущем состоянии корзины.
+                                    // Переносим их в старую версию если это нужно
+                                    foreach ($cookieBasket as $key => $value) {
+                                        if (!isset($basket->$key)) {
+                                            $basket->$key = $value;
+                                        }
+                                    }
+                                }
+                                $basket = json_encode($basket, JSON_FORCE_OBJECT);
+                                $_COOKIE['basket'] = $basket;
+                                setcookie("basket", $basket);
                             }
                         }
                         $response = 'Вы успешно вошли';
