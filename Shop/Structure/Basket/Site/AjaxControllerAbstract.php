@@ -128,11 +128,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     {
         // Если было установлено правило на пересбор корзины
         if ($this->update) {
-            if (isset($this->basket['tabsInfo'])) {
-                $tabsInfo = $this->basket['tabsInfo'];
-            } else {
-                $tabsInfo = array();
-            }
             $goods = $this->basket['goods'];
             $this->basket = array(
                 'goods' => array(), // товары которые находятся в корзине
@@ -142,9 +137,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 'discoValue' => 0, // общая разница между скидочной и нормальной ценой
                 'total' => 0  // общая цена с учетом скидки
             );
-            if (!empty($tabsInfo)) {
-                $this->basket['tabsInfo'] = $tabsInfo;
-            }
             $this->basket['disco'] = $this->disco;
             foreach ($goods as $k => $v) {
                 $this->idGood = $k;
@@ -267,6 +259,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     public function clearBasketAction()
     {
         setcookie("basket", null, -1, '/');
+        setcookie("tabsInfo", null, -1, '/');
         exit();
     }
 
@@ -279,6 +272,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $filePath = stream_resolve_include_path("Shop/Structure/Service/ShopSettings/shop_settings.php");
         $file->loadFile($filePath);
         $params = $file->getParams();
+
         // Ищем в промо кодах введённый
         $promoCodesInfo = json_decode(htmlspecialchars_decode($params['default']['arr']['promoCodes']['value']));
         $discountInfo = array();
@@ -349,5 +343,4 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $allPrice[0]['discount'] = $allPrice[0]['price'] - $allPrice[0]['sale_price'];
         return $allPrice[0];
     }
-
 }

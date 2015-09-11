@@ -30,17 +30,20 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $orderComments = array(
-                    'order_comments' => array('label' => 'Заметки к заказу', 'value' => $form->getValue('order_comments')),
+                    'order_comments' => array(
+                        'label' => 'Заметки к заказу',
+                        'value' => $form->getValue('order_comments')
+                    ),
                     'tabName' => $form->getValue('currentTabName')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
-                if (isset($_COOKIE['basket'])) {
-                    $basket = json_decode($_COOKIE['basket']);
-                    $basket->tabsInfo->$tabID = $orderComments;
+                if (isset($_COOKIE['tabsInfo'])) {
+                    $tabsInfo = json_decode($_COOKIE['tabsInfo']);
+                    $tabsInfo->$tabID = $orderComments;
                 } else {
-                    $basket = (object) array('tabsInfo' => array($tabID => $orderComments));
+                    $tabsInfo = (object) array($tabID => $orderComments);
                 }
-                setcookie("basket", json_encode($basket));
+                setcookie("tabsInfo", json_encode($tabsInfo));
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -118,33 +121,42 @@ JS;
 
                 $delivery = array(
                     'first_name' => array('label' => 'Имя', 'value' => $form->getValue('billing_first_name_required')),
-                    'last_name' => array('label' => 'Фамилия', 'value' => $form->getValue('billing_last_name_required')),
+                    'last_name' => array(
+                        'label' => 'Фамилия',
+                        'value' => $form->getValue('billing_last_name_required')
+                    ),
                     'address' => array('label' => 'Адрес', 'value' => $form->getValue('billing_address_required')),
                     'email' => array('label' => 'Email-адрес', 'value' => $form->getValue('billing_email_required')),
                     'phone' => array('label' => 'Телефон', 'value' => $form->getValue('billing_phone')),
-                    'deliveryMethod' => array('label' => 'Доставка', 'value' => $form->getValue('deliveryMethod'), 'selectedValue' => $selectedValue),
+                    'deliveryMethod' => array(
+                        'label' => 'Доставка',
+                        'value' => $form->getValue('deliveryMethod'),
+                        'selectedValue' => $selectedValue
+                    ),
                     'tabName' => $form->getValue('currentTabName')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
-                if (isset($_COOKIE['basket'])) {
-                    $basket = json_decode($_COOKIE['basket']);
-                    $basket->tabsInfo->$tabID = $delivery;
-                    if (!isset($basket->name)) {
-                        $basket->name = $form->getValue('billing_first_name_required');
+                if (isset($_COOKIE['tabsInfo'])) {
+                    $tabsInfo = json_decode($_COOKIE['tabsInfo']);
+                    if (!isset($tabsInfo->generalInfo->name)) {
+                        $tabsInfo->generalInfo->name = $form->getValue('billing_first_name_required');
                     }
-                    if (!isset($basket->email)) {
-                        $basket->email = $form->getValue('billing_email_required');
+                    if (!isset($tabsInfo->generalInfo->email)) {
+                        $tabsInfo->generalInfo->email = $form->getValue('billing_email_required');
                     }
-                    $basket->address = $form->getValue('billing_address_required');
+                    $tabsInfo->generalInfo->address = $form->getValue('billing_address_required');
+                    $tabsInfo->$tabID = $delivery;
                 } else {
-                    $basket = (object) array(
-                        'name' => $form->getValue('billing_first_name_required'),
-                        'email' => $form->getValue('billing_email_required'),
-                        'address' => $form->getValue('billing_address_required'),
-                        'tabsInfo' => array($tabID => $delivery)
+                    $tabsInfo = (object) array(
+                        'generalInfo' => array(
+                            'name' => $form->getValue('billing_first_name_required'),
+                            'email' => $form->getValue('billing_email_required'),
+                            'address' => $form->getValue('billing_address_required'),
+                        ),
+                        $tabID => $delivery
                     );
                 }
-                setcookie("basket", json_encode($basket));
+                setcookie("tabsInfo", json_encode($tabsInfo));
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -201,25 +213,27 @@ JS;
                 // Если валидация пройдена успешно, то записываем значение в куки
                 $userInfo = array(
                     'userinfo_lastname' => array('label' => 'Фамилия', 'value' => $form->getValue('userinfo_lastname')),
-                    'userinfo_name' =>  array('label' => 'Имя', 'value' => $form->getValue('userinfo_name')),
-                    'userinfo_phone' =>  array('label' => 'Телефон', 'value' => $form->getValue('userinfo_phone')),
-                    'userinfo_email' =>  array('label' => 'E-mail', 'value' => $form->getValue('userinfo_email')),
+                    'userinfo_name' => array('label' => 'Имя', 'value' => $form->getValue('userinfo_name')),
+                    'userinfo_phone' => array('label' => 'Телефон', 'value' => $form->getValue('userinfo_phone')),
+                    'userinfo_email' => array('label' => 'E-mail', 'value' => $form->getValue('userinfo_email')),
                     'tabName' => $form->getValue('currentTabName')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
-                if (isset($_COOKIE['basket'])) {
-                    $basket = json_decode($_COOKIE['basket']);
-                    $basket->tabsInfo->$tabID = $userInfo;
-                    $basket->name = $form->getValue('userinfo_name');
-                    $basket->email = $form->getValue('userinfo_email');
+                if (isset($_COOKIE['tabsInfo'])) {
+                    $tabsInfo = json_decode($_COOKIE['tabsInfo']);
+                    $tabsInfo->$tabID = $userInfo;
+                    $tabsInfo->generalInfo->name = $form->getValue('userinfo_name');
+                    $tabsInfo->generalInfo->email = $form->getValue('userinfo_email');
                 } else {
-                    $basket = (object) array(
-                        'name' => $form->getValue('userinfo_name'),
-                        'email' => $form->getValue('userinfo_email'),
-                        'tabsInfo' => array($tabID => $userInfo)
+                    $tabsInfo = (object) array(
+                        'generalInfo' => array(
+                            'name' => $form->getValue('userinfo_name'),
+                            'email' => $form->getValue('userinfo_email'),
+                        ),
+                        $tabID => $userInfo
                     );
                 }
-                setcookie("basket", json_encode($basket));
+                setcookie("tabsInfo", json_encode($tabsInfo));
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -284,17 +298,21 @@ JS;
                         break;
                 }
                 $payment = array(
-                    'payment_method' => array('label' => 'Способ оплаты', 'value' => $form->getValue('payment_method'), 'selectedValue' => $selectedValue),
+                    'payment_method' => array(
+                        'label' => 'Способ оплаты',
+                        'value' => $form->getValue('payment_method'),
+                        'selectedValue' => $selectedValue
+                    ),
                     'tabName' => $form->getValue('currentTabName')
                 );
                 $tabID = 'tab_' . $form->getValue('currentTabId');
-                if (isset($_COOKIE['basket'])) {
-                    $basket = json_decode($_COOKIE['basket']);
-                    $basket->tabsInfo->$tabID = $payment;
+                if (isset($_COOKIE['tabsInfo'])) {
+                    $tabsInfo = json_decode($_COOKIE['tabsInfo']);
+                    $tabsInfo->tabsInfo->$tabID = $payment;
                 } else {
-                    $basket = (object) array('tabsInfo' => array($tabID => $payment));
+                    $tabsInfo = (object) array($tabID => $payment);
                 }
-                setcookie("basket", json_encode($basket));
+                setcookie("tabsInfo", json_encode($tabsInfo));
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -337,6 +355,7 @@ JS;
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то отрабатываем финальную часть
                 $basket = json_decode($_COOKIE['basket']);
+                $tabsInfo = json_decode($_COOKIE['tabsInfo']);
                 $price = $basket->total;
                 $message = '<h2>Товары</h2><br />';
                 $message .= '<table>';
@@ -350,31 +369,34 @@ JS;
                 $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . $price . '</td></tr>';
                 $message .= '</table>';
 
-                foreach ($basket->tabsInfo as $tabInfo) {
-                    $message .= '<br /><br /><h2>' . $tabInfo->tabName . '</h2><br />';
-                    unset($tabInfo->tabName);
-                    foreach ($tabInfo as $key => $field) {
-                        if (isset($field->label)) {
-                            $label = $field->label;
-                        } else {
-                            $label = $key;
+                if (!empty($tabsInfo)) {
+                    foreach ($tabsInfo as $key => $tabInfo) {
+                        if ($key != 'generalInfo') {
+                            $message .= '<br /><br /><h2>' . $tabInfo->tabName . '</h2><br />';
+                            unset($tabInfo->tabName);
+                            foreach ($tabInfo as $key => $field) {
+                                if (isset($field->label)) {
+                                    $label = $field->label;
+                                } else {
+                                    $label = $key;
+                                }
+                                $value = '';
+                                if (isset($field->selectedValue)) {
+                                    $value = $field->selectedValue;
+                                } elseif (isset($field->value)) {
+                                    $value = $field->value;
+                                }
+                                $message .= $label . ': ' . $value . '<br />';
+                            }
                         }
-                        $value = '';
-                        if (isset($field->selectedValue)) {
-                            $value = $field->selectedValue;
-                        } elseif (isset($field->value)) {
-                            $value = $field->value;
-                        }
-                        $message .= $label . ': ' . $value . '<br />';
                     }
-
                 }
 
                 // Сохраняем информацию о заказе в справочник "Заказы с сайта"
-                if (!empty($basket->name) && !empty($basket->email)) {
+                if (!empty($tabsInfo->generalInfo->name) && !empty($tabsInfo->generalInfo->email)) {
                     // Отправляем сообщение покупателю
                     $topic = 'Заказ в магазине "' . $config->domain . '"';
-                    $form->sendMail($config->robotEmail, $basket->email, $topic, $message, true);
+                    $form->sendMail($config->robotEmail, $tabsInfo->generalInfo->email, $topic, $message, true);
 
                     // Отправляем сообщение менеджеру
                     $topic = 'Заказ в магазине "' . $config->domain . '"';
@@ -393,7 +415,12 @@ JS;
                     $message .= '<br />Источник перехода: ' . $referer;
                     $form->sendMail($config->robotEmail, $config->mailForm, $topic, $message, true);
 
-                    $form->saveOrder($basket->name, $basket->email, $message, $basket->total * 100);
+                    $form->saveOrder(
+                        $tabsInfo->generalInfo->name,
+                        $tabsInfo->generalInfo->email,
+                        $message,
+                        $basket->total * 100
+                    );
                 }
 
                 $this->finishOrder();
@@ -440,6 +467,7 @@ JS;
     public function clearBasket()
     {
         setcookie("basket", null, -1, '/');
+        setcookie("tabsInfo", null, -1, '/');
     }
 
     // Сохраняет информацию о заказе в структуре "Order" модуля "Shop"
@@ -464,6 +492,7 @@ JS;
             $prevStructure .= $row[0]['ID'];
 
             $basket = json_decode($_COOKIE['basket']);
+            $tabsInfo = json_decode($_COOKIE['tabsInfo']);
 
 
             $message = '<h2>Товары</h2><br />';
@@ -502,26 +531,28 @@ JS;
             $message .= '</table>';
 
             $address = '';
-            if (isset($basket->address)) {
-                $address = $basket->address;
+            if (isset($tabsInfo->generalInfo->address)) {
+                $address = $tabsInfo->generalInfo->address;
             }
             // Генерируем сообщение
-            foreach ($basket->tabsInfo as $tabInfo) {
-                $message .= '<br /><br /><h2>' . $tabInfo->tabName . '</h2><br />';
-                unset($tabInfo->tabName);
-                foreach ($tabInfo as $key => $field) {
-                    if (isset($field->label)) {
-                        $label = $field->label;
-                    } else {
-                        $label = $key;
+            foreach ($tabsInfo as $key => $tabInfo) {
+                if ($key != 'generalInfo') {
+                    $message .= '<br /><h2>' . $tabInfo->tabName . '</h2><br />';
+                    unset($tabInfo->tabName);
+                    foreach ($tabInfo as $key => $field) {
+                        if (isset($field->label)) {
+                            $label = $field->label;
+                        } else {
+                            $label = $key;
+                        }
+                        $value = '';
+                        if (isset($field->selectedValue)) {
+                            $value = $field->selectedValue;
+                        } elseif (isset($field->value)) {
+                            $value = $field->value;
+                        }
+                        $message .= $label . ': ' . $value . '<br />';
                     }
-                    $value = '';
-                    if (isset($field->selectedValue)) {
-                        $value = $field->selectedValue;
-                    } elseif (isset($field->value)) {
-                        $value = $field->value;
-                    }
-                    $message .= $label . ': ' . $value . '<br />';
                 }
             }
 
@@ -545,7 +576,7 @@ JS;
                     'date_mod' => time(),
                     'content' => $message,
                     'is_active' => 1,
-                    'goods_id'  => implode(',', $Id1c),
+                    'goods_id' => implode(',', $Id1c),
                     'structure' => 'Shop_OrderDetail',
                     'user_id' => $userId
                 )
