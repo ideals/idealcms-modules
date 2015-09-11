@@ -21,6 +21,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     protected $tableGood;
     protected $tableOffer;
 
+    protected $orderId = false;
+
     /**
      * Генерация данных и установка значений по умолчанию
      */
@@ -32,6 +34,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->tableGood = $prefix . 'catalogplus_structure_good';
         $this->tableOffer = $prefix . 'catalogplus_structure_offer';
 
+    }
+
+    public function setOrderId($orderId)
+    {
+        $this->orderId = $orderId;
     }
 
     // Обрабатывает запросы для формы из шаблона поумолчанию "Подтверждение заказа"
@@ -417,14 +424,17 @@ JS;
                     }
                 }
 
+                // Пробуем сохранить информацию о заказе в структуре "Order" модуля "Shop"
+                $this->saveOrderInShopSructure();
+
                 // Сохраняем информацию о заказе в справочник "Заказы с сайта"
                 if (!empty($tabsInfo->generalInfo->name) && !empty($tabsInfo->generalInfo->email)) {
                     // Отправляем сообщение покупателю
-                    $topic = 'Заказ в магазине "' . $config->domain . '"';
+                    $orderIdPartTopic = $this->orderId ? ' № ' . $this->orderId : '';
+                    $topic = 'Заказ в магазине "' . $config->domain . '"' . $orderIdPartTopic;
                     $form->sendMail($config->robotEmail, $tabsInfo->generalInfo->email, $topic, $message, true);
 
                     // Отправляем сообщение менеджеру
-                    $topic = 'Заказ в магазине "' . $config->domain . '"';
                     $referer = $form->getValue('referer');
 
                     if ($referer == 'null') { // Отлавливаем прямой переход
@@ -484,7 +494,6 @@ JS;
     // Запускает ряд методов для завершения работы над заказом
     public function finishOrder()
     {
-        $this->saveOrderInShopSructure();
         $this->clearBasket();
     }
 
@@ -495,10 +504,11 @@ JS;
         setcookie("tabsInfo", null, -1, '/');
     }
 
-    // Сохраняет информацию о заказе в структуре "Order" модуля "Shop"
+    /**
+     * Сохраняет информацию о заказе в структуре "Order" модуля "Shop"
+     */
     public function saveOrderInShopSructure()
     {
-        $response = false;
         $config = Config::getInstance();
         $prefix = $config->db['prefix'];
         if (class_exists('\Shop\Structure\Order\Site\Model')) {
@@ -506,7 +516,7 @@ JS;
             $sql = "SELECT ID as last_id FROM {$prefix}shop_structure_order ORDER BY ID DESC LIMIT 1";
             $lastId = $db->select($sql);
             $orderNumber = $lastId[0]['last_id'] + 1;
-            $response = $orderNumber;
+            $this->setOrderId($orderNumber);
 
             // Получаем идентификатор справочника "Заказы в магазине" для построения поля "prev_structure"
             $dataList = $config->getStructureByName('Ideal_DataList');
@@ -546,8 +556,8 @@ JS;
 
                 $prevOrder = $config->getStructureByName('Shop_Order');
                 $insert = array();
-                $insert['prev_structure'] = $prevOrder['ID'] . '-' . $response;
-                $insert['order_id'] = $response;
+                $insert['prev_structure'] = $prevOrder['ID'] . '-' . $this->orderId;
+                $insert['order_id'] = $this->orderId;
                 $insert['good_id_1c'] = $row[0]['good_id'];
                 $insert['offer_id_1c'] = $row[0]['offer_id'];
                 $insert['count'] = intval($good->count);
@@ -613,7 +623,6 @@ JS;
                 )
             );
         }
-        return $response;
     }
 
     /**
@@ -623,7 +632,7 @@ JS;
      * @param mixed $offer false если рассматривается товар, идентификатор торгового предложения в противном случае
      * @return string Пустая строка если нет товара(предложения), наименование в противном случае.
      */
-    private function getGoodName($id, $offer = false)
+    protected function getGoodName($id, $offer = false)
     {
         $db = Db::getInstance();
         if ($offer === false) {
