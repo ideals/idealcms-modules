@@ -70,19 +70,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     $tabsInfo = (object) array($tabID => $orderComments);
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
+            } else {
+                echo 'validationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
-                    $script = <<<JS
-                    if (typeof window.checkform != 'undefined') {
-                        window.checkform.push('#confirmationForm');
-                    } else {
-                        window.checkform = ['#confirmationForm'];
-                    }
-JS;
+                    $script = $this->getStartJsForStep('confirmationForm');
                     $form->setJs($script);
                     $request->mode = 'js';
                     break;
@@ -183,19 +179,15 @@ JS;
                     );
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
+            } else {
+                echo 'validationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
-                    $script = <<<JS
-                    if (typeof window.checkform != 'undefined') {
-                        window.checkform.push('#deliveryForm');
-                    } else {
-                        window.checkform = ['#deliveryForm'];
-                    }
-JS;
+                    $script = $this->getStartJsForStep('deliveryForm');
                     $form->setJs($script);
                     $request->mode = 'js';
                     break;
@@ -260,19 +252,15 @@ JS;
                     );
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
+            } else {
+                echo 'validationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
-                    $script = <<<JS
-                    if (typeof window.checkform != 'undefined') {
-                        window.checkform.push('#authorizationForm');
-                    } else {
-                        window.checkform = ['#authorizationForm'];
-                    }
-JS;
+                    $script = $this->getStartJsForStep('authorizationForm');
                     $form->setJs($script);
                     $request->mode = 'js';
                     break;
@@ -339,19 +327,15 @@ JS;
                     $tabsInfo = (object) array($tabID => $payment);
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
+            } else {
+                echo 'validationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
-                    $script = <<<JS
-                    if (typeof window.checkform != 'undefined') {
-                        window.checkform.push('#paymentForm');
-                    } else {
-                        window.checkform = ['#paymentForm'];
-                    }
-JS;
+                    $script = $this->getStartJsForStep('paymentForm');
                     $form->setJs($script);
                     $request->mode = 'js';
                     break;
@@ -460,19 +444,15 @@ JS;
 
                 $this->finishOrder();
                 echo 'Ваш заказ принят';
+            } else {
+                echo 'validationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
-                    $script = <<<JS
-                    if (typeof window.checkform != 'undefined') {
-                        window.checkform.push('#finishForm');
-                    } else {
-                        window.checkform = ['#finishForm'];
-                    }
-JS;
+                    $script = $this->getStartJsForStep('finishForm');
                     $form->setJs($script);
                     $request->mode = 'js';
                     break;
@@ -652,5 +632,38 @@ JS;
             return '';
         }
         return $name[0]['name'];
+    }
+
+    /**
+     * Получаем начальный js, одинковый для каждого шага
+     *
+     * @param string $formIdValue Значение идентификатора формы
+     * @return string js скрипт нужный для каждого этапа оформления корзины
+     */
+    protected function getStartJsForStep($formIdValue = '')
+    {
+        $script = '';
+        if (!empty($formIdValue)) {
+            $script .= <<<JS
+                    if (typeof window.checkform != 'undefined') {
+                        window.checkform.push('#{$formIdValue}');
+                    } else {
+                        window.checkform = ['#{$formIdValue}'];
+                    }
+
+                    $('#{$formIdValue}').on('form.successSend', function (event, result) {
+                        function {$formIdValue}ServerValidationCheck() {
+                            window.stopForm = 1;
+                            if (result == 'validationError') {
+                            alert('Форма заполнена неправильно');
+                                return;
+                            }
+                            window.stopForm = 0;
+                        }
+                        {$formIdValue}ServerValidationCheck();
+                    });
+JS;
+        }
+        return $script;
     }
 }

@@ -326,11 +326,15 @@
             stopfinish = typeof stopfinish !== 'undefined' ? stopfinish : false;
             var href = jQuery(item).attr('href');
             if (window.checkform instanceof Array && window.checkform.length > 0) {
-                jQuery.each(window.checkform, function( index, value ) {
+                jQuery.each(window.checkform, function (index, value) {
                     if (href != undefined && href != '') {
                         jQuery(value).on('form.successSend', function () {
-                            window.location = href;
-                            return false;
+                            if (window.stopForm != 1) {
+                                window.location = href;
+                                return true;
+                            } else {
+                                return true;
+                            }
                         });
                     }
                     if (value == '#finishForm' && stopfinish == true) {
@@ -341,7 +345,7 @@
             } else {
                 if (href != undefined && href != '') {
                     window.location = href;
-                    return false;
+                    return true;
                 }
             }
         }
