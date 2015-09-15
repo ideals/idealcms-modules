@@ -69,7 +69,9 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         $this->view->step = 'finishReg';
         if (isset($_GET['email']) && isset($_GET['key'])) {
             $this->model->finishReg();
-            if (isset($_SESSION['login']['is_active'])) $_SESSION['login']['is_active'] = true;
+            if (isset($_SESSION['login']['is_active'])) {
+                $_SESSION['login']['is_active'] = true;
+            }
         }
     }
 
@@ -124,5 +126,4 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
             header('Location: ' . $link);
         }
     }
-
 }

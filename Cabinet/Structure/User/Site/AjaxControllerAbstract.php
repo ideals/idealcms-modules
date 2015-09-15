@@ -4,7 +4,6 @@ namespace Cabinet\Structure\User\Site;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Core\Util;
-use Mail\Sender;
 use FormPhp;
 use Ideal\Core\Request;
 
@@ -44,7 +43,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             'text' => '', // Текст о выполнении задачи
             'refresh' => false // Требуется ли обновление страницы после получения данных
         );
-        $this->loadData();
         if ($this->answer['error']) {
             exit();
         }
@@ -247,7 +245,7 @@ JS;
                     $formHtml = $this->view->render();
                     $form->setText($formHtml);
                     $response = $form->getText();
-                break;
+                    break;
             }
             return $response;
         }
@@ -388,71 +386,6 @@ JS;
                     break;
             }
             return $response;
-        }
-    }
-
-    /**
-     * Проверка корректности введенного email
-     *
-     * @param $email
-     * @return bool
-     */
-    protected function isEmail($email)
-    {
-        $result = true;
-        if (function_exists('filter_var') && (!filter_var($email, FILTER_VALIDATE_EMAIL))) {
-            $result = false;
-        } else {
-            if (!Util::isEmail($email)) {
-                $result = false;
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Загрузка полученных данных
-     */
-    protected function loadData()
-    {
-        foreach ($_REQUEST as $k => $v) {
-            switch (strtolower($k)) {
-                case 'email':
-                case 'e-mail':
-                case 'login':
-                    /*if (!$this->isEmail($v)) {
-                        $this->answer['error'] = true;
-                        $this->answer['text'] .= ' E-mail указан неверно.';
-                    }
-                    $this->data['email'] = strtolower($v);*/
-                    break;
-                case 'pass':
-                case 'password':
-                case 'repass':
-                    if (isset($this->data['pass'])) {
-                        if ($this->data['pass'] != $v) {
-                            $this->answer['error'] = true;
-                            $this->answer['text'] .= ' Пароли не совпадают друг с другом.';
-                        }
-                    } else {
-                        $this->data['pass'] = $v;
-                    }
-                    break;
-                case 'captha':
-                case 'int':
-                    $captcha = md5($v);
-                    if ($_SESSION['cryptcode'] !== $captcha) {
-                        $this->answer['text'] .= ' Не верно введена капча.';
-                        $this->answer['error'] = true;
-                    }
-                    break;
-                case 'mode':
-                case 'controller':
-                case 'action':
-                    break;
-                default:
-                    $this->data[$k] = $v;
-            }
         }
     }
 

@@ -26,7 +26,6 @@ class Plugin
             unset($_SESSION['login']['user']);
             unset($_SESSION['login']['input']);
             header('Refresh: 0; url=/');
-
         }
     }
 }

@@ -173,8 +173,12 @@ EOT;
                 );
             } else {
                 $pass = $this->randPassword();
-                $db->update($this->_table)->set(array('password' => crypt($pass)))->where('email = :email', array
-                ('email' => $email))->exec();
+                $db->update($this->_table)->set(array('password' => crypt($pass)))->where(
+                    'email = :email',
+                    array (
+                        'email' => $email
+                    )
+                )->exec();
                 $response = array(
                     'success' => true,
                     'text' => 'Пароль обновлён',
@@ -313,7 +317,7 @@ EOT;
                                         $basket->goods->$key = $good;
                                     }
 
-                                    // Проверяем на наличие других свойств в текущем состоянии корзины.
+                                    // Проверяем наличие других свойств в текущем состоянии корзины.
                                     // Переносим их в старую версию если это нужно
                                     foreach ($cookieBasket as $key => $value) {
                                         if (!isset($basket->$key)) {
@@ -357,7 +361,10 @@ EOT;
                     $update['password'] = crypt($update['password']);
                 }
             }
-            $db->update($this->_table)->set($update)->where('ID = :ID', array('ID' => $_SESSION['login']['ID']))->exec();
+            $db->update($this->_table)
+                ->set($update)
+                ->where('ID = :ID', array('ID' => $_SESSION['login']['ID']))
+                ->exec();
             $response = 'Данные сохранены';
         }
         return $response;
