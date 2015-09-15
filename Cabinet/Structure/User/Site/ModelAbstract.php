@@ -325,6 +325,7 @@ EOT;
                                         }
                                     }
                                 }
+                                $basket->versi = 0;
                                 $basket = json_encode($basket, JSON_FORCE_OBJECT);
                                 $_COOKIE['basket'] = $basket;
                                 setcookie("basket", $basket);
