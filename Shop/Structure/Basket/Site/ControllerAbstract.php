@@ -42,19 +42,5 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $tabs = $this->model->getTabs();
         $this->view->tabs = $tabs;
         $this->view->currentTabId = $this->model->getCurrentTabId($tabs);
-
-        /*if (isset($_GET['tab'])) {
-            $this->view->tab = (int)$_GET['tab'];
-            $this->view->{'tab' . (int)$_GET['tab']} = 'current';
-        } else {
-            $this->view->tab = 0;
-            $this->view->tab0 = 'current';
-        }*/
-
-        /*// TODO получение информации о пользователе(покупателе)
-        $user = \Shop\Structure\Order\Site\Model::getContactUser();
-        foreach ($user as $k => $v) {
-            $this->view->{$k} = $v;
-        }*/
     }
 }
