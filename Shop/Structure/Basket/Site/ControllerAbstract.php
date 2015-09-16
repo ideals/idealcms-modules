@@ -10,7 +10,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     {
         $basket = $this->model->getGoods();
 
-        if (empty($basket)) {
+        if (empty($basket) || (isset($basket['count']) && empty($basket['count']))) {
             // Если в корзине нет товаров — выводим шаблон с пустой корзиной
             $this->model->setEmptyBasket();
             parent::indexAction();
@@ -28,7 +28,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $basket = $this->model->getGoods();
         $tabsInfo = $this->model->getTabsInfo();
 
-        if (empty($basket)) {
+        if (empty($basket) || (isset($basket['count']) && empty($basket['count']))) {
             // Если в корзине нет товаров — выводим шаблон с пустой корзиной
             $this->model->setEmptyBasket();
             parent::indexAction();

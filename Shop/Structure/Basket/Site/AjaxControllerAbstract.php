@@ -46,6 +46,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     protected $tableGood;
     protected $tableOffer;
 
+    // Таблица со списком страниц относящихся к процессу оформления заказа
+    protected $table;
+
     /**
      * Генерация данных и установка значений по умолчанию
      */
@@ -90,7 +93,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $prefix = $config->db['prefix'];
         $this->tableGood = $prefix . 'catalogplus_structure_good';
         $this->tableOffer = $prefix . 'catalogplus_structure_offer';
-
+        $this->table = $prefix . 'shop_structure_basket';
+        self::checkForcedUpdate();
     }
 
     /**
@@ -314,5 +318,57 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         // разница в цене и скидочной цене
         $allPrice[0]['discount'] = $allPrice[0]['price'] - $allPrice[0]['sale_price'];
         return $allPrice[0];
+    }
+
+    /**
+     *  Проверяет страницу на принадлежность к процессу оформления заказа
+     *  и в случае совпадения устанавливает флаг обновления информации в корзине.
+     */
+    private function checkForcedUpdate()
+    {
+        $config = Config::getInstance();
+        $orderingPage = self::getOrderingPage();
+        $pageCall = rtrim($_SERVER['HTTP_REFERER'], $config->urlSuffix);
+        $pageCall = explode('/', $pageCall);
+        $pageCall = end($pageCall);
+        if (array_search($pageCall, $orderingPage) !== false) {
+            $this->update = true;
+        }
+    }
+
+    /**
+     * Получает список страниц относящихся к оформлению заказа
+     *
+     * @return array Список страниц относящихся к оформлению заказа
+     * @throws \Exception
+     */
+    private function getOrderingPage()
+    {
+        $db = Db::getInstance();
+        $config = Config::getInstance();
+        $sql = "SELECT prev_structure, url FROM {$this->table}";
+        $result = $db->select($sql);
+        $tabs = array();
+        if (count($result) > 0) {
+            array_walk($result, function ($v) use (&$tabs) {
+                $tabs[$v['prev_structure']][] = $v['url'];
+            });
+            $pages = array();
+            foreach ($tabs as $key => $value) {
+                list($idParentStructure, $idItem) = explode('-', $key);
+                $parentStructure = $config->getStructureById($idParentStructure);
+                $parentStructureTable = $config->getTableByName($parentStructure['structure']);
+
+                $par = array('ID' => $idItem);
+                $fields = array('table' => $parentStructureTable);
+                $parentPage = $db->select('SELECT url FROM &table WHERE ID = :ID', $par, $fields);
+                if (count($parentPage) == 1) {
+                    array_unshift($tabs[$key], $parentPage[0]['url']);
+                }
+                $pages = array_merge($tabs[$key]);
+            }
+            $tabs = $pages;
+        }
+        return $tabs;
     }
 }
