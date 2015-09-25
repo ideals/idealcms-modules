@@ -202,6 +202,7 @@ class DbCategory extends AbstractDb
         $params = array(
             'url' => Url\Model::translitUrl($element['name']),
             'prev_structure' => $this->prevCat,
+            'structure' => 'CatalogPlus_Category',
         );
         foreach ($element as $key => $item) {
             $params[$key] = $item;
