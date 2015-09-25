@@ -154,6 +154,9 @@ include('modalUpdate.html');
                         modal.find('.close, .btn-close').removeAttr('disabled');
                     }
                 }
+            },
+            error: function() {
+                modal_body.append('<div class="alert alert-danger fade in">Не удалось произвести обновление</div>');
             }
         });
     }
