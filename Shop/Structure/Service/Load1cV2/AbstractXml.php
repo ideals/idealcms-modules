@@ -48,7 +48,8 @@ class AbstractXml
 
         $path = explode('\\', get_class($this));
         $path = array_slice($path, -2, 1);
-        $this->configs = include $path[0] . '/config.php';
+        $path = 'Shop/Structure/Service/Load1cV2/' . $path[0];
+        $this->configs = include $path . '/config.php';
         $firsPart = explode('/', $this->part);
         $part = array_shift($firsPart);
         $updateInfo = $this->xml->xpath('//' . $this->ns . $part . '/@СодержитТолькоИзменения');
