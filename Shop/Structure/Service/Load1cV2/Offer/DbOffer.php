@@ -63,6 +63,18 @@ class DbOffer extends AbstractDb
                     continue;
                 }
 
+                if (!isset($element['price']) || empty($element['price'])) {
+                    $elements[$k]['price'] = 0;
+                    $elements[$k]['is_active'] = 0;
+                }
+
+                if (!isset($element['rest']) || empty($element['rest'])) {
+                    $elements[$k]['rest'] = 0;
+                    $elements[$k]['is_active'] = 0;
+                }
+
+                $element = $elements[$k];
+
                 foreach ($offerModel->fields as $fieldName => $item) {
                     if ($fieldName == 'ID') {
                         continue;
