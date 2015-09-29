@@ -158,6 +158,8 @@ class NewCategory
                     unset($newXmlResult[$k]['ID']);
                 }
             }
+
+            $newXmlResult[$k]['structure'] = 'CatalogPlus_Category';
         }
 
         $this->answer['update'] = count(array_intersect_key($newXmlResult, $dbResult));
