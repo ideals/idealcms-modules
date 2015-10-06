@@ -33,6 +33,11 @@ class AjaxController extends \Ideal\Core\AjaxController
         return json_encode('success');
     }
 
+    /**
+     * Экшен запуска загрузки из файлов по шагам
+     *
+     * @return string json-массив с результатами выполненного шага загрузки
+     */
     public function ajaxIndexLoadAction()
     {
 
@@ -52,24 +57,28 @@ class AjaxController extends \Ideal\Core\AjaxController
         try {
             switch ($step) {
                 case 1:
+                    // Подготовка к загрузке данных — создание временных таблиц
+                    break;
+                case 2:
+                    // Получаем список всех файлов и папок из папки выгрузки
                     $fc->loadFiles($configFile['info']['directory']);
                     $answer = array_merge($answer, $fc->category());
                     break;
-                case 2:
+                case 3:
                     $fc->loadFiles($configFile['info']['directory']);
                     $answer = array_merge($answer, $fc->good());
                     break;
-                case 3:
+                case 4:
                     $fc->loadFiles($configFile['info']['directory']);
                     $answer = array_merge($answer, $fc->directory());
                     break;
-                case 4:
+                case 5:
                     $fc->loadFiles($configFile['info']['directory']);
                     $answer['step'] = 'Предложения';
                     $answer = array_merge($answer, $fc->offer());
                     $fc->renameTables();
                     break;
-                case 5:
+                case 6:
                     $answer['continue'] = false;
                     $answer = array_merge($answer, $fc->loadImages($configFile['info']));
                     break;

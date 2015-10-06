@@ -276,16 +276,17 @@ class FrontController
     /**
      * Обновление товаров из выгрузки
      *
+     * @param int $folder Номер папки, из которой берём выгрузку
      * @return array информация о проведенных изменениях - add => count, update => count
      */
-    public function good()
+    public function good($folder = 1)
     {
-        $xml = new Xml($this->files['1']['import']);
+        $xml = new Xml($this->files[$folder]['import']);
 
-        // инициализируем модель товаров в БД - DbGood
+        // Инициализируем модель товаров в БД - DbGood
         $dbGood = new Good\DbGood();
 
-        // инициализируем модель категорий в XML - XmlCategory
+        // Инициализируем модель категорий в XML - XmlCategory
         $xmlGood = new Good\XmlGood($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
@@ -294,21 +295,24 @@ class FrontController
         // Устанавливаем связь БД и XML и производим сравнение данных
         $goods = $newGood->parse();
 
-        // получение данных о проведённых изменениях
+        // Получение данных о проведённых изменениях
         $answer = $newGood->answer();
 
-        // данные для medium_categorylist
+        // Данные для medium_categorylist
         $groups = $xmlGood->groups;
 
         unset($xmlGood, $newGood);
 
-        // удаление данных из medium_categorylist если необходимо (onlyUpdate = false)
-        $dbGood->truncateCategoryList();
+        if ($folder == 1) {
+            // Удаление данных из medium_categorylist в случае полной выгрузки (onlyUpdate = false)
+            // Нужно делать только для первого блока выгрузки
+            $dbGood->truncateCategoryList();
+        }
 
         // Сохраняем результаты
         $dbGood->save($goods);
 
-        // обновление информации в medium_categorylist
+        // Обновление информации в medium_categorylist
         $dbGood->updateCategoryList($groups);
 
         $goodsCount = $dbGood->countGoodsToGroup();
@@ -321,7 +325,7 @@ class FrontController
 
         $dbCategory->save($categories);
 
-        // Уведомление пользователя о количестве добавленных, обновленны и удаленных товаров
+        // Уведомление пользователя о количестве добавленных, обновлённых и удалённых товаров
         return $answer;
     }
 

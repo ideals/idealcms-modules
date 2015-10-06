@@ -6,13 +6,6 @@ use Ideal\Field\Url;
 use Shop\Structure\Service\Load1cV2\Category;
 use Ideal\Core\Db;
 
-/**
- * Created by PhpStorm.
- * User: Help4
- * Date: 02.07.2015
- * Time: 16:31
- */
-
 class DbGood extends AbstractDb
 {
     /** @var string Структура для получения prev_structure */
@@ -96,6 +89,11 @@ class DbGood extends AbstractDb
         }
     }
 
+    /**
+     * Обновление таблицы связи товаров с категориями
+     *
+     * @param $goodToGroup
+     */
     public function updateCategoryList($goodToGroup)
     {
         $db = Db::getInstance();
@@ -104,6 +102,7 @@ class DbGood extends AbstractDb
         $goods = $this->getGoods('ID, id_1c');
         foreach ($goodToGroup as $item) {
             if (!isset($goods[$item['good_id']])) {
+                // Непонятно, как такое возможно, товара нет, а связь есть?
                 continue;
             }
 
@@ -117,9 +116,12 @@ class DbGood extends AbstractDb
             }
         }
 
+        // todo удаление старых связей добавляемых товаров
+
+        // Добавление связей по 25 штук в одном запросе
         while (count($result) > 24) {
             $part = array_splice($result, 0, 25);
-            $db->insertMultiple($this->structureMedium, $part);
+            $db->insertMultiple($this->structureMedium . $this->tablePostfix, $part);
         }
     }
 
@@ -236,5 +238,10 @@ class DbGood extends AbstractDb
         }
 
         return $this->goodToCat[$goodId];
+    }
+
+    public function prepareTable($onlyUpdate)
+    {
+
     }
 }
