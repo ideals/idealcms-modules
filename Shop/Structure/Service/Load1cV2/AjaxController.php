@@ -11,8 +11,9 @@ namespace Shop\Structure\Service\Load1cV2;
 
 use Ideal\Core\Config;
 use Ideal\Core\Util;
+
 /**
- * Контроллер, вызываемый при работе с ajax-вызовами
+ * Контроллер, вызываемый при загрузке из файлов через админку
  */
 class AjaxController extends \Ideal\Core\AjaxController
 {
@@ -40,7 +41,6 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function ajaxIndexLoadAction()
     {
-
         $fc = new FrontController();
         $answer = array(
             'continue'  => true,
@@ -58,6 +58,9 @@ class AjaxController extends \Ideal\Core\AjaxController
             switch ($step) {
                 case 1:
                     // Подготовка к загрузке данных — создание временных таблиц
+                    $fc->loadFiles($configFile['info']['directory']);
+                    // Создание временных таблиц
+                    $fc->prepareTables();
                     break;
                 case 2:
                     // Получаем список всех файлов и папок из папки выгрузки

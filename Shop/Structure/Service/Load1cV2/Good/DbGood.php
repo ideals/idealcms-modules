@@ -58,10 +58,9 @@ class DbGood extends AbstractDb
 
         // Считываем товары из нашей БД
         $sql = "SELECT sg.ID, sg.img, sg.imgs, sg.full_name, sg.name, sg.id_1c, sg.is_active,
-            sg.url, sg.articul, sc.id_1c as category_id, sg.content
+            sg.url, sg.articul, sg.content
             FROM " . $this->table . $this->tablePostfix .
-            " as sg LEFT JOIN {$this->structureCat} as sc ON sg.category_id = sc.ID
-            WHERE sg.prev_structure='{$this->prevGood}'";
+            " as sg WHERE sg.prev_structure='{$this->prevGood}'";
 
         $tmp = $db->select($sql);
 
@@ -77,54 +76,6 @@ class DbGood extends AbstractDb
         return $result;
     }
 
-    public function truncateCategoryList()
-    {
-        $categoryModel = new Category\DbCategory();
-        $this->categories = $categoryModel->getCategories();
-        $db = Db::getInstance();
-
-        if (!$this->onlyUpdate) {
-            $sql = "TRUNCATE {$this->structureMedium}";
-            $db->query($sql);
-        }
-    }
-
-    /**
-     * Обновление таблицы связи товаров с категориями
-     *
-     * @param $goodToGroup
-     */
-    public function updateCategoryList($goodToGroup)
-    {
-        $db = Db::getInstance();
-
-        $result = array();
-        $goods = $this->getGoods('ID, id_1c');
-        foreach ($goodToGroup as $item) {
-            if (!isset($goods[$item['good_id']])) {
-                // Непонятно, как такое возможно, товара нет, а связь есть?
-                continue;
-            }
-
-            $categories = $this->getCategories($goods[$item['good_id']]['ID']);
-
-            if (!in_array($this->categories[$item['category_id']]['ID'], $categories)) {
-                $result[] = array(
-                    'good_id' => $goods[$item['good_id']]['ID'],
-                    'category_id' => $this->categories[$item['category_id']]['ID']
-                );
-            }
-        }
-
-        // todo удаление старых связей добавляемых товаров
-
-        // Добавление связей по 25 штук в одном запросе
-        while (count($result) > 24) {
-            $part = array_splice($result, 0, 25);
-            $db->insertMultiple($this->structureMedium . $this->tablePostfix, $part);
-        }
-    }
-
     /**
      * Сохранение изменений и добавление новых товаров в БД
      *
@@ -133,9 +84,6 @@ class DbGood extends AbstractDb
     public function save($goods)
     {
         foreach ($goods as $k => $good) {
-            if (isset($good['category_id'])) {
-                $goods[$k]['category_id'] = $this->categories[$good['category_id']]['ID'];
-            }
             if (!isset($good['prev_structure'])) {
                 $goods[$k]['prev_structure'] = $this->prevGood;
             }
@@ -169,22 +117,6 @@ class DbGood extends AbstractDb
         return $result;
     }
 
-    public function countGoodsToGroup()
-    {
-        $db = Db::getInstance();
-
-        $sql = "SELECT category_id as ID, count(ID) as num from "
-            . $this->table . $this->tablePostfix . " group by category_id";
-        $res = $db->select($sql);
-        $result = array();
-
-        foreach ($res as $item) {
-            $result[$item['ID']] = $item['num'];
-        }
-
-        return $result;
-    }
-
     public function updateGood()
     {
         $db = Db::getInstance();
@@ -213,35 +145,18 @@ class DbGood extends AbstractDb
         parent::save($updates);
     }
 
-    protected function add($element)
+    /**
+     * Подготовка параметров товара для добавления в БД
+     *
+     * @param array $element Добавляемый товар
+     * @return array Модифицированный товар
+     */
+    protected function getForAdd($element)
     {
         $element['prev_structure'] = $this->prevGood;
         $element['measure'] = '';
         $element['structure'] = 'CatalogPlus_Offer';
 
-        parent::add($element);
-    }
-
-    protected function getCategories($goodId)
-    {
-        $db = Db::getInstance();
-
-        if (!array_key_exists($goodId, $this->goodToCat)) {
-            $sql = "SELECT DISTINCT category_id FROM {$this->structureMedium} ".
-                "WHERE good_id = {$goodId}";
-            $categories = $db->select($sql);
-
-            $this->goodToCat[$goodId] = array();
-            foreach ($categories as $item) {
-                $this->goodToCat[$goodId][] = $item['category_id'];
-            }
-        }
-
-        return $this->goodToCat[$goodId];
-    }
-
-    public function prepareTable($onlyUpdate)
-    {
-
+        return parent::getForAdd($element);
     }
 }

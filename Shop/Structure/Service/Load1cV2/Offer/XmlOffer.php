@@ -23,7 +23,6 @@ class XmlOffer extends AbstractXml
         parent::parse();
 
         foreach ($this->data as $key => $value) {
-            $this->data[$key]['is_active'] = $value['is_active'] == 'false' ? '1' : '0';
             $ids = explode('#', $key);
             $this->data[$key]['good_id'] = $ids[0];
             $this->data[$key]['offer_id'] = isset($ids[1]) ? $ids[1] : $ids[0];
@@ -43,12 +42,7 @@ class XmlOffer extends AbstractXml
         parent::parse();
 
         foreach ($this->data as $k => $value) {
-            $this->data[$k]['is_active'] = '1';
-            if ($value['price'] == 0) {
-//                $this->data[$k]['is_active'] = '0';
-            } else {
-                $this->data[$k]['price'] *= 100;
-            }
+            $this->data[$k]['price'] *= 100;
         }
 
         return $this->data;

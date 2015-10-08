@@ -35,7 +35,6 @@ class NewGood
     {
         $this->dbGood = $dbGood;
         $this->xmlGood = $xmlGood;
-        $this->dbGood->prepareTable($this->xmlGood->updateInfo());
     }
 
     /**
@@ -45,10 +44,10 @@ class NewGood
      */
     public function parse()
     {
-        // Забираем реззультаты категорий из БД 1m
+        // Забираем реззультаты товаров из БД 1m
         $dbResult = $this->dbGood->parse();
 
-        // Забираем результаты категорий из xml 1m
+        // Забираем результаты товаров из xml 1m
         $xmlResult = $this->xmlGood->parse();
 
         return $this->diff($dbResult, $xmlResult);

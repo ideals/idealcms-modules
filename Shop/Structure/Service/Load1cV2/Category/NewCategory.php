@@ -34,7 +34,6 @@ class NewCategory
     {
         $this->dbCategory = $dbCategory;
         $this->xmlCategory = $xmlCategory;
-        $this->dbCategory->prepareTable($this->xmlCategory->updateInfo());
     }
 
     /**

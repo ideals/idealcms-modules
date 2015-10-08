@@ -18,12 +18,6 @@ return array(
             'path'      => 'Картинка[position()>1]'
         ),
         'Описание'      => 'content',
-        'category_id'   => array(
-            'path' => 'Группы',
-            'field' => array(
-                'category_id' => 'Ид'
-            ),
-        ),
         'url'   => array(
             'path'  => 'ЗначенияРеквизитов/ЗначениеРеквизита[`Наименование="СсылкаНаСайте"]/Значение',
         ),

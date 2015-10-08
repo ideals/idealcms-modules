@@ -6,7 +6,12 @@ use Ideal\Core\Db;
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
 use Mail\Sender;
+use Shop\Structure\Service\Load1cV2\Category\DbCategory;
+use Shop\Structure\Service\Load1cV2\Category\XmlCategory;
+use Shop\Structure\Service\Load1cV2\Directory\DbDirectory;
 use Shop\Structure\Service\Load1cV2\Good\DbGood;
+use Shop\Structure\Service\Load1cV2\Medium\DbMedium;
+use Shop\Structure\Service\Load1cV2\Offer\DbOffer;
 
 /**
  * Created by PhpStorm.
@@ -303,27 +308,16 @@ class FrontController
 
         unset($xmlGood, $newGood);
 
-        if ($folder == 1) {
-            // Удаление данных из medium_categorylist в случае полной выгрузки (onlyUpdate = false)
-            // Нужно делать только для первого блока выгрузки
-            $dbGood->truncateCategoryList();
-        }
-
         // Сохраняем результаты
         $dbGood->save($goods);
 
         // Обновление информации в medium_categorylist
-        $dbGood->updateCategoryList($groups);
+        $medium = new DbMedium();
+        $medium->updateCategoryList($groups);
 
-        $goodsCount = $dbGood->countGoodsToGroup();
-
+        // Установка количества товаров в группах и родительских группах
         $dbCategory = new Category\DbCategory();
-
-        $categories = $dbCategory->getCategories();
-
-        $dbCategory->recursiveRestruct($categories, $goodsCount);
-
-        $dbCategory->save($categories);
+        $dbCategory->updateGoodsCount();
 
         // Уведомление пользователя о количестве добавленных, обновлённых и удалённых товаров
         return $answer;
@@ -409,7 +403,6 @@ class FrontController
 
         // Устанавливаем связь БД и XML
         $rests = $newOffers->parseRests();
-
 
         $result = array_replace_recursive($offers, $prices, $rests);
 
@@ -780,5 +773,30 @@ class FrontController
             $db->query("UPDATE {$i}shop_structure_order SET export=0 WHERE id={$item}");
         }
         return $template->asXML();
+    }
+
+    /**
+     * Создание временных таблиц всех сущностей, участвующих в выгрузке
+     */
+    public function prepareTables()
+    {
+        $xml = new Xml($this->files['import']);
+        $xmlCategory = new XmlCategory($xml);
+        $isUpdate = $xmlCategory->updateInfo();
+
+        $dbCategory = new DbCategory();
+        $dbCategory->prepareTable($isUpdate);
+
+        $dbGood = new DbGood();
+        $dbGood->prepareTable($isUpdate);
+
+        $dbMedium = new DbMedium();
+        $dbMedium->prepareTable($isUpdate);
+
+        $dbOffer = new DbOffer();
+        $dbOffer->prepareTable($isUpdate);
+
+        $dbDirectory = new DbDirectory();
+        $dbDirectory->prepareTable($isUpdate);
     }
 }

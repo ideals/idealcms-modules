@@ -33,7 +33,6 @@ class NewOffer
     {
         $this->dbOffer = $dbOffer;
         $this->xmlOffer = $xmlOffer;
-        $this->dbOffer->prepareTable($this->xmlOffer->updateInfo());
     }
 
     /**
@@ -43,7 +42,7 @@ class NewOffer
      */
     public function parse()
     {
-        // Забираем реззультаты категорий из БД 1m
+        // Забираем результаты категорий из БД 1m
         $dbResult = $this->dbOffer->parse();
 
         // Забираем результаты категорий из xml 1m
@@ -89,13 +88,15 @@ class NewOffer
             }
         }
 
+/*
+ * тут видимо была попытка отключить неиспользуемые поля справочников. Нам это не надо
         foreach ($diffDb as $id) {
             if ($dbResult[$id]['is_active'] == 1) {
                 $result[$id]['is_active'] = 0;
                 $result[$id]['ID'] = $dbResult[$id]['ID'];
             }
         }
-
+*/
         return $result;
     }
 

@@ -6,6 +6,7 @@ use Ideal\Field\Url;
 use Ideal\Core\Config;
 use Ideal\Field\Cid;
 use Ideal\Core\Db;
+use Shop\Structure\Service\Load1cV2\Medium\DbMedium;
 
 /**
  * Created by PhpStorm.
@@ -21,6 +22,9 @@ class DbCategory extends AbstractDb
 
     /** @var string Предыдущая категория для prev_structure */
     protected $prevCat;
+
+    /** @var string Все неприсвоенные категориям товары будут лежать тут */
+    public $defaultCategory = '';
 
     /**
      *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
@@ -193,22 +197,39 @@ class DbCategory extends AbstractDb
     }
 
     /**
-     * Добавление категории в БД
+     * Рекурсивное обновление количества товара во всех группах (с учётом товара в подгруппах)
      *
-     * @param array $element данные о добавляемой категории
+     * @param array $goodsCount Количество товара привязанного к каждой группе
      */
-    protected function add($element)
+    public function updateGoodsCount()
     {
-        $params = array(
-            'url' => Url\Model::translitUrl($element['name']),
-            'prev_structure' => $this->prevCat,
-            'structure' => 'CatalogPlus_Category',
-        );
-        foreach ($element as $key => $item) {
-            $params[$key] = $item;
-        }
+        // Считываем список категорий
+        $categories = $this->getCategories();
 
-        parent::add($params);
+        // Определяем количество товаров в каждой категории
+        $dbMedium = new DbMedium();
+        $goodsCount = $dbMedium->countGoodsToGroup();
+
+        // Рекурсивно расставляем количество товаров в категории,
+        // суммируюя количество товаров в подкатегориях
+        $this->recursiveRestruct($categories, $goodsCount);
+
+        $this->save($categories);
+    }
+
+    /**
+     * Подготовка параметров категории для добавления в БД
+     *
+     * @param array $element Добавляемая категория
+     * @return array Модифицированная категория
+     */
+    protected function getForAdd($element)
+    {
+        $element['url'] = Url\Model::translitUrl($element['name']);
+        $element['prev_structure'] = $this->prevCat;
+        $element['structure'] = 'CatalogPlus_Category';
+
+        return parent::getForAdd($element);
     }
 
     /**

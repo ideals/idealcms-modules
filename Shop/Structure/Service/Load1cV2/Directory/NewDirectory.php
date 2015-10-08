@@ -35,7 +35,6 @@ class NewDirectory
     {
         $this->dbGood = $dbGood;
         $this->xmlGood = $xmlGood;
-        $this->dbGood->prepareTable($this->xmlGood->updateInfo());
     }
 
     /**
@@ -89,14 +88,15 @@ class NewDirectory
                 $this->answer['update']++;
             }
         }
-
+/*
+ * тут видимо была попытка отключить неиспользуемые поля справочников. Нам это не надо
         foreach ($diffDb as $id) {
             if ($dbResult[$id]['is_active'] == 1) {
                 $result[$id]['is_active'] = 0;
                 $result[$id]['ID'] = $dbResult[$id]['ID'];
             }
         }
-
+*/
         return $result;
     }
 }

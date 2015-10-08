@@ -5,10 +5,7 @@ use Ideal\Core\Config;
 use Ideal\Core\Db;
 
 /**
- * Created by PhpStorm.
- * User: Help4
- * Date: 17.07.2015
- * Time: 13:39
+ * Абстрактный класс для работы с таблицами в базе данных
  */
 
 class AbstractDb
@@ -115,23 +112,26 @@ class AbstractDb
     }
 
     /**
-     * Добавление нового товара в БД
+     * Подготовка параметров для добавления элемента в БД
      *
-     * @param array $element данные для добавления в БД
+     * @param array $element Добавляемый элемент
+     * @return array Модифицированный элемент
      */
-    protected function add($element)
+    protected function getForAdd($element)
     {
-        $db = Db::getInstance();
         $now = time();
-
         $element['date_create'] = $now;
         $element['date_mod'] = $now;
 
-        $db->insert($this->table . $this->tablePostfix, $element);
+        ksort($element);
+
+        return $element;
     }
 
     /**
-     * Сохранение полученных из XML изменений. Возможна как построчная вставка, так и вставка массивом значений
+     * Сохранение полученных из XML изменений (обновление существующих, добавление новых)
+     *
+     * Возможна как построчная вставка, так и вставка массивом значений
      * INSERT INTO `table` (col1, col2, col3) VALUES (1,2,3), (5,6,7) ...
      *
      * @param array $elements массив данных для записи в базу данных
@@ -142,18 +142,11 @@ class AbstractDb
             if (isset($element['ID'])) {
                 $this->update($element);
             } else {
-                if (!$this->onlyUpdate) {
-                    $now = time();
-                    $element['date_create'] = $now;
-                    $element['date_mod'] = $now;
-                    ksort($element);
-                    $add[] = $element;
-                } else {
-                    $this->add($element);
-                }
+                $add[] = $this->getForAdd($element);
             }
         }
 
+        // Если есть что добавить, то добавляем мульти-запросами
         if (isset($add)) {
             $db = Db::getInstance();
             while (count($add) >= $this->multipleInsert) {
