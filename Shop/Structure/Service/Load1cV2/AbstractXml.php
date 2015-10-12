@@ -85,11 +85,12 @@ class AbstractXml
      * Получение значений для элементов $this->data с использование xpath запросов к node
      * Пути для запросов берутся из конфигурационного файла.
      *
-     * @param \SimpleXmlElement $item node - часть выгрузки, на которую будет выполняться запрос
-     * @param string $id ключ массива, указанный в конфигурационном файле
+     * @param \SimpleXmlElement $item node Часть выгрузки, на которую будет выполняться запрос
+     * @param string $id Ключ массива, указанный в конфигурационном файле
      */
     protected function updateFromConfig($item, $id)
     {
+        // Проходимся по тем полям, которые надо добавить в БД
         foreach ($this->configs['fields'] as $key => $value) {
             if (is_array($value)) {
                 $path = implode('/' . $this->ns, explode('/', $value['path']));
@@ -100,12 +101,12 @@ class AbstractXml
             }
             $needle = $item->xpath($this->ns . $path);
 
-            if (isset($this->configs['fields'][$key]['field']) && is_array($this->configs['fields'][$key]['field'])) {
+            if (isset($value['field']) && is_array($value['field'])) {
                 foreach ($needle as $node) {
                     $this->registerNamespace($node);
 
                     $tmp = array();
-                    foreach ($this->configs['fields'][$key]['field'] as $name => $conf) {
+                    foreach ($value['field'] as $name => $conf) {
                         $res = $node->xpath($this->ns . $conf);
                         if (count($res) > 1) {
                             foreach ($res as $val) {
@@ -121,10 +122,9 @@ class AbstractXml
                     $this->data[$id][$value][] = $tmp;
                 }
             } else {
+                $this->data[$id][$value] = '';
                 if (isset($needle[0]) && strlen((string) $needle[0]) != 0) {
                     $this->data[$id][$value] = (string) $needle[0];
-                } else {
-                    $this->data[$id][$value] = '';
                 }
             }
         }

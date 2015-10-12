@@ -27,8 +27,6 @@ class DbGood extends AbstractDb
     /** @var string Структура офферов */
     protected $offers = 'catalogplus_structure_offer';
 
-    protected $goodToCat = array();
-
     /**
      *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
      */

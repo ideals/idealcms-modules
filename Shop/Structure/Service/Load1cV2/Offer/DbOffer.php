@@ -69,7 +69,7 @@ class DbOffer extends AbstractDb
                     }
 
                     if (!isset($element[$fieldName])) {
-                        $elements[$k][$fieldName] = '';
+                        $elements[$k][$fieldName] = isset($item['default']) ? $item['default'] : '';
                     }
                 }
             }

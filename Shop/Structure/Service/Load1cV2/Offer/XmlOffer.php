@@ -26,10 +26,12 @@ class XmlOffer extends AbstractXml
             $ids = explode('#', $key);
             $this->data[$key]['good_id'] = $ids[0];
             $this->data[$key]['offer_id'] = isset($ids[1]) ? $ids[1] : $ids[0];
+            /*
             if (isset($value['dir_params'])) {
                 $this->data[$key]['dir_ids'] = $directoryModel->getDirectory($value['dir_params']);
                 unset($this->data[$key]['dir_params']);
             }
+            */
         }
 
         return $this->data;

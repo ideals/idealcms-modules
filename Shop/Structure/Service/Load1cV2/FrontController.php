@@ -281,7 +281,7 @@ class FrontController
     /**
      * Обновление товаров из выгрузки
      *
-     * @param int $folder Номер папки, из которой берём выгрузку
+     * @param int $folder Номер пакета/папки, из которой берём выгрузку
      * @return array информация о проведенных изменениях - add => count, update => count
      */
     public function good($folder = 1)
@@ -353,12 +353,13 @@ class FrontController
     /**
      * Обновление предложений из выгрузки
      *
+     * @param int $folder Номер пакета/папки, из которой берём выгрузку
      * @return array информация о проведенных изменениях - add => count, update => count
      */
-    public function offer()
+    public function offer($folder = 1)
     {
         // получение xml с данными о предложениях
-        $xml = new Xml($this->files['1']['offers']);
+        $xml = new Xml($this->files[$folder]['offers']);
 
         // инициализируем модель предложений в БД - DbOffer
         $dbOffers = new Offer\DbOffer();
@@ -377,7 +378,7 @@ class FrontController
         unset ($xml, $xmlOffers, $newOffers);
 
         // получение xml с данными о ценах
-        $xml = new Xml($this->files['1']['prices']);
+        $xml = new Xml($this->files[$folder]['prices']);
 
         // инициализируем модель категорий в XML - XmlCategory
         $xmlPrices = new Offer\XmlOffer($xml);
@@ -393,7 +394,7 @@ class FrontController
         unset ($xml, $xmlPrices, $newOffers);
 
         // получение xml с данными об остатках
-        $xml = new Xml($this->files['1']['rests']);
+        $xml = new Xml($this->files[$folder]['rests']);
 
         // инициализируем модель категорий в XML - XmlCategory
         $xmlRests = new Offer\XmlOffer($xml);

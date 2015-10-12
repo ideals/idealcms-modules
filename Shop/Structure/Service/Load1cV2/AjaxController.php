@@ -65,25 +65,30 @@ class AjaxController extends \Ideal\Core\AjaxController
                 case 2:
                     // Получаем список всех файлов и папок из папки выгрузки
                     $fc->loadFiles($configFile['info']['directory']);
+                    // Обработка категорий/групп товара из общего файла import.xml
                     $answer = array_merge($answer, $fc->category());
                     break;
                 case 3:
                     $fc->loadFiles($configFile['info']['directory']);
-                    $answer = array_merge($answer, $fc->good());
+                    // Обработка товаров из указанного пакета/папки
+                    // todo зациклить шаги 3-6 до обработки всех пакетов
+                    $answer = array_merge($answer, $fc->good(1));
                     break;
                 case 4:
                     $fc->loadFiles($configFile['info']['directory']);
-                    $answer = array_merge($answer, $fc->directory());
+                    //$answer = array_merge($answer, $fc->directory());
                     break;
                 case 5:
                     $fc->loadFiles($configFile['info']['directory']);
                     $answer['step'] = 'Предложения';
                     $answer = array_merge($answer, $fc->offer());
-                    $fc->renameTables();
                     break;
                 case 6:
-                    $answer['continue'] = false;
                     $answer = array_merge($answer, $fc->loadImages($configFile['info']));
+                    break;
+                case 7:
+                    $answer['continue'] = false;
+                    $fc->renameTables();
                     break;
             }
         } catch (\RuntimeException $e) {
