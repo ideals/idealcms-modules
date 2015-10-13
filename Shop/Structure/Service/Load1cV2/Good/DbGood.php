@@ -92,7 +92,7 @@ class DbGood extends AbstractDb
     }
 
     /**
-     * Получение инфомрации о товарах
+     * Получение информации о товарах
      *
      * @param string $select
      * @return array key - id_1c

@@ -5,6 +5,7 @@ use Shop\Structure\Service\Load1cV2\AbstractDb;
 use Ideal\Field\Url;
 use Shop\Structure\Service\Load1cV2\Category;
 use Ideal\Core\Db;
+use Shop\Structure\Service\Load1cV2\Category\DbCategory;
 use Shop\Structure\Service\Load1cV2\Good\DbGood;
 
 class DbMedium extends AbstractDb
@@ -33,31 +34,43 @@ class DbMedium extends AbstractDb
      */
     public function updateCategoryList($goodToGroup)
     {
+        $dbCategory = new DbCategory();
+        $categories = $dbCategory->getCategories();
+
         $dbGood = new DbGood();
         $goods = $dbGood->getGoods('ID, id_1c');
 
-        $result = array();
-        foreach ($goodToGroup as $item) {
-            if (!isset($goods[$item['good_id']])) {
+        $result = $goodIds = array();
+        foreach ($goodToGroup as $goodId => $groupIds) {
+            if (!isset($goods[$goodId])) {
                 // Непонятно, как такое возможно, товара нет, а связь есть?
                 continue;
             }
 
-            $categories = $this->getCategories($goods[$item['good_id']]['ID']);
+            // Добавляем в список для удаления старых привязок к категориям для этого товара
+            $goodIds[] = $goods[$goodId]['ID'];
 
-            if (!in_array($this->categories[$item['category_id']]['ID'], $categories)) {
+            if (!is_array($groupIds) || (count($groupIds) == 0)) {
+                // Если товар не привязан ни к одной категории, переходим к другому товару
+                continue;
+            }
+
+            // Добавляем все привязки этого товара в массив для добавления в БД
+            foreach ($groupIds as $groupId) {
                 $result[] = array(
-                    'good_id' => $goods[$item['good_id']]['ID'],
-                    'category_id' => $this->categories[$item['category_id']]['ID']
+                    'good_id' => $goods[$goodId]['ID'],
+                    'category_id' => $categories[$groupId]['ID']
                 );
             }
         }
 
-        // todo удаление старых связей добавляемых товаров
+        $db = Db::getInstance();
+
+        // Удаление старых связей добавляемых товаров
+        $db->delete($this->table)->where('good_id IN (' . implode(',', $goodIds) . ')')->exec();
 
         // Добавление связей по 25 штук в одном запросе
-        $db = Db::getInstance();
-        while (count($result) > 24) {
+        while (count($result) > 0) {
             $part = array_splice($result, 0, 25);
             $db->insertMultiple($this->table . $this->tablePostfix, $part);
         }

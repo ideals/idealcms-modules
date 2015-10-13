@@ -102,7 +102,7 @@ class NewOffer
 
     public function parsePrice()
     {
-        // Забираем реззультаты категорий из БД 1m
+        // Забираем результаты категорий из БД 1m
         $dbResult = $this->dbOffer->parse();
 
         $xmlResult = $this->xmlOffer->parsePrice();

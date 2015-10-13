@@ -642,11 +642,13 @@ class FrontController
         $dbCategory     = new Category\DbCategory();
         $dbGood         = new Good\DbGood();
         $dbDirectory    = new Directory\DbDirectory();
+        $dbMedium       = new Medium\DbMedium();
         $dbOffers       = new Offer\DbOffer();
 
         $dbCategory->updateOrigTable();
         $dbGood->updateOrigTable();
         $dbDirectory->updateOrigTable();
+        $dbMedium->updateOrigTable();
         $dbOffers->updateOrigTable();
     }
 

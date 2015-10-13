@@ -149,7 +149,7 @@ class AbstractDb
         // Если есть что добавить, то добавляем мульти-запросами
         if (isset($add)) {
             $db = Db::getInstance();
-            while (count($add) >= $this->multipleInsert) {
+            while (count($add) > 0) {
                 $part = array_splice($add, 0, $this->multipleInsert);
                 $db->insertMultiple($this->table . $this->tablePostfix, $part);
             }

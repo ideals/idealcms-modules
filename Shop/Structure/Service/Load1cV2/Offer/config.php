@@ -1,18 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Help4
- * Date: 16.07.2015
- * Time: 17:57
- */
 // символ ` заменяется на нэймспэйс
 return array(
     'key'    => 'Ид',
     'fields' => array(
-        'Наименование'      => 'name',
+        'name'       => 'Наименование',
 // todo то, что помечено на удаление — вообще не добавлять к выгрузке
 //        'ПометкаУдаления'   => 'is_active',
-        'dir_params'    => array(
+        'dir_params' => array(
             'path'  => 'ЗначенияСвойств/ЗначенияСвойства',
             'field' => array(
                 'dir_id_1c' => 'Ид',
@@ -21,18 +15,12 @@ return array(
         ),
     ),
     'priceFields'   => array(
-        'price'     => array(
-            'path'  =>   'Цены/Цена[not(preceding-sibling::`Цена/ЦенаЗаЕдиницу <= `ЦенаЗаЕдиницу)'.
-                ' and not(following-sibling::`Цена/ЦенаЗаЕдиницу < `ЦенаЗаЕдиницу)]/ЦенаЗаЕдиницу',
-        ),
-        'currency'  => array(
-            'path'  => 'Цены/Цена/Валюта[1]',
-        ),
+        'price'     => 'Цены/Цена[not(preceding-sibling::`Цена/ЦенаЗаЕдиницу <= `ЦенаЗаЕдиницу)'.
+            ' and not(following-sibling::`Цена/ЦенаЗаЕдиницу < `ЦенаЗаЕдиницу)]/ЦенаЗаЕдиницу',
+        'currency'  => 'Цены/Цена/Валюта[1]',
     ),
     'priceRests'    => array(
-        'rest' => array(
-            'path'  => 'Остатки/Остаток/Склад/Количество'.
-                '[not(preceding-sibling::`Склад/Количество > text() or following-sibling::`Склад/Количество > text())]',
-        ),
+        'rest' => 'Остатки/Остаток/Склад/Количество'.
+            '[not(preceding-sibling::`Склад/Количество > text() or following-sibling::`Склад/Количество > text())]'
     ),
 );

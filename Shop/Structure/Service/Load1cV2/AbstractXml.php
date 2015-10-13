@@ -92,39 +92,38 @@ class AbstractXml
     {
         // Проходимся по тем полям, которые надо добавить в БД
         foreach ($this->configs['fields'] as $key => $value) {
-            if (is_array($value)) {
-                $path = implode('/' . $this->ns, explode('/', $value['path']));
-                $path = str_replace('`', $this->ns, $path);
-                $value = $key;
-            } else {
-                $path = $key;
-            }
+            $path = is_array($value) ? $value['path'] : $value;
+            $path = implode('/' . $this->ns, explode('/', $path));
+            $path = str_replace('`', $this->ns, $path);
+
             $needle = $item->xpath($this->ns . $path);
 
-            if (isset($value['field']) && is_array($value['field'])) {
+            // По умолчанию присваиваем заполняемому полю пустую строку
+            $this->data[$id][$key] = '';
+
+            // Если требуется заполнить обычное скалярное поле
+            if (!is_array($value) && isset($needle[0])) {
+                $this->data[$id][$key] = (string) $needle[0];
+            }
+
+            // Если требуется заполнить одномерный массив
+            if (is_array($value) && !isset($value['field'])) {
+                foreach ($needle as $node) {
+                    $this->data[$id][$key][] = (string) $node;
+                }
+            }
+
+            // Если требуется заполнить двумерный массив
+            if (is_array($value) && isset($value['field'])) {
                 foreach ($needle as $node) {
                     $this->registerNamespace($node);
-
                     $tmp = array();
                     foreach ($value['field'] as $name => $conf) {
                         $res = $node->xpath($this->ns . $conf);
-                        if (count($res) > 1) {
-                            foreach ($res as $val) {
-                                $tmp[] = (string) $val;
-                            }
-                            $this->data[$id][$value] = $tmp;
-                            continue;
-                        } elseif (count($res) == 1) {
-                            $tmp[$name] = (string) $res[0];
-                        }
+                        // todo остался нерешённым ворос, что будет, если в $res будет несколько элементов?
+                        $tmp[$name] = (string) $res[0];
                     }
-
-                    $this->data[$id][$value][] = $tmp;
-                }
-            } else {
-                $this->data[$id][$value] = '';
-                if (isset($needle[0]) && strlen((string) $needle[0]) != 0) {
-                    $this->data[$id][$value] = (string) $needle[0];
+                    $this->data[$id][$key][] = $tmp;
                 }
             }
         }
