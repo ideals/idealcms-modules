@@ -224,7 +224,7 @@ class FrontController
         $handle = opendir($path);
         $files = array();
 
-        while (false !== ($entry = readdir($handle))) {
+        while ($handle && false !== ($entry = readdir($handle))) {
             if (0 === strpos($entry, '.')
                 || false !== strpos($entry, '.jpeg')
                 || false !== strpos($entry, '.jpg')
