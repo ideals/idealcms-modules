@@ -441,9 +441,12 @@ class FrontController
      * Ресайз изображений, находящихся в директории с выгрузкой. Оригинальные файлы удаляются
      *
      * @param array $dir данные из конфигурационного файла
+     * @param int $folder Номер пакета/папки, из которой берём выгрузку
+     * @param int $timeStart Время начала работы метода
+     *
      * @return array данные о количестве отредактированных изображений
      */
-    public function loadImages($dir, $timeStart = 0)
+    public function loadImages($dir, $folder = 1, $timeStart = 0)
     {
         $maxExecutionTime = (ini_get('max_execution_time') == 0) ?
             ini_get('max_input_time') :
@@ -459,7 +462,7 @@ class FrontController
             'count'     => 0,
             'repeat'  => false
         );
-        $this->directory = DOCUMENT_ROOT . $dir['directory'] . $dir['images_directory'];
+        $this->directory = DOCUMENT_ROOT . $dir['directory'] . $folder . '/' . $dir['images_directory'];
 
         if (!file_exists($this->directory)) {
             return $answer;
@@ -801,5 +804,16 @@ class FrontController
 
         $dbDirectory = new DbDirectory();
         $dbDirectory->prepareTable($isUpdate);
+    }
+
+    public function getCountPackages()
+    {
+        $countPackages = 0;
+        foreach ($this->files as $value) {
+            if (is_array($value)) {
+                $countPackages++;
+            }
+        }
+        return $countPackages;
     }
 }

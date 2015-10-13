@@ -41,6 +41,15 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function ajaxIndexLoadAction()
     {
+        if (function_exists('session_status')) {
+            if (session_status() == PHP_SESSION_NONE) {
+                session_start();
+            }
+        } else {
+            if (session_id() == '') {
+                session_start();
+            }
+        }
         $fc = new FrontController();
         $answer = array(
             'continue'  => true,
@@ -61,6 +70,8 @@ class AjaxController extends \Ideal\Core\AjaxController
                     $fc->loadFiles($configFile['info']['directory']);
                     // Создание временных таблиц
                     $fc->prepareTables();
+                    // Устанавливаем номер обработываемого пакета данных на 1
+                    $_SESSION['batchNumber'] = 1;
                     break;
                 case 2:
                     // Получаем список всех файлов и папок из папки выгрузки
@@ -69,24 +80,9 @@ class AjaxController extends \Ideal\Core\AjaxController
                     $answer = array_merge($answer, $fc->category());
                     break;
                 case 3:
-                    $fc->loadFiles($configFile['info']['directory']);
-                    // Обработка товаров из указанного пакета/папки
-                    // todo зациклить шаги 3-6 до обработки всех пакетов
-                    $answer = array_merge($answer, $fc->good(1));
+                    $answer = self::dataPackageProcessing($fc, $configFile, $answer);
                     break;
                 case 4:
-                    $fc->loadFiles($configFile['info']['directory']);
-                    //$answer = array_merge($answer, $fc->directory());
-                    break;
-                case 5:
-                    $fc->loadFiles($configFile['info']['directory']);
-                    $answer['step'] = 'Предложения';
-                    $answer = array_merge($answer, $fc->offer());
-                    break;
-                case 6:
-                    $answer = array_merge($answer, $fc->loadImages($configFile['info']));
-                    break;
-                case 7:
                     $answer['continue'] = false;
                     $fc->renameTables();
                     break;
@@ -104,5 +100,22 @@ class AjaxController extends \Ideal\Core\AjaxController
         }
 
         return json_encode($answer);
+    }
+
+    private static function dataPackageProcessing($fc, $configFile, $answer)
+    {
+        $fc->loadFiles($configFile['info']['directory']);
+        $countPackages = $fc->getCountPackages();
+        // Обработка товаров из указанного пакета/папки
+        $answer = array_merge($answer, $fc->good($_SESSION['batchNumber']));
+        $answer = array_merge($answer, $fc->offer($_SESSION['batchNumber']));
+        $answer = array_merge($answer, $fc->loadImages($configFile['info'], $_SESSION['batchNumber']));
+        $answer['step'] = 'Обработка пакета - ' . $_SESSION['batchNumber'];
+        $_SESSION['batchNumber']++;
+        if ($_SESSION['batchNumber'] <= $countPackages) {
+            $answer['repeat'] = true;
+            $answer['continue'] = false;
+        }
+        return $answer;
     }
 }

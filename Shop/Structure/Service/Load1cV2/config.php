@@ -5,7 +5,7 @@ return array(
     'pos'    => 31,
     'info'   => array(
         'directory'         => '/tmp/1c/',
-        'images_directory'  => '1/import_files/',
+        'images_directory'  => 'import_files/',
         'resize'            => '300x300',
         'filesize'          => '20',
     ),
