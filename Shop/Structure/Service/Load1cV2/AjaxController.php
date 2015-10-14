@@ -41,15 +41,6 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function ajaxIndexLoadAction()
     {
-        if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
-        }
         $fc = new FrontController();
         $answer = array(
             'continue'  => true,
@@ -58,6 +49,11 @@ class AjaxController extends \Ideal\Core\AjaxController
 
         $configs = Config::getInstance();
         $step = (int) $_POST['step'];
+        if (isset($_POST['packageNum'])) {
+            $packageNum = (int) $_POST['packageNum'];
+        } else {
+            $packageNum = 1;
+        }
 
         $folder = __DIR__;
         $configFile = include($folder . '/config.php');
@@ -70,19 +66,46 @@ class AjaxController extends \Ideal\Core\AjaxController
                     $fc->loadFiles($configFile['info']['directory']);
                     // Создание временных таблиц
                     $fc->prepareTables();
-                    // Устанавливаем номер обработываемого пакета данных на 1
-                    $_SESSION['batchNumber'] = 1;
+                    $answer['nextStep'] = 2;
                     break;
                 case 2:
                     // Получаем список всех файлов и папок из папки выгрузки
                     $fc->loadFiles($configFile['info']['directory']);
                     // Обработка категорий/групп товара из общего файла import.xml
                     $answer = array_merge($answer, $fc->category());
+                    $answer['nextStep'] = 3;
                     break;
                 case 3:
-                    $answer = self::dataPackageProcessing($fc, $configFile, $answer);
+                    $fc->loadFiles($configFile['info']['directory']);
+                    // Обработка товаров из указанного пакета/папки
+                    $answer = array_merge($answer, $fc->good($packageNum));
+                    $answer['nextStep'] = 4;
                     break;
                 case 4:
+                    $fc->loadFiles($configFile['info']['directory']);
+                    //$answer = array_merge($answer, $fc->directory());
+                    $answer['nextStep'] = 5;
+                    break;
+                case 5:
+                    $fc->loadFiles($configFile['info']['directory']);
+                    $answer['step'] = 'Предложения';
+                    $answer = array_merge($answer, $fc->offer($packageNum));
+                    $answer['nextStep'] = 6;
+                    $answer['step'] .= ' - пакет №' . $packageNum;
+                    break;
+                case 6:
+                    $fc->loadFiles($configFile['info']['directory']);
+                    $answer = array_merge($answer, $fc->loadImages($configFile['info'], $packageNum));
+                    $countPackages = $fc->getCountPackages();
+                    if ($packageNum < $countPackages) {
+                        $packageNum++;
+                        $answer['packageNum'] = $packageNum;
+                        $answer['nextStep'] = 3;
+                    } else {
+                        $answer['nextStep'] = 7;
+                    }
+                    break;
+                case 7:
                     $answer['continue'] = false;
                     $fc->renameTables();
                     break;
@@ -100,22 +123,5 @@ class AjaxController extends \Ideal\Core\AjaxController
         }
 
         return json_encode($answer);
-    }
-
-    private static function dataPackageProcessing($fc, $configFile, $answer)
-    {
-        $fc->loadFiles($configFile['info']['directory']);
-        $countPackages = $fc->getCountPackages();
-        // Обработка товаров из указанного пакета/папки
-        $answer = array_merge($answer, $fc->good($_SESSION['batchNumber']));
-        $answer = array_merge($answer, $fc->offer($_SESSION['batchNumber']));
-        $answer = array_merge($answer, $fc->loadImages($configFile['info'], $_SESSION['batchNumber']));
-        $answer['step'] = 'Обработка пакета - ' . $_SESSION['batchNumber'];
-        $_SESSION['batchNumber']++;
-        if ($_SESSION['batchNumber'] <= $countPackages) {
-            $answer['repeat'] = true;
-            $answer['continue'] = false;
-        }
-        return $answer;
     }
 }

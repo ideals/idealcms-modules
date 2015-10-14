@@ -100,8 +100,9 @@ include('modalUpdate.html');
         });
     }
 
-    function load1c(step) {
+    function load1c(step, packageNum) {
         step = step || 1;
+        packageNum = packageNum || 1;
         var url = window.location.href + "&action=ajaxIndexLoad&controller=Shop\\Structure\\Service\\Load1cV2&mode=ajax";
         modal.modal('show');
 
@@ -109,7 +110,8 @@ include('modalUpdate.html');
             url: url,
             type: 'POST',
             data: {
-                step: step
+                step: step,
+                packageNum: packageNum
             },
             success: function (data) {
                 data = JSON.parse(data);
@@ -145,11 +147,19 @@ include('modalUpdate.html');
                         data['add'] + '<br />Обновлено: ' + data['update'] + '</div>');
                 }
 
+
+                if (typeof data['nextStep'] != 'undefined') {
+                    step = data['nextStep'];
+                }
+                if (typeof data['packageNum'] != 'undefined') {
+                    packageNum = data['packageNum'];
+                }
+
                 if (data['continue']) {
-                    load1c(++step);
+                    load1c(step, packageNum);
                 } else {
                     if (data['repeat']) {
-                        load1c(step)
+                        load1c(step, packageNum)
                     } else {
                         modal.find('.close, .btn-close').removeAttr('disabled');
                     }
