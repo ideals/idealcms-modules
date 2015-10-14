@@ -14,7 +14,8 @@ class NewCategory
 {
     /** @var array ответ о добавленных и удаленных категориях */
     protected $answer = array(
-        'step' => 'Категории'
+        'infoText' => 'Обработка категорий/групп товаров',
+        'successText'   => 'Добавлено: %d<br />Обновлено: %d',
     );
 
     /** @var  bool содержит ли xml только обновления */
@@ -170,6 +171,12 @@ class NewCategory
      */
     public function answer()
     {
+        $a = 1 + 1;
+        $this->answer['successText'] = sprintf(
+            $this->answer['successText'],
+            $this->answer['add'],
+            $this->answer['update']
+        );
         return $this->answer;
     }
 }

@@ -13,9 +13,9 @@ class NewGood
 {
     /** @var array ответ пользователю об обновленных и добавленных */
     protected $answer = array(
-        'step'  => 'Товары',
-        'add'   => 0,
-        'update'=> 0
+        'successText'   => 'Добавлено: %d<br />Обновлено: %d',
+        'add'           => 0,
+        'update'        => 0
     );
 
     /** @var  bool содержит ли xml только обновления */
@@ -60,6 +60,11 @@ class NewGood
      */
     public function answer()
     {
+        $this->answer['successText'] = sprintf(
+            $this->answer['successText'],
+            $this->answer['add'],
+            $this->answer['update']
+        );
         return $this->answer;
     }
 

@@ -115,8 +115,8 @@ include('modalUpdate.html');
             },
             success: function (data) {
                 data = JSON.parse(data);
-                modal_body.append('<div class="alert alert-info fade in">Обновление - ' +
-                    data['step'] + '</div>');
+                modal_body.append('<div class="alert alert-info fade in">' +
+                    data['infoText'] + '</div>');
 
                 if (data['errors'].length > 0) {
                     modal_body.append('<div class="alert alert-danger fade in">При обновлении произошли ошибки, обновление прекращено:</div>');
@@ -126,42 +126,45 @@ include('modalUpdate.html');
                         }
                         modal_body.append('<div class="alert alert-danger fade in">' + data['errors'][i] + '<br /></div>');
                     }
-                }
-                delete data['errors'];
+                } else {
+                    delete data['errors'];
 
-                if ('offer' in data) {
-                    for(var i in data) {
-                        if (!data.hasOwnProperty(i) || i == 'continue' || i == 'step') {
-                            continue;
+                    if ('offer' in data) {
+                        for (var i in data) {
+                            if (
+                                !data.hasOwnProperty(i)
+                                || i == 'continue'
+                                || i == 'step'
+                                || i == 'nextStep'
+                                || i == 'infoText'
+                            ) {
+                                continue;
+                            }
+                            modal_body.append('<div class="alert alert-info fade in">' +
+                                data[i]['infoText'] + '</div>');
+                            modal_body.append('<div class="alert alert-success fade in">' +
+                                data[i]['successText'] + '</div>');
                         }
-                        modal_body.append('<div class="alert alert-info fade in">Обновление - ' +
-                            data[i]['step'] + ':' + i + '</div>');
-                        modal_body.append('<div class="alert alert-success fade in">Добавлено: ' +
-                            data[i]['add'] + '<br />Обновлено: ' + data[i]['update'] + '</div>');
-                    }
-                } else if (data['step'] == 'Ресайз изображений') {
-                    modal_body.append('<div class="alert alert-success fade in">Изменений: ' +
-                        data['count'] + '</div>');
-                } else {
-                    modal_body.append('<div class="alert alert-success fade in">Добавлено: ' +
-                        data['add'] + '<br />Обновлено: ' + data['update'] + '</div>');
-                }
-
-
-                if (typeof data['nextStep'] != 'undefined') {
-                    step = data['nextStep'];
-                }
-                if (typeof data['packageNum'] != 'undefined') {
-                    packageNum = data['packageNum'];
-                }
-
-                if (data['continue']) {
-                    load1c(step, packageNum);
-                } else {
-                    if (data['repeat']) {
-                        load1c(step, packageNum)
                     } else {
-                        modal.find('.close, .btn-close').removeAttr('disabled');
+                        modal_body.append('<div class="alert alert-success fade in">' +
+                            data['successText'] + '</div>');
+                    }
+
+                    if (typeof data['nextStep'] != 'undefined') {
+                        step = data['nextStep'];
+                    }
+                    if (typeof data['packageNum'] != 'undefined') {
+                        packageNum = data['packageNum'];
+                    }
+
+                    if (data['continue']) {
+                        load1c(step, packageNum);
+                    } else {
+                        if (data['repeat']) {
+                            load1c(step, packageNum)
+                        } else {
+                            modal.find('.close, .btn-close').removeAttr('disabled');
+                        }
                     }
                 }
             },

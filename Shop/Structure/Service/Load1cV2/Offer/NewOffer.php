@@ -11,7 +11,7 @@ class NewOffer
 {
     /** @var array ответ пользователю об обновленных и добавленных */
     protected $answer = array(
-        'step'  => 'Предложения',
+        'successText'   => 'Добавлено: %d<br />Обновлено: %d',
         'add'   => 0,
         'update'=> 0,
     );
@@ -58,6 +58,11 @@ class NewOffer
      */
     public function answer()
     {
+        $this->answer['successText'] = sprintf(
+            $this->answer['successText'],
+            $this->answer['add'],
+            $this->answer['update']
+        );
         return $this->answer;
     }
 

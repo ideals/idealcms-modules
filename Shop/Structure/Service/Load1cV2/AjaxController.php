@@ -67,6 +67,8 @@ class AjaxController extends \Ideal\Core\AjaxController
                     // Создание временных таблиц
                     $fc->prepareTables();
                     $answer['nextStep'] = 2;
+                    $answer['infoText'] = 'Подготовка базы';
+                    $answer['successText'] = 'База готова для внесения изменений';
                     break;
                 case 2:
                     // Получаем список всех файлов и папок из папки выгрузки
@@ -80,22 +82,25 @@ class AjaxController extends \Ideal\Core\AjaxController
                     // Обработка товаров из указанного пакета/папки
                     $answer = array_merge($answer, $fc->good($packageNum));
                     $answer['nextStep'] = 4;
+                    $answer['infoText'] = 'Обработка товаров из пакета №' . $packageNum;
                     break;
                 case 4:
                     $fc->loadFiles($configFile['info']['directory']);
                     //$answer = array_merge($answer, $fc->directory());
                     $answer['nextStep'] = 5;
+                    $answer['infoText'] = 'Четвёртый шаг';
+                    $answer['successText'] = 'Четвёртый шаг пройден';
                     break;
                 case 5:
                     $fc->loadFiles($configFile['info']['directory']);
-                    $answer['step'] = 'Предложения';
                     $answer = array_merge($answer, $fc->offer($packageNum));
                     $answer['nextStep'] = 6;
-                    $answer['step'] .= ' - пакет №' . $packageNum;
+                    $answer['infoText'] = 'Обработка товарных предложений из пакета №' . $packageNum;
                     break;
                 case 6:
                     $fc->loadFiles($configFile['info']['directory']);
                     $answer = array_merge($answer, $fc->loadImages($configFile['info'], $packageNum));
+                    $answer['infoText'] = 'Обработка изображений из пакета №' . $packageNum;
                     $countPackages = $fc->getCountPackages();
                     if ($packageNum < $countPackages) {
                         $packageNum++;
@@ -106,6 +111,8 @@ class AjaxController extends \Ideal\Core\AjaxController
                     }
                     break;
                 case 7:
+                    $answer['infoText'] = 'Завершение выгрузки';
+                    $answer['successText'] = 'Выгрузка завершена успешно';
                     $answer['continue'] = false;
                     $fc->renameTables();
                     break;

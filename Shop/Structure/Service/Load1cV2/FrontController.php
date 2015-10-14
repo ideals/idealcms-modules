@@ -374,6 +374,8 @@ class FrontController
         $offers = $newOffers->parse();
 
         $answer['offer'] = $newOffers->answer();
+        $answer['offer']['infoText'] = 'Обработка общей информации о предожениях';
+
 
         unset ($xml, $xmlOffers, $newOffers);
 
@@ -390,6 +392,7 @@ class FrontController
         $prices = $newOffers->parsePrice();
 
         $answer['prices'] = $newOffers->answer();
+        $answer['prices']['infoText'] = 'Обработка цен предожений';
 
         unset ($xml, $xmlPrices, $newOffers);
 
@@ -426,6 +429,7 @@ class FrontController
         $dbOffers->save($result);
 
         $answer['rests'] = $newOffers->answer();
+        $answer['rests']['infoText'] = 'Обработка остатков предожений';
 
         // сохранение предыдущих изменений (rename tables)
         $dbGood->updateOrigTable();
@@ -458,13 +462,14 @@ class FrontController
         $endTime = $timeStart + (int) $maxExecutionTime;
 
         $answer = array(
-            'step'      => 'Ресайз изображений',
-            'count'     => 0,
-            'repeat'  => false
+            'successText' => 'Изменений: ',
+            'count'       => 0,
+            'repeat'      => false
         );
         $this->directory = DOCUMENT_ROOT . $dir['directory'] . $folder . '/' . $dir['images_directory'];
 
         if (!file_exists($this->directory)) {
+            $answer['successText'] .= $answer['count'];
             return $answer;
         }
         $handle = opendir($this->directory);
@@ -485,6 +490,7 @@ class FrontController
                     }
                     if ($this->stopResize($endTime)) {
                         $answer['repeat'] = true;
+                        $answer['successText'] .= $answer['count'];
                         return $answer;
                     }
 
@@ -501,6 +507,7 @@ class FrontController
             } else {
                 if ($this->stopResize($endTime)) {
                     $answer['repeat'] = true;
+                    $answer['successText'] .= $answer['count'];
                     return $answer;
                 }
 
@@ -513,6 +520,7 @@ class FrontController
             }
         }
 
+        $answer['successText'] .= $answer['count'];
         return $answer;
     }
 
