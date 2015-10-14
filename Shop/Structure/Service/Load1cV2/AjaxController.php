@@ -55,6 +55,12 @@ class AjaxController extends \Ideal\Core\AjaxController
             $packageNum = 1;
         }
 
+        if (isset($_POST['fixStep']) && $_POST['fixStep'] != 'false') {
+            $fixStep = true;
+        } else {
+            $fixStep = false;
+        }
+
         $folder = __DIR__;
         $configFile = include($folder . '/config.php');
 
@@ -105,7 +111,11 @@ class AjaxController extends \Ideal\Core\AjaxController
                     if ($packageNum < $countPackages) {
                         $packageNum++;
                         $answer['packageNum'] = $packageNum;
-                        $answer['nextStep'] = 3;
+                        if (!$fixStep) {
+                            $answer['nextStep'] = 3;
+                        } else {
+                            $answer['nextStep'] = 6;
+                        }
                     } else {
                         $answer['nextStep'] = 7;
                     }

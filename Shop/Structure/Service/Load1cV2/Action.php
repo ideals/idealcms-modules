@@ -76,7 +76,7 @@ include('modalUpdate.html');
         $('#resizer').on('click', function(e) {
             modal_body.html('');
             e.preventDefault();
-            load1c(5);
+            load1c(6);
         });
     }) (jQuery);
 
@@ -100,9 +100,10 @@ include('modalUpdate.html');
         });
     }
 
-    function load1c(step, packageNum) {
+    function load1c(step, packageNum, fixStep) {
         step = step || 1;
         packageNum = packageNum || 1;
+        fixStep = fixStep || false;
         var url = window.location.href + "&action=ajaxIndexLoad&controller=Shop\\Structure\\Service\\Load1cV2&mode=ajax";
         modal.modal('show');
 
@@ -111,7 +112,8 @@ include('modalUpdate.html');
             type: 'POST',
             data: {
                 step: step,
-                packageNum: packageNum
+                packageNum: packageNum,
+                fixStep: fixStep
             },
             success: function (data) {
                 data = JSON.parse(data);
@@ -150,7 +152,7 @@ include('modalUpdate.html');
                             data['successText'] + '</div>');
                     }
 
-                    if (typeof data['nextStep'] != 'undefined') {
+                    if (typeof data['nextStep'] != 'undefined' && fixStep == false) {
                         step = data['nextStep'];
                     }
                     if (typeof data['packageNum'] != 'undefined') {
