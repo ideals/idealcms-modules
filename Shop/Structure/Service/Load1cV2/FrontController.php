@@ -69,7 +69,10 @@ class FrontController
         $request = new Request();
 
         $this->filesize = intval($conf['filesize']) * 1024 * 1024;
-        $this->filesize = $conf['enable_zip'];
+        if (isset($conf['enable_zip'])) {
+            $this->useZip = $conf['enable_zip'];
+        }
+
         $this->directory = DOCUMENT_ROOT . $conf['directory'];
 
         // создание директории для выгрузки
