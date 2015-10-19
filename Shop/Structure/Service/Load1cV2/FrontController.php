@@ -120,18 +120,7 @@ class FrontController
                     $handle = opendir($this->directory);
 
                     while (false !== ($entry = readdir($handle))) {
-                        if (0 === strpos($entry, '.')) {
-                            continue;
-                        } elseif (is_dir($this->directory . $entry)) {
-                            // Получаем часть имени файла переданого для обработки без хэша
-                            preg_match('/(\w*?)_/', $filename, $fileNamePart);
-                            $filesGlob = $this->checkFileExistInPackage($folder, $fileNamePart[1]);
-                            // Если находим то создаём новую директорию для нового пакета
-                            while ($filesGlob !== false && is_array($filesGlob) && count($filesGlob) > 0) {
-                                $folder++;
-                                $filesGlob = $this->checkFileExistInPackage($folder, $fileNamePart[1]);
-                            }
-                            mkdir($this->directory . $folder . '/', 0750, true);
+                        if (0 === strpos($entry, '.') || is_dir($this->directory . $entry)) {
                             continue;
                         }
 
@@ -140,6 +129,18 @@ class FrontController
                     }
 
                     preg_match('/(\w*?)_/', $filename, $type);
+
+                    $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
+                    // Если находим то создаём новую директорию для нового пакета
+                    while ($filesGlob !== false && is_array($filesGlob) && count($filesGlob) > 0) {
+                        $folder++;
+                        $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
+                    }
+
+                    // создание директории для выгрузки очередного пакета
+                    if (!file_exists($this->directory . $folder . '/')) {
+                        mkdir($this->directory . $folder . '/', 0750, true);
+                    }
 
                     if (in_array($type[1], $exists)) {
                         if (!file_exists($this->directory . $filename)) {
