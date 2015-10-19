@@ -75,7 +75,7 @@ class FrontController
 
         $this->directory = DOCUMENT_ROOT . $conf['directory'];
 
-        // создание директории для выгрузки
+        // создание директории для выгрузки первого пакета
         if (!file_exists($this->directory . '1/')) {
             mkdir($this->directory . '1/', 0750, true);
         }
@@ -115,11 +115,23 @@ class FrontController
                 if (strpos($filename, '.zip') !== false) {
                     $this->unzip($filename, $conf);
                 } else {
+                    $folder = 1;
                     $exists = array('prices', 'rests');
                     $handle = opendir($this->directory);
 
                     while (false !== ($entry = readdir($handle))) {
-                        if (0 === strpos($entry, '.') || is_dir($this->directory . $entry)) {
+                        if (0 === strpos($entry, '.')) {
+                            continue;
+                        } elseif (is_dir($this->directory . $entry)) {
+                            // Получаем часть имени файла переданого для обработки без хэша
+                            preg_match('/(\w*?)_/', $filename, $fileNamePart);
+                            $filesGlob = $this->checkFileExistInPackage($folder, $fileNamePart[1]);
+                            // Если находим то создаём новую директорию для нового пакета
+                            while ($filesGlob !== false && is_array($filesGlob) && count($filesGlob) > 0) {
+                                $folder++;
+                                $filesGlob = $this->checkFileExistInPackage($folder, $fileNamePart[1]);
+                            }
+                            mkdir($this->directory . $folder . '/', 0750, true);
                             continue;
                         }
 
@@ -131,11 +143,11 @@ class FrontController
 
                     if (in_array($type[1], $exists)) {
                         if (!file_exists($this->directory . $filename)) {
-                            $f = fopen($this->directory . '1/' . $filename, 'ab');
+                            $f = fopen($this->directory . $folder . '/' . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
 
-                            $path = $this->directory . '1/' . $filename;
+                            $path = $this->directory . $folder . '/' . $filename;
 
                             if (getimagesize($path)) {
                                 list($w, $h) = explode('x', $conf['resize']);
@@ -826,5 +838,18 @@ class FrontController
             }
         }
         return $countPackages;
+    }
+
+    /**
+     * Ищет в имеющихся директориях пакетов файлы по маске
+     *
+     * @param int $folder Номер пакета/папки
+     * @param string $fileNamePart Часть имени файла используемая для построения маски
+     * @return array Результат поиска файла
+     */
+    private function checkFileExistInPackage($folder, $fileNamePart)
+    {
+        $fileNameMask = $this->directory . $folder . '/' . $fileNamePart . '*.xml';
+        return glob($fileNameMask);
     }
 }
