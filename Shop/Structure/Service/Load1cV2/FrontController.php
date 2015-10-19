@@ -180,9 +180,12 @@ class FrontController
                 $result = array();
                 $this->loadFiles($conf['directory']);
                 $result[] = $this->category();
-                $result[] = $this->good();
                 $result[] = $this->directory();
-                $result[] = $this->offer();
+                $countPackages = $this->getCountPackages();
+                for ($package = 1; $package <= $countPackages; $package++) {
+                    $result[] = $this->good($package);
+                    $result[] = $this->offer($package);
+                }
 
                 $vals = array();
                 // подготовка для сообщения на почту
@@ -216,7 +219,9 @@ class FrontController
                     $this->renameTables();
                 }
 
-                $this->loadImages($conf, $timeStart);
+                for ($package = 1; $package <= $countPackages; $package++) {
+                    $this->loadImages($conf, $package, $timeStart);
+                }
 
                 echo "success\n";
                 return 0;
