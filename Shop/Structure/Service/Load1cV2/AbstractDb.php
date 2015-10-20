@@ -71,8 +71,7 @@ class AbstractDb
     }
 
     /**
-     * Копирование данных из оригинальной таблицы во временную.
-     * Необходимо при обновлении данных ($onlyUpdates = true)
+     * Копирование данных из оригинальной таблицы во временную
      */
     protected function copyOrigTable()
     {
@@ -80,6 +79,19 @@ class AbstractDb
 
         $testTable = $this->table . $this->tablePostfix;
         $sql = "INSERT INTO {$testTable} SELECT * FROM {$this->table}";
+        $db->query($sql);
+    }
+
+    /**
+     * Переводим все данные во временных таблицах в is_active = 0.
+     * Используется только при полной выгрузке.
+     */
+    protected function deactivateDataInTable()
+    {
+        $db = Db::getInstance();
+
+        $testTable = $this->table . $this->tablePostfix;
+        $sql = "UPDATE {$testTable} SET is_active = 0";
         $db->query($sql);
     }
 
@@ -166,8 +178,9 @@ class AbstractDb
         $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();
         $this->createEmptyTestTable();
-        if ($onlyUpdate) {
-            $this->copyOrigTable();
+        $this->copyOrigTable();
+        if (!$onlyUpdate) {
+            $this->deactivateDataInTable();
         }
     }
 }

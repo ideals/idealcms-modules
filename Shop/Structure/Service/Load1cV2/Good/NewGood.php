@@ -79,7 +79,6 @@ class NewGood
     protected function diff(array $dbResult, array $xmlResult)
     {
         $result = array();
-        $diffDb = array_diff(array_keys($dbResult), array_keys($xmlResult));
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $this->answer['add']++;
@@ -94,14 +93,6 @@ class NewGood
                 $this->answer['update']++;
             }
         }
-
-        foreach ($diffDb as $id) {
-            if ($dbResult[$id]['is_active'] == 1) {
-                $result[$id]['is_active'] = 0;
-                $result[$id]['ID'] = $dbResult[$id]['ID'];
-            }
-        }
-
         return $result;
     }
 }

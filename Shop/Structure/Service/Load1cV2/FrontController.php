@@ -312,10 +312,10 @@ class FrontController
         // Инициализируем модель товаров в БД - DbGood
         $dbGood = new Good\DbGood();
 
-        // Инициализируем модель категорий в XML - XmlCategory
+        // Инициализируем модель товаров в XML - XmlGood
         $xmlGood = new Good\XmlGood($xml);
 
-        // Инициализируем модель обновления категорий в БД из XML - NewCategory
+        // Инициализируем модель обновления товаров в БД из XML - NewGood
         $newGood = new Good\NewGood($dbGood, $xmlGood);
 
         // Устанавливаем связь БД и XML и производим сравнение данных
