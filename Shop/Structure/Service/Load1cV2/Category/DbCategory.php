@@ -181,6 +181,9 @@ class DbCategory extends AbstractDb
                 $categories[$key] = array();
                 $categories[$key]['ID'] = $category['ID'];
                 $categories[$key]['num'] = $tmp;
+                if (intval($tmp) > 0) {
+                    $categories[$key]['is_active'] = 1;
+                }
             }
 
             if (!isset($count)) {
