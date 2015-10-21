@@ -66,7 +66,7 @@ class FilterAbstract extends Filter
     {
         $this->where = ' WHERE';
 
-        // Для авторизированных в админку пользователей отображать товары в скрытых категориях
+        // Для авторизированных в админку пользователей отображать товары в скрытых категориях и скрытые товары
         $user = new User\Model();
         $checkActive = '';
         if (!$user->checkLogin()) {
@@ -94,7 +94,7 @@ class FilterAbstract extends Filter
                     $categoryWhere = " category_id IN (SELECT ID FROM {$catTable}
                                         WHERE cid LIKE '{$cid}%'{$checkActive})";
                 }
-                $this->where .= " e.ID IN (SELECT good_id FROM {$table} WHERE {$categoryWhere})";
+                $this->where .= " e.ID IN (SELECT good_id FROM {$table} WHERE {$categoryWhere}){$checkActive}";
             }
         }
     }
