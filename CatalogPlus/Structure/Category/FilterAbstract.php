@@ -4,6 +4,7 @@ namespace CatalogPlus\Structure\Category;
 use Ideal\Core\Filter;
 use Ideal\Field\Cid;
 use Ideal\Core\Config;
+use Ideal\Structure\User;
 
 class FilterAbstract extends Filter
 {
@@ -64,6 +65,14 @@ class FilterAbstract extends Filter
     protected function generateWhere()
     {
         $this->where = ' WHERE';
+
+        // Для авторизированных в админку пользователей отображать товары в скрытых категориях
+        $user = new User\Model();
+        $checkActive = '';
+        if (!$user->checkLogin()) {
+            $checkActive = ' AND is_active=1';
+        }
+
         // Добавление к запросу фильтра по category_id
         if (isset($this->categoryModel)) {
             $category = $this->categoryModel->getPageData();
@@ -83,7 +92,7 @@ class FilterAbstract extends Filter
                     $cidModel = new Cid\Model($params['levels'], $params['digits']);
                     $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
                     $categoryWhere = " category_id IN (SELECT ID FROM {$catTable}
-                                        WHERE cid LIKE '{$cid}%' AND is_active=1)";
+                                        WHERE cid LIKE '{$cid}%'{$checkActive})";
                 }
                 $this->where .= " e.ID IN (SELECT good_id FROM {$table} WHERE {$categoryWhere})";
             }
