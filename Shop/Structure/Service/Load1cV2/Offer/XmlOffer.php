@@ -26,6 +26,13 @@ class XmlOffer extends AbstractXml
             $ids = explode('#', $key);
             $this->data[$key]['good_id'] = $ids[0];
             $this->data[$key]['offer_id'] = isset($ids[1]) ? $ids[1] : $ids[0];
+
+            // Если в конфиге определено поле is_active, то получаем данные по нему из выгрузки
+            if (isset($value['is_active'])) {
+                $this->data[$key]['is_active'] = $value['is_active'] == 'false' ? '1' : '0';
+            } else { // Иначе считаем что предложение активно, так как оно есть в выгрузке
+                $this->data[$key]['is_active'] = 1;
+            }
             /*
             if (isset($value['dir_params'])) {
                 $this->data[$key]['dir_ids'] = $directoryModel->getDirectory($value['dir_params']);
