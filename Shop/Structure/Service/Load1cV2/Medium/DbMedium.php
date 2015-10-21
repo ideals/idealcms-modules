@@ -51,7 +51,11 @@ class DbMedium extends AbstractDb
             $goodIds[] = $goods[$goodId]['ID'];
 
             if (!is_array($groupIds) || (count($groupIds) == 0)) {
-                // Если товар не привязан ни к одной категории, переходим к другому товару
+                // Если товар не привязан ни к одной категории, то относим его к категории по умолчанию
+                $result[] = array(
+                    'good_id' => $goods[$goodId]['ID'],
+                    'category_id' => $categories['Load1c_default']['ID']
+                );
                 continue;
             }
 
