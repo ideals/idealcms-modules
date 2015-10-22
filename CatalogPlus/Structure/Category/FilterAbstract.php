@@ -64,15 +64,6 @@ class FilterAbstract extends Filter
      */
     protected function generateWhere()
     {
-        $this->where = ' WHERE';
-
-        // Для авторизированных в админку пользователей отображать товары в скрытых категориях и скрытые товары
-        $user = new User\Model();
-        $checkActive = '';
-        if (!$user->checkLogin()) {
-            $checkActive = ' AND is_active=1';
-        }
-
         // Добавление к запросу фильтра по category_id
         if (isset($this->categoryModel)) {
             $category = $this->categoryModel->getPageData();
@@ -82,6 +73,15 @@ class FilterAbstract extends Filter
             $prevCategory = ($prevPath[count($prevPath) - 2]['structure'] == 'CatalogPlus_Category') ? true : false;
 
             if (isset($category['ID']) && ($prevCategory)) {
+                $this->where = ' WHERE';
+
+                // Для авторизированных в админку пользователей отображать товары в скрытых категориях и скрытые товары
+                $user = new User\Model();
+                $checkActive = ' ';
+                if (!$user->checkLogin()) {
+                    $checkActive = ' AND is_active=1';
+                }
+
                 // Вывод товара только определённой категории
                 $config = Config::getInstance();
                 $table = $config->db['prefix'] . 'catalogplus_medium_categorylist';
