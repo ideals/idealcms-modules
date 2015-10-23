@@ -27,7 +27,12 @@ class AjaxController extends \Ideal\Core\AjaxController
         $folder = __DIR__;
         $configFile = include($folder . '/config.php');
 
-        $conf = array_merge($configFile, array('info' => $_POST));
+        // Чистим строки от возможных лишних пробелов перед сохранением в файл
+        $dataToSave = array();
+        array_walk($_POST, function ($v, $k) use (&$dataToSave) {
+            $dataToSave[$k] = trim($v);
+        });
+        $conf = array_merge($configFile, array('info' => $dataToSave));
         $str = "<?php\n\nreturn ";
         file_put_contents($folder . '/config.php', $str . var_export($conf, true) . ';');
 

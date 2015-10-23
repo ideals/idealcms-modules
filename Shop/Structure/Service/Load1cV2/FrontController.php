@@ -478,8 +478,7 @@ class FrontController
             'count' => 0,
             'repeat' => false
         );
-
-        if (isset($dir['resize']) && !empty(trim($dir['resize']))) {
+        if (isset($dir['resize']) && !empty($dir['resize'])) {
             $maxExecutionTime = (ini_get('max_execution_time') == 0) ?
                 ini_get('max_input_time') :
                 ini_get('max_execution_time');
