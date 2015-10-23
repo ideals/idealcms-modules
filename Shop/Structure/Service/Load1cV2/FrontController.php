@@ -473,75 +473,80 @@ class FrontController
      */
     public function loadImages($dir, $folder = 1, $timeStart = 0)
     {
-        $maxExecutionTime = (ini_get('max_execution_time') == 0) ?
-            ini_get('max_input_time') :
-            ini_get('max_execution_time');
-
-        if ($timeStart == 0) {
-            $timeStart = time();
-        }
-        $endTime = $timeStart + (int) $maxExecutionTime;
-
         $answer = array(
             'successText' => 'Изменений: ',
-            'count'       => 0,
-            'repeat'      => false
+            'count' => 0,
+            'repeat' => false
         );
-        $this->directory = DOCUMENT_ROOT . $dir['directory'] . $folder . '/' . $dir['images_directory'];
 
-        if (!file_exists($this->directory)) {
-            $answer['successText'] .= $answer['count'];
-            return $answer;
-        }
-        $handle = opendir($this->directory);
+        if (isset($dir['resize']) && !empty(trim($dir['resize']))) {
+            $maxExecutionTime = (ini_get('max_execution_time') == 0) ?
+                ini_get('max_input_time') :
+                ini_get('max_execution_time');
 
-        list($w, $h) = explode('x', $dir['resize']);
-
-        while (false !== ($entry = readdir($handle))) {
-            if (0 === strpos($entry, '.')) {
-                continue;
+            if ($timeStart == 0) {
+                $timeStart = time();
             }
+            $endTime = $timeStart + (int) $maxExecutionTime;
 
-            if (is_dir($this->directory . $entry)) {
-                $incHandle = opendir($this->directory . $entry);
+            $this->directory = DOCUMENT_ROOT . $dir['directory'] . $folder . '/' . $dir['images_directory'];
 
-                while (false !== ($img = readdir($incHandle))) {
-                    if (0 === strpos($img, '.')) {
-                        continue;
+            if (!file_exists($this->directory)) {
+                $answer['successText'] .= $answer['count'];
+                return $answer;
+            }
+            $handle = opendir($this->directory);
+
+            list($w, $h) = explode('x', $dir['resize']);
+
+            while (false !== ($entry = readdir($handle))) {
+                if (0 === strpos($entry, '.')) {
+                    continue;
+                }
+
+                if (is_dir($this->directory . $entry)) {
+                    $incHandle = opendir($this->directory . $entry);
+
+                    while (false !== ($img = readdir($incHandle))) {
+                        if (0 === strpos($img, '.')) {
+                            continue;
+                        }
+                        if ($this->stopResize($endTime)) {
+                            $answer['repeat'] = true;
+                            $answer['successText'] .= $answer['count'];
+                            return $answer;
+                        }
+
+                        if (false !== strpos($img, '.jpeg') || false !== strpos($img, '.jpg')) {
+                            $path = $this->directory . $entry . '/' . $img;
+                            new Image($path, $w, $h);
+                            $answer['count']++;
+                            unlink($path);
+                        }
                     }
+
+                    closedir($incHandle);
+                    rmdir($this->directory . $entry);
+                } else {
                     if ($this->stopResize($endTime)) {
                         $answer['repeat'] = true;
                         $answer['successText'] .= $answer['count'];
                         return $answer;
                     }
 
-                    if (false !== strpos($img, '.jpeg') || false !== strpos($img, '.jpg')) {
-                        $path = $this->directory . $entry . '/' .$img;
+                    if (false !== strpos($entry, '.jpeg') || false !== strpos($entry, '.jpg')) {
+                        $path = $this->directory . $entry;
                         new Image($path, $w, $h);
                         $answer['count']++;
                         unlink($path);
                     }
                 }
-
-                closedir($incHandle);
-                rmdir($this->directory . $entry);
-            } else {
-                if ($this->stopResize($endTime)) {
-                    $answer['repeat'] = true;
-                    $answer['successText'] .= $answer['count'];
-                    return $answer;
-                }
-
-                if (false !== strpos($entry, '.jpeg') || false !== strpos($entry, '.jpg')) {
-                    $path = $this->directory . $entry;
-                    new Image($path, $w, $h);
-                    $answer['count']++;
-                    unlink($path);
-                }
             }
-        }
 
-        $answer['successText'] .= $answer['count'];
+            $answer['successText'] .= $answer['count'];
+        } else {
+            $answer['successText'] = 'Не изменяем картинки, так как не указан размер ресайза.';
+        }
         return $answer;
     }
 
