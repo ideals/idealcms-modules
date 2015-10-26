@@ -4,6 +4,14 @@
 
     <h1>{{ header|raw }}</h1>
 
+    {# Дополнительные картинки #}
+    {% for item in imgs %}
+        <br><br>
+        <a href="{{ item }}">
+            <img src="/images/resized/150x150{{ item }}" alt="{{ name }}" />
+        </a>
+    {% endfor %}
+
     {# Выводим контент первого аддона #}
     {{ addons.0.content|raw }}
 

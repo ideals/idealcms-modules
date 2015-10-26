@@ -36,12 +36,13 @@ class XmlGood extends AbstractXml
 
             if (!empty($val['imgs'])) {
                 if (is_array($val['imgs'])) {
+                    $imgs = array();
                     foreach ($val['imgs'] as $img) {
                         $entry = substr(basename($img), 0, 2);
-                        $this->data[$k]['imgs'][] = "/images/1c/{$entry}/" . basename($img);
+                        $imgs[] = "/images/1c/{$entry}/" . basename($img);
                     }
                     // Список дополнительных картинок храним в JSON
-                    $this->data[$k]['imgs'] = json_encode($this->data[$k]['imgs'], JSON_UNESCAPED_UNICODE);
+                    $this->data[$k]['imgs'] = json_encode($imgs);
                 } else {
                     $this->data[$k]['imgs'] = '';
                 }

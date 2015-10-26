@@ -47,6 +47,25 @@ class ModelAbstract extends GoodAbstract
     }
 
     /**
+     * Получение из БД данных открытой страницы (в том числе и подключённых аддонов)
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getPageData()
+    {
+        $pageData = parent::getPageData();
+
+        if (!is_array($pageData['imgs'])) {
+            // Если дополнительные картинки не разобраны в массив, разбираем
+            $pageData['imgs'] = json_decode($pageData['imgs']);
+            $this->pageData = $pageData;
+        }
+
+        return $this->pageData;
+    }
+
+    /**
      * Установка свойств объекта по данным из массива $model
      *
      * Вызывается при копировании данных из одной модели в другую
