@@ -40,8 +40,8 @@ class XmlGood extends AbstractXml
                         $entry = substr(basename($img), 0, 2);
                         $this->data[$k]['imgs'][] = "/images/1c/{$entry}/" . basename($img);
                     }
-                    // todo заменить на правильное объединение в одну строку
-                    $this->data[$k]['imgs'] = implode(';', $this->data[$k]['imgs']);
+                    // Список дополнительных картинок храним в JSON
+                    $this->data[$k]['imgs'] = json_encode($this->data[$k]['imgs'], JSON_UNESCAPED_UNICODE);
                 } else {
                     $this->data[$k]['imgs'] = '';
                 }
