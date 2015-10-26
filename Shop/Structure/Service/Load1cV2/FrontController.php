@@ -111,6 +111,7 @@ class FrontController
 
             case 'file':
                 $filename = basename($request->filename);
+                $dirName = str_replace($filename, '', $request->filename);
 
                 if (strpos($filename, '.zip') !== false) {
                     $this->unzip($filename, $conf);
@@ -128,38 +129,54 @@ class FrontController
                         $exists[] = $type[1];
                     }
 
+                    $type = array();
+
                     preg_match('/(\w*?)_/', $filename, $type);
 
-                    $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
-                    // Если находим то создаём новую директорию для нового пакета
-                    while ($filesGlob !== false && is_array($filesGlob) && count($filesGlob) > 0) {
-                        $folder++;
-                        $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
-                    }
-
-                    // создание директории для выгрузки очередного пакета
-                    if (!file_exists($this->directory . $folder . '/')) {
-                        mkdir($this->directory . $folder . '/', 0750, true);
+                    // Если принимаем картинку, то определяем папку пакета, в котором её разместить
+                    if (strpos($dirName, 'import_files') !== false) {
+                        while (file_exists($this->directory . $folder . '/')) {
+                            $folder++;
+                        }
+                        $folder--;
+                        $filename = $dirName . $filename;
                     }
 
                     if (in_array($type[1], $exists)) {
-                        if (!file_exists($this->directory . $filename)) {
+
+                        $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
+                        // Если находим то создаём новую директорию для нового пакета
+                        while ($filesGlob !== false && is_array($filesGlob) && count($filesGlob) > 0) {
+                            $folder++;
+                            $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
+                        }
+
+                        // создание директории для выгрузки очередного пакета
+                        if (!file_exists($this->directory . $folder . '/')) {
+                            mkdir($this->directory . $folder . '/', 0750, true);
+                        }
+
+                        if (!file_exists($this->directory . $folder . '/' . $filename)) {
                             $f = fopen($this->directory . $folder . '/' . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
-
-                            $path = $this->directory . $folder . '/' . $filename;
-
-                            if (getimagesize($path)) {
-                                list($w, $h) = explode('x', $conf['resize']);
-                                new Image($path, $w, $h);
-                                unlink($path);
-                            }
                         }
                     } else {
-                        $f = fopen($this->directory . $filename, 'ab');
-                        fwrite($f, file_get_contents('php://input'));
-                        fclose($f);
+                        if (false !== strpos($filename, '.jpeg') || false !== strpos($filename, '.jpg') || false !== strpos($filename, '.gif')) {
+                            // создание директории для выгрузки изображений
+                            if (!file_exists($this->directory . $folder . '/' . $filename)) {
+                                $filename = basename($request->filename);
+                                $dirName = str_replace($filename, '', $request->filename);
+                                mkdir($this->directory . $folder . '/' . $dirName . '/', 0750, true);
+                                $f = fopen($this->directory . $folder . '/' . $dirName . '/' . $filename, 'ab');
+                                fwrite($f, file_get_contents('php://input'));
+                                fclose($f);
+                            }
+                        } else {
+                            $f = fopen($this->directory . $filename, 'ab');
+                            fwrite($f, file_get_contents('php://input'));
+                            fclose($f);
+                        }
                     }
                 }
 
@@ -490,38 +507,9 @@ class FrontController
 
             $this->directory = DOCUMENT_ROOT . $dir['directory'] . $folder . '/' . $dir['images_directory'];
 
-            if (!file_exists($this->directory)) {
-                $answer['successText'] .= $answer['count'];
-                return $answer;
-            }
-            $handle = opendir($this->directory);
-
-            list($w, $h) = explode('x', $dir['resize']);
-
-            while (false !== ($entry = readdir($handle))) {
-                if (0 === strpos($entry, '.')) {
-                    continue;
-                }
-
-                if (is_dir($this->directory . $entry)) {
-                    $incHandle = opendir($this->directory . $entry);
-
-                    while (false !== ($img = readdir($incHandle))) {
-                        if (0 === strpos($img, '.')) {
-                            continue;
-                        }
-                        if ($this->stopResize($endTime)) {
-                            $answer['repeat'] = true;
-                            $answer['successText'] .= $answer['count'];
-                            return $answer;
-                        }
-
-                        if (false !== strpos($img, '.jpeg') || false !== strpos($img, '.jpg')) {
-                            $path = $this->directory . $entry . '/' . $img;
-                            new Image($path, $w, $h);
-                            $answer['count']++;
-                            unlink($path);
-                        }
+                while (false !== ($img = readdir($incHandle))) {
+                    if (0 === strpos($img, '.')) {
+                        continue;
                     }
 
                     closedir($incHandle);
