@@ -197,6 +197,7 @@ class FrontController
                 $timeStart = $_SERVER['REQUEST_TIME'];
                 $result = array();
                 $this->loadFiles($conf['directory']);
+                $this->prepareTables();
                 $result[] = $this->category();
                 $result[] = $this->directory();
                 $countPackages = $this->getCountPackages();
