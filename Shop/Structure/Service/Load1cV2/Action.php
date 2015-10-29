@@ -109,7 +109,7 @@ if (isset($item['info']['enable_zip'])) {
             type: 'POST',
             data: data,
             success: function (data) {
-                console.log(data);
+                location.reload();
             }
         });
     }
