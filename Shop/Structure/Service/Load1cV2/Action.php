@@ -7,6 +7,13 @@ if (isset($item['info']['enable_zip'])) {
         $item['info']['enable_zip'] = '';
     }
 }
+if (isset($item['info']['keep_log'])) {
+    if ($item['info']['keep_log'] == 'yes') {
+        $item['info']['keep_log'] = 'checked="checked"';
+    } else {
+        $item['info']['keep_log'] = '';
+    }
+}
 ?>
 <form class="form-horizontal">
     <div class="form-group">
@@ -48,6 +55,15 @@ if (isset($item['info']['enable_zip'])) {
         <div class="col-sm-10">
             <input class="form-control" name="enable_zip"
                    value="" type="checkbox" <?=$item['info']['enable_zip']?>>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="enable_zip" title="Осуществлять логирование">Осуществлять логирование:</label>
+
+        <div class="col-sm-10">
+            <input class="form-control" name="keep_log"
+                   value="" type="checkbox" <?=$item['info']['keep_log']?>>
         </div>
     </div>
 

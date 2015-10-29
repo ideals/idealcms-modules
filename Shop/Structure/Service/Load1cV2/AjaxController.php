@@ -24,6 +24,11 @@ class AjaxController extends \Ideal\Core\AjaxController
         } else {
             $_POST['enable_zip'] = 'no';
         }
+        if ($_POST['keep_log'] == true) {
+            $_POST['keep_log'] = 'yes';
+        } else {
+            $_POST['keep_log'] = 'no';
+        }
         $folder = __DIR__;
         $configFile = include($folder . '/config.php');
 

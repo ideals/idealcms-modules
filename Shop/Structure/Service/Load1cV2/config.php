@@ -9,6 +9,7 @@ return array(
         'resize'            => '300x300',
         'resize' => '',
         'filesize'          => '20',
+        'keep_log' => 'no',
     ),
     'structure' => 'Ideal_Service',
     'ID' => 'Shop_Load1cV2'
