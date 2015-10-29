@@ -1,5 +1,12 @@
 <?php
 include('modalUpdate.html');
+if (isset($item['info']['enable_zip'])) {
+    if ($item['info']['enable_zip'] == 'yes') {
+        $item['info']['enable_zip'] = 'checked="checked"';
+    } else {
+        $item['info']['enable_zip'] = '';
+    }
+}
 ?>
 <form class="form-horizontal">
     <div class="form-group">
@@ -40,7 +47,7 @@ include('modalUpdate.html');
 
         <div class="col-sm-10">
             <input class="form-control" name="enable_zip"
-                   value="<?=$item['info']['enable_zip']?>" type="checkbox">
+                   value="" type="checkbox" <?=$item['info']['enable_zip']?>>
         </div>
     </div>
 
@@ -88,6 +95,13 @@ include('modalUpdate.html');
 
         $('.form-horizontal input[type="text"]').each(function(k, val) {
             data[val.name] = val.value;
+        });
+        $('.form-horizontal input[type="checkbox"]').each(function(k, val) {
+            if ($(val).is(':checked')) {
+                data[val.name] = 1;
+            } else {
+                data[val.name] = 0;
+            }
         });
 
         $.ajax({
