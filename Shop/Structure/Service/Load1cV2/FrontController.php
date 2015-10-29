@@ -12,6 +12,7 @@ use Shop\Structure\Service\Load1cV2\Directory\DbDirectory;
 use Shop\Structure\Service\Load1cV2\Good\DbGood;
 use Shop\Structure\Service\Load1cV2\Medium\DbMedium;
 use Shop\Structure\Service\Load1cV2\Offer\DbOffer;
+use Shop\Structure\Service\Load1cV2\Log\Log;
 
 /**
  * Created by PhpStorm.
@@ -38,6 +39,14 @@ class FrontController
     /** @var int количество полученных файлов от 1с. Необходимо для определения окончания выгрузки 1с */
     protected $countFiles = 0;
     protected $goods = array();
+
+    /** @var \Shop\Structure\Service\Load1cV2\Log\Log Класс для логирования процесса обмена данными с 1С */
+    protected $logClass = null;
+
+    public function __construct()
+    {
+        $this->logClass = new Log();
+    }
 
     /**
      * Установка директории и получение списка файлов и путями
