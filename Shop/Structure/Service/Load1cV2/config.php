@@ -7,6 +7,7 @@ return array(
         'directory'         => '/tmp/1c/',
         'images_directory'  => 'import_files/',
         'resize'            => '300x300',
+        'resize' => '',
         'filesize'          => '20',
     ),
     'structure' => 'Ideal_Service',
