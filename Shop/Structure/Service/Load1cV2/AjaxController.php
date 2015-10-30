@@ -51,7 +51,10 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function ajaxIndexLoadAction()
     {
-        $fc = new FrontController();
+        $folder = __DIR__;
+        $configFile = include($folder . '/config.php');
+
+        $fc = new FrontController($configFile['info']);
         $answer = array(
             'continue'  => true,
             'errors'    => array(),
@@ -71,15 +74,12 @@ class AjaxController extends \Ideal\Core\AjaxController
             $fixStep = false;
         }
 
-        $folder = __DIR__;
-        $configFile = include($folder . '/config.php');
-
         $configs->cms = array_merge($configs->cms, array('errorLog'=>'var'));
         try {
             switch ($step) {
                 case 1:
                     // Подготовка к загрузке данных — создание временных таблиц
-                    $fc->loadFiles($configFile['info']['directory']);
+                    $fc->loadFiles();
                     // Создание временных таблиц
                     $fc->prepareTables();
                     $answer['nextStep'] = 2;
@@ -88,34 +88,34 @@ class AjaxController extends \Ideal\Core\AjaxController
                     break;
                 case 2:
                     // Получаем список всех файлов и папок из папки выгрузки
-                    $fc->loadFiles($configFile['info']['directory']);
+                    $fc->loadFiles();
                     // Обработка категорий/групп товара из общего файла import.xml
                     $answer = array_merge($answer, $fc->category());
                     $answer['nextStep'] = 3;
                     break;
                 case 3:
-                    $fc->loadFiles($configFile['info']['directory']);
+                    $fc->loadFiles();
                     // Обработка товаров из указанного пакета/папки
                     $answer = array_merge($answer, $fc->good($packageNum));
                     $answer['nextStep'] = 4;
                     $answer['infoText'] = 'Обработка товаров из пакета №' . $packageNum;
                     break;
                 case 4:
-                    $fc->loadFiles($configFile['info']['directory']);
+                    $fc->loadFiles();
                     //$answer = array_merge($answer, $fc->directory());
                     $answer['nextStep'] = 5;
                     $answer['infoText'] = 'Четвёртый шаг';
                     $answer['successText'] = 'Четвёртый шаг пройден';
                     break;
                 case 5:
-                    $fc->loadFiles($configFile['info']['directory']);
+                    $fc->loadFiles();
                     $answer = array_merge($answer, $fc->offer($packageNum));
                     $answer['nextStep'] = 6;
                     $answer['infoText'] = 'Обработка товарных предложений из пакета №' . $packageNum;
                     break;
                 case 6:
-                    $fc->loadFiles($configFile['info']['directory']);
-                    $answer = array_merge($answer, $fc->loadImages($configFile['info'], $packageNum));
+                    $fc->loadFiles();
+                    $answer = array_merge($answer, $fc->loadImages($packageNum));
                     $answer['infoText'] = 'Обработка изображений из пакета №' . $packageNum;
                     $countPackages = $fc->getCountPackages();
                     if ($packageNum < $countPackages) {

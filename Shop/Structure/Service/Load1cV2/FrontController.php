@@ -42,19 +42,39 @@ class FrontController
     /** @var \Shop\Structure\Service\Load1cV2\Log\Log Класс для логирования процесса обмена данными с 1С */
     protected $logClass = null;
 
-    public function __construct()
+    /** @var array Настройки для обмена данными с 1С */
+    protected $config = array();
+
+    public function __construct($config)
     {
+        $this->config = $config;
         $this->logClass = new Log();
+        $this->logClass->appendToLogMessage('Дата/время: ' . date('d.m.Y/H:i:s', time()) . "\n");
+        $this->logClass->appendToLogMessage('Запрос: ' . $_SERVER['QUERY_STRING'] . "\n");
+        $this->logClass->appendToLogMessage('POST-данные: ' . http_build_query($_POST) . "\n");
+
+        // Объявляем функции которые будет отлавливать ошибки и заносить их в лог
+        if (isset($this->config['keep_log']) && $this->config['keep_log'] == 'yes') {
+            set_error_handler(array($this->logClass, 'logErrorHandler'));
+            register_shutdown_function(array($this->logClass, 'logShutdownFunction'));
+        }
+    }
+
+    public function __destruct()
+    {
+        if (isset($this->config['keep_log']) && $this->config['keep_log'] == 'yes') {
+            $this->logClass->addToLog();
+            $this->logClass->setLogMessage('');
+        }
     }
 
     /**
      * Установка директории и получение списка файлов и путями
      *
-     * @param string $dir путь до папки с выгрузкой от docs папки.
      */
-    public function loadFiles($dir)
+    public function loadFiles()
     {
-        $this->directory = DOCUMENT_ROOT . $dir;
+        $this->directory = DOCUMENT_ROOT . $this->config['directory'];
         $this->files = $this->readDir($this->directory);
     }
 
@@ -68,20 +88,19 @@ class FrontController
      *                  получения всех файлов от 1с)
      * В случае успешного выполнения запроса 1с ждет ответ success.
      *
-     * @param array $conf данные из корневого конфигурационного файла
      * @return int ВОЙД
      */
-    public function import($conf)
+    public function import()
     {
         $user = new Model();
         $request = new Request();
 
-        $this->filesize = intval($conf['filesize']) * 1024 * 1024;
-        if (isset($conf['enable_zip'])) {
-            $this->useZip = $conf['enable_zip'];
+        $this->filesize = intval($this->config['filesize']) * 1024 * 1024;
+        if (isset($this->config['enable_zip'])) {
+            $this->useZip = $this->config['enable_zip'];
         }
 
-        $this->directory = DOCUMENT_ROOT . $conf['directory'];
+        $this->directory = DOCUMENT_ROOT . $this->config['directory'];
 
         // создание директории для выгрузки первого пакета
         if (!file_exists($this->directory . '1/')) {
@@ -97,6 +116,7 @@ class FrontController
         if ($request->mode != 'checkauth' && !$user->checkLogin()) {
             print "failure\n";
             print "Ошибка: Вы не авторизованы";
+            $this->logClass->appendToLogMessage('FAILURE: Попытка совершить действие не авторизовавшись.' . "\n");
             die();
         }
 
@@ -106,23 +126,33 @@ class FrontController
                     print "success\n";
                     print session_name() . "\n";
                     print session_id() . "\n";
+                    $this->logClass->appendToLogMessage('Авторизация прошла успешно.' . "\n");
                 } else {
                     print "failure\n";
                     print "Ошибка: пользователь не авторизован\n";
+                    $this->logClass->appendToLogMessage("FAILURE: Ошибка авторизации.\n");
+                    $this->logClass->appendToLogMessage("Пользователь: {$_SERVER['PHP_AUTH_USER']}.\n");
+                    $this->logClass->appendToLogMessage("Пароль: {$_SERVER['PHP_AUTH_PW']}.\n");
                 }
                 return 0;
 
             case 'init':
                 print "zip={$this->useZip}\n";
                 print "file_limit={$this->filesize}\n";
+                $this->logClass->appendToLogMessage("Установлены параметры для обмена данными.\n");
+                $this->logClass->appendToLogMessage("Использовать архивирование - {$this->useZip}\n");
+                $fileSize = self::humanFilesize($this->filesize);
+                $this->logClass->appendToLogMessage("Ограничение размера принимаемого файла - {$fileSize}\n");
                 return 0;
 
             case 'file':
                 $filename = basename($request->filename);
+                $this->logClass->appendToLogMessage("Получен файл \"{$filename}\". ");
                 $dirName = str_replace($filename, '', $request->filename);
 
                 if (strpos($filename, '.zip') !== false) {
-                    $this->unzip($filename, $conf);
+                    $this->unzip($filename);
+                    $this->logClass->appendToLogMessage("Архив успешно обработан.\n");
                 } else {
                     $folder = 1;
                     $exists = array('prices', 'rests');
@@ -168,6 +198,9 @@ class FrontController
                             $f = fopen($this->directory . $folder . '/' . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
+                            $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $filename));
+                            $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
+                            $this->logClass->appendToLogMessage("Помещён в директорию - \"{$this->directory}{$folder}/\".\n");
                         }
                     } else {
                         if (false !== strpos($filename, '.jpeg') || false !== strpos($filename, '.jpg') || false !== strpos($filename, '.gif')) {
@@ -179,11 +212,17 @@ class FrontController
                                 $f = fopen($this->directory . $folder . '/' . $dirName . '/' . $filename, 'ab');
                                 fwrite($f, file_get_contents('php://input'));
                                 fclose($f);
+                                $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $filename));
+                                $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
+                                $this->logClass->appendToLogMessage("Помещён в директорию - \"{$this->directory}{$folder}\"/.\n");
                             }
                         } else {
                             $f = fopen($this->directory . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
+                            $fileSize = self::humanFilesize(filesize($this->directory . $filename));
+                            $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
+                            $this->logClass->appendToLogMessage("Помещён в директорию - \"{$this->directory}\".\n");
                         }
                     }
                 }
@@ -192,19 +231,22 @@ class FrontController
                 return 0;
 
             case 'import':
+                $filename = basename($request->filename);
                 print "success\n";
+                $this->logClass->appendToLogMessage("Файл \"{$filename}\" обработан.\n");
                 break;
 
             case 'query':
                 $xml = $this->generateExportXml();
                 header("Content-type: text/xml; charset=windows-1251");
                 print $xml;
+                $this->logClass->appendToLogMessage("Файл заказов с сайта сформирован успешно.\n");
                 die();
 
             case 'deactivate':
                 $timeStart = $_SERVER['REQUEST_TIME'];
                 $result = array();
-                $this->loadFiles($conf['directory']);
+                $this->loadFiles($this->config['directory']);
                 $this->prepareTables();
                 $result[] = $this->category();
                 $result[] = $this->directory();
@@ -247,10 +289,13 @@ class FrontController
                 }
 
                 for ($package = 1; $package <= $countPackages; $package++) {
-                    $this->loadImages($conf, $package, $timeStart);
+                    $this->loadImages($package, $timeStart);
                 }
 
                 echo "success\n";
+                $this->logClass->appendToLogMessage("Сеанс связи с 1С завершён.\n");
+                $html = str_replace('<br>', "\n", $html);
+                $this->logClass->appendToLogMessage("{$html}\n");
                 return 0;
 
             default:
@@ -491,13 +536,12 @@ class FrontController
     /**
      * Ресайз изображений, находящихся в директории с выгрузкой. Оригинальные файлы удаляются
      *
-     * @param array $dir данные из конфигурационного файла
      * @param int $folder Номер пакета/папки, из которой берём выгрузку
      * @param int $timeStart Время начала работы метода
      *
      * @return array данные о количестве отредактированных изображений
      */
-    public function loadImages($dir, $folder = 1, $timeStart = 0)
+    public function loadImages($folder = 1, $timeStart = 0)
     {
         $maxExecutionTime = (ini_get('max_execution_time') == 0) ?
             ini_get('max_input_time') :
@@ -513,7 +557,7 @@ class FrontController
             'count'       => 0,
             'repeat'      => false
         );
-        $this->directory = DOCUMENT_ROOT . $dir['directory'] . $folder . '/' . $dir['images_directory'];
+        $this->directory = DOCUMENT_ROOT . $this->config['directory'] . $folder . '/' . $this->config['images_directory'];
 
         if (!file_exists($this->directory)) {
             $answer['successText'] .= $answer['count'];
@@ -521,8 +565,8 @@ class FrontController
         }
         $handle = opendir($this->directory);
 
-        if (isset($dir['resize']) && !empty($dir['resize'])) {
-            list($w, $h) = explode('x', $dir['resize']);
+        if (isset($this->config['resize']) && !empty($this->config['resize'])) {
+            list($w, $h) = explode('x', $this->config['resize']);
         }
 
         while (false !== ($entry = readdir($handle))) {
@@ -631,9 +675,8 @@ class FrontController
     /**
      * Распаковка архива.
      * @param string $filename basename файла
-     * @param array $conf данные из конфигурационного файла
      */
-    public function unzip($filename, $conf)
+    public function unzip($filename)
     {
         $exists = array('prices', 'rests');
         $config = Config::getInstance();
@@ -656,22 +699,30 @@ class FrontController
             print "success";
             exit;
         }
+        $fileSize = self::humanFilesize(filesize($pathFile));
+        $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
+        $this->logClass->appendToLogMessage("Помещён в директорию - \"{$tmp}\".\n");
 
         $zip = new \PclZip($pathFile);
         $fileList = $zip->listContent();
 
         if ($fileList == 0) {
             unlink($pathFile);  // удаляем загруженный файл
+            $errorInfo = $zip->errorInfo(true);
             print "failure\n";
-            print "Ошибка распаковки архива 1: ".$zip->errorInfo(true);
+            print "Ошибка распаковки архива 1: {$errorInfo}";
+            $this->logClass->appendToLogMessage("Ошибка распаковки архива - {$errorInfo}.\n");
             die;
         }
 
         $file = $fileList[0];
         if (!($file['status'] == 'ok' && $file['size'] > 0)) {
             unlink($pathFile);  // удаляем загруженный файл
+            $errorInfo = $zip->errorInfo(true);
             print "failure\n";
-            print "Ошибка распаковки архива 2: ".$zip->errorInfo(true);
+            print "Ошибка распаковки архива 2: {$errorInfo}";
+            $this->logClass->appendToLogMessage("Ошибка распаковки архива - {$errorInfo}.\n");
+
             die;
         }
 
@@ -689,8 +740,10 @@ class FrontController
         $a = $zip->extract(PCLZIP_OPT_BY_INDEX, '0', PCLZIP_OPT_PATH, $tmp . '/');
         if ($a == 0) {
             unlink($pathFile);
+            $errorInfo = $zip->errorInfo(true);
             print "failure\n";
-            print "Ошибка распаковки архива 3:".$zip->errorInfo(true);
+            print "Ошибка распаковки архива 3:{$errorInfo}";
+            $this->logClass->appendToLogMessage("Ошибка распаковки архива - {$errorInfo}.\n");
             die;
         }
 
@@ -709,7 +762,7 @@ class FrontController
         if (count($fileList) > 1) {
             $zip->extract(
                 PCLZIP_OPT_PATH,
-                DOCUMENT_ROOT . $conf['directory'] . $conf['images_directory'],
+                DOCUMENT_ROOT . $this->config['directory'] . $this->config['images_directory'],
                 PCLZIP_OPT_BY_PREG,
                 '/jpg|jpeg/',
                 PCLZIP_OPT_REMOVE_ALL_PATH
@@ -901,5 +954,20 @@ class FrontController
     {
         $fileNameMask = $this->directory . $folder . '/' . $fileNamePart . '*.xml';
         return glob($fileNameMask);
+    }
+
+    /**
+     * Формирует человекопонятное отображение размера файла
+     *
+     * @param int $size Количество байт
+     * @param int $precision Количество знаков в десятичной части
+     * @return string Человекопонятное отображение размера файла
+     */
+    private function humanFilesize($size, $precision = 2)
+    {
+        $mark = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
+        for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
+        }
+        return round($size, $precision).$mark[$i];
     }
 }
