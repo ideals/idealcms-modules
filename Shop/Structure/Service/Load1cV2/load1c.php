@@ -41,5 +41,4 @@ ob_clean();
 ob_start();
 $fc->import($params['info']);
 $a = ob_get_clean();
-$fc->exportDebug(array('$a'=>$a, 'REQUEST'=>$_REQUEST));
 print $a;

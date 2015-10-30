@@ -23,7 +23,6 @@ use Shop\Structure\Service\Load1cV2\Log\Log;
 
 class FrontController
 {
-    const DEBUG = true;
     /** @var string абсолютный путь к папке для выгрузки */
     protected $directory;
 
@@ -745,16 +744,6 @@ class FrontController
             return true;
         }
         return false;
-    }
-
-    public function exportDebug($value)
-    {
-        if (self::DEBUG) {
-            $fp = fopen(DOCUMENT_ROOT . '/temp.log', 'a');
-            fwrite($fp, var_export($value, true));
-            fwrite($fp, "\n---------------------------------------------------------------------------\n");
-            fclose($fp);
-        }
     }
 
     private function generateExportXml()
