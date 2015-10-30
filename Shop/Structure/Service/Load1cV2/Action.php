@@ -125,7 +125,7 @@ if (isset($item['info']['keep_log'])) {
             type: 'POST',
             data: data,
             success: function (data) {
-                location.reload();
+                alert('Настройки успешно сохранены');
             }
         });
     }
