@@ -37,7 +37,9 @@ $config->loadSettings();
 
 // сообщения об ошибках добавления insert, например, возвращает false
 $fc = new Load1cV2\FrontController($params['info']);
-ob_clean();
+if (ob_get_contents()) {
+    ob_clean();
+}
 ob_start();
 $fc->import();
 $a = ob_get_clean();
