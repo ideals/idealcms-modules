@@ -205,16 +205,16 @@ class FrontController
                     } else {
                         if (false !== strpos($filename, '.jpeg') || false !== strpos($filename, '.jpg') || false !== strpos($filename, '.gif')) {
                             // создание директории для выгрузки изображений
-                            if (!file_exists($this->directory . $folder . '/' . $filename)) {
-                                $filename = basename($request->filename);
-                                $dirName = str_replace($filename, '', $request->filename);
+                            $filename = basename($request->filename);
+                            $dirName = str_replace($filename, '', $request->filename);
+                            if (!file_exists($this->directory . $folder . '/' . $dirName . '/' . $filename)) {
                                 mkdir($this->directory . $folder . '/' . $dirName . '/', 0750, true);
                                 $f = fopen($this->directory . $folder . '/' . $dirName . '/' . $filename, 'ab');
                                 fwrite($f, file_get_contents('php://input'));
                                 fclose($f);
-                                $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $filename));
+                                $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $dirName . '/' . $filename));
                                 $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
-                                $this->logClass->appendToLogMessage("Помещён в директорию - \"{$this->directory}{$folder}\"/.\n");
+                                $this->logClass->appendToLogMessage("Помещён в директорию - \"{$this->directory}{$folder}/{$dirName}\".\n");
                             }
                         } else {
                             $f = fopen($this->directory . $filename, 'ab');
