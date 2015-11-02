@@ -139,6 +139,10 @@ class FrontController
             case 'init':
                 print "zip={$this->useZip}\n";
                 print "file_limit={$this->filesize}\n";
+                //TODO выяснить для чего нужна третья строка
+                print "kakoeto = znachenie\n";
+                // 1С ищет версию схемы в четвёртой строке при обмене заказами
+                print "schema_version = 2.08\n";
                 $this->logClass->appendToLogMessage("Установлены параметры для обмена данными.\n");
                 $this->logClass->appendToLogMessage("Использовать архивирование - {$this->useZip}\n");
                 $fileSize = self::humanFilesize($this->filesize);
@@ -819,10 +823,7 @@ class FrontController
 
         $template = simplexml_load_file($fileTemplate);
         $template->addAttribute('ВерсияСхемы', '2.08');
-        $template->addAttribute('ДатаФормирования', date('Y-m-d', time()) . "T" . date('h:i:s', time()));
-        $template->addAttribute('ФорматДаты', 'yyyy-MM-dd; ДЛФ=DT');
-        $template->addAttribute('ФорматВремени', 'ЧЧ:мм:сс; ДЛФ=T');
-        $template->addAttribute('РазделительДатаВремя', 'T');
+        $template->addAttribute('ДатаФормирования', date('Y-m-d', time()));
 
         $db = Db::getInstance();
         $config = Config::getInstance();
@@ -861,15 +862,12 @@ class FrontController
 
             $doc->addChild("Ид", $guid);
             $doc->addChild("Номер", $item['id']);
-            $doc->addChild("НомерВерсии", 1);
             $doc->addChild("Дата", date('Y-m-d', $item['date_create']));
-            $doc->addChild("Дата1С", date('Y-m-d', $item['date_create']));
-            $doc->addChild("Номер1С", $item['id']);
             $doc->addChild("ХозОперация", "Заказ товара");
             $doc->addChild("Роль", "Продавец");
+            $doc->addChild("Валюта", "руб");
             $doc->addChild("Курс", 1);
-            $doc->addChild("Сумма", $item['price'] / 100);
-            $doc->addChild("Время", date('H:m:s', $item['date_create']));
+            $doc->addChild("Сумма", number_format(floatval($item['price']) / 100, 2, '.', ''));
 
             $agents = $doc->addChild('Контрагенты');
             $agent = $agents->addChild('Контрагент');
