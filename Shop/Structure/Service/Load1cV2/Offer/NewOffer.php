@@ -48,6 +48,10 @@ class NewOffer
         // Забираем результаты категорий из xml 1m
         $xmlResult = $this->xmlOffer->parse();
 
+        if (empty($xmlResult)) {
+            $xmlResult = array();
+        }
+
         return $this->diff($dbResult, $xmlResult);
     }
 
@@ -112,6 +116,10 @@ class NewOffer
 
         $xmlResult = $this->xmlOffer->parsePrice();
 
+        if (empty($xmlResult)) {
+            $xmlResult = array();
+        }
+
         return $this->diff($dbResult, $xmlResult);
     }
 
@@ -121,6 +129,10 @@ class NewOffer
         $dbResult = $this->dbOffer->parse();
 
         $xmlResult = $this->xmlOffer->parseRests();
+
+        if (empty($xmlResult)) {
+            $xmlResult = array();
+        }
 
         return $this->diff($dbResult, $xmlResult);
     }
