@@ -40,20 +40,29 @@ class AbstractXml
     public function __construct(Xml $xml)
     {
         $this->xml = $xml->getPart($this);
-        $this->xml = $this->xml[0];
+        if (!empty($this->xml)) {
+            $this->xml = $this->xml[0];
 
-        $this->namespaces = $this->xml->getDocNamespaces();
+            $this->namespaces = $this->xml->getDocNamespaces();
 
-        $this->registerNamespace($this->xml);
+            $this->registerNamespace($this->xml);
 
-        $path = explode('\\', get_class($this));
-        $path = array_slice($path, -2, 1);
-        $path = 'Shop/Structure/Service/Load1cV2/' . $path[0];
-        $this->configs = include $path . '/config.php';
-        $firsPart = explode('/', $this->part);
-        $part = array_shift($firsPart);
-        $updateInfo = $this->xml->xpath('//' . $this->ns . $part . '/@СодержитТолькоИзменения');
-        $this->updateInfo = (string)$updateInfo[0] == 'false' ? false : true;
+            $path = explode('\\', get_class($this));
+            $path = array_slice($path, -2, 1);
+            $path = 'Shop/Structure/Service/Load1cV2/' . $path[0];
+            $this->configs = include $path . '/config.php';
+            $firsPart = explode('/', $this->part);
+            $part = array_shift($firsPart);
+            $updateInfo = $this->xml->xpath('//' . $this->ns . $part . '/@СодержитТолькоИзменения');
+            $this->updateInfo = (string) $updateInfo[0] == 'false' ? false : true;
+        } else {
+            $this->updateInfo = true;
+        }
+    }
+
+    public function getXml()
+    {
+        return $this->xml;
     }
 
     /**

@@ -348,26 +348,38 @@ class FrontController
     {
         $xml = new Xml($this->files['import']);
 
-        // инициализируем модель категорий в БД - DbCategory
-        $dbCategory = new Category\DbCategory();
-
         // инициализируем модель категорий в XML - XmlCategory
         $xmlCategory = new Category\XmlCategory($xml);
 
-        // Инициализируем модель обновления категорий в БД из XML - NewCategory
-        $newCategory = new Category\NewCategory($dbCategory, $xmlCategory);
+        $xmlCategoryXml = $xmlCategory->getXml();
 
-        // Устанавливаем связь БД и XML
-        $categories = $newCategory->parse();
+        if (!empty($xmlCategoryXml)) {
 
-        // Записываем обновлённые категории в БД
-        $dbCategory->save($categories);
+            // инициализируем модель категорий в БД - DbCategory
+            $dbCategory = new Category\DbCategory();
 
-        // создание категории товаров, у которых в выгрузке не присвоена категория
-        $dbCategory->createDefaultCategory();
+            // Инициализируем модель обновления категорий в БД из XML - NewCategory
+            $newCategory = new Category\NewCategory($dbCategory, $xmlCategory);
 
-        // Уведомление пользователя о количестве добавленных, удалённых и обновлённых категорий
-        return $newCategory->answer();
+            // Устанавливаем связь БД и XML
+            $categories = $newCategory->parse();
+
+            // Записываем обновлённые категории в БД
+            $dbCategory->save($categories);
+
+            // создание категории товаров, у которых в выгрузке не присвоена категория
+            $dbCategory->createDefaultCategory();
+
+            // Уведомление пользователя о количестве добавленных, удалённых и обновлённых категорий
+            $answer = $newCategory->answer();
+        } else {
+            $answer = array(
+                'infoText' => 'Обработка категорий/групп товаров',
+                'successText'   => 'Категории не представленны в выгрузке',
+            );
+        }
+
+        return $answer;
     }
 
     /**
