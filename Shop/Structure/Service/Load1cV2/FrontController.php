@@ -243,7 +243,7 @@ class FrontController
             case 'query':
                 $xml = $this->generateExportXml();
                 header("Content-type: text/xml; charset=windows-1251");
-                print $xml;
+                print trim($xml);
                 $this->logClass->appendToLogMessage("Файл заказов с сайта сформирован успешно.\n");
                 die();
 
@@ -821,9 +821,12 @@ class FrontController
         array_push($fileTemplate, 'export.xml');
         $fileTemplate = implode('\\', $fileTemplate);
 
+        // Время начала формирования документа
+        $docTime = time();
+
         $template = simplexml_load_file($fileTemplate);
         $template->addAttribute('ВерсияСхемы', '2.08');
-        $template->addAttribute('ДатаФормирования', date('Y-m-d', time()));
+        $template->addAttribute('ДатаФормирования', date('Y-m-d', $docTime));
 
         $db = Db::getInstance();
         $config = Config::getInstance();
@@ -863,6 +866,7 @@ class FrontController
             $doc->addChild("Ид", $guid);
             $doc->addChild("Номер", $item['id']);
             $doc->addChild("Дата", date('Y-m-d', $item['date_create']));
+            $doc->addChild("Время", date('H:m:s', $item['date_create']));
             $doc->addChild("ХозОперация", "Заказ товара");
             $doc->addChild("Роль", "Продавец");
             $doc->addChild("Валюта", "руб");
@@ -888,7 +892,7 @@ class FrontController
                 $xmlGood->addChild('ЦенаЗаЕдиницу', (int) $good['fe']/100);
                 $xmlGood->addChild('Количество', $good['count']);
                 $xmlGood->addChild('Сумма', $good['sum']/100);
-                $xmlGood->addChild('Коэффициент', $good['coefficient']);
+                $xmlGood->addChild('Коэффициент', intval($good['coefficient']) ? intval($good['coefficient']) : 1);
                 $props = $xmlGood->addChild('ЗначенияРеквизитов');
                 $prop = $props->addChild('ЗначениеРеквизита');
                 $prop->addChild("Наименование", "ВидНоменклатуры");
