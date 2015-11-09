@@ -832,12 +832,17 @@ class FrontController
         $config = Config::getInstance();
 
         $i = $config->db['prefix'];
-        $orderSql = "SELECT sho.id, sho.date_create, sho.name, sho.price, d.good_id_1c, d.offer_id_1c, d.count, d.sum,".
-            " stg.currency, sto.name as full_name, stg.coefficient, sto.price as fe FROM {$i}shop_structure_order sho".
+        $orderSql = "SELECT sho.id, sho.date_create, sho.name, sho.price, csu.name as buyerName, csu.last_name as buyerLastName, csu.ID as buyerID,".
+            " d.good_id_1c, d.offer_id_1c, d.count, d.sum,stg.currency, sto.name as full_name, stg.coefficient, sto.price as fe".
+            " FROM {$i}shop_structure_order sho".
             " LEFT JOIN {$i}shop_structure_orderdetail d on d.order_id=sho.id".
             " LEFT JOIN {$i}catalogplus_structure_good stg on d.good_id_1c=stg.id_1c".
+            " LEFT JOIN {$i}cabinet_structure_user csu on csu.ID = sho.user_id".
             " LEFT JOIN {$i}catalogplus_structure_offer sto on sto.offer_id=d.offer_id_1c".
-            " where sho.goods_id<>'' AND sho.export=1 LIMIT 0,200";
+
+            // В этих условиях задана проверка на обязательное наличие зарегистрированного пользователя
+            // Если заказ сделал анонимный пользователь, то он, пока, не попадёт в 1С.
+            " where sho.goods_id<>'' AND sho.export=1 AND csu.name IS NOT NULL LIMIT 0,200";
 
         $orderList = $db->select($orderSql);
         if (count($orderList) === 0) {
@@ -846,24 +851,26 @@ class FrontController
         $items = array();
         foreach ($orderList as $element) {
             if (isset($items[$element['id']])) {
-                $items[$element['id']]['goods'][] = array_slice($element, 4);
+                $items[$element['id']]['goods'][] = array_slice($element, 7);
             } else {
-                $items[$element['id']] = array_slice($element, 0, 4);
-                $items[$element['id']]['goods'][] = array_slice($element, 4);
+                $items[$element['id']] = array_slice($element, 0, 7);
+                $items[$element['id']]['goods'][] = array_slice($element, 7);
             }
         }
         unset($orderList);
         $upd = array();
         foreach ($items as $k => $item) {
-            $charid = strtolower(md5($item['id'] . $item['date_create']));
-            $guid = substr($charid, 0, 8) . '-' . substr($charid, 8, 4) . '-' . substr($charid, 12, 4) . '-' .
-                substr($charid, 16, 4) . '-' . substr($charid, 20, 12);
+
+            // Генерируем идентификатор документа
+            // TODO Узнать, зачем генерировать идентификатор документа такого вида?
+            /*$charid = strtolower(md5($item['id'] . $item['date_create']));
+            $guid = substr($charid, 0, 8) . '-' . substr($charid, 8, 4) . '-' . substr($charid, 12, 4) . '-' . substr($charid, 16, 4) . '-' . substr($charid, 20, 12);*/
 
             $doc = $template->xpath("//КоммерческаяИнформация");
             /* @var $doc[0] \SimpleXMLElement */
             $doc = $doc[0]->addChild("Документ");
 
-            $doc->addChild("Ид", $guid);
+            $doc->addChild("Ид", $item['id']);
             $doc->addChild("Номер", $item['id']);
             $doc->addChild("Дата", date('Y-m-d', $item['date_create']));
             $doc->addChild("Время", date('H:m:s', $item['date_create']));
@@ -875,19 +882,27 @@ class FrontController
 
             $agents = $doc->addChild('Контрагенты');
             $agent = $agents->addChild('Контрагент');
-            $charid = strtolower(md5('Физ лицо'));
+            // TODO Узнать, зачем генерировать идентификатор пользователя такого вида?
+            /*$charid = strtolower(md5('Физ лицо'));
             $guid = substr($charid, 0, 8) . '-' . substr($charid, 8, 4) . '-' . substr($charid, 12, 4) . '-' .
-                substr($charid, 16, 4) . '-' . substr($charid, 20, 12);
-            $agent->addChild("Ид", $guid);
-            $agent->addChild("Наименование", "Физ лицо");
+                substr($charid, 16, 4) . '-' . substr($charid, 20, 12);*/
+
+            // Формируем наименование покапателя
+            $buyerName = $item['buyerName'];
+            if (!empty($item['buyerLastName'])) {
+                $buyerName .= ' ' . $item['buyerLastName'];
+            }
+
+            $agent->addChild("Ид", $item['buyerID']);
+            $agent->addChild("Наименование", $buyerName);
             $agent->addChild("Роль", "Покупатель");
-            $agent->addChild("ПолноеНаименование", "Физ лицо");
+            $agent->addChild("ПолноеНаименование", $buyerName);
 
             $xmlGoods = $doc->addChild('Товары');
             foreach ($item['goods'] as $good) {
                 $xmlGood = $xmlGoods->addChild('Товар');
 
-                $xmlGood->addChild('Ид', $good['good_id_1c'] . '#' . $good['offer_id_1c']);
+                $xmlGood->addChild('Ид', $good['good_id_1c']);
                 $xmlGood->addChild('Наименование', $good['full_name']);
                 $xmlGood->addChild('ЦенаЗаЕдиницу', (int) $good['fe']/100);
                 $xmlGood->addChild('Количество', $good['count']);
