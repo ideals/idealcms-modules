@@ -597,7 +597,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     'content' => $message,
                     'is_active' => 1,
                     'goods_id' => implode(',', $Id1c),
-                    'gexport' => 1,
+                    'export' => 1,
                     'structure' => 'Shop_OrderDetail',
                     'user_id' => $userId
                 )
