@@ -493,13 +493,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $prefix = $config->db['prefix'];
         if (class_exists('\Shop\Structure\Order\Site\Model')) {
             $db = Db::getInstance();
-            $sql = "SELECT ID as last_id FROM {$prefix}shop_structure_order ORDER BY ID DESC LIMIT 1";
-            $lastId = $db->select($sql);
-            if (!empty($lastId)) {
-                $orderNumber = $lastId[0]['last_id'] + 1;
-            } else {
-                $orderNumber = 1;
-            }
+            $nextId = $db->select("SHOW TABLE STATUS WHERE name='{$prefix}shop_structure_order'");
+            $orderNumber = $nextId[0]['Auto_increment'];
             $this->setOrderId($orderNumber);
 
             // Получаем идентификатор справочника "Заказы в магазине" для построения поля "prev_structure"
