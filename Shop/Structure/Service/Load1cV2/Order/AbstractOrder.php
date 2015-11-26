@@ -27,7 +27,7 @@ class AbstractOrder
 
         $i = $config->db['prefix'];
         $orderSql = "SELECT sho.id, sho.date_create, sho.name, sho.price,".
-            " csu.name as buyerName, csu.last_name as buyerLastName, csu.ID as buyerID, csu.address as buyerAddress, csu.phone as buyerPhone, csu.email as buyerEmail,".
+            " csu.login as buyerLogin, csu.name as buyerName, csu.last_name as buyerLastName, csu.ID as buyerID, csu.address as buyerAddress, csu.phone as buyerPhone, csu.email as buyerEmail,".
             " d.good_id_1c, d.offer_id_1c, d.count, d.sum,stg.currency, sto.name as full_name, stg.coefficient, sto.price as fe".
             " FROM {$i}shop_structure_order sho".
             " LEFT JOIN {$i}shop_structure_orderdetail d on d.order_id=sho.id".
@@ -114,7 +114,7 @@ class AbstractOrder
                 $buyerEmailContact->addChild('Значение', $item['buyerEmail']);
             }
 
-            $agent->addChild("Наименование", $buyerName);
+            $agent->addChild("Наименование", $item['buyerLogin']);
             $agent->addChild("Роль", "Покупатель");
             $agent->addChild("ПолноеНаименование", $buyerName);
 
