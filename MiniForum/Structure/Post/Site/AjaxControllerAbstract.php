@@ -41,7 +41,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             exit;
         }
         parse_str($_POST['form'], $post);
-        $post = array_map('htmlspecialchars', $post);
+        $post = $this->sanitizeInput($post);
 
         if (!isset($post['parent_id']) && !isset($post['main_parent_id']) && !isset($post['page_structure'])) {
             exit;
@@ -121,7 +121,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     public function updateAction()
     {
         parse_str($_POST['form'], $post);
-        $post = array_map('htmlspecialchars', $post);
+        $post = $this->sanitizeInput($post);
 
         $user = User\Model::getInstance();
         if (($post['email'] == '') && (isset($user->data['email']))) {
@@ -208,5 +208,17 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         } else {
             return true;
         }
+    }
+
+    /**
+     * Очистка массива входных пользовательских данных
+     *
+     * @param array $post Массив входных данных
+     * @return array
+     */
+    protected function sanitizeInput($post)
+    {
+        $post = array_map('htmlspecialchars', $post);
+        return $post;
     }
 }
