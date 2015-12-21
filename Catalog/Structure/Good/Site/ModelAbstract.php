@@ -40,9 +40,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
 
         $db = Db::getInstance();
+        $config = Config::getInstance();
+        $end = end($path);
+        $prevStructure = $config->getStructureByName($this->params['in_structures'][0]);
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE url=:url LIMIT 1";
-        $par = array('url' => $url[0]);
+        $_sql = "SELECT * FROM {$this->_table} WHERE url=:url AND prev_structure=:prev_structure LIMIT 1";
+        $par = array('url' => $url[0], 'prev_structure' => $prevStructure['ID'] . '-' . $end['ID']);
 
         $list = $db->select($_sql, $par); // запрос на получение всех страниц, соответствующих частям url
 
