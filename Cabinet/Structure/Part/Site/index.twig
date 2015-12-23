@@ -12,7 +12,11 @@
             213123123
         </div>
     {% else %}
-        Информация о пользователе
+        <p class="logout"><a href="{{ link }}?action=logout">Выйти</a></p>
+
+        <div id="formzakaz">
+            {{ lkForm | raw }}
+        </div>
     {% endif %}
 
     {# Выводим контент первого аддона #}

@@ -119,4 +119,28 @@ class Model extends Core\Model
         return $response;
     }
 
+    /**
+     * Сохраняет изменённые данные пользователя
+     *
+     * @param array $userData Данные с индивидуальной страницы пользователя
+     *
+     * @return string Ответ на попытку сохранения данных о пользователе
+     */
+    public function saveUserData(array $userData)
+    {
+        $response = 'Предоставлены не верные данные';
+        if (!empty($userData)) {
+            $update = array_filter($userData);
+            $db = Db::getInstance();
+            if (isset($update['password'])) {
+                $update['password'] = $db->real_escape_string($update['password']);
+                if (strlen($update['password']) > 0) {
+                    $update['password'] = crypt($update['password']);
+                }
+            }
+            $db->update($this->_table)->set($update)->where('ID = :ID', array('ID' => $_SESSION['login']['ID']))->exec();
+            $response = 'Данные сохранены';
+        }
+        return $response;
+    }
 }

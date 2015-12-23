@@ -101,4 +101,59 @@ JS;
             return $response;
         }
     }
+
+    /**
+     * Сохранение данных о пользователе
+     * @throws \Exception
+     */
+    public function saveAction($user = array())
+    {
+        $this->notPrint = true;
+        $request = new Request();
+        $config = Config::getInstance();
+        $prevStructure = $config->getStructureByName('Cabinet_Part');
+        $prevStructure = '0-' . $prevStructure['ID'];
+        $this->model = new Model($prevStructure);
+        $form = $this->model->getLkFormObject();
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                $userData = array();
+                $userData['fio'] = $form->getValue('fname');
+                $userData['phone'] = $form->getValue('phone');
+                $userData['address'] = $form->getValue('addr');
+                $userData['password'] = $form->getValue('pass');
+
+                $userModel = new User\Model('');
+                $response = $userModel->saveUserData($userData);
+                echo $response;
+                die();
+            } else {
+                echo "Заполнены не все поля.";
+                die();
+            }
+        } else {
+            $response = '';
+            switch ($request->subMode) {
+                // Генерируем js
+                case 'js':
+                    $script = <<<JS
+                    $('#lkForm').on('form.successSend', function () {
+                        location.reload();
+                    });
+JS;
+                    $form->setJs($script);
+                    $request->mode = 'js';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    $form->render();
+                    die();
+                    break;
+            }
+            return $response;
+        }
+    }
 }

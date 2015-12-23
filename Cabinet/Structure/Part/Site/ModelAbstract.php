@@ -43,6 +43,39 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
     }
 
     /**
+     * Генерирует html формы личного кабинета
+     *
+     * @return string
+     */
+    public function getLkForm($user)
+    {
+        $form = $this->getLkFormObject();
+        $formView = $this->templateInit('Cabinet/Structure/Part/Site/lkForm.twig');
+        $formView->start = $form->start();
+        $formView->user = $user;
+        $formHtml = $formView->render();
+        return $formHtml;
+    }
+
+    /**
+     * Генерирует объект формы личного кабинета
+     *
+     * @return \FormPhp\Forms
+     * @throws \Exception
+     */
+    public function getLkFormObject()
+    {
+        $form = new FormPhp\Forms('lkForm');
+        $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\Part\\\\Site&action=save');
+        $form->add('fname', 'text');
+        $form->add('phone', 'text');
+        $form->add('addr', 'text');
+        $form->add('pass', 'text');
+        $form->setValidator('phone', 'phone');
+        return $form;
+    }
+
+    /**
      * Генерация абсолютного пути до страницы логина/регистрации/подтверждения
      *
      * @return string Абсолютный путь до страницы логина/регистрации/подтверждения
