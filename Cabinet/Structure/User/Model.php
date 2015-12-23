@@ -143,4 +143,25 @@ class Model extends Core\Model
         }
         return $response;
     }
+
+    /**
+     * Выход пользователя
+     */
+    public static function logout()
+    {
+        // TODO Проверяем подключена ли структуры корзины.
+        // Если корзина не пуста, то вызываем метод её сохранения для выходящего пользователя
+        // и очищаем куку корзины
+        // header("Set-Cookie: basket=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+        if (function_exists('session_status')) {
+            if (session_status() == PHP_SESSION_NONE) {
+                session_start();
+            }
+        } else {
+            if (session_id() == '') {
+                session_start();
+            }
+        }
+        unset($_SESSION['login']);
+    }
 }

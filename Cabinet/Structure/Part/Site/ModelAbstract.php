@@ -80,7 +80,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
      *
      * @return string Абсолютный путь до страницы логина/регистрации/подтверждения
      */
-    private function getFullUrl()
+    public function getFullUrl()
     {
         $pageData = $this->getPageData();
         $url = new Field\Url\Model();
