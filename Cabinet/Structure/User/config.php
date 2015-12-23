@@ -3,7 +3,6 @@
 // Таблица пользователей
 return array(
     'params' => array(
-        'in_structures' => array('Ideal_Part'),
         'structures'    => array('Ideal_User'), // типы, которые можно создавать в этом разделе
         'elements_cms'  => 50, // количество элементов в списке в CMS
         'elements_site' => 15, // количество элементов в списке на сайте
