@@ -1,0 +1,35 @@
+<script type="text/javascript"
+        src="/?mode=ajax&controller=\Cabinet\Structure\Part\Site&action=login&subMode=js"></script>
+<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\Part\Site&action=login&subMode=css"/>
+{{ start | raw }}
+<table>
+    <tr>
+        <td width="100px">Login (email)*</td>
+        <td>
+            <div>
+                <input type="text" value="" name="login">
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td width="100px">Пароль*</td>
+        <td>
+            <div>
+                <input type="password" value="" name="pass">
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2"><br><br></td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <input type="submit" value="ВОЙТИ">
+            <br/>
+            <br/>
+            <a class="submit" href="{{ link | raw }}?action=rec">ВОССТАНОВИТЬ ПАРОЛЬ</a>
+            <a class="submit" href="{{ link | raw }}?action=reg">ЗАРЕГИСТРИРОВАТЬСЯ</a>
+        </td>
+    </tr>
+</table>
+</form>

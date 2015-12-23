@@ -1,23 +1,20 @@
 {% extends "site.twig" %}
 
 {% block content %}
+    <h1>{{ header|raw }}</h1>
+    <div id="user" class="former">
+    <span class="error"></span>
 
-    {% if loginUser %}
-
-        <h1>{{ header }}</h1>
-
-        {# Выводим контент первого аддона #}
-        {{ addons.0.content|raw }}
-
-        {% if parts|length > 0 %}
-            <ul>
-                {% for part in parts %}
-                    <li><a href="{{ part.link }}">{{ part.name }}</a></li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+    {# Если нет информации о пользователе, значит отдаём форму входа #}
+    {% if user is not defined %}
+        <div id="login">
+            {{ loginForm | raw }}
+            213123123
+        </div>
     {% else %}
-        <h2>Вы не авторизованы</h2>
+        Информация о пользователе
     {% endif %}
 
+    {# Выводим контент первого аддона #}
+    {{ addons.0.content|raw }}
 {% endblock %}
