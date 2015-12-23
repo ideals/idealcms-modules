@@ -4,6 +4,7 @@ namespace Cabinet\Structure\Part\Site;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Cabinet\Structure\User;
+use Cabinet\Structure\Part\Site\AccountForms\AccountForms;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
@@ -62,7 +63,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $prevStructure = $config->getStructureByName('Cabinet_Part');
         $prevStructure = '0-' . $prevStructure['ID'];
         $this->model = new Model($prevStructure);
-        $form = $this->model->getLoginFormObject();
+        $accountForms = new AccountForms();
+        $accountForms->setLink($this->model->getFullUrl());
+        $form = $accountForms->getLoginFormObject();
         $request = new Request();
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
@@ -114,7 +117,9 @@ JS;
         $prevStructure = $config->getStructureByName('Cabinet_Part');
         $prevStructure = '0-' . $prevStructure['ID'];
         $this->model = new Model($prevStructure);
-        $form = $this->model->getLkFormObject();
+        $accountForms = new AccountForms();
+        $accountForms->setLink($this->model->getFullUrl());
+        $form = $accountForms->getLkFormObject();
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 $userData = array();

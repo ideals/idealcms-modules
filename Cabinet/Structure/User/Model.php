@@ -138,7 +138,10 @@ class Model extends Core\Model
                     $update['password'] = crypt($update['password']);
                 }
             }
-            $db->update($this->_table)->set($update)->where('ID = :ID', array('ID' => $_SESSION['login']['ID']))->exec();
+            $db->update($this->_table)
+                ->set($update)
+                ->where('ID = :ID', array('ID' => $_SESSION['login']['ID']))
+                ->exec();
             $response = 'Данные сохранены';
         }
         return $response;

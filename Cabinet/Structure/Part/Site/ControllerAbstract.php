@@ -3,6 +3,7 @@
 namespace Cabinet\Structure\Part\Site;
 
 use Cabinet\Structure\User;
+use Cabinet\Structure\Part\Site\AccountForms\AccountForms;
 
 class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
 {
@@ -19,16 +20,22 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         // Для модели пользователя преструктура не важна
         $user = new User\Model('');
         $loggedUser = $user->getLoggedUser();
+
+        $accountForms = new AccountForms();
+        $accountForms->setLink($this->model->getFullUrl());
         // Если пользователь залогинен, то отдаём главную страницу личного кабинета с общей информацией о пользователе
         if ($loggedUser) {
             $this->view->user = $loggedUser;
             $this->view->link = $this->model->getFullUrl();
-            $this->view->lkForm = $this->model->getLkForm($loggedUser);
+            $this->view->lkForm = $accountForms->getLkForm($loggedUser);
         } else {
-            $this->view->loginForm = $this->model->getLoginForm();
+            $this->view->loginForm = $accountForms->getLoginForm();
         }
     }
 
+    /**
+     * Метод обрабатывающий реакцию на выход пользователя из личного кабинета
+     */
     public function logoutAction()
     {
         User\Model::logout();
