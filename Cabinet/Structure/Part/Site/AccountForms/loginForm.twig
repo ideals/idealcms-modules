@@ -27,8 +27,9 @@
             <input type="submit" value="ВОЙТИ">
             <br/>
             <br/>
-            <a class="submit" href="{{ link | raw }}?action=rec">ВОССТАНОВИТЬ ПАРОЛЬ</a>
-            <a class="submit" href="{{ link | raw }}?action=reg">ЗАРЕГИСТРИРОВАТЬСЯ</a>
+            {% set link = link|split('.') %}
+            <a class="submit" href="{{ link.0 | raw }}/restore-password.html">ВОССТАНОВИТЬ ПАРОЛЬ</a>
+            <a class="submit" href="{{ link.0 | raw }}/registraciya.html">ЗАРЕГИСТРИРОВАТЬСЯ</a>
         </td>
     </tr>
 </table>

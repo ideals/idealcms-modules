@@ -1,0 +1,15 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <h1>{{ header|raw }}</h1>
+    <div id="user" class="former">
+        <span class="error"></span>
+
+        {% if form is defined %}
+            {{ form | raw }}
+        {% endif %}
+    </div>
+
+    {# Выводим контент первого аддона #}
+    {{ addons.0.content|raw }}
+{% endblock %}

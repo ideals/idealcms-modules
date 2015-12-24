@@ -50,10 +50,33 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         $formName = $this->getFormName();
         if (!empty($formName)) {
             $accountForms = new AccountForms();
+            $accountForms->setLink($this->model->getFullUrl());
 
             // Формируем название метода для получения формы
             $formMethodName = 'get' . ucfirst($formName) . 'Form';
             $this->view->form = $accountForms->$formMethodName();
+        }
+    }
+
+    /**
+     * Подтверждение регистрации
+     */
+    public function finishRegAction()
+    {
+        $this->templateInit('Cabinet/Structure/Part/Site/finishReg.twig');
+        if (function_exists('session_status')) {
+            if (session_status() == PHP_SESSION_NONE) {
+                session_start();
+            }
+        } else {
+            if (session_id() == '') {
+                session_start();
+            }
+        }
+        if (isset($_GET['email']) && isset($_GET['key'])) {
+            $user = new User\Model('');
+            $user->finishReg();
+            if (isset($_SESSION['login']['is_active'])) $_SESSION['login']['is_active'] = true;
         }
     }
 
@@ -79,6 +102,9 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         switch ($template) {
             case 'restorePassword.twig':
                 return 'restore';
+                break;
+            case 'registration.twig':
+                return 'registration';
                 break;
             default:
                 return '';

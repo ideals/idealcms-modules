@@ -1,0 +1,8 @@
+{% extends "site.twig" %}
+
+{% block content %}
+    <h1>{{ header|raw }}</h1>
+    Поздравляем, вы успешно прошли регистрацию!
+    {# Выводим контент первого аддона #}
+    {{ addons.0.content|raw }}
+{% endblock %}

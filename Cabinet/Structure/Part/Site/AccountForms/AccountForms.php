@@ -116,6 +116,51 @@ class AccountForms
     }
 
     /**
+     * Генерирует html формы регистрации
+     *
+     * @return string
+     */
+    public function getRegistrationForm()
+    {
+        $form = $this->getRegistrationFormObject();
+        $formView = $this->templateInit('Cabinet/Structure/Part/Site/AccountForms/registrationForm.twig');
+        $formView->start = $form->start();
+        $formView->link = $this->link;
+        $formHtml = $formView->render();
+        return $formHtml;
+    }
+
+    /**
+     * Генерирует объект формы регистрации
+     *
+     * @return \FormPhp\Forms
+     * @throws \Exception
+     */
+    public function getRegistrationFormObject()
+    {
+        $form = new FormPhp\Forms('registrationForm');
+        $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\Part\\\\Site&action=registration');
+        $form->setClearForm(false);
+        $form->add('lastname', 'text');
+        $form->add('name', 'text');
+        $form->add('phone', 'text');
+        $form->add('addr', 'text');
+        $form->add('email', 'text');
+        $form->add('int', 'text');
+        $form->add('link', 'text');
+        $form->setValidator('lastname', 'required');
+        $form->setValidator('name', 'required');
+        $form->setValidator('phone', 'required');
+        $form->setValidator('phone', 'phone');
+        $form->setValidator('addr', 'required');
+        $form->setValidator('email', 'required');
+        $form->setValidator('email', 'email');
+        $form->setValidator('int', 'required');
+        $form->setValidator('int', 'captcha');
+        return $form;
+    }
+
+    /**
      * Закрытый метод для генерации отдельного экземпляра класса "Ideal\Core\View"
      * Используется для получения представления форм с помошью шаблонизатора Twig.
      *

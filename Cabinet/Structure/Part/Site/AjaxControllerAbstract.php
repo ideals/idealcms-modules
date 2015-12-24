@@ -220,4 +220,76 @@ JS;
             return $response;
         }
     }
+
+    /**
+     * Регистрация пользователя
+     */
+    public function registrationAction($link = '')
+    {
+        $this->notPrint = true;
+        $request = new Request();
+        $accountForms = new AccountForms();
+        $form = $accountForms->getRegistrationFormObject();
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                $newUserData = array();
+                $newUserData['fio'] = $form->getValue('lastname') . ' ' . $form->getValue('name');
+                $newUserData['phone'] = $form->getValue('phone');
+                $newUserData['address'] = $form->getValue('addr');
+                $newUserData['email'] = $form->getValue('email');
+
+                $userModel = new User\Model('');
+                $response = $userModel->userRegistration($newUserData);
+                if ($response['success']) {
+                    $config = Config::getInstance();
+                    $title = 'Регистрация на ' . $config->domain;
+
+                    $this->templateInit('Cabinet/Structure/Part/Site/letter.twig');
+                    $this->view->phone = $config->phone;
+                    $this->view->email = $config->mailForm;
+                    $this->view->domain = $config->domain;
+                    $this->view->reg = true;
+                    $this->view->fio = $newUserData['fio'];
+                    $this->view->email = $newUserData['email'];
+                    $this->view->pass = $response['pass'];
+                    $link = 'http://' . $config->domain . $form->getValue('link') . '?';
+                    $link .= 'action=finishReg';
+                    $link .= '&email=' . urlencode($newUserData['email']);
+                    $link .= '&key=' . urlencode($response['key']);
+                    $this->view->link = $link;
+                    $this->view->title = $title;
+                    $msg = $this->view->render();
+
+                    if ($form->sendMail($config->robotEmail, $newUserData['email'], $title, $msg, true)) {
+                        echo 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
+                    } else {
+                        echo 'Ошибка. Попробуйте чуть позже';
+                    }
+                } else {
+                    echo $response['text'];
+                }
+                die();
+            } else {
+                echo "Заполнены не все поля.";
+                die();
+            }
+        } else {
+            $response = '';
+            switch ($request->subMode) {
+                // Генерируем js
+                case 'js':
+                    $request->mode = 'js';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    $form->render();
+                    die();
+                    break;
+            }
+            return $response;
+        }
+    }
 }

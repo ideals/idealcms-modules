@@ -37,7 +37,9 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
         $this->path = array_merge($path, $cabinetParts);
 
         $request = new Request();
-        $request->action = 'detail';
+        if (empty($request->action)) {
+            $request->action = 'detail';
+        }
 
         return $this;
     }
@@ -51,6 +53,9 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
     {
         $pageData = $this->getPageData();
         $url = new Field\Url\Model();
+        if (count($this->path) > 2) {
+            $url->setParentUrl($this->path);
+        }
         $link = $url->getUrl($pageData);
         return $link;
     }

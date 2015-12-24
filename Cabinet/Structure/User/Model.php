@@ -190,6 +190,68 @@ class Model extends Core\Model
     }
 
     /**
+     * Регистрация нового пользователя в системе
+     *
+     * @param array $userData Данные пользователя желающего зарегистрироваться
+     *
+     * @return array Ответ на попытку региистрации в системе, а так же пароль сгенерированны для нового пользователя и ключ авторизации
+     */
+    public function userRegistration(array $userData)
+    {
+        $response = array(
+            'success' => false,
+            'text' => 'Нет данных о новом пользователе',
+            'pass' => '',
+            'key' => ''
+        );
+        if (!empty($userData)) {
+            if (!isset($userData['email']) || !isset($userData['address']) || !isset($userData['phone']) || !isset($userData['fio'])) {
+                $response = array(
+                    'success' => false,
+                    'text' => 'Недостаточно данных для регистрации нового пользователя',
+                    'pass' => '',
+                    'key' => ''
+                );
+            } else {
+                $db = Db::getInstance();
+                $par = array('email' => strtolower($userData['email']));
+                $fields = array('table' => $this->_table);
+                $tmp = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
+                if (count($tmp) > 0) {
+                    $response = array(
+                        'success' => false,
+                        'text' => 'Такой Email уже зарегестрирован',
+                        'pass' => '',
+                        'key' => ''
+                    );
+                } else {
+                    $key = md5(time());
+                    $pass = $this->randPassword();
+                    $db->insert($this->_table, array(
+                        'email' => $userData['email'],
+                        'address' => $userData['address'],
+                        'phone' => $userData['phone'],
+                        'password' => $pass,
+                        'fio' => $userData['fio'],
+                        'is_active' => 0,
+                        'prev_structure' => $this->getPrevStructure(),
+                        'act_key' => $key,
+                        'reg_date' => time()
+                    ));
+
+                    $response = array(
+                        'success' => true,
+                        'text' => 'Пользователь успешно зарегистрирован',
+                        'pass' => $pass,
+                        'key' => $key
+                    );
+                }
+            }
+        }
+        return $response;
+    }
+
+    /**
      * Генерация пароля
      * @param int $min Минимальное количество в пароле
      * @param int $max Максимальное количество в пароле
@@ -200,6 +262,26 @@ class Model extends Core\Model
         $length = rand($min, $max);
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         return substr(str_shuffle($chars), 0, $length);
+    }
+
+    /**
+     * Завершение регистрации
+     *
+     * @return bool Ответ на попытку активации пользователя
+     */
+    public function finishReg()
+    {
+        $db = Db::getInstance();
+        $email = mysqli_real_escape_string($db, $_GET['email']);
+        $key = mysqli_real_escape_string($db, $_GET['key']);
+        $_sql = "SELECT * FROM {$this->_table} WHERE email='{$email}' AND act_key='{$key}' LIMIT 1";
+        $result = $db->select($_sql);
+        if (count($result) == 1) {
+            $_sql = "UPDATE {$this->_table} SET is_active=1, act_key=''";
+            $db->query($_sql);
+            return true;
+        }
+        return false;
     }
 
     /**
