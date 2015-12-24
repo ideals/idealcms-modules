@@ -33,6 +33,30 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         }
     }
 
+    public function detailAction()
+    {
+        $pageData = $this->model->getPageData();
+        $template = basename($pageData['template']);
+        $this->templateInit('Cabinet/Structure/Part/Site/' . $template);
+
+        // Перенос данных страницы в шаблон
+        foreach ($pageData as $k => $v) {
+            $this->view->$k = $v;
+        }
+
+        $this->view->header = $this->model->getHeader();
+
+        // Получаем название формы для текущей страницы
+        $formName = $this->getFormName();
+        if (!empty($formName)) {
+            $accountForms = new AccountForms();
+
+            // Формируем название метода для получения формы
+            $formMethodName = 'get' . ucfirst($formName) . 'Form';
+            $this->view->form = $accountForms->$formMethodName();
+        }
+    }
+
     /**
      * Метод обрабатывающий реакцию на выход пользователя из личного кабинета
      */
@@ -43,5 +67,21 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         // Перенаправляем пользователя на ту страницу на которой был инициирован процесс выхода
         $url = explode('?', $_SERVER['HTTP_REFERER']);
         header('Location: ' . $url[0]);
+    }
+
+    /**
+     * Получает наименование формы для просматриваемой внутренней страницы личного кабинета
+     */
+    public function getFormName()
+    {
+        $pageData = $this->model->getPageData();
+        $template = basename($pageData['template']);
+        switch ($template) {
+            case 'restorePassword.twig':
+                return 'restore';
+                break;
+            default:
+                return '';
+        }
     }
 }

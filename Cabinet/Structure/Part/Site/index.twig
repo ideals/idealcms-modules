@@ -3,20 +3,21 @@
 {% block content %}
     <h1>{{ header|raw }}</h1>
     <div id="user" class="former">
-    <span class="error"></span>
+        <span class="error"></span>
 
-    {# Если нет информации о пользователе, значит отдаём форму входа #}
-    {% if user is not defined %}
-        <div id="login">
-            {{ loginForm | raw }}
-        </div>
-    {% else %}
-        <p class="logout"><a href="{{ link }}?action=logout">Выйти</a></p>
+        {# Если нет информации о пользователе, значит отдаём форму входа #}
+        {% if user is not defined %}
+            <div id="login">
+                {{ loginForm | raw }}
+            </div>
+        {% else %}
+            <p class="logout"><a href="{{ link }}?action=logout">Выйти</a></p>
 
-        <div id="formzakaz">
-            {{ lkForm | raw }}
-        </div>
-    {% endif %}
+            <div id="formzakaz">
+                {{ lkForm | raw }}
+            </div>
+        {% endif %}
+    </div>
 
     {# Выводим контент первого аддона #}
     {{ addons.0.content|raw }}

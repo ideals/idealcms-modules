@@ -161,4 +161,63 @@ JS;
             return $response;
         }
     }
+
+    /**
+     * Восстановление пароля
+     * @throws \Exception
+     */
+    public function restoreAction()
+    {
+        $this->notPrint = true;
+        $request = new Request();
+        $accountForms = new AccountForms();
+        $form = $accountForms->getRestoreFormObject();
+        if ($form->isPostRequest()) {
+            if ($form->isValid()) {
+                $email = strtolower($form->getValue('login'));
+                $userModel = new User\Model('');
+                $response = $userModel->restorePassword($email);
+                if (!$response['success']) {
+                    echo $response['text'];
+                } else {
+                    $config = Config::getInstance();
+                    $title = 'Восстановление пароля на ' . $config->domain;
+                    $this->templateInit('Cabinet/Structure/Part/Site/letter.twig');
+                    $this->view->phone = $config->phone;
+                    $this->view->email = $config->mailForm;
+                    $this->view->domain = $config->domain;
+                    $this->view->title = $title;
+                    $this->view->clearPass = $response['pass'];
+                    $this->view->restore = true;
+                    $html = $this->view->render();
+                    if ($form->sendMail($config->robotEmail, $email, $title, $html, true)) {
+                        echo ' Вам выслан новый пароль.';
+                    } else {
+                        echo ' Услуга временно недоступна попробуйте позже.';
+                    }
+                }
+                die();
+            } else {
+                echo 'Указан не верный e-mail';
+                die();
+            }
+        } else {
+            $response = '';
+            switch ($request->subMode) {
+                // Генерируем js
+                case 'js':
+                    $request->mode = 'js';
+                    $form->render();
+                    die();
+                    break;
+                // Генерируем css
+                case 'css':
+                    $request->mode = 'css';
+                    $form->render();
+                    die();
+                    break;
+            }
+            return $response;
+        }
+    }
 }

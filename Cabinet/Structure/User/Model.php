@@ -148,6 +148,61 @@ class Model extends Core\Model
     }
 
     /**
+     * Восстановление пароля
+     *
+     * @param string $email Электронная почта
+     *
+     * @return array Ответ на попытку восстановления пароля, а так же новый сгенерированны пароль для пользователя
+     */
+    public function restorePassword($email = '')
+    {
+        $response = array(
+            'success' => false,
+            'text' => 'Не известно для кого восстанавливать пароль',
+            'pass' => '',
+        );
+        if (!empty($email)) {
+            $db = Db::getInstance();
+            $par = array('email' => $email);
+            $fields = array('table' => $this->_table);
+            $user = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
+            if (count($user) == 0) {
+                $response = array(
+                    'success' => false,
+                    'text' => 'Данный E-mail еще не зарегистрирован',
+                    'pass' => '',
+                    'key' => ''
+                );
+            } else {
+                $pass = $this->randPassword();
+                $db->update($this->_table)->set(array('password' => crypt($pass)))->where('email = :email', array
+                (
+                    'email' => $email
+                ))->exec();
+                $response = array(
+                    'success' => true,
+                    'text' => 'Пароль обновлён',
+                    'pass' => $pass,
+                );
+            }
+        }
+        return $response;
+    }
+
+    /**
+     * Генерация пароля
+     * @param int $min Минимальное количество в пароле
+     * @param int $max Максимальное количество в пароле
+     * @return string
+     */
+    static public function randPassword($min = 8, $max = 12)
+    {
+        $length = rand($min, $max);
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        return substr(str_shuffle($chars), 0, $length);
+    }
+
+    /**
      * Выход пользователя
      */
     public static function logout()

@@ -1,0 +1,49 @@
+<script type="text/javascript"
+        src="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=registration&subMode=js"></script>
+<link media="all" rel="stylesheet" type="text/css" href="/?mode=ajax&controller=\Cabinet\Structure\User\Site&action=registration&subMode=css"/>
+{{ start | raw }}
+<table>
+    <tr>
+        <td>Фамилия*:</td>
+        <td><input type="text" value="" name="lastname"></td>
+    </tr>
+    <tr>
+        <td>Имя*:</td>
+        <td><input type="text" value="" name="name"></td>
+    </tr>
+    <tr>
+        <td>Телефон*:</td>
+        <td><input type="text" value="" name="phone"></td>
+    </tr>
+    <tr>
+        <td>Адрес*:</td>
+        <td><textarea name="addr"></textarea></td>
+    </tr>
+    <tr>
+        <td>E-mail*:</td>
+        <td><input class="required" type="text" value="" name="email"></td>
+    </tr>
+    <tr>
+        <td colspan="2" align="center"><br></td>
+    </tr>
+    <tr>
+        <td>
+            <img src="/images/captcha.jpg" onclick="getCaptcha(this)"
+                 title="нажмите что бы обновить" style="cursor: pointer">
+        </td>
+        <td>
+            <input style="textalign:center;width:100px;" type="text" name="int" size="6">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2" align="center">
+            <input type="hidden" value="{{ link | raw }}" name="link">
+            <p style="margin: auto;">Введите защитный код с картинки</p>
+            <br><br>
+            <br><br>
+            <input type="submit" value="ЗАРЕГИСТРИРОВАТЬСЯ">
+            <br>
+        </td>
+    </tr>
+</table>
+</form>

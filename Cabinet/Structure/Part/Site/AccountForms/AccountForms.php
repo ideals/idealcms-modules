@@ -86,6 +86,36 @@ class AccountForms
     }
 
     /**
+     * Генерирует html формы восстановления пароля
+     *
+     * @return string
+     */
+    public function getRestoreForm()
+    {
+        $form = $this->getRestoreFormObject();
+        $formView = $this->templateInit('Cabinet/Structure/Part/Site/AccountForms/restoreForm.twig');
+        $formView->start = $form->start();
+        $formHtml = $formView->render();
+        return $formHtml;
+    }
+
+    /**
+     * Генерирует объект формы восстановления пароля
+     *
+     * @return \FormPhp\Forms
+     * @throws \Exception
+     */
+    public function getRestoreFormObject()
+    {
+        $form = new FormPhp\Forms('restoreForm');
+        $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\Part\\\\Site&action=restore');
+        $form->add('login', 'text');
+        $form->setValidator('login', 'required');
+        $form->setValidator('login', 'email');
+        return $form;
+    }
+
+    /**
      * Закрытый метод для генерации отдельного экземпляра класса "Ideal\Core\View"
      * Используется для получения представления форм с помошью шаблонизатора Twig.
      *
