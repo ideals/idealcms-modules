@@ -109,7 +109,7 @@ JS;
      * Сохранение данных о пользователе
      * @throws \Exception
      */
-    public function saveAction($user = array())
+    public function saveAction()
     {
         $this->notPrint = true;
         $request = new Request();
@@ -224,7 +224,7 @@ JS;
     /**
      * Регистрация пользователя
      */
-    public function registrationAction($link = '')
+    public function registrationAction()
     {
         $this->notPrint = true;
         $request = new Request();

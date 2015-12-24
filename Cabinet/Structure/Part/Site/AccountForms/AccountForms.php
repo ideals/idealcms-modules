@@ -11,7 +11,7 @@ use Ideal\Core\Config;
 class AccountForms
 {
 
-    /** @var string Адрес страницы, на которой располагается форма*/
+    /** @var string Адрес страницы, на которой располагается форма */
     protected $link = '';
 
     public function setLink($link)

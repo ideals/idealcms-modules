@@ -33,6 +33,9 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         }
     }
 
+    /**
+     * Метод обрабатывающий реакцию на открытие внутренних страниц личного кабинета
+     */
     public function detailAction()
     {
         $pageData = $this->model->getPageData();
