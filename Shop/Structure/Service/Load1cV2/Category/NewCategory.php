@@ -171,7 +171,6 @@ class NewCategory
      */
     public function answer()
     {
-        $a = 1 + 1;
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
