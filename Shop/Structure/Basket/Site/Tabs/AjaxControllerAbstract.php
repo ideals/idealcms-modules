@@ -71,7 +71,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
-                echo 'validationError';
+                echo 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -180,7 +180,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
-                echo 'validationError';
+                echo 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -253,7 +253,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
-                echo 'validationError';
+                echo 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -328,7 +328,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
-                echo 'validationError';
+                echo 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -445,7 +445,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 $this->finishOrder();
                 echo 'Ваш заказ принят';
             } else {
-                echo 'validationError';
+                echo 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
@@ -654,7 +654,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     $('#{$formIdValue}').on('form.successSend', function (event, result) {
                         function {$formIdValue}ServerValidationCheck() {
                             window.stopForm = 1;
-                            if (result == 'validationError') {
+                            if (result == 'stopValidationError') {
                             alert('Форма заполнена неправильно');
                                 return;
                             }
