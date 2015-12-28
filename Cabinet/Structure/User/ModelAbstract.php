@@ -59,6 +59,19 @@ class ModelAbstract extends Core\Model
         }
         $result = $db->select($_sql, $par, $fields);
         if (count($result) > 0) {
+
+            // Если подключена структура "Order" модуля "Shop", то пытаемся получить информацию о заказах пользователя
+            $config = Core\Config::getInstance();
+            if ($config->getStructureByName('Shop_Order')) {
+                $shopOrderTable = $config->getTableByName('Shop_Order');
+                $fields = array('table' => $shopOrderTable);
+                $par = array('user_id' => $_SESSION['login']['ID']);
+                $_sql = "SELECT * FROM &table WHERE user_id= :user_id";
+                $resultOrders = $db->select($_sql, $par, $fields);
+                if (count($resultOrders) > 0) {
+                    $result[0]['orders'] = $resultOrders;
+                }
+            }
             return $result[0];
         }
         return false;
