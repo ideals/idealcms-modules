@@ -93,6 +93,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         // Перенаправляем пользователя на ту страницу на которой был инициирован процесс выхода
         $url = explode('?', $_SERVER['HTTP_REFERER']);
         header('Location: ' . $url[0]);
+        die();
     }
 
     /**
