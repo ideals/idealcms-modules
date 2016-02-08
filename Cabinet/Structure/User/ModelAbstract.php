@@ -11,13 +11,26 @@ namespace Cabinet\Structure\User;
 
 use Ideal\Core;
 use Ideal\Core\Db;
-use Ideal\Core;
+use Ideal\Core\Config;
 
 /**
  * Класс для работы со сторонними пользователями в системе
  */
 class ModelAbstract extends Core\Model
 {
+
+    public function __construct($prevStructure)
+    {
+        parent::__construct($prevStructure);
+        if (empty($this->prevStructure)) {
+            $config = Config::getInstance();
+            $cabinetUserConfig = $config->getStructureByName('Cabinet_User');
+            if (!empty($cabinetUserConfig) && isset($cabinetUserConfig['ID'])) {
+                $this->setPrevStructure('0-' . $cabinetUserConfig['ID']);
+            }
+        }
+    }
+
 
     /**
      * Отдаёт информацию о залогиненном пользователе либо false
