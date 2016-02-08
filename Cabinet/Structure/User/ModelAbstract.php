@@ -9,6 +9,7 @@
 
 namespace Cabinet\Structure\User;
 
+use Ideal\Core;
 use Ideal\Core\Db;
 use Ideal\Core;
 
@@ -244,7 +245,7 @@ class ModelAbstract extends Core\Model
                         'email' => $userData['email'],
                         'address' => $userData['address'],
                         'phone' => $userData['phone'],
-                        'password' => $pass,
+                        'password' => crypt($pass),
                         'fio' => $userData['fio'],
                         'is_active' => 0,
                             'prev_structure' => $this->getPrevStructure(),
