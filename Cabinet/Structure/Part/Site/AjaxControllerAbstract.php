@@ -8,11 +8,9 @@ use Cabinet\Structure\Part\Site\AccountForms\AccountForms;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
-    /** @var array Основные параметры при ответе для json */
-    protected $answer;
 
-    /** @var bool Печатать ли ответ при завершении работы класса */
-    protected $notPrint = false;
+    /** @var array Дополнительные HTTP-заголовки ответа  */
+    public $httpHeaders = array();
 
     /**
      * TODO
@@ -32,23 +30,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 session_start();
             }
         }
-        $this->answer = array(
-            'error' => false, // Состояние ошибки
-            'text' => '', // Текст о выполнении задачи
-            'refresh' => false // Требуется ли обновление страницы после получения данных
-        );
-    }
-
-    /**
-     * Завершение работы ajax запроса и вывод результатов
-     */
-    public function __destruct()
-    {
-        if (!$this->notPrint) {
-            $this->answer['text'] = trim($this->answer['text']);
-            print json_encode($this->answer);
-            exit();
-        }
     }
 
     /**
@@ -58,7 +39,6 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function loginAction()
     {
-        $this->notPrint = true;
         $config = Config::getInstance();
         $prevStructure = $config->getStructureByName('Cabinet_Part');
         $prevStructure = '0-' . $prevStructure['ID'];
@@ -73,11 +53,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 $pass = htmlspecialchars($form->getValue('pass'));
                 $userModel = new User\Model('');
                 $response = $userModel->userAuthorization($email, $pass);
-                echo $response;
-                die();
+                return $response;
             } else {
-                echo 'Вы указали не все данные';
-                die();
+                return 'Вы указали не все данные';
             }
         } else {
             $response = '';
@@ -91,14 +69,24 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 JS;
                     $form->setJs($script);
                     $request->mode = 'js';
+                    $form->setSendHeader(false);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
+                    ob_start();
                     $form->render();
-                    die();
+                    $text = ob_get_contents();
+                    ob_end_clean();
+                    return $text;
                     break;
                 // Генерируем css
                 case 'css':
                     $request->mode = 'css';
+                    $form->setSendHeader(false);
+                    $this->httpHeaders['Content-type'] = 'text/css';
+                    ob_start();
                     $form->render();
-                    die();
+                    $text = ob_get_contents();
+                    ob_end_clean();
+                    return $text;
                     break;
             }
             return $response;
@@ -111,7 +99,6 @@ JS;
      */
     public function saveAction()
     {
-        $this->notPrint = true;
         $request = new Request();
         $config = Config::getInstance();
         $prevStructure = $config->getStructureByName('Cabinet_Part');
@@ -130,11 +117,9 @@ JS;
 
                 $userModel = new User\Model('');
                 $response = $userModel->saveUserData($userData);
-                echo $response;
-                die();
+                return $response;
             } else {
-                echo "Заполнены не все поля.";
-                die();
+                return "Заполнены не все поля.";
             }
         } else {
             $response = '';
@@ -148,14 +133,24 @@ JS;
 JS;
                     $form->setJs($script);
                     $request->mode = 'js';
+                    $form->setSendHeader(false);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
+                    ob_start();
                     $form->render();
-                    die();
+                    $text = ob_get_contents();
+                    ob_end_clean();
+                    return $text;
                     break;
                 // Генерируем css
                 case 'css':
                     $request->mode = 'css';
+                    $form->setSendHeader(false);
+                    $this->httpHeaders['Content-type'] = 'text/css';
+                    ob_start();
                     $form->render();
-                    die();
+                    $text = ob_get_contents();
+                    ob_end_clean();
+                    return $text;
                     break;
             }
             return $response;
@@ -168,7 +163,6 @@ JS;
      */
     public function restoreAction()
     {
-        $this->notPrint = true;
         $request = new Request();
         $accountForms = new AccountForms();
         $form = $accountForms->getRestoreFormObject();
@@ -191,15 +185,13 @@ JS;
                     $this->view->restore = true;
                     $html = $this->view->render();
                     if ($form->sendMail($config->robotEmail, $email, $title, $html, true)) {
-                        echo ' Вам выслан новый пароль.';
+                        return ' Вам выслан новый пароль.';
                     } else {
-                        echo ' Услуга временно недоступна попробуйте позже.';
+                        return ' Услуга временно недоступна попробуйте позже.';
                     }
                 }
-                die();
             } else {
-                echo 'Указан не верный e-mail';
-                die();
+                return 'Указан не верный e-mail';
             }
         } else {
             $response = '';
@@ -207,14 +199,24 @@ JS;
                 // Генерируем js
                 case 'js':
                     $request->mode = 'js';
+                    $form->setSendHeader(false);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
+                    ob_start();
                     $form->render();
-                    die();
+                    $text = ob_get_contents();
+                    ob_end_clean();
+                    return $text;
                     break;
                 // Генерируем css
                 case 'css':
                     $request->mode = 'css';
+                    $form->setSendHeader(false);
+                    $this->httpHeaders['Content-type'] = 'text/css';
+                    ob_start();
                     $form->render();
-                    die();
+                    $text = ob_get_contents();
+                    ob_end_clean();
+                    return $text;
                     break;
             }
             return $response;
@@ -226,7 +228,6 @@ JS;
      */
     public function registrationAction()
     {
-        $this->notPrint = true;
         $request = new Request();
         $accountForms = new AccountForms();
         $form = $accountForms->getRegistrationFormObject();
@@ -261,17 +262,15 @@ JS;
                     $msg = $this->view->render();
 
                     if ($form->sendMail($config->robotEmail, $newUserData['email'], $title, $msg, true)) {
-                        echo 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
+                        return 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
                     } else {
-                        echo 'Ошибка. Попробуйте чуть позже';
+                        return 'Ошибка. Попробуйте чуть позже';
                     }
                 } else {
-                    echo $response['text'];
+                    return $response['text'];
                 }
-                die();
             } else {
-                echo "Заполнены не все поля.";
-                die();
+                return "Заполнены не все поля.";
             }
         } else {
             $response = '';
@@ -279,17 +278,37 @@ JS;
                 // Генерируем js
                 case 'js':
                     $request->mode = 'js';
+                    $form->setSendHeader(false);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
+                    ob_start();
                     $form->render();
-                    die();
+                    $text = ob_get_contents();
+                    ob_end_clean();
+                    return $text;
                     break;
                 // Генерируем css
                 case 'css':
                     $request->mode = 'css';
+                    $form->setSendHeader(false);
+                    $this->httpHeaders['Content-type'] = 'text/css';
+                    ob_start();
                     $form->render();
-                    die();
+                    $text = ob_get_contents();
+                    ob_end_clean();
+                    return $text;
                     break;
             }
             return $response;
         }
+    }
+
+    /**
+     * Переопределяет HTTP-заголовки ответа
+     *
+     * @return array Массив где ключи - названия заголовков, а значения - содержание заголовков
+     */
+    public function getHttpHeaders()
+    {
+        return $this->httpHeaders;
     }
 }
