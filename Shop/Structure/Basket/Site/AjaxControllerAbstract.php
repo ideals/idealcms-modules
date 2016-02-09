@@ -41,6 +41,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     /** @var int время жизни корзины в секундах, если время обновления(создания) корзины больше, то она обновляется */
     protected $timeLive = 7200;
 
+    /** @var array Дополнительные HTTP-заголовки ответа  */
+    public $httpHeaders = array();
+
     // Таблицы с товарами и предложениями в конструкторе
     // TODO определять автоматически модуль из которых надо брать, сейчас прописано CatalogPlus
     protected $tableGood;
@@ -99,12 +102,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
     /**
      * Завершение работы срипта корзины и вывод результата на экран в формате json строки
-     * После полная остановка работы
      */
-    public function __destruct()
+    protected function buildBasket()
     {
         // Если было установлено правило на пересбор корзины
-        if ($this->update) {
+        if ($this->update || !$this->update) {
             $goods = $this->basket['goods'];
             $this->basket = array(
                 'goods' => array(), // товары которые находятся в корзине
@@ -133,8 +135,8 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             setcookie("basket", json_encode($this->basket, JSON_FORCE_OBJECT));
         }
         $this->answer['basket'] = $this->basket;
-        print json_encode($this->answer);
-        exit();
+        $this->httpHeaders['Content-type'] = 'application/json';
+        return json_encode($this->answer);
     }
 
     /**
@@ -148,7 +150,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $quant = (int)$this->quant;
         if (!($quant > 0)) {
             if (!$local) {
-                exit();
+                return $this->buildBasket();
             } else {
                 return false;
             }
@@ -163,7 +165,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             // Не удалось получить информацию(цену) о товаре(предложении)
             // Значит товар(предложение) отсутвует или распродан/о
             if (!$local) {
-                exit();
+                return $this->buildBasket();
             } else {
                 return false;
             }
@@ -182,7 +184,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->basket['total'] += ($quant * $good['sale_price']);
         $this->basket['disco'] += ($quant * $good['discount']);
         if (!$local) {
-            exit();
+            return $this->buildBasket();
         } else {
             return true;
         }
@@ -198,7 +200,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         unset($this->basket['goods'][$this->idGood]);
         $this->update = true;
         if (!$local) {
-            exit();
+            return $this->buildBasket();
         } else {
             return true;
         }
@@ -215,7 +217,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $this->disco = $this->basket['disco'];
         $this->update = true;
         if (!$local) {
-            exit();
+            return $this->buildBasket();
         } else {
             return true;
         }
@@ -226,7 +228,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function getBasketAction()
     {
-        exit();
+        return $this->buildBasket();
     }
 
     /**
@@ -236,7 +238,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     {
         setcookie("basket", null, -1, '/');
         setcookie("tabsInfo", null, -1, '/');
-        exit();
+        return $this->buildBasket();
     }
 
     /**
@@ -273,7 +275,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             $this->answer['error'] = true;
             $this->answer['text'] = 'Промо код не найден';
         }
-        exit();
+        return $this->buildBasket();
     }
 
     /**
@@ -281,7 +283,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function delBasket()
     {
-
+        $this->buildBasket();
     }
 
     /**
@@ -324,7 +326,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      *  Проверяет страницу на принадлежность к процессу оформления заказа
      *  и в случае совпадения устанавливает флаг обновления информации в корзине.
      */
-    private function checkForcedUpdate()
+    protected function checkForcedUpdate()
     {
         $config = Config::getInstance();
         $orderingPage = self::getOrderingPage();
@@ -370,5 +372,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             $tabs = $pages;
         }
         return $tabs;
+    }
+
+    /**
+     * Переопределяет HTTP-заголовки ответа
+     *
+     * @return array Массив где ключи - названия заголовков, а значения - содержание заголовков
+     */
+    public function getHttpHeaders()
+    {
+        return $this->httpHeaders;
     }
 }
