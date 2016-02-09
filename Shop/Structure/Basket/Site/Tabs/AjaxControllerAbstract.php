@@ -23,6 +23,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
     protected $orderId = false;
 
+    /** @var array Дополнительные HTTP-заголовки ответа  */
+    public $httpHeaders = array();
+
     /**
      * Генерация данных и установка значений по умолчанию
      */
@@ -71,30 +74,40 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
-                echo 'stopValidationError';
+                return 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
+            $text = '';
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
                     $script = $this->getStartJsForStep('confirmationForm');
                     $form->setJs($script);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
                 // Генерируем css
                 case 'css':
+                    $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    echo $form->start();
-                    exit();
+                    ob_start();
+                    $form->start();
+                    $text = ob_get_contents();
+                    ob_end_clean();
                     break;
             }
+            if (empty($text)) {
+                ob_start();
             $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
         }
-        exit();
+            return $text;
+        }
     }
 
     // Обрабатывает запросы для формы из шаблона поумолчанию "Доставка(адрес) и способ досставки"
@@ -180,30 +193,40 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
-                echo 'stopValidationError';
+                return 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
+            $text = '';
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
                     $script = $this->getStartJsForStep('deliveryForm');
                     $form->setJs($script);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
                 // Генерируем css
                 case 'css':
+                    $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    echo $form->start();
-                    exit();
+                    ob_start();
+                    $form->start();
+                    $text = ob_get_contents();
+                    ob_end_clean();
                     break;
             }
+            if (empty($text)) {
+                ob_start();
             $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
         }
-        exit();
+            return $text;
+        }
     }
 
     // Обрабатывает запросы для формы из шаблона поумолчанию "Авторизация"
@@ -253,30 +276,40 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
-                echo 'stopValidationError';
+                return 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
+            $text = '';
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
                     $script = $this->getStartJsForStep('authorizationForm');
                     $form->setJs($script);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
                 // Генерируем css
                 case 'css':
+                    $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    echo $form->start();
-                    exit();
+                    ob_start();
+                    $form->start();
+                    $text = ob_get_contents();
+                    ob_end_clean();
                     break;
             }
+            if (empty($text)) {
+                ob_start();
             $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
         }
-        exit();
+            return $text;
+        }
     }
 
     // Обрабатывает запросы для формы из шаблона поумолчанию "Оплата и способ оплаты"
@@ -328,30 +361,40 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
-                echo 'stopValidationError';
+                return 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
+            $text = '';
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
                     $script = $this->getStartJsForStep('paymentForm');
                     $form->setJs($script);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
                 // Генерируем css
                 case 'css':
+                    $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    echo $form->start();
-                    exit();
+                    ob_start();
+                    $form->start();
+                    $text = ob_get_contents();
+                    ob_end_clean();
                     break;
             }
+            if (empty($text)) {
+                ob_start();
             $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
         }
-        exit();
+            return $text;
+        }
     }
 
     // Обрабатывает запросы для завершающей формы
@@ -443,32 +486,42 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
 
                 $this->finishOrder();
-                echo 'Ваш заказ принят';
+                return 'Ваш заказ принят';
             } else {
-                echo 'stopValidationError';
+                return 'stopValidationError';
             }
         } else {
             // Обработка запросов для получения функциональных частей формы
+            $text = '';
             switch ($request->target) {
                 // Генерируем js
                 case 'js':
                     $script = $this->getStartJsForStep('finishForm');
                     $form->setJs($script);
+                    $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
                 // Генерируем css
                 case 'css':
+                    $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    echo $form->start();
-                    exit();
+                    ob_start();
+                    $form->start();
+                    $text = ob_get_contents();
+                    ob_end_clean();
                     break;
             }
+            if (empty($text)) {
+                ob_start();
             $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
         }
-        exit();
+            return $text;
+        }
     }
 
     // Запускает ряд методов для завершения работы над заказом
@@ -665,5 +718,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 JS;
         }
         return $script;
+    }
+
+    /**
+     * Переопределяет HTTP-заголовки ответа
+     *
+     * @return array Массив где ключи - названия заголовков, а значения - содержание заголовков
+     */
+    public function getHttpHeaders()
+    {
+        return $this->httpHeaders;
     }
 }
