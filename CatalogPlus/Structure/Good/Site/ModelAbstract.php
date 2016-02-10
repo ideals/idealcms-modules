@@ -323,7 +323,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $goodId = array();
         $offerId = array();
         foreach ($ids as $k => $v) {
-            list($goodId[], $offerId[]) = explode('_', $v);
+            $explodedV = explode('_', $v);
+            if (isset($explodedV[0])) {
+                $goodId[] = $explodedV[0];
+            }
+            if (isset($explodedV[1])) {
+                $offerId[] = $explodedV[1];
+            }
         }
         $sql = "SELECT * FROM {$this->_table} WHERE ID IN (" . implode(',', $goodId) . ")";
         if ($offers) {
