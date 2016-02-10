@@ -219,8 +219,7 @@
             if (tabsInfo != null) {
                 tabsInfo = jQuery.parseJSON(tabsInfo);
                 if (tabsInfo != null) {
-                    if (tabsInfo.tab_{{ currentTabId }} != null && jQuery.isEmptyObject(tabsInfo.tab_
-                            {{ currentTabId }}) == false) {
+                    if (tabsInfo.tab_{{ currentTabId }} != null && jQuery.isEmptyObject(tabsInfo.tab_{{ currentTabId }}) == false) {
                         basketFormSubmit(this, true);
                         return false;
                     } else {
