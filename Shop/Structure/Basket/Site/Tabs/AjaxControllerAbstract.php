@@ -94,10 +94,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    ob_start();
-                    $form->start();
-                    $text = ob_get_contents();
-                    ob_end_clean();
+                    $text = $form->start();
                     break;
             }
             if (empty($text)) {
@@ -213,10 +210,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    ob_start();
-                    $form->start();
-                    $text = ob_get_contents();
-                    ob_end_clean();
+                    $text = $form->start();
                     break;
             }
             if (empty($text)) {
@@ -296,10 +290,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    ob_start();
-                    $form->start();
-                    $text = ob_get_contents();
-                    ob_end_clean();
+                    $text = $form->start();
                     break;
             }
             if (empty($text)) {
@@ -381,10 +372,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    ob_start();
-                    $form->start();
-                    $text = ob_get_contents();
-                    ob_end_clean();
+                    $text = $form->start();
                     break;
             }
             if (empty($text)) {
@@ -508,10 +496,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     break;
                 // Генерируем стартовую часть формы
                 case 'start':
-                    ob_start();
-                    $form->start();
-                    $text = ob_get_contents();
-                    ob_end_clean();
+                    $text = $form->start();
                     break;
             }
             if (empty($text)) {
