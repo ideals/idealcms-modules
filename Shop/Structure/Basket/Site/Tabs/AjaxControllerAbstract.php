@@ -102,7 +102,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             $form->render();
                 $text = ob_get_contents();
                 ob_end_clean();
-        }
+            }
             return $text;
         }
     }
@@ -555,12 +555,23 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             // Собираем итнформацию о заказанных товарах
             foreach ($basket->goods as $key => $good) {
                 $goodId = explode('_', $key);
-                $offerId = $goodId[1];
+                if (isset($goodId[1])) {
+                    $offerId = $goodId[1];
+                }
                 $goodId = $goodId[0];
-                $par = array('ID' => $offerId);
-                $fields = array('table' => $config->db['prefix'] . 'catalogplus_structure_offer');
-                $row = $db->select('SELECT offer_id, good_id FROM &table WHERE ID = :ID LIMIT 1', $par, $fields);
-                $Id1c[] = $row[0]['good_id'];
+                if ($config->getStructureByName('CatalogPlus_Offer') && isset($offerId)) {
+                    $par = array('ID' => $offerId);
+                    $fields = array('table' => $config->db['prefix'] . 'catalogplus_structure_offer');
+                    $row = $db->select('SELECT * FROM &table WHERE ID = :ID LIMIT 1', $par, $fields);
+                    if (count($row) > 0) {
+                        if (isset($row[0]['good_id'])) {
+                            $Id1c[] = $row[0]['good_id'];
+                        }
+                        if (isset($row[0]['offer_id'])) {
+                            $offerId = $row[0]['offer_id'];
+                        }
+                    }
+                }
 
                 $summ = intval($good->count) * (intval($good->sale_price));
                 $goodsItemId = explode('_', $key);
@@ -571,19 +582,21 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
                 $message .= '<tr><td>' . $name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
 
-                $prevOrder = $config->getStructureByName('Shop_Order');
-                $insert = array();
-                $insert['prev_structure'] = $prevOrder['ID'] . '-' . $this->orderId;
-                $insert['order_id'] = $this->orderId;
-                $insert['good_id_1c'] = $row[0]['good_id'];
-                $insert['offer_id_1c'] = $row[0]['offer_id'];
-                $insert['count'] = intval($good->count);
-                $insert['sum'] = $summ * 100;
+                if ($config->getStructureByName('Shop_OrderDetail')) {
+                    $prevOrder = $config->getStructureByName('Shop_Order');
+                    $insert = array();
+                    $insert['prev_structure'] = $prevOrder['ID'] . '-' . $this->orderId;
+                    $insert['order_id'] = $this->orderId;
+                    $insert['good_id_1c'] = isset($row[0]['good_id']) ? $row[0]['good_id'] : '';
+                    $insert['offer_id_1c'] = isset($offerId) ? $offerId : '';
+                    $insert['count'] = intval($good->count);
+                    $insert['sum'] = $summ * 100;
 
-                $db->insert(
-                    $prefix . 'shop_structure_orderdetail',
-                    $insert
-                );
+                    $db->insert(
+                        $prefix . 'shop_structure_orderdetail',
+                        $insert
+                    );
+                }
             }
             $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . intval($basket->total) . '</td></tr>';
             $message .= '</table>';
