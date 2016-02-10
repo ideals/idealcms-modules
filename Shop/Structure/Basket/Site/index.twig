@@ -336,7 +336,13 @@
                             }
                         });
                     }
-                    if (value == '#finishForm' && stopfinish == true) {
+                    jQuery(value).on('form.valid', function () {
+                        window.stopForm = 0;
+                    });
+                    jQuery(value).on('form.invalid', function () {
+                        window.stopForm = 1;
+                    });
+                    if (value == '#finishForm' && (stopfinish == true || window.stopForm == 1)) {
                         return true;
                     }
                     jQuery(value).submit();
