@@ -68,7 +68,7 @@
                                         </td>
                                         <td class="product-price">
                                         <span class="amount">
-                                            {{ (good.sale_price/100)|number_format(2, '.', ',') }}&nbsp;руб.
+                                            {{ (good.sale_price)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                         </td>
 
@@ -84,7 +84,7 @@
 
                                         <td class="product-subtotal">
                                         <span class="amount {{ key }}">
-                                            {{ (good.total_price/100)|number_format(2, '.', ',') }}&nbsp;руб.
+                                            {{ (good.total_price)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                         </td>
                                     </tr>
@@ -106,7 +106,7 @@
                                         <th>Стоимость товаров</th>
                                         <td>
                                         <span class="amount">
-                                            {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
+                                            {{ (goods.total)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                         </td>
                                     </tr>
@@ -122,7 +122,7 @@
                                         <td>
                                             <strong>
                                             <span class="amount">
-                                                {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
+                                                {{ (goods.total)|number_format(2, '.', ',') }}&nbsp;руб.
                                             </span>
                                             </strong>
                                         </td>
@@ -238,7 +238,7 @@
             var $this = jQuery(e);
             var id = $this.attr('data-id');
             var basket = $.parseJSON(getCookie('basket'));
-            var price = parseInt(basket['goods'][id]['sale_price'] * $this.val()) / 100;
+            var price = parseInt(basket['goods'][id]['sale_price'] * $this.val());
             $('.amount.' + id).text(price.format(2, 3, ',', '.') + ' руб.');
             var total = 0;
             $('.qty').each(function (index, elem) {
