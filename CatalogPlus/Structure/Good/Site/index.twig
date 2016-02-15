@@ -1,46 +1,63 @@
 {% extends "site.twig" %}
 
 {% block content %}
-    <h1>{{ header }}</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <p><img src="{{ img }}" alt="{{ name }}" class="img-rounded"></p>
 
-    <div class="art">
-        <div class="clear"></div>
-        <div class="pagination">
-            <ul>
-            {% for category in categories %}
-                <li class="{{ category.class }}"><a {{ category.link|raw }}>{{ category.name }}</a></li>
-            {% endfor %}
-            </ul>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Цена:</strong></p>
+
+                    <p>{{ price }} {{ currency }}</p>
         </div>
-        <div class="clear"></div>
-        <div class="articles">
-            {% if parts|length > 0 %}
-                {% for good in parts %}
-                    <div class="name">
-                        <a {{ good.link|raw }}>{{ good.name }}</a>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="countGood">Количество</label>
+
+                        <div class="input-group">
+                            <span class="input-group-btn">
+                                <button class="btn btn-danger" type="button"
+                                        onclick="if(parseInt($('#countGood').val()) < 2){
+                                            $('#countGood').val(1);
+                                            return false;
+                                        }
+                                        $('#countGood').val(parseInt($('#countGood').val()) - 1)">
+                                    <span class="glyphicon glyphicon glyphicon-minus"></span>
+                                </button>
+                            </span>
+                            <input type="count" class="form-control" id="countGood" value="1">
+                            <span class="input-group-btn">
+                                <button class="btn btn-success" type="button"
+                                        onclick="$('#countGood').val(parseInt($('#countGood').val()) + 1)">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </span>
                     </div>
-                    <div class="annot">{{ good.annot }}</div>
-                {% endfor %}
-            {% endif %}
-
         </div>
-        {% if pager.pages|length > 0 %}
-            <div class="pagination pagination-left">
-                <ul>
-                    {% for page in pager.pages %}
-                        {% if page.current == 1 %}
-                            <li class="active"><a>{{ page.num }}</a></li>
-                        {% else %}
-                            <li><a href="{{ page.url }}">{{ page.num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
             </div>
-        {% endif %}
+            </div>
+        </div>
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-7">
+            <h1>{{ header }}</h1>
 
-        <div style="clear: left;">
             {# Выводим контент первого аддона #}
             {{ addons.0.content|raw }}
+
+            {% if data|length > 0 %}
+                <p>
+                <table class="table table-hover">
+                    {% for prop in data %}
+                        <tr>
+                            <td><strong>{{ prop.name }}</strong></td>
+                            <td>{{ prop.value }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                </p>
+            {% endif %}
         </div>
 
     </div>
