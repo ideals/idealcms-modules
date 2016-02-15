@@ -285,10 +285,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             if (!isset($v['structure'])) {
                 continue;
             }
+            $tmp[] = $v;
             if ($v['structure'] == 'CatalogPlus_Good') {
                 break;
             }
-            $tmp[] = $v;
         }
         // Ищем страницу где хранятся категории на сайте
         $cid = end($tmp);
@@ -399,7 +399,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $nextUpLevel = $v['lvl'] - 1;
             if (!$nextUpLevel) {
                 if ($v['prev_structure'] == '0-1') {
-                    $link .= '/' . $link;
+                    $link = '/' . $link;
                     return;
                 } else {
                     list($idStructure, $idElement) = explode('-', $v['prev_structure']);
