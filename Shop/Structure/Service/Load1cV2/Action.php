@@ -1,17 +1,17 @@
 <?php
 include('modalUpdate.html');
-if (isset($item['info']['enable_zip'])) {
-    if ($item['info']['enable_zip'] == 'yes') {
-        $item['info']['enable_zip'] = 'checked="checked"';
+if (isset($item['settings']['enable_zip'])) {
+    if ($item['settings']['enable_zip'] == 'yes') {
+        $item['settings']['enable_zip'] = 'checked="checked"';
     } else {
-        $item['info']['enable_zip'] = '';
+        $item['settings']['enable_zip'] = '';
     }
 }
-if (isset($item['info']['keep_log'])) {
-    if ($item['info']['keep_log'] == 'yes') {
-        $item['info']['keep_log'] = 'checked="checked"';
+if (isset($item['settings']['keep_log'])) {
+    if ($item['settings']['keep_log'] == 'yes') {
+        $item['settings']['keep_log'] = 'checked="checked"';
     } else {
-        $item['info']['keep_log'] = '';
+        $item['settings']['keep_log'] = '';
     }
 }
 ?>
@@ -21,7 +21,7 @@ if (isset($item['info']['keep_log'])) {
 
         <div class="col-sm-10">
             <input class="form-control" name="directory"
-                   value="<?=$item['info']['directory']?>" type="text">
+                   value="<?=$item['settings']['directory']?>" type="text">
         </div>
     </div>
     <div class="form-group">
@@ -29,7 +29,7 @@ if (isset($item['info']['keep_log'])) {
 
         <div class="col-sm-10">
             <input class="form-control" name="images_directory"
-                   value="<?=$item['info']['images_directory']?>" type="text">
+                   value="<?=$item['settings']['images_directory']?>" type="text">
         </div>
     </div>
     <div class="form-group">
@@ -37,7 +37,7 @@ if (isset($item['info']['keep_log'])) {
 
         <div class="col-sm-10">
             <input class="form-control" name="resize"
-                   value="<?=$item['info']['resize']?>" type="text">
+                   value="<?=$item['settings']['resize']?>" type="text">
         </div>
     </div>
     <div class="form-group">
@@ -45,7 +45,7 @@ if (isset($item['info']['keep_log'])) {
 
         <div class="col-sm-10">
             <input class="form-control" name="filesize"
-                   value="<?=$item['info']['filesize']?>" type="text">
+                   value="<?=$item['settings']['filesize']?>" type="text">
         </div>
     </div>
 
@@ -54,7 +54,7 @@ if (isset($item['info']['keep_log'])) {
 
         <div class="col-sm-10">
             <input class="form-control" name="enable_zip"
-                   value="" type="checkbox" <?=$item['info']['enable_zip']?>>
+                   value="" type="checkbox" <?=$item['settings']['enable_zip']?>>
         </div>
     </div>
 
@@ -63,7 +63,7 @@ if (isset($item['info']['keep_log'])) {
 
         <div class="col-sm-10">
             <input class="form-control" name="keep_log"
-                   value="" type="checkbox" <?=$item['info']['keep_log']?>>
+                   value="" type="checkbox" <?=$item['settings']['keep_log']?>>
         </div>
     </div>
 

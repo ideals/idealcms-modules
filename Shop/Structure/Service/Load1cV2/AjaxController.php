@@ -37,7 +37,7 @@ class AjaxController extends \Ideal\Core\AjaxController
         array_walk($_POST, function ($v, $k) use (&$dataToSave) {
             $dataToSave[$k] = trim($v);
         });
-        $conf = array_merge($configFile, array('info' => $dataToSave));
+        $conf = array_merge($configFile, array('settings' => $dataToSave));
         $str = "<?php\n\nreturn ";
         file_put_contents($folder . '/config.php', $str . var_export($conf, true) . ';');
 
@@ -54,7 +54,7 @@ class AjaxController extends \Ideal\Core\AjaxController
         $folder = __DIR__;
         $configFile = include($folder . '/config.php');
 
-        $fc = new FrontController($configFile['info']);
+        $fc = new FrontController($configFile['settings']);
         $answer = array(
             'continue'  => true,
             'errors'    => array(),

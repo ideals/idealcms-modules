@@ -36,7 +36,7 @@ $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
 $config->loadSettings();
 
 // сообщения об ошибках добавления insert, например, возвращает false
-$fc = new Load1cV2\FrontController($params['info']);
+$fc = new Load1cV2\FrontController($params['settings']);
 if (ob_get_contents()) {
     ob_clean();
 }
