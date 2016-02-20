@@ -49,7 +49,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $url = $url[0];
         }
 
-        $url = mysql_real_escape_string($url);
+        $url = $db->escape_string($url);
         $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
 
         $list = $db->select($_sql); // запрос на получение всех страниц, соответствующих частям url

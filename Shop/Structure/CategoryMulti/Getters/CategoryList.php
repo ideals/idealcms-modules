@@ -69,8 +69,9 @@ class CategoryList
 
     public function getWhereFilter($currentCategory)
     {
+        $db = Db::getInstance();
         $_sql = "ID IN (SELECT good_id FROM {$this->categoryGoodTable} WHERE category_id="
-              . mysql_real_escape_string($currentCategory) . ')';
+              . $db->escape_string($currentCategory) . ')';
         return $_sql;
     }
 }

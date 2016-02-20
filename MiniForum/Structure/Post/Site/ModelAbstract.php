@@ -551,15 +551,16 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     function unsubjectLink($email, $id, $mainParentID, $hash)
     {
-        $email = mysql_real_escape_string((urldecode($email)));
-        $id = mysql_real_escape_string((urldecode($id)));
-        $mainParentID = mysql_real_escape_string((urldecode($mainParentID)));
-        $hash = mysql_real_escape_string((urldecode($hash)));
+        $db = Db::getInstance();
+
+        $email = $db->escape_string((urldecode($email)));
+        $id = $db->escape_string((urldecode($id)));
+        $mainParentID = $db->escape_string((urldecode($mainParentID)));
+        $hash = $db->escape_string((urldecode($hash)));
 
         $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE ID = :ID";
         $params = array('ID' => $id);
         $fields = array('table' => 'i_miniforum_structure_post');
-        $db = Db::getInstance();
         $post = $db->select($_sql, $params, $fields);
         $trueHash = (string)$post[0]['email'] . (string)$post[0]['main_parent_id'] . (string)$post[0]['ID'] . (string)$post[0]['date_create'];
         $trueHash = crypt((string)$trueHash, (string)$post[0]['ID']);
