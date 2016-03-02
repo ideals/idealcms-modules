@@ -134,6 +134,14 @@ class ModelAbstract extends Core\Model
                                 $_SESSION['login']['basket'] = json_encode($basket, JSON_FORCE_OBJECT);
                             }
                         }
+
+                        // Обновляем дату последнего посещения
+                        $db = Db::getInstance();
+                        $db->update($this->_table)
+                            ->set(array('last_visit' => time()))
+                            ->where('ID = :ID', array('ID' => $userData['ID']))
+                            ->exec();
+
                         $response = 'Вы успешно вошли';
                     } else {
                         $response = 'Ошибка в логине(email) или пароле';
