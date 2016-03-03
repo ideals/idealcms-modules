@@ -91,8 +91,13 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         User\Model::logout();
 
         // Перенаправляем пользователя на ту страницу на которой был инициирован процесс выхода
-        $url = explode('?', $_SERVER['HTTP_REFERER']);
-        header('Location: ' . $url[0]);
+        if (isset($_SERVER['HTTP_REFERER'])) {
+            $url = explode('?', $_SERVER['HTTP_REFERER']);
+            $url = $url[0];
+        } else {
+            $url = '/';
+        }
+        header('Location: ' . $url);
         die();
     }
 
