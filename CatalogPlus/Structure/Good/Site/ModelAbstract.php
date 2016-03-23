@@ -44,10 +44,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             return $this;
         }
 
-        $url = array_shift($url);
-
         // Ищем товар по URL в базе
         $db = Db::getInstance();
+
+        $url = $db->escape_string(array_shift($url));
         $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
         $list = $db->select($_sql);
 
