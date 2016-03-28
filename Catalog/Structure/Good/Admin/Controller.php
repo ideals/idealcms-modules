@@ -1,7 +1,7 @@
 <?php
 namespace Catalog\Structure\Good\Admin;
 
-class Controller extends \Ideal\Structure\Roster\Admin\ControllerAbstract
+class Controller extends ControllerAbstract
 {
 
 }
