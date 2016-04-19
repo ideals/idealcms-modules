@@ -296,7 +296,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      * @param bool $offer
      * @return mixed
      */
-    private function getGoodInfo($id, $offer = false)
+    protected function getGoodInfo($id, $offer = false)
     {
         $db = Db::getInstance();
         if ($offer === false) {
