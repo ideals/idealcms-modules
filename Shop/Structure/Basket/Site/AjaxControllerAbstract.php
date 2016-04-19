@@ -75,6 +75,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if (isset($_COOKIE['basket'])) {
             $this->basket = json_decode($_COOKIE['basket'], true);
             // Определяем как давно была обновлена(создан) корзина
+            if (!isset($this->basket['versi'])) {
+                $this->basket['versi'] = time();
+            }
             if ((time() - $this->basket['versi']) > $this->timeLive) {
                 $this->update = true;
             }
