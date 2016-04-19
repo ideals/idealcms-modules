@@ -113,4 +113,27 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         return $path;
     }
+
+    /**
+     * Получение информации о товарах
+     *
+     * @param array $ids список id товаров
+     * @return array информация о товарах
+     * @throws \Exception
+     */
+    public function getGoodsInfo($ids)
+    {
+        $goods = array();
+        if (!empty($ids)) {
+            $in = '(' . implode(',', $ids) . ')';
+            $db = Db::getInstance();
+            $_sql = "SELECT * FROM {$this->_table} WHERE ID IN {$in}";
+            $goods = $db->select($_sql);
+            array_walk($goods, function ($v, $k) use (&$goods) {
+                $goods[$v['ID']] = $v;
+                unset($goods[$k]);
+            });
+        }
+        return $goods;
+    }
 }
