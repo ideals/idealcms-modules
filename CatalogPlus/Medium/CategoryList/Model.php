@@ -31,16 +31,16 @@ class Model extends AbstractModel
     public function getValues()
     {
         $db = Db::getInstance();
-        $pageData = $this->obj->getPageData();
-        $goodId = $pageData['ID'];
-        $_sql = "SELECT category_id FROM {$this->table} WHERE good_id='{$goodId}'";
-        $arr = $db->select($_sql);
-
         $list = array();
-        foreach ($arr as $v) {
-            $list[] = $v['category_id'];
+        $pageData = $this->obj->getPageData();
+        if (!empty($pageData) && isset($pageData['ID'])) {
+            $goodId = $pageData['ID'];
+            $_sql = "SELECT category_id FROM {$this->table} WHERE good_id='{$goodId}'";
+            $arr = $db->select($_sql);
+            foreach ($arr as $v) {
+                $list[] = $v['category_id'];
+            }
         }
-
         return $list;
     }
 
