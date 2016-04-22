@@ -250,57 +250,59 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function getBreadCrumbs()
     {
-        $db = Db::getInstance();
-        $config = Config::getInstance();
-        $pathCat = array();
-        $tableMid = $config->db['prefix'] . 'catalogplus_medium_categorylist';
-        $tableCat = $config->db['prefix'] . 'catalogplus_structure_category';
-        $tablePart = $config->db['prefix'] . 'ideal_structure_part';
-        // Ищем категорию к которой привязан товар
-        $sql = "SELECT cat.cid FROM {$tableMid} as mid
+        if (!empty($this->pageData) && isset($this->pageData['ID'])) {
+            $db = Db::getInstance();
+            $config = Config::getInstance();
+            $pathCat = array();
+            $tableMid = $config->db['prefix'] . 'catalogplus_medium_categorylist';
+            $tableCat = $config->db['prefix'] . 'catalogplus_structure_category';
+            $tablePart = $config->db['prefix'] . 'ideal_structure_part';
+            // Ищем категорию к которой привязан товар
+            $sql = "SELECT cat.cid FROM {$tableMid} as mid
                   INNER JOIN {$tableCat} as cat ON (cat.ID = mid.category_id)
                   WHERE mid.good_id = {$this->pageData['ID']} AND cat.is_active = 1 LIMIT 1";
-        $cat = $db->select($sql);
-        // Выстраиваем путь к категории
-        if (count($cat) > 0) {
-            $cat = $cat[0]['cid'];
-            $cids = array();
-            for ($i = 1; $i < $this->categoryModel->params['levels']; $i++) {
-                $tmp = substr($cat, 0, $i * $this->categoryModel->params['digits']);
-                $tmp = str_pad(
-                    $tmp,
-                    $this->categoryModel->params['digits'] * $this->categoryModel->params['levels'],
-                    '0'
-                );
-                $cids[$tmp] = $tmp;
+            $cat = $db->select($sql);
+            // Выстраиваем путь к категории
+            if (count($cat) > 0) {
+                $cat = $cat[0]['cid'];
+                $cids = array();
+                for ($i = 1; $i < $this->categoryModel->params['levels']; $i++) {
+                    $tmp = substr($cat, 0, $i * $this->categoryModel->params['digits']);
+                    $tmp = str_pad(
+                        $tmp,
+                        $this->categoryModel->params['digits'] * $this->categoryModel->params['levels'],
+                        '0'
+                    );
+                    $cids[$tmp] = $tmp;
+                }
+                $tmp = implode('\', \'', $cids);
+                $sql = "SELECT * FROM {$tableCat} WHERE cid IN ('{$tmp}') ORDER BY cid";
+                $pathCat = $db->select($sql);
             }
-            $tmp = implode('\', \'', $cids);
-            $sql = "SELECT * FROM {$tableCat} WHERE cid IN ('{$tmp}') ORDER BY cid";
-            $pathCat = $db->select($sql);
-        }
 
-        // Состовляем путь до страницы где хранится модули CatalogPlus
-        $tmp = array();
-        foreach ($this->path as $v) {
-            if (!isset($v['structure'])) {
-                continue;
+            // Состовляем путь до страницы где хранится модули CatalogPlus
+            $tmp = array();
+            foreach ($this->path as $v) {
+                if (!isset($v['structure'])) {
+                    continue;
+                }
+                $tmp[] = $v;
+                if ($v['structure'] == 'CatalogPlus_Good') {
+                    break;
+                }
             }
-            $tmp[] = $v;
-            if ($v['structure'] == 'CatalogPlus_Good') {
-                break;
+            // Ищем страницу где хранятся категории на сайте
+            $cid = end($tmp);
+            $cid = rtrim($cid['cid'], '0');
+            $sql = "SELECT * FROM {$tablePart} WHERE structure='CatalogPlus_Category' AND cid LIKE '{$cid}%'";
+            $cat = $db->select($sql);
+            if (count($cat) > 0) {
+                array_unshift($pathCat, $cat[0]);
             }
+            $pathCat = array_merge($tmp, $pathCat);
+            $pathCat[] = end($this->path);
+            $this->path = $pathCat;
         }
-        // Ищем страницу где хранятся категории на сайте
-        $cid = end($tmp);
-        $cid = rtrim($cid['cid'], '0');
-        $sql = "SELECT * FROM {$tablePart} WHERE structure='CatalogPlus_Category' AND cid LIKE '{$cid}%'";
-        $cat = $db->select($sql);
-        if (count($cat) > 0) {
-            array_unshift($pathCat, $cat[0]);
-        }
-        $pathCat = array_merge($tmp, $pathCat);
-        $pathCat[] = end($this->path);
-        $this->path = $pathCat;
         return parent::getBreadCrumbs();
     }
 
