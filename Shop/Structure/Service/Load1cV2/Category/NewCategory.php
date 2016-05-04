@@ -143,7 +143,7 @@ class NewCategory
             $cidNum = $fullCid;
 
             if (!isset($element['is_active']) || $element['is_active'] == '') {
-                $newXmlResult[$k]['is_active'] = '1';
+                $newXmlResult[$k]['is_active'] = '0';
             }
 
             unset($newXmlResult[$k]['pos']);
