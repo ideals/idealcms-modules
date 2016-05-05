@@ -17,7 +17,9 @@ class FilterAbstract extends Filter
 
     public function getSql()
     {
-        $sql = 'SELECT e.* FROM i_catalogplus_structure_good AS e ';
+        $config = Config::getInstance();
+        $tableName = $config->db['prefix'] . 'catalogplus_structure_good';
+        $sql = 'SELECT e.* FROM ' . $tableName . ' AS e ';
         if (empty($this->where)) {
             $this->generateWhere();
         }
@@ -30,7 +32,9 @@ class FilterAbstract extends Filter
 
     public function getSqlCount()
     {
-        $sql = 'SELECT COUNT(e.ID) FROM i_catalogplus_structure_good AS e ';
+        $config = Config::getInstance();
+        $tableName = $config->db['prefix'] . 'catalogplus_structure_good';
+        $sql = 'SELECT COUNT(e.ID) FROM ' . $tableName . ' AS e ';
         if (empty($this->where)) {
             $this->generateWhere();
         }
