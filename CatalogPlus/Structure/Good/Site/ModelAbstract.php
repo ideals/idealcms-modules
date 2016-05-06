@@ -186,7 +186,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // Находим предка — структуру статей
         $parentClassName = Util::getClassName($structure['structure'], 'Structure') . '\\Site\\Model';
         /** @var $parentModel \Ideal\Core\Site\Model */
-        $parentModel = new $parentClassName($good['structure']);
+        $parentModel = new $parentClassName('CatalogPlus_Good');
         $parentModel->setPageDataById($parentId);
 
         $path = $parentModel->detectPath();
