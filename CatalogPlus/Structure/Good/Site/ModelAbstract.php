@@ -254,6 +254,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $db = Db::getInstance();
             $config = Config::getInstance();
             $pathCat = array();
+            $this->categoryModel = new CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
             $tableMid = $config->db['prefix'] . 'catalogplus_medium_categorylist';
             $tableCat = $config->db['prefix'] . 'catalogplus_structure_category';
             $tablePart = $config->db['prefix'] . 'ideal_structure_part';
