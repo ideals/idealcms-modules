@@ -133,7 +133,7 @@ class DbGood extends AbstractDb
         foreach ($result as $k => $item) {
             if (isset($goods[$k])) {
                 $diff = array_diff($item, $goods[$k]);
-                if (count($diff) > 1) {
+                if (count($diff) > 0) {
                     // ID товара всегда в диффе
                     $updates[$k] = $diff;
                     $updates[$k]['ID'] = $goods[$k]['ID'];
