@@ -9,7 +9,7 @@
 return array(
     'key'    => 'Ид',
     'fields' => array(
-        'Наименование' => 'name',
+        'name' => 'Наименование',
         'dir_values' => array(
             'path'  => 'ВариантыЗначений/Справочник',
             'field' => array(
