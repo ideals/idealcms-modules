@@ -31,10 +31,12 @@ class XmlDirectory extends AbstractXml
                 unset($this->data[$key]);
                 continue;
             }
-            foreach ($item['dir_values'] as $dict) {
-                $this->data[$dict['dir_value_id']] = $dict;
-                $this->data[$dict['dir_value_id']]['dir_id_1c'] = $key;
-                $this->data[$dict['dir_value_id']]['name'] = $item['name'];
+            if (!empty($item['dir_values'])) {
+                foreach ($item['dir_values'] as $dict) {
+                    $this->data[$dict['dir_value_id']] = $dict;
+                    $this->data[$dict['dir_value_id']]['dir_id_1c'] = $key;
+                    $this->data[$dict['dir_value_id']]['name'] = $item['name'];
+                }
             }
         }
 
