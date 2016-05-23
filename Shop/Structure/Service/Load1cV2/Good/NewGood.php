@@ -13,6 +13,7 @@ class NewGood
 {
     /** @var array ответ пользователю об обновленных и добавленных */
     protected $answer = array(
+        'infoText' => 'Обработка товаров',
         'successText'   => 'Добавлено: %d<br />Обновлено: %d',
         'add'           => 0,
         'update'        => 0

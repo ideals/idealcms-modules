@@ -11,6 +11,7 @@ class NewOffer
 {
     /** @var array ответ пользователю об обновленных и добавленных */
     protected $answer = array(
+        'infoText' => 'Обработка товарных предложений',
         'successText'   => 'Добавлено: %d<br />Обновлено: %d',
         'add'   => 0,
         'update'=> 0,

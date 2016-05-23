@@ -265,15 +265,17 @@ class FrontController
                 // подготовка для сообщения на почту
                 foreach ($result as $response) {
                     if (isset($response['offer']) || isset($response['prices']) || isset($response['rests'])) {
-                        $vals[] = "Шаг: {$response['step']} - <br/>";
-                        unset ($response['step']);
+                        if (isset($response['infoText'])) {
+                            $vals[] = "Шаг: {$response['infoText']} - <br/>";
+                            unset ($response['infoText']);
+                        }
                         foreach ($response as $value) {
-                            $vals[] = "Шаг: {$value['step']} - <br/>".
+                            $vals[] = "Шаг: {$value['infoText']} - <br/>".
                                 "Добавлено:{$value['add']}<br/>".
                                 "Обновлено:{$value['update']}<br/>";
                         }
                     } else {
-                        $vals[] = "Шаг: {$response['step']} - <br/>".
+                        $vals[] = "Шаг: {$response['infoText']} - <br/>".
                             "Добавлено:{$response['add']}<br/>".
                             "Обновлено:{$response['update']}<br/>";
                     }

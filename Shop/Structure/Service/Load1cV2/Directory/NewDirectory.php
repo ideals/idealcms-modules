@@ -13,7 +13,7 @@ class NewDirectory
 {
     /** @var array ответ пользователю об обновленных и добавленных */
     protected $answer = array(
-        'step'  => 'Справочники',
+        'infoText'  => 'Справочники',
         'add'   => 0,
         'update'=> 0,
     );
