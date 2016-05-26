@@ -8,24 +8,8 @@ use Ideal\Core\Util;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
-    /**
-     * @var $categoryModel \Articles\Structure\Category\Site\Model
-     */
-    protected $categoryModel;
-    protected $currentCategory;
-
     public function detectPageByUrl($path, $url)
     {
-        $config = Config::getInstance();
-        // Определяем, нет ли в URL категории
-        //$this->categoryModel = new \Articles\Structure\Category\Site\Model($this->structurePath);
-        $url = $this->categoryModel->detectPageByUrl($path, $url);
-        if (count($url) == 0) {
-            // Прошло успешно определение страницы категории, значит статью определять не надо
-            $this->path = $path;
-            return $this;
-        }
-
         $articleUrl = array_shift($url);
 
         if (count($url) > 0) {
@@ -61,21 +45,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     public function getStructureElements()
     {
-        $this->categoryModel = new \Articles\Structure\Category\Site\Model($this->prevStructure);
-        $this->categoryModel->setPath($this->path);
         $this->params['elements_site'] = 9999;
         $articles = $this->getList(1);
-        $categories = $this->getCategories();
-        return array_merge($categories, $articles);
-    }
-
-    public function getTemplatesVars()
-    {
-        if ($this->categoryModel->getCurrent()) {
-            return $this->categoryModel->getTemplatesVars();
-        } else {
-            return parent::getTemplatesVars();
-        }
+        return $articles;
     }
 
     /**
@@ -105,18 +77,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     protected function getWhere($where)
     {
-        $and = '';
         if ($where != '') {
             $where = 'WHERE ' . $where;
-            $and = ' AND ';
-        }
-
-        if ($this->currentCategory) {
-            // Вывод статей только определённой категории
-            $config = Config::getInstance();
-            $table = $config->db['prefix'] . 'articles_medium_taglist';
-            $where .= $and . "e.ID IN (SELECT article_id FROM {$table}
-                                              WHERE category_id={$this->currentCategory['ID']})";
         }
         $time = time();
         $where .= " AND is_active=1 AND date_create < {$time}";
@@ -127,7 +89,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function detectPath()
     {
         $config = Config::getInstance();
-        $db = Db::getInstance();
 
         $article = $this->pageData;
         list($parentStructure, $parentId) = explode('-', $article['prev_structure']);
