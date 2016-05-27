@@ -44,7 +44,7 @@ return array(
         'last_visit' => array(
             'label' => 'Последний вход',
             'sql'   => "int(11) DEFAULT '0' NOT NULL",
-            'type'  => 'Ideal_Date'
+            'type'  => 'Ideal_DateSet'
         ),
         'act_key' => array(
             'label' => 'Ключ активации',
