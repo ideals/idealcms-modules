@@ -176,7 +176,7 @@ class DbCategory extends AbstractDb
 
             if (!isset($categories[$key]['num'])) {
                 if (isset($goodsCount[$categories[$key]['ID']])) {
-                    $tmp += $goodsCount[$categories[$key]['ID']];
+                    $tmp = $goodsCount[$categories[$key]['ID']];
                 }
                 $categories[$key] = array();
                 $categories[$key]['ID'] = $category['ID'];

@@ -107,7 +107,7 @@ class DbMedium extends AbstractDb
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT category_id as ID, count(good_id) as num from "
+        $sql = "SELECT category_id as ID, count(DISTINCT good_id) as num from "
             . $this->table . $this->tablePostfix . " group by category_id";
         $res = $db->select($sql);
         $result = array();
