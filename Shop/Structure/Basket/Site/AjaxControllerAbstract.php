@@ -331,13 +331,16 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     protected function checkForcedUpdate()
     {
-        $config = Config::getInstance();
-        $orderingPage = self::getOrderingPage();
-        $pageCall = rtrim($_SERVER['HTTP_REFERER'], $config->urlSuffix);
-        $pageCall = explode('/', $pageCall);
-        $pageCall = end($pageCall);
-        if (array_search($pageCall, $orderingPage) !== false) {
-            $this->update = true;
+        // Если это прямой вызов, то ничего делать не нужно
+        if (isset($_SERVER['HTTP_REFERER'])) {
+            $config = Config::getInstance();
+            $orderingPage = self::getOrderingPage();
+            $pageCall = rtrim($_SERVER['HTTP_REFERER'], $config->urlSuffix);
+            $pageCall = explode('/', $pageCall);
+            $pageCall = end($pageCall);
+            if (array_search($pageCall, $orderingPage) !== false) {
+                $this->update = true;
+            }
         }
     }
 
