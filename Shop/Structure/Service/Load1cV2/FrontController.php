@@ -54,7 +54,7 @@ class FrontController
         $this->logClass->appendToLogMessage('POST-данные: ' . http_build_query($_POST) . "\n");
 
         // Объявляем функции которые будет отлавливать ошибки и заносить их в лог
-        if (isset($this->config['keep_log']) && $this->config['keep_log'] == 'yes') {
+        if (isset($this->config['keep_log']) && $this->config['keep_log']) {
             set_error_handler(array($this->logClass, 'logErrorHandler'));
             register_shutdown_function(array($this->logClass, 'logShutdownFunction'));
         }
@@ -62,7 +62,7 @@ class FrontController
 
     public function __destruct()
     {
-        if (isset($this->config['keep_log']) && $this->config['keep_log'] == 'yes') {
+        if (isset($this->config['keep_log']) && $this->config['keep_log']) {
             $this->logClass->addToLog();
             $this->logClass->setLogMessage('');
         }
@@ -97,7 +97,7 @@ class FrontController
 
         $this->filesize = intval($this->config['filesize']) * 1024 * 1024;
         if (isset($this->config['enable_zip'])) {
-            $this->useZip = $this->config['enable_zip'];
+            $this->useZip = $this->config['enable_zip'] ? 'yes' : 'no';
         }
 
         $this->directory = DOCUMENT_ROOT . $this->config['directory'];
@@ -295,6 +295,9 @@ class FrontController
                     $this->renameTables();
                 }
 
+                // TODO При большом объёме данных изображения могут не попасть в целевые папки
+                // TODO из за ограничения по времени.
+                // TODO Нужнен переход на пошаговую модель обработки данных вместо "всё в последнем шаге"
                 for ($package = 1; $package <= $countPackages; $package++) {
                     $this->loadImages($package, $timeStart);
                 }

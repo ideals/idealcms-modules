@@ -17,33 +17,6 @@ use Ideal\Core\Util;
  */
 class AjaxController extends \Ideal\Core\AjaxController
 {
-    public function ajaxUpdateSettingsAction()
-    {
-        if ($_POST['enable_zip'] == true) {
-            $_POST['enable_zip'] = 'yes';
-        } else {
-            $_POST['enable_zip'] = 'no';
-        }
-        if ($_POST['keep_log'] == true) {
-            $_POST['keep_log'] = 'yes';
-        } else {
-            $_POST['keep_log'] = 'no';
-        }
-        $folder = __DIR__;
-        $configFile = include($folder . '/config.php');
-
-        // Чистим строки от возможных лишних пробелов перед сохранением в файл
-        $dataToSave = array();
-        array_walk($_POST, function ($v, $k) use (&$dataToSave) {
-            $dataToSave[$k] = trim($v);
-        });
-        $conf = array_merge($configFile, array('settings' => $dataToSave));
-        $str = "<?php\n\nreturn ";
-        file_put_contents($folder . '/config.php', $str . var_export($conf, true) . ';');
-
-        return json_encode('success');
-    }
-
     /**
      * Экшен запуска загрузки из файлов по шагам
      *
@@ -51,10 +24,9 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function ajaxIndexLoadAction()
     {
-        $folder = __DIR__;
-        $configFile = include($folder . '/config.php');
+        $configFile = include('Shop/Structure/Service/Load1cV2/load1cV2Settings.php');
 
-        $fc = new FrontController($configFile['settings']);
+        $fc = new FrontController($configFile);
         $answer = array(
             'continue'  => true,
             'errors'    => array(),

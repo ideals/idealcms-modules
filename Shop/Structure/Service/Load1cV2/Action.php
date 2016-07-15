@@ -1,72 +1,15 @@
+<form action="" method=post enctype="multipart/form-data">
+
 <?php
-include('modalUpdate.html');
-if (isset($item['settings']['enable_zip'])) {
-    if ($item['settings']['enable_zip'] == 'yes') {
-        $item['settings']['enable_zip'] = 'checked="checked"';
-    } else {
-        $item['settings']['enable_zip'] = '';
+    $config = \Ideal\Core\Config::getInstance();
+    $file = new \Ideal\Structure\Service\SiteData\ConfigPhp();
+
+    $file->loadFile('Shop/Structure/Service/Load1cV2/load1cV2Settings.php');
+    if (isset($_POST['edit'])) {
+        $file->changeAndSave('Shop/Structure/Service/Load1cV2/load1cV2Settings.php');
     }
-}
-if (isset($item['settings']['keep_log'])) {
-    if ($item['settings']['keep_log'] == 'yes') {
-        $item['settings']['keep_log'] = 'checked="checked"';
-    } else {
-        $item['settings']['keep_log'] = '';
-    }
-}
+    echo $file->showEdit();
 ?>
-<form class="form-horizontal">
-    <div class="form-group">
-        <label class="col-sm-2 control-label" for="directory">Папка выгрузки файлов:</label>
-
-        <div class="col-sm-10">
-            <input class="form-control" name="directory"
-                   value="<?=$item['settings']['directory']?>" type="text">
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label" for="images_directory">Каталог изображений:</label>
-
-        <div class="col-sm-10">
-            <input class="form-control" name="images_directory"
-                   value="<?=$item['settings']['images_directory']?>" type="text">
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label" for="resize">Значение ресайза изображения:</label>
-
-        <div class="col-sm-10">
-            <input class="form-control" name="resize"
-                   value="<?=$item['settings']['resize']?>" type="text">
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label" for="filesize">Максимальный размер файла в Мб:</label>
-
-        <div class="col-sm-10">
-            <input class="form-control" name="filesize"
-                   value="<?=$item['settings']['filesize']?>" type="text">
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-2 control-label" for="enable_zip" title="Включите архивирование при 'больших' выгрузках">Разрешить архивирование):</label>
-
-        <div class="col-sm-10">
-            <input class="form-control" name="enable_zip"
-                   value="" type="checkbox" <?=$item['settings']['enable_zip']?>>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-2 control-label" for="enable_zip" title="Осуществлять логирование">Осуществлять логирование:</label>
-
-        <div class="col-sm-10">
-            <input class="form-control" name="keep_log"
-                   value="" type="checkbox" <?=$item['settings']['keep_log']?>>
-        </div>
-    </div>
-
     <div class="form-inline">
         <div class="col-sm-offset-2 col-sm-10">
             <button type="submit" class="btn btn-success pull-right" id="load1c">
@@ -75,9 +18,7 @@ if (isset($item['settings']['keep_log'])) {
             <button type="submit" class="btn btn-success pull-right" id="resizer" style="margin-right: 5px">
                 Запустить ресайз картинок
             </button>
-            <button type="submit" class="btn btn-primary pull-right" id="save_settings" style="margin-right: 5px">
-                Сохранить настройки
-            </button>
+            <input type="submit" class="btn btn-info pull-right" name="edit" value="Сохранить настройки" style="margin-right: 5px"/>
         </div>
     </div>
 </form>
@@ -87,10 +28,6 @@ if (isset($item['settings']['keep_log'])) {
         modal = $('#modalUpdate');
 
     (function($) {
-        $('#save_settings').on('click', function(e) {
-            e.preventDefault();
-            saveSettings();
-        });
         $('#load1c').on('click', function(e) {
             modal_body.html('');
             e.preventDefault();
@@ -102,33 +39,6 @@ if (isset($item['settings']['keep_log'])) {
             load1c(6);
         });
     }) (jQuery);
-
-    // Сохраненяет текст комментария из модального окна
-    function saveSettings() {
-        var
-            url = window.location.href + "&action=ajaxUpdateSettings&controller=Shop\\Structure\\Service\\Load1cV2&mode=ajax",
-            data = {};
-
-        $('.form-horizontal input[type="text"]').each(function(k, val) {
-            data[val.name] = val.value;
-        });
-        $('.form-horizontal input[type="checkbox"]').each(function(k, val) {
-            if ($(val).is(':checked')) {
-                data[val.name] = 1;
-            } else {
-                data[val.name] = 0;
-            }
-        });
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            data: data,
-            success: function (data) {
-                alert('Настройки успешно сохранены');
-            }
-        });
-    }
 
     function load1c(step, packageNum, fixStep) {
         step = step || 1;
