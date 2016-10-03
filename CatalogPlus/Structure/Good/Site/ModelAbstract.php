@@ -326,16 +326,22 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $goodId = array();
         $offerId = array();
         foreach ($ids as $k => $v) {
-            $explodedV = explode('_', $v);
-            if (isset($explodedV[0])) {
-                $goodId[] = $explodedV[0];
-            }
-            if (isset($explodedV[1])) {
-                $offerId[] = $explodedV[1];
+            if (stripos($v, '_') !== false) {
+                list($goodId[], $offerId[]) = explode('_', $v);
+            } else {
+                $goodId[] = intval($v);
             }
         }
-        $sql = "SELECT * FROM {$this->_table} WHERE ID IN (" . implode(',', $goodId) . ")";
-        if ($offers) {
+        $goodId = array_filter($goodId);
+        $offerId = array_filter($offerId);
+        $table = $this->_table;
+        if ($offers && !$offerId) {
+            list($prevStructureId) = explode('-', $this->prevStructure);
+            $prevStructure = $config->getStructureById($prevStructureId);
+            $table = $config->getTableByName($prevStructure['structure']);
+        }
+        $sql = "SELECT * FROM {$table} WHERE ID IN (" . implode(',', $goodId) . ")";
+        if ($offers && $offerId) {
             $offerTable = $config->getTableByName('CatalogPlus_Offer');
             $field = '';
             // Что бы поля предложений не переписывали поля товара, добовляем преставку offer_
@@ -361,7 +367,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $this->getFullUrl($v, $link);
             $v['link'] = 'href="' . $link . '"';
             unset($info[$k]);
-            if ($offers) {
+            if ($offers && isset($v['offer_ID'])) {
                 $info[$v['ID'] . '_' . $v['offer_ID']] = $v;
             } else {
                 $info[$v['ID']] = $v;
