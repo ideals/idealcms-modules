@@ -281,16 +281,16 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 $pathCat = $db->select($sql);
             }
 
-            // Состовляем путь до страницы где хранится модули CatalogPlus
+            // Составляем путь до страницы где хранится модули CatalogPlus
             $tmp = array();
             foreach ($this->path as $v) {
                 if (!isset($v['structure'])) {
                     continue;
                 }
-                $tmp[] = $v;
                 if ($v['structure'] == 'CatalogPlus_Good') {
                     break;
                 }
+                $tmp[] = $v;
             }
             // Ищем страницу где хранятся категории на сайте
             $cid = end($tmp);
