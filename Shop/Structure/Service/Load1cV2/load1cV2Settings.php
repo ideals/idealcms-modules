@@ -2,6 +2,7 @@
 // @codingStandardsIgnoreFile
 return array(
     'directory' => "/tmp/1c/webdata/000000001/", // Папка выгрузки файлов | Ideal_Text
+    'report_directory' => "/tmp/1c/", // Папка хранения отчётов | Ideal_Text
     'images_directory' => "import_files/", // Каталог изображений | Ideal_Text
     'resize' => "", // Значение ресайза изображения | Ideal_Text
     'filesize' => "20", // Максимальный размер файла в Мб | Ideal_Text
