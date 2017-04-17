@@ -37,7 +37,7 @@ class Categories extends Widget
         unset($menuList);
 
         $object = $this->model->getPageData();
-        if ($object['prev_structure'] == $this->prevStructure) {
+        if (isset($object['prev_structure']) && $object['prev_structure'] == $this->prevStructure) {
             $menu[$object['cid']]['isActivePage'] = 1;
         }
         return $menu;
