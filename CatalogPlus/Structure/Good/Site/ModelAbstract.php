@@ -294,7 +294,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             }
             // Ищем страницу где хранятся категории на сайте
             $cid = end($tmp);
-            $cid = rtrim($cid['cid'], '0');
+            $cid = isset($cid['cid']) ? rtrim($cid['cid'], '0') : '';
             $sql = "SELECT * FROM {$tablePart} WHERE structure='CatalogPlus_Category' AND cid LIKE '{$cid}%'";
             $cat = $db->select($sql);
             if (count($cat) > 0) {
