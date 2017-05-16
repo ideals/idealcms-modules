@@ -22,7 +22,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $par = array('url' => $articleUrl);
         $fields = array('table' => $this->_table);
-        $_sql = "SELECT * FROM &table WHERE url = :url LIMIT 1";
+        $_sql = "SELECT * FROM &table WHERE BINARY url = :url LIMIT 1";
 
         $list = $db->select($_sql, $par, $fields); // запрос на получение всех страниц, соответствующих частям url
 

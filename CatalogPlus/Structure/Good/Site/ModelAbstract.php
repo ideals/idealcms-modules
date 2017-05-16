@@ -48,7 +48,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
 
         $url = $db->escape_string(array_shift($url));
-        $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
+        $_sql = "SELECT * FROM {$this->_table} WHERE BINARY url='{$url}' LIMIT 1";
         $list = $db->select($_sql);
 
         // Товар не нашли, возвращаем 404

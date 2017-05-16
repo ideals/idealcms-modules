@@ -13,7 +13,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
     {
         $db = Db::getInstance();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE url=:url AND date_create < :time";
+        $_sql = "SELECT * FROM {$this->_table} WHERE BINARY url=:url AND date_create < :time";
         $par = array('url' => $url[0], 'time' => time());
 
         $cabinetParts = $db->select($_sql, $par); // запрос на получение всех страниц, соответствующих частям url

@@ -50,7 +50,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
 
         $url = $db->escape_string($url);
-        $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
+        $_sql = "SELECT * FROM {$this->_table} WHERE BINARY url='{$url}' LIMIT 1";
 
         $list = $db->select($_sql); // запрос на получение всех страниц, соответствующих частям url
 

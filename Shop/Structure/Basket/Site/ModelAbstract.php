@@ -118,7 +118,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $user = new User\Model();
         $checkActive = ($user->checkLogin()) ? '' : ' AND is_active=1';
 
-        $sql = "SELECT * FROM {$this->_table} WHERE url='{$url[0]}' {$checkActive} ORDER BY pos";
+        $sql = "SELECT * FROM {$this->_table} WHERE BINARY url='{$url[0]}' {$checkActive} ORDER BY pos";
 
         $tabs = $db->select($sql); // запрос на получение всех табов, с этим урлом
 

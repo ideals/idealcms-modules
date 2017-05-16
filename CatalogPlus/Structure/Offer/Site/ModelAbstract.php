@@ -29,7 +29,7 @@ class ModelAbstract extends GoodAbstract
 
         // Ищем товар по URL в базе
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM {$this->_table} WHERE url='{$url}' LIMIT 1";
+        $_sql = "SELECT * FROM {$this->_table} WHERE BINARY url='{$url}' LIMIT 1";
         $list = $db->select($_sql);
 
         // Товар не нашли, возвращаем 404
