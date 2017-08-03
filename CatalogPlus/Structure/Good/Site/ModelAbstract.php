@@ -53,6 +53,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // Товар не нашли, возвращаем 404
         if (!isset($list[0]['ID'])) {
+            $this->path = $path;
             $this->is404 = true;
             return $this;
         }
