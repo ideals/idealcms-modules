@@ -83,7 +83,7 @@ class FilterAbstract extends Filter
                 $user = new User\Model();
                 $checkActive = ' ';
                 if (!$user->checkLogin()) {
-                    $checkActive = ' AND is_active=1';
+                    $checkActive = ' AND e.is_active=1';
                 }
 
                 // Вывод товара только определённой категории
