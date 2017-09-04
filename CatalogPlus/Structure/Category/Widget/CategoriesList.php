@@ -46,7 +46,7 @@ class CategoriesList extends Widget
         $prev = array_pop($path);
         $digits = (isset($this->model->params['digits'])) ? $this->model->params['digits'] : 3;
         $smallCidActive = '';
-        if ($prev['structure'] == 'CatalogPlus_Category') {
+        if (isset($object['structure']) && $object['structure'] == 'CatalogPlus_Category' && $prev['structure'] == 'CatalogPlus_Category') {
             $smallCidActive = substr($object['cid'], 0, $digits * $object['lvl']);
         }
 
