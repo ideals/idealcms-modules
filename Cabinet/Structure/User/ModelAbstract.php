@@ -102,32 +102,22 @@ class ModelAbstract extends Core\Model
     {
         $response = 'Предоставлены не верные данные';
         if (!empty($email) && !empty($pass)) {
-            $firstStepCheck = true;
-            if (isset($_SESSION['login']['input']) && $_SESSION['login']['input']) {
-                if ($email != $_SESSION['login']['user']) {
-                    $response = 'Пользователь с указанными данными ещё не зарегистрирован';
-                    $firstStepCheck = false;
-                } elseif (!$_SESSION['login']['is_active']) {
-                    $response = 'Пользователь с указанными данными ещё не активирован';
-                    $firstStepCheck = false;
-                }
-            }
-            if ($firstStepCheck) {
-                $userData = $this->getUser($email);
-                if ($userData) {
-                    if (crypt($pass, $userData['password']) === $userData['password']) {
-                        $_SESSION['login']['user'] = $email;
-                        $_SESSION['login']['ID'] = $userData['ID'];
-                        $_SESSION['login']['input'] = true;
-                        if (function_exists('boolval')) {
-                            $_SESSION['login']['is_active'] = boolval($userData['is_active']);
+            $userData = $this->getUser($email);
+            if ($userData) {
+                if (crypt($pass, $userData['password']) === $userData['password']) {
+                    $_SESSION['login']['user'] = $email;
+                    $_SESSION['login']['ID'] = $userData['ID'];
+                    $_SESSION['login']['input'] = true;
+                    if (function_exists('boolval')) {
+                        $_SESSION['login']['is_active'] = boolval($userData['is_active']);
+                    } else {
+                        if ($userData['is_active']) {
+                            $_SESSION['login']['is_active'] = true;
                         } else {
-                            if ($userData['is_active']) {
-                                $_SESSION['login']['is_active'] = true;
-                            } else {
-                                $_SESSION['login']['is_active'] = false;
-                            }
+                            $_SESSION['login']['is_active'] = false;
                         }
+                    }
+                    if ($_SESSION['login']['is_active']) {
                         if (!empty($userData['basket'])) {
                             $basket = unserialize($userData['basket']);
                             if ($basket->count > 0) {
@@ -144,11 +134,14 @@ class ModelAbstract extends Core\Model
 
                         $response = 'Вы успешно вошли';
                     } else {
-                        $response = 'Ошибка в логине(email) или пароле';
+                        self::logout();
+                        $response = 'Пользователь с указанными данными ещё не активирован';
                     }
                 } else {
-                    $response = 'Пользователя с указанными данными не существует';
+                    $response = 'Ошибка в логине(email) или пароле';
                 }
+            } else {
+                $response = 'Пользователь с указанными данными ещё не зарегистрирован';
             }
         }
         return $response;
