@@ -35,6 +35,7 @@ class ModelAbstract extends GoodAbstract
         // Товар не нашли, возвращаем 404
         if (!isset($list[0]['ID'])) {
             $this->is404 = true;
+            $this->path = $path;
             return $this;
         }
 
