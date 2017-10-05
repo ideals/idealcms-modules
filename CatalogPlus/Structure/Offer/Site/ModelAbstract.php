@@ -3,9 +3,9 @@ namespace CatalogPlus\Structure\Offer\Site;
 
 use CatalogPlus;
 use Ideal\Core\Db;
-use CatalogPlus\Structure\Good\Site\ModelAbstract as GoodAbstract;
+use CatalogPlus\Structure\Good\Site\Model as Good;
 
-class ModelAbstract extends GoodAbstract
+class ModelAbstract extends Good
 {
 
     public function detectPageByUrl($path, $url)
