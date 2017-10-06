@@ -57,7 +57,7 @@ class ModelAbstract extends Good
     {
         $pageData = parent::getPageData();
 
-        if (!is_array($pageData['imgs'])) {
+        if (isset($pageData['imgs']) && !is_array($pageData['imgs'])) {
             // Если дополнительные картинки не разобраны в массив, разбираем
             $pageData['imgs'] = json_decode($pageData['imgs']);
             $this->pageData = $pageData;
