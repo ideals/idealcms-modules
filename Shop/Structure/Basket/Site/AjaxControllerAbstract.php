@@ -109,8 +109,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     protected function buildBasket()
     {
         // Если было установлено правило на пересбор корзины
-        // TODO Переработать процесс обновления корзины, следующая проверка бессмысленна
-        if ($this->update || !$this->update) {
+        if ($this->update) {
             $goods = $this->basket['goods'];
             $this->basket = array(
                 'goods' => array(), // товары которые находятся в корзине
