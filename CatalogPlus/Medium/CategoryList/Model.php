@@ -48,8 +48,10 @@ class Model extends AbstractModel
     public function getSqlAdd($newValue)
     {
         $_sql = "DELETE FROM {$this->table} WHERE good_id='{{ objectId }}';";
-        foreach ($newValue as $v) {
-            $_sql .= "INSERT INTO {$this->table} SET good_id='{{ objectId }}', category_id='{$v}';";
+        if ($newValue) {
+            foreach ($newValue as $v) {
+                $_sql .= "INSERT INTO {$this->table} SET good_id='{{ objectId }}', category_id='{$v}';";
+            }
         }
         return $_sql;
     }
