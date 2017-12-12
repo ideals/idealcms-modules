@@ -73,8 +73,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 }
                 unset ($good['count']);
             }
-            $basket['goods'][$k] = array_merge($v, $good);
-            $basket['goods'][$k]['total_price'] = $v['count'] * $v['sale_price'] ?: $v['price'];
+            $v = $basket['goods'][$k] = array_merge($v, $good);
+            $price = floatval($v['sale_price']) ?: floatval($v['price']);
+            $basket['goods'][$k]['total_price'] = $v['count'] * $price;
             $basket['total'] += $basket['goods'][$k]['total_price'];
             $basket['count'] += 1;
         }
