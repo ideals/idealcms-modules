@@ -541,118 +541,122 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             $par = array('structure' => 'Shop_Order');
             $fields = array('table' => $config->db['prefix'] . 'ideal_structure_datalist');
             $row = $db->select('SELECT ID FROM &table WHERE structure = :structure', $par, $fields);
-            $prevStructure .= $row[0]['ID'];
 
-            $basket = json_decode($_COOKIE['basket']);
-            $tabsInfo = json_decode($_COOKIE['tabsInfo']);
+            // Если справочник "Заказы в магазине" не создан, то и записывать туда ничего не нужно
+            if ($row) {
+                $prevStructure .= $row[0]['ID'];
+
+                $basket = json_decode($_COOKIE['basket']);
+                $tabsInfo = json_decode($_COOKIE['tabsInfo']);
 
 
-            $message = '<h2>Товары</h2><br />';
-            $message .= '<table>';
-            $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
-            $Id1c = array();
+                $message = '<h2>Товары</h2><br />';
+                $message .= '<table>';
+                $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
+                $Id1c = array();
 
-            // Собираем итнформацию о заказанных товарах
-            foreach ($basket->goods as $key => $good) {
-                $goodId = explode('_', $key);
-                if (isset($goodId[1])) {
-                    $offerId = $goodId[1];
-                }
-                $goodId = $goodId[0];
-                if ($config->getStructureByName('CatalogPlus_Offer') && isset($offerId)) {
-                    $par = array('ID' => $offerId);
-                    $fields = array('table' => $config->db['prefix'] . 'catalogplus_structure_offer');
-                    $row = $db->select('SELECT * FROM &table WHERE ID = :ID LIMIT 1', $par, $fields);
-                    if (count($row) > 0) {
-                        if (isset($row[0]['good_id'])) {
-                            $Id1c[] = $row[0]['good_id'];
+                // Собираем итнформацию о заказанных товарах
+                foreach ($basket->goods as $key => $good) {
+                    $goodId = explode('_', $key);
+                    if (isset($goodId[1])) {
+                        $offerId = $goodId[1];
+                    }
+                    $goodId = $goodId[0];
+                    if ($config->getStructureByName('CatalogPlus_Offer') && isset($offerId)) {
+                        $par = array('ID' => $offerId);
+                        $fields = array('table' => $config->db['prefix'] . 'catalogplus_structure_offer');
+                        $row = $db->select('SELECT * FROM &table WHERE ID = :ID LIMIT 1', $par, $fields);
+                        if (count($row) > 0) {
+                            if (isset($row[0]['good_id'])) {
+                                $Id1c[] = $row[0]['good_id'];
+                            }
+                            if (isset($row[0]['offer_id'])) {
+                                $offerId = $row[0]['offer_id'];
+                            }
                         }
-                        if (isset($row[0]['offer_id'])) {
-                            $offerId = $row[0]['offer_id'];
+                    }
+
+                    $summ = intval($good->count) * (intval($good->sale_price));
+                    $goodsItemId = explode('_', $key);
+                    if (count($goodsItemId) > 1) {
+                        $name = $this->getGoodName($goodsItemId[0], $goodsItemId[1]);
+                    } else {
+                        $name = $this->getGoodName($goodsItemId[0]);
+                    }
+                    $message .= '<tr><td>' . $name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+
+                    if ($config->getStructureByName('Shop_OrderDetail')) {
+                        $prevOrder = $config->getStructureByName('Shop_Order');
+                        $insert = array();
+                        $insert['prev_structure'] = $prevOrder['ID'] . '-' . $this->orderId;
+                        $insert['order_id'] = $this->orderId;
+                        $insert['good_id_1c'] = isset($row[0]['good_id']) ? $row[0]['good_id'] : '';
+                        $insert['offer_id_1c'] = isset($offerId) ? $offerId : '';
+                        $insert['count'] = intval($good->count);
+                        $insert['sum'] = $summ * 100;
+
+                        $db->insert(
+                            $prefix . 'shop_structure_orderdetail',
+                            $insert
+                        );
+                    }
+                }
+                $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . intval($basket->total) . '</td></tr>';
+                $message .= '</table>';
+
+                $address = '';
+                if (isset($tabsInfo->generalInfo->address)) {
+                    $address = $tabsInfo->generalInfo->address;
+                }
+                // Генерируем сообщение
+                foreach ($tabsInfo as $key => $tabInfo) {
+                    if ($key != 'generalInfo') {
+                        $message .= '<br /><h2>' . $tabInfo->tabName . '</h2><br />';
+                        unset($tabInfo->tabName);
+                        foreach ($tabInfo as $key => $field) {
+                            if (isset($field->label)) {
+                                $label = $field->label;
+                            } else {
+                                $label = $key;
+                            }
+                            $value = '';
+                            if (isset($field->selectedValue)) {
+                                $value = $field->selectedValue;
+                            } elseif (isset($field->value)) {
+                                $value = $field->value;
+                            }
+                            $message .= $label . ': ' . $value . '<br />';
                         }
                     }
                 }
 
-                $summ = intval($good->count) * (intval($good->sale_price));
-                $goodsItemId = explode('_', $key);
-                if (count($goodsItemId) > 1) {
-                    $name = $this->getGoodName($goodsItemId[0], $goodsItemId[1]);
-                } else {
-                    $name = $this->getGoodName($goodsItemId[0]);
+                // Получаем идентификатор пользователя
+                $userId = 0;
+                if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
+                    $userId = intval($_SESSION['login']['ID']);
                 }
-                $message .= '<tr><td>' . $name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
 
-                if ($config->getStructureByName('Shop_OrderDetail')) {
-                    $prevOrder = $config->getStructureByName('Shop_Order');
-                    $insert = array();
-                    $insert['prev_structure'] = $prevOrder['ID'] . '-' . $this->orderId;
-                    $insert['order_id'] = $this->orderId;
-                    $insert['good_id_1c'] = isset($row[0]['good_id']) ? $row[0]['good_id'] : '';
-                    $insert['offer_id_1c'] = isset($offerId) ? $offerId : '';
-                    $insert['count'] = intval($good->count);
-                    $insert['sum'] = $summ * 100;
-
-                    $db->insert(
-                        $prefix . 'shop_structure_orderdetail',
-                        $insert
-                    );
-                }
+                // Записываем данные
+                $db->insert(
+                    $prefix . 'shop_structure_order',
+                    array(
+                        'prev_structure' => $prevStructure,
+                        'name' => 'Заказ № ' . $orderNumber,
+                        'url' => 'zakaz-N-' . $orderNumber,
+                        'price' => $basket->total * 100,
+                        'stock' => $basket->count,
+                        'address' => $address,
+                        'date_create' => time(),
+                        'date_mod' => time(),
+                        'content' => $message,
+                        'is_active' => 1,
+                        'goods_id' => implode(',', $Id1c),
+                        'export' => 1,
+                        'structure' => 'Shop_OrderDetail',
+                        'user_id' => $userId
+                    )
+                );
             }
-            $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . intval($basket->total) . '</td></tr>';
-            $message .= '</table>';
-
-            $address = '';
-            if (isset($tabsInfo->generalInfo->address)) {
-                $address = $tabsInfo->generalInfo->address;
-            }
-            // Генерируем сообщение
-            foreach ($tabsInfo as $key => $tabInfo) {
-                if ($key != 'generalInfo') {
-                    $message .= '<br /><h2>' . $tabInfo->tabName . '</h2><br />';
-                    unset($tabInfo->tabName);
-                    foreach ($tabInfo as $key => $field) {
-                        if (isset($field->label)) {
-                            $label = $field->label;
-                        } else {
-                            $label = $key;
-                        }
-                        $value = '';
-                        if (isset($field->selectedValue)) {
-                            $value = $field->selectedValue;
-                        } elseif (isset($field->value)) {
-                            $value = $field->value;
-                        }
-                        $message .= $label . ': ' . $value . '<br />';
-                    }
-                }
-            }
-
-            // Получаем идентификатор пользователя
-            $userId = 0;
-            if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
-                $userId = intval($_SESSION['login']['ID']);
-            }
-
-            // Записываем данные
-            $db->insert(
-                $prefix . 'shop_structure_order',
-                array(
-                    'prev_structure' => $prevStructure,
-                    'name' => 'Заказ № ' . $orderNumber,
-                    'url' => 'zakaz-N-' . $orderNumber,
-                    'price' => $basket->total * 100,
-                    'stock' => $basket->count,
-                    'address' => $address,
-                    'date_create' => time(),
-                    'date_mod' => time(),
-                    'content' => $message,
-                    'is_active' => 1,
-                    'goods_id' => implode(',', $Id1c),
-                    'export' => 1,
-                    'structure' => 'Shop_OrderDetail',
-                    'user_id' => $userId
-                )
-            );
         }
     }
 
