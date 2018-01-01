@@ -359,7 +359,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $values['referer'] = isset($_COOKIE['referer']) ? $_COOKIE['referer'] : 'empty';
         $values['date_create'] = $time;
         $values['is_active'] = 1;
-        $values['get_mail'] = $this->post['get_mail'] ? 1 : 0;
+        $values['is_mail'] = $this->post['is_mail'] ? 1 : 0;
 
         // Сообщения и темы созданные зарегестрированным пользователем по умолчанию отображаются.
         $values['is_moderated'] = intval($this->isModerator);
@@ -369,9 +369,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         // При создании новой темы, устанавливаем отправку почты
         if ($values['main_parent_id'] == "0") {
-            $values['get_mail'] = 1;
+            $values['is_mail'] = 1;
         }
-        $this->subscribe(array($this->post['email']), $this->post['main_parent_id'], $this->post['get_mail']);
+        $this->subscribe(array($this->post['email']), $this->post['main_parent_id'], $this->post['is_mail']);
 
         return $result; //ID нового ответа || false
     }
@@ -456,11 +456,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $whereGetMail = 0;
         }
         $db = Db::getInstance();
-        $where['sql'] = 'get_mail = :whereGetMail AND main_parent_id = :mainPost AND ' . $where['sql'];
+        $where['sql'] = 'is_mail = :whereGetMail AND main_parent_id = :mainPost AND ' . $where['sql'];
         $where['param']['whereGetMail'] = $whereGetMail;
         $where['param']['mainPost'] = $mainPost;
         $db = $db->update('i_miniforum_structure_post')
-            ->set(array('get_mail' => $setGetMail))
+            ->set(array('is_mail' => $setGetMail))
             ->where($where['sql'], $where['param'])
             ->exec();
         return $result = $db; //true || false
@@ -505,7 +505,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
 
         $db = Db::getInstance();
-        $_sql = "SELECT email, ID, date_create, main_parent_id FROM &table WHERE (get_mail = 1 AND main_parent_id = :main_parent_id) OR ID = :main_parent_id GROUP BY email";
+        $_sql = "SELECT email, ID, date_create, main_parent_id FROM &table WHERE (is_mail = 1 AND main_parent_id = :main_parent_id) OR ID = :main_parent_id GROUP BY email";
         $params = array('main_parent_id' => $post['main_parent_id']);
         $fields = array('table' => 'i_miniforum_structure_post');
         $postsDB = $db->select($_sql, $params, $fields);

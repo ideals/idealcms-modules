@@ -71,8 +71,8 @@ return array(
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),
-        'get_mail' => array(
-            'label' => 'Подписка на обновление темы. Только для всех кроме автора темы',
+        'is_mail' => array(
+            'label' => 'Подписка на обновление темы',
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),

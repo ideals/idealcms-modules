@@ -61,9 +61,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         }
 
         if ($post['email'] == '') {
-            $post['get_mail'] = false;
+            $post['is_mail'] = false;
         } else {
-            $post['get_mail'] = true;
+            $post['is_mail'] = true;
         }
 
         $this->model = new Model($this->prevStructure);
