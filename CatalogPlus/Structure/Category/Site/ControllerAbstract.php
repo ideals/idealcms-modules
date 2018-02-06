@@ -11,12 +11,15 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     /** @var $goodModel \CatalogPlus\Structure\Good\Site\Model Модель товаров */
     protected $goodModel;
 
+    /** @var string $pageParamName Название параметра определяющего номер страницы*/
+    protected $pageParamName = 'page';
+
     public function indexAction()
     {
         parent::indexAction();
 
         $request = new Request();
-        $page = intval(substr($request->page, 0, 10));
+        $page = intval(substr($request->{$this->pageParamName}, 0, 10));
         if ($page == 0) {
             $page = 1;
         }
@@ -33,7 +36,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         if ($this->goodModel->is404) {
             $this->model->is404 = true;
         }
-        $this->view->pager = $this->goodModel->getPager('page');
+        $this->view->pager = $this->goodModel->getPager($this->pageParamName);
 
         // TODO реализация вывода списка групп и подгруппы текущей активной группы
         $this->view->listCat = $this->model->getListCategory();
