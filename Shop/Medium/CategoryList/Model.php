@@ -42,7 +42,8 @@ class Model extends Medium\AbstractModel
             $arr = (isset($this->obj->object['category_id'])) ? array($this->obj->object['category_id']) : array();
             return $arr;
         }
-        $goodId = $this->obj->object['ID'];
+        $pageData = $this->obj->getPageData();
+        $goodId = $pageData['ID'];
         $_sql = "SELECT category_id FROM i_shop_category_good WHERE good_id='{$goodId}'";
         $arr = $db->select($_sql);
 
