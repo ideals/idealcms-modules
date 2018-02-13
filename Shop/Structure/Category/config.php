@@ -53,17 +53,17 @@ return array(
         'template' => array(
             'label' => 'Шаблон отображения',
             'sql' => "varchar(255) default 'index.twig'",
-            'type' => 'Catalog_Template',
-            'medium' => '\\Idea\\Medium\\TemplateList\\Model',
+            'type' => 'Ideal_Template',
+            'medium' => '\\Ideal\\Medium\\TemplateList\\Model',
             'default'   => 'index.twig',
         ),
         'addon' => array(
             'label' => 'Аддоны',
-            'sql' => "varchar(255) not null default '[[\"1\",\"Catalog_GoodConfig\",\"\"]]'",
+            'sql' => "varchar(255) not null default '[[\"1\",\"Ideal_Page\",\"\"]]'",
             'type' => 'Ideal_Addon',
             'medium'    => '\\Ideal\\Medium\\AddonList\\Model',
-            'available' =>  array('Catalog_GoodConfig'),
-            'default'   => '[["1","Catalog_GoodConfig",""]]',
+            'available' =>  array('Ideal_Page'),
+            'default'   => '[["1","Ideal_Page",""]]',
         ),
         'name' => array(
             'label' => 'Название',
