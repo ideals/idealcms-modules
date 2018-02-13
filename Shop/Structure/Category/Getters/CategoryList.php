@@ -20,8 +20,8 @@ class CategoryList
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $_table = $config->db['prefix'] . 'catalog_structure_category';
-        $_sql = 'SELECT ID, name FROM {$_table}';
+        $_table = $config->db['prefix'] . 'shop_structure_category';
+        $_sql = "SELECT ID, name FROM {$_table}";
         $arr = $db->select($_sql);
 
         $list = array();
