@@ -124,9 +124,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $in = '(' . implode(',', $ids) . ')';
             $db = Db::getInstance();
             $_sql = "SELECT * FROM {$this->_table} WHERE ID IN {$in}";
-            $goodsFromBase = $db->select($_sql);
-            array_walk($goodsFromBase, function ($v) use (&$goods) {
+            $goods = $db->select($_sql);
+            array_walk($goods, function ($v, $k) use (&$goods) {
                 $goods[$v['ID']] = $v;
+                unset($goods[$k]);
             });
         }
         return $goods;
