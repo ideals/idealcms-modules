@@ -34,10 +34,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $this->is404 = true;
             return $this;
         }
-        if (count($url) > 1) {
-            $this->is404 = true;
-            return $this;
-        }
 
         $db = Db::getInstance();
         $config = Config::getInstance();
