@@ -108,7 +108,7 @@ class AbstractXml
             $needle = $item->xpath($this->ns . $path);
 
             // По умолчанию присваиваем заполняемому полю пустую строку
-            $this->data[$id][$key] = '';
+            $this->data[$id][$key] = is_array($value) ? array() : '';
 
             // Если требуется заполнить обычное скалярное поле
             if (!is_array($value) && isset($needle[0])) {
