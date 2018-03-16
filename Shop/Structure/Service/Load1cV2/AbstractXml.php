@@ -54,7 +54,12 @@ class AbstractXml
             $firsPart = explode('/', $this->part);
             $part = array_shift($firsPart);
             $updateInfo = $this->xml->xpath('//' . $this->ns . $part . '/@СодержитТолькоИзменения');
-            $this->updateInfo = (string) $updateInfo[0] == 'false' ? false : true;
+
+            // по умолчанию считаем что выгружаются все данные, а не только обновления
+            $this->updateInfo = false;
+            if (!empty($updateInfo)) {
+                $this->updateInfo = (string) $updateInfo[0] == 'false' ? false : true;
+            }
         } else {
             $this->updateInfo = true;
         }
