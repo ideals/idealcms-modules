@@ -22,19 +22,19 @@ class NewDirectory
     protected $onlyUpdate;
 
     /** @var DbDirectory */
-    protected $dbGood;
+    protected $dbDirectory;
 
     /** @var XmlDirectory */
-    protected $xmlGood;
+    protected $xmlDirectory;
 
     /**
-     * @param DbDirectory $dbGood
-     * @param XmlDirectory $xmlGood
+     * @param DbDirectory $dbDirectory
+     * @param XmlDirectory $xmlDirectory
      */
-    public function __construct($dbGood, $xmlGood)
+    public function __construct($dbDirectory, $xmlDirectory)
     {
-        $this->dbGood = $dbGood;
-        $this->xmlGood = $xmlGood;
+        $this->dbDirectory = $dbDirectory;
+        $this->xmlDirectory = $xmlDirectory;
     }
 
     /**
@@ -45,10 +45,10 @@ class NewDirectory
     public function parse()
     {
         // Забираем реззультаты категорий из БД 1m
-        $dbResult = $this->dbGood->parse();
+        $dbResult = $this->dbDirectory->parse();
 
         // Забираем результаты категорий из xml 1m
-        $xmlResult = $this->xmlGood->parse();
+        $xmlResult = $this->xmlDirectory->parse();
 
         return $this->diff($dbResult, $xmlResult);
     }
