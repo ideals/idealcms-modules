@@ -364,7 +364,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         foreach ($info as $k => $v) {
             $link = '';
             $this->getFullUrl($v, $link);
-            $v['link'] = 'href="' . $link . '"';
+            $v['link'] = 'href="/' . $link . '"';
             unset($info[$k]);
             if ($offers && isset($v['offer_ID'])) {
                 $info[$v['ID'] . '_' . $v['offer_ID']] = $v;
