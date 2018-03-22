@@ -80,7 +80,6 @@ class NewDirectory
     protected function diff(array $dbResult, array $xmlResult)
     {
         $result = array();
-        $diffDb = array_diff(array_keys($dbResult), array_keys($xmlResult));
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
@@ -90,19 +89,10 @@ class NewDirectory
 
             $res = array_diff_assoc($val, $dbResult[$k]);
             if (count($res) > 0) {
-                $result[$k] = $res;
+                $result[$k] = array_merge($dbResult[$k], $res);
                 $this->answer['update']++;
             }
         }
-/*
- * тут видимо была попытка отключить неиспользуемые поля справочников. Нам это не надо
-        foreach ($diffDb as $id) {
-            if ($dbResult[$id]['is_active'] == 1) {
-                $result[$id]['is_active'] = 0;
-                $result[$id]['ID'] = $dbResult[$id]['ID'];
-            }
-        }
-*/
         return $result;
     }
 }
