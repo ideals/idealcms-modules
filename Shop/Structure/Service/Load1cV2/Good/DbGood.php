@@ -119,15 +119,21 @@ class DbGood extends AbstractDb
     {
         $db = Db::getInstance();
 
-        $sql = "SELECt ID as offer_id_1c, price, good_id as id_1c, currency, rest as stock FROM "
-            . $this->offers . $this->tablePostfix . " ORDER BY good_id, price";
+        $sql = 'SELECt ID as offer_id_1c, price, good_id as id_1c, currency, rest as stock FROM '
+            . $this->offers . $this->tablePostfix . ' ORDER BY good_id, price';
 
         $result = array();
         $tmp = $db->select($sql);
         foreach ($tmp as $item) {
+            // Если товара ещё нет в массиве, то добавляем его
             if (!isset($result[$item['id_1c']])) {
                 $result[$item['id_1c']] = $item;
-            } elseif (floatval($item['price']) > 0 && (floatval($result[$item['id_1c']]['price']) == 0 || $item['price'] < $result[$item['id_1c']]['price'])) {
+            } elseif (floatval($item['price']) > 0 &&
+                (floatval($result[$item['id_1c']]['price']) == 0 ||
+                    $item['price'] < $result[$item['id_1c']]['price']
+                )
+            ) {
+                // Если товар уже есть в массиве, но у рассматриваемого оффера цена ниже, то обновляекм цену у товара
                 $result[$item['id_1c']]['price'] = $item['price'];
             }
         }
