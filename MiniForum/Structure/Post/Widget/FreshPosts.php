@@ -40,7 +40,11 @@ class FreshPosts extends \Ideal\Core\Widget
             //Получаем заголовок сообщения отделением его от основного сообщения
             $str = mb_substr($value['content'], 30);
             preg_match_all('/(.*)[\.\?\!]/U', $str, $content, PREG_OFFSET_CAPTURE);
-            $content = $content['0']['0']['0'];
+            if (isset($content['0']) && isset($content['0']['0']) && isset($content['0']['0']['0'])) {
+                $content = $content['0']['0']['0'];
+            } else {
+                $content = '';
+            }
 
             if ($content) {
                 $posts[$key]['content'] = mb_substr($value['content'], 0, 30) . $content;
@@ -54,7 +58,11 @@ class FreshPosts extends \Ideal\Core\Widget
                 $posts[$key]['after_link'] = Util::smartTrim($posts[$key]['after_link'] , 200 - $contentSize - 1);
             }
 
-            if (((mb_strlen($posts[$key]['after_link']) + $contentSize) < mb_strlen($value['content'])) && (mb_strlen($posts[$key]['after_link']) > 0)) {
+            if (
+                isset($posts[$key]['after_link']) &&
+                ((mb_strlen($posts[$key]['after_link']) + $contentSize) < mb_strlen($value['content'])) &&
+                (mb_strlen($posts[$key]['after_link']) > 0)
+            ) {
                 $posts[$key]['after_link'] .= '...';
             }
 
