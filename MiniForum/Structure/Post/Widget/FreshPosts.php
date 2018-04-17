@@ -14,11 +14,22 @@ class FreshPosts extends \Ideal\Core\Widget
     public function getData() {
         $db = Db::getInstance();
         $config = Config::getInstance();
-        $table = $config->db['prefix'] . 'miniforum_structure_post';
 
         //получаем только корневые и активные сообщения форума
-        $where = array('is_active' => '1', 'main_parent_id' => '0');
-        $posts = $db->select($table, $where, 'date_create DESC', 'is_active', 3);
+        $_sql = "
+          SELECT 
+            * 
+          FROM 
+            &table 
+          WHERE 
+            is_active = :is_active AND 
+            main_parent_id = :main_parent_id 
+          ORDER BY date_create DESC 
+          LIMIT 3";
+        $params = array('is_active' => '1', 'main_parent_id' => '0');
+        $fields = array('table' => $config->db['prefix'] . 'miniforum_structure_post');
+        $posts = $db->select($_sql, $params, $fields);
+
 
         foreach ($posts as $key => $value) {
             $posts[$key]['date_create'] = Util::dateReach($value['date_create']);
