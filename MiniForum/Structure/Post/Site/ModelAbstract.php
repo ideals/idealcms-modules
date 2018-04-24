@@ -42,7 +42,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // todo сделать ограничение на количество комментариев на странице
         // Очень выжно чтобы главные посты шли в конце иначе при получении дочерних постов через getCommentsTree,
         // мы не получим все элементы
-        $_sql = "SELECT * FROM i_miniforum_structure_post
+        $_sql = "SELECT * FROM {$this->_table}
                     WHERE page_structure=:page_structure AND is_active=1 {$this->where}
                     ORDER BY main_parent_id DESC, date_create ASC";
         $params = array('page_structure' => $pageStructure);

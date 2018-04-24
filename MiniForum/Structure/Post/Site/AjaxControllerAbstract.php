@@ -35,7 +35,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     /**
      * Добавление сообщения на форум
      */
-    public function insetAction()
+    public function insertAction()
     {
         if (!isset($_POST['form'])) {
             exit;
