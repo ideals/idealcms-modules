@@ -189,11 +189,17 @@ class FrontController
                         $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
                         // Если находим то создаём новую директорию для нового пакета
                         while ($filesGlob !== false && is_array($filesGlob) && count($filesGlob) > 0) {
-                            $folder++;
-                            $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
+                            // Если передаётся файл, имя которого уже есть среди принятых файлов,
+                            // то прекращаем процесс создания новой директории для нового пакета
+                            if (basename(end($filesGlob)) != basename($filename)) {
+                                $folder++;
+                                $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
+                            } else {
+                                $filesGlob = false;
+                            }
                         }
 
-                        // создание директории для выгрузки очередного пакета
+                                // Создание директории для выгрузки очередного пакета
                         if (!file_exists($this->directory . $folder . '/')) {
                             mkdir($this->directory . $folder . '/', 0750, true);
                         }
@@ -202,9 +208,22 @@ class FrontController
                             $f = fopen($this->directory . $folder . '/' . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
-                            $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $filename));
+                            $fileSize = filesize($this->directory . $folder . '/' . $filename);
+                            $fileSize = self::humanFilesize($fileSize);
                             $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
-                            $this->logClass->appendToLogMessage("Помещён в директорию - \"{$this->directory}{$folder}/\".\n");
+                            $toLog = "Помещён в директорию - \"{$this->directory}{$folder}/\".\n";
+                            $this->logClass->appendToLogMessage($toLog);
+                        } else {
+                            // Если файл с таким именем существует, то дополняем его
+                            $f = fopen($this->directory . $folder . '/' . $filename, 'ab');
+                            fwrite($f, file_get_contents('php://input'));
+                            fclose($f);
+                            $fileSize = filesize($this->directory . $folder . '/' . $filename);
+                            $fileSize = self::humanFilesize($fileSize);
+                            $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
+                            $toLog = "Дополнен файл {$filename} в директории";
+                            $toLog .= " - \"{$this->directory}{$folder}/\".\n";
+                            $this->logClass->appendToLogMessage($toLog);
                         }
                     } else {
                         if (false !== strpos($filename, '.jpeg') || false !== strpos($filename, '.jpg') || false !== strpos($filename, '.gif')) {
