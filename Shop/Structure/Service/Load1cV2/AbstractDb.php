@@ -42,21 +42,9 @@ class AbstractDb
     }
 
     /**
-     * Создание временной таблицы для сохранения данных со схемой оригинальной таблицы
-     */
-    protected function createEmptyTestTable()
-    {
-        $db = Db::getInstance();
-        $testTable = $this->table . $this->tablePostfix;
-
-        $sql = "CREATE TABLE {$testTable} LIKE {$this->table}";
-        $db->query($sql);
-    }
-
-    /**
      * Удаление временной таблицы
      */
-    protected function dropTestTable()
+    public function dropTestTable()
     {
         $db = Db::getInstance();
 
@@ -68,6 +56,18 @@ class AbstractDb
             $sql = "DROP TABLE {$testTable}";
             $db->query($sql);
         }
+    }
+
+    /**
+     * Создание временной таблицы для сохранения данных со схемой оригинальной таблицы
+     */
+    protected function createEmptyTestTable()
+    {
+        $db = Db::getInstance();
+        $testTable = $this->table . $this->tablePostfix;
+
+        $sql = "CREATE TABLE {$testTable} LIKE {$this->table}";
+        $db->query($sql);
     }
 
     /**
