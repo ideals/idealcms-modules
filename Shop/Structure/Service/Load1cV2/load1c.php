@@ -27,7 +27,7 @@ require_once 'Library/pclzip.lib.php';
 
 $config = Core\Config::getInstance();
 
-$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $config->cmsFolder . DIRECTORY_SEPARATOR;
+$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $cmsFolder  . DIRECTORY_SEPARATOR;
 $settingsFilePath = $cmsFolderPath . 'load1cV2Settings.php';
 
 // Если нет файла в папке админки, то копируем его туда из папки модуля
