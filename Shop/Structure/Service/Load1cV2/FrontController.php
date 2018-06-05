@@ -11,7 +11,6 @@ use Shop\Structure\Service\Load1cV2\Directory\DbDirectory;
 use Shop\Structure\Service\Load1cV2\Good\DbGood;
 use Shop\Structure\Service\Load1cV2\Medium\DbMedium;
 use Shop\Structure\Service\Load1cV2\Offer\DbOffer;
-use Shop\Structure\Service\Load1cV2\Log\Log;
 use Shop\Structure\Service\Load1cV2\Order\Order;
 
 /**
@@ -45,13 +44,24 @@ class FrontController
     /** @var array Настройки для обмена данными с 1С */
     protected $config = array();
 
-    public function __construct($config)
+    public function __construct($config, $logClass)
     {
         $this->config = $config;
-        $this->logClass = new Log();
-        $this->logClass->appendToLogMessage('Дата/время: ' . date('d.m.Y/H:i:s', time()) . "\n");
-        $this->logClass->appendToLogMessage('Запрос: ' . $_SERVER['QUERY_STRING'] . "\n");
-        $this->logClass->appendToLogMessage('POST-данные: ' . http_build_query($_POST) . "\n");
+        $this->logClass = $logClass;
+
+        // Формируем текст из данных запроса для отправки в лог
+        $dateTime = date('d.m.Y/H:i:s', time());
+        $postData = http_build_query($_POST);
+        $sessionData = http_build_query($_SESSION);
+        $cookieData = http_build_query($_COOKIE);
+        $logMessage = <<<LOGMESSAGE
+            Дата/время: {$dateTime}
+            Запрос: {$_SERVER['QUERY_STRING']}
+            POST-данные: {$postData}
+            SESSION-данные: {$sessionData}
+            COOKIE-данные: {$cookieData}
+LOGMESSAGE;
+        self::saveToLog('info', $logMessage);
 
         // Объявляем функции которые будет отлавливать ошибки и заносить их в лог
         if (isset($this->config['keep_log']) && $this->config['keep_log']) {
@@ -62,10 +72,7 @@ class FrontController
 
     public function __destruct()
     {
-        if (isset($this->config['keep_log']) && $this->config['keep_log']) {
-            $this->logClass->addToLog();
-            $this->logClass->setLogMessage('');
-        }
+        self::saveToLog('info', "\n\n");
     }
 
     /**
@@ -108,6 +115,7 @@ class FrontController
         }
 
         // удаление файлов от предыдущей выгрузки
+        // TODO уйти от определения "предыдущей выгрузки" методом проверки давности создания каталога выгрузки
         if (time() - filemtime($this->directory) > 1800) {
             $this->purge();
         }
@@ -116,7 +124,7 @@ class FrontController
         if ($request->mode != 'checkauth' && !$user->checkLogin()) {
             print "failure\n";
             print "Ошибка: Вы не авторизованы";
-            $this->logClass->appendToLogMessage('FAILURE: Попытка совершить действие не авторизовавшись.' . "\n");
+            self::saveToLog('error', 'Попытка совершить действие не авторизовавшись.');
             die();
         }
 
@@ -126,13 +134,14 @@ class FrontController
                     print "success\n";
                     print session_name() . "\n";
                     print session_id() . "\n";
-                    $this->logClass->appendToLogMessage('Авторизация прошла успешно.' . "\n");
+                    self::saveToLog('info', 'Авторизация прошла успешно.');
                 } else {
                     print "failure\n";
                     print "Ошибка: пользователь не авторизован\n";
-                    $this->logClass->appendToLogMessage("FAILURE: Ошибка авторизации.\n");
-                    $this->logClass->appendToLogMessage("Пользователь: {$_SERVER['PHP_AUTH_USER']}.\n");
-                    $this->logClass->appendToLogMessage("Пароль: {$_SERVER['PHP_AUTH_PW']}.\n");
+                    $logMessage = "Ошибка авторизации.\n";
+                    $logMessage .= "Пользователь: {$_SERVER['PHP_AUTH_USER']}.\n";
+                    $logMessage .= "Пароль: {$_SERVER['PHP_AUTH_PW']}.\n";
+                    self::saveToLog('error', $logMessage);
                 }
                 return 0;
 
@@ -143,20 +152,21 @@ class FrontController
                 print "kakoeto = znachenie\n";
                 // 1С ищет версию схемы в четвёртой строке при обмене заказами
                 print "schema_version = 2.08\n";
-                $this->logClass->appendToLogMessage("Установлены параметры для обмена данными.\n");
-                $this->logClass->appendToLogMessage("Использовать архивирование - {$this->useZip}\n");
+                $logMessage = "Установлены параметры для обмена данными.\n";
+                $logMessage .= "Использовать архивирование - {$this->useZip}\n";
                 $fileSize = self::humanFilesize($this->filesize);
-                $this->logClass->appendToLogMessage("Ограничение размера принимаемого файла - {$fileSize}\n");
+                $logMessage .= "Ограничение размера принимаемого файла - {$fileSize}\n";
+                self::saveToLog('info', $logMessage);
                 return 0;
 
             case 'file':
                 $filename = basename($request->filename);
-                $this->logClass->appendToLogMessage("Получен файл \"{$filename}\". ");
+                self::saveToLog('info', "Получен файл \"{$filename}\". \n");
                 $dirName = str_replace($filename, '', $request->filename);
 
                 if (strpos($filename, '.zip') !== false) {
                     $this->unzip($filename);
-                    $this->logClass->appendToLogMessage("Архив успешно обработан.\n");
+                    self::saveToLog('info', "Архив успешно обработан.\n");
                 } else {
                     $folder = 1;
                     $exists = array('prices', 'rests');
@@ -185,21 +195,14 @@ class FrontController
                     }
 
                     if (in_array($type[1], $exists)) {
-
                         $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
                         // Если находим то создаём новую директорию для нового пакета
                         while ($filesGlob !== false && is_array($filesGlob) && count($filesGlob) > 0) {
-                            // Если передаётся файл, имя которого уже есть среди принятых файлов,
-                            // то прекращаем процесс создания новой директории для нового пакета
-                            if (basename(end($filesGlob)) != basename($filename)) {
                                 $folder++;
                                 $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
-                            } else {
-                                $filesGlob = false;
-                            }
                         }
 
-                                // Создание директории для выгрузки очередного пакета
+                        // создание директории для выгрузки очередного пакета
                         if (!file_exists($this->directory . $folder . '/')) {
                             mkdir($this->directory . $folder . '/', 0750, true);
                         }
@@ -208,22 +211,9 @@ class FrontController
                             $f = fopen($this->directory . $folder . '/' . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
-                            $fileSize = filesize($this->directory . $folder . '/' . $filename);
-                            $fileSize = self::humanFilesize($fileSize);
-                            $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
-                            $toLog = "Помещён в директорию - \"{$this->directory}{$folder}/\".\n";
-                            $this->logClass->appendToLogMessage($toLog);
-                        } else {
-                            // Если файл с таким именем существует, то дополняем его
-                            $f = fopen($this->directory . $folder . '/' . $filename, 'ab');
-                            fwrite($f, file_get_contents('php://input'));
-                            fclose($f);
-                            $fileSize = filesize($this->directory . $folder . '/' . $filename);
-                            $fileSize = self::humanFilesize($fileSize);
-                            $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
-                            $toLog = "Дополнен файл {$filename} в директории";
-                            $toLog .= " - \"{$this->directory}{$folder}/\".\n";
-                            $this->logClass->appendToLogMessage($toLog);
+                            $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $filename));
+                            self::saveToLog('info', "Размер файла - {$fileSize}.\n");
+                            self::saveToLog('info', "Помещён в директорию - \"{$this->directory}{$folder}/\".\n");
                         }
                     } else {
                         if (false !== strpos($filename, '.jpeg') || false !== strpos($filename, '.jpg') || false !== strpos($filename, '.gif')) {
@@ -236,16 +226,16 @@ class FrontController
                                 fwrite($f, file_get_contents('php://input'));
                                 fclose($f);
                                 $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $dirName . '/' . $filename));
-                                $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
-                                $this->logClass->appendToLogMessage("Помещён в директорию - \"{$this->directory}{$folder}/{$dirName}\".\n");
+                                self::saveToLog('info', "Размер файла - {$fileSize}.\n");
+                                self::saveToLog('info', "Помещён в директорию - \"{$this->directory}{$folder}/{$dirName}\".\n");
                             }
                         } else {
                             $f = fopen($this->directory . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
                             $fileSize = self::humanFilesize(filesize($this->directory . $filename));
-                            $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
-                            $this->logClass->appendToLogMessage("Помещён в директорию - \"{$this->directory}\".\n");
+                            self::saveToLog('info', "Размер файла - {$fileSize}.\n");
+                            self::saveToLog('info', "Помещён в директорию - \"{$this->directory}\".\n");
                         }
                     }
                 }
@@ -254,9 +244,30 @@ class FrontController
                 return 0;
 
             case 'import':
+                // TODO Здесь реализация пошаговой модели
                 $filename = basename($request->filename);
+                $fileNameMask = $this->directory . '*' . $filename;
+                list($filePath) = glob($fileNameMask);
+                if ($filePath) {
+                    $filePathArray = explode(DIRECTORY_SEPARATOR, $filePath);
+                    $pcgNumr = strval($filePathArray[count($filePathArray) - 2]);
+                    if (strlen($pcgNumr) >= 1 || strlen($pcgNumr) <= 2) {
+                        $pcgNumr = intval($pcgNumr);
+                    } else {
+                        $pcgNumr = 0;
+                    }
+                    if ($pcgNumr) {
+                        // Обработка товаров, предложений и т.д.
+                    } else {
+                        // Обработка основных двух файлов
+                        // Считаем что файл формата import___*.xml всегда выгружается обрабатывается первым
+                        if (strpos($filename, 'import') === 0) {
+                            $this->prepareTables();
+                        }
+                    }
+                }
                 print "success\n";
-                $this->logClass->appendToLogMessage("Файл \"{$filename}\" обработан.\n");
+                self::saveToLog('info', "Файл \"{$filename}\" обработан.\n");
                 break;
 
             case 'query':
@@ -264,7 +275,7 @@ class FrontController
                 $xml = $order->generateExportXml();
                 header("Content-type: text/xml; charset=windows-1251");
                 print trim($xml);
-                $this->logClass->appendToLogMessage("Файл заказов с сайта сформирован успешно.\n");
+                self::saveToLog('info', "Файл заказов с сайта сформирован успешно.\n");
                 die();
 
             case 'deactivate':
@@ -318,13 +329,13 @@ class FrontController
                 // TODO из за ограничения по времени.
                 // TODO Нужнен переход на пошаговую модель обработки данных вместо "всё в последнем шаге"
                 for ($package = 1; $package <= $countPackages; $package++) {
-                    $this->loadImages($package, $timeStart);
+                    $this->loadImages($package);
                 }
 
                 echo "success\n";
-                $this->logClass->appendToLogMessage("Сеанс связи с 1С завершён.\n");
+                self::saveToLog('info', "Сеанс связи с 1С завершён.\n");
                 $html = str_replace('<br>', "\n", $html);
-                $this->logClass->appendToLogMessage("{$html}\n");
+                self::saveToLog('info', "{$html}\n");
                 return 0;
 
             default:
@@ -741,8 +752,8 @@ class FrontController
             exit;
         }
         $fileSize = self::humanFilesize(filesize($pathFile));
-        $this->logClass->appendToLogMessage("Размер файла - {$fileSize}.\n");
-        $this->logClass->appendToLogMessage("Помещён в директорию - \"{$tmp}\".\n");
+        self::saveToLog('info', "Размер файла - {$fileSize}.\n");
+        self::saveToLog('info', "Помещён в директорию - \"{$tmp}\".\n");
 
         $zip = new \PclZip($pathFile);
         $fileList = $zip->listContent();
@@ -752,7 +763,7 @@ class FrontController
             $errorInfo = $zip->errorInfo(true);
             print "failure\n";
             print "Ошибка распаковки архива 1: {$errorInfo}";
-            $this->logClass->appendToLogMessage("Ошибка распаковки архива - {$errorInfo}.\n");
+            self::saveToLog('error', "Ошибка распаковки архива - {$errorInfo}.\n");
             die;
         }
 
@@ -762,7 +773,7 @@ class FrontController
             $errorInfo = $zip->errorInfo(true);
             print "failure\n";
             print "Ошибка распаковки архива 2: {$errorInfo}";
-            $this->logClass->appendToLogMessage("Ошибка распаковки архива - {$errorInfo}.\n");
+            self::saveToLog('error', "Ошибка распаковки архива - {$errorInfo}.\n");
 
             die;
         }
@@ -784,7 +795,7 @@ class FrontController
             $errorInfo = $zip->errorInfo(true);
             print "failure\n";
             print "Ошибка распаковки архива 3:{$errorInfo}";
-            $this->logClass->appendToLogMessage("Ошибка распаковки архива - {$errorInfo}.\n");
+            self::saveToLog('error', "Ошибка распаковки архива - {$errorInfo}.\n");
             die;
         }
 
@@ -903,5 +914,18 @@ class FrontController
         for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
         }
         return round($size, $precision).$mark[$i];
+    }
+
+    /**
+     * Инициация процесса протоколирования
+     *
+     * @param string $level Константа одного из уровней протоколирования
+     * @param string $message
+     */
+    private function saveToLog($level, $message)
+    {
+        if (isset($this->config['keep_log']) && $this->config['keep_log'] && $this->logClass) {
+            $this->logClass->log($level, $message);
+        }
     }
 }

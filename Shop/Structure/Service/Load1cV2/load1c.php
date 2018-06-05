@@ -49,8 +49,9 @@ $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
 // Загружаем список структур из конфигурационных файлов структур
 $config->loadSettings();
 
-// сообщения об ошибках добавления insert, например, возвращает false
-$fc = new Load1cV2\FrontController($params);
+// Класс логирования
+$logClass = new Shop\Structure\Service\Load1cV2\Log\Log();
+$fc = new Load1cV2\FrontController($params, $logClass);
 if (ob_get_contents()) {
     ob_clean();
 }
