@@ -34,7 +34,7 @@ class Log
         $this->logFilePath = $logFilePath;
 
         $successLogFilePath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $config->cms['tmpFolder'] . DIRECTORY_SEPARATOR;
-        $successLogFilePath .= 'log1c.log';
+        $successLogFilePath .= 'log1cSuccess.log';
 
         // Если файла логирования ещё нет, то создаём его
         if (!file_exists($successLogFilePath)) {
