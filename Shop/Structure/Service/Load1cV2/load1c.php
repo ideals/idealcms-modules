@@ -24,9 +24,23 @@ set_include_path(
 // Подключаем автозагрузчик классов
 require_once 'Core/AutoLoader.php';
 require_once 'Library/pclzip.lib.php';
-$params = require 'config.php';
 
 $config = Core\Config::getInstance();
+
+$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $config->cmsFolder . DIRECTORY_SEPARATOR;
+$settingsFilePath = $cmsFolderPath . 'load1cV2Settings.php';
+
+// Если нет файла в папке админки, то копируем его туда из папки модуля
+if (!file_exists($settingsFilePath)) {
+    $settingsFilePath = $cmsFolderPath . 'Mods/Shop/Structure/Service/Load1cV2/load1cV2Settings.php';
+    if (!file_exists($settingsFilePath)) {
+        // Если файла настроек нет и в папке модуля то выбрасываем исключение
+        throw new \Exception('Отсутствует файл настроек модуля выгрузки');
+    }
+}
+
+$params = require $settingsFilePath;
+
 $config->cms = array_merge($config->cms, array('errorLog'=>'email'));
 
 // Каталог, в котором находятся модифицированные скрипты CMS
@@ -36,7 +50,7 @@ $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
 $config->loadSettings();
 
 // сообщения об ошибках добавления insert, например, возвращает false
-$fc = new Load1cV2\FrontController($params['settings']);
+$fc = new Load1cV2\FrontController($params);
 if (ob_get_contents()) {
     ob_clean();
 }

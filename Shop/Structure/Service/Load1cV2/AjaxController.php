@@ -21,10 +21,25 @@ class AjaxController extends \Ideal\Core\AjaxController
      * Экшен запуска загрузки из файлов по шагам
      *
      * @return string json-массив с результатами выполненного шага загрузки
+     * @throws \Exception
      */
     public function ajaxIndexLoadAction()
     {
-        $configFile = include('Shop/Structure/Service/Load1cV2/load1cV2Settings.php');
+        $configs = Config::getInstance();
+
+        $cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $configs->cmsFolder . DIRECTORY_SEPARATOR;
+        $settingsFilePath = $cmsFolderPath . 'load1cV2Settings.php';
+
+        // Если нет файла в папке админки, то копируем его туда из папки модуля
+        if (!file_exists($settingsFilePath)) {
+            $settingsFilePath = $cmsFolderPath . 'Mods/Shop/Structure/Service/Load1cV2/load1cV2Settings.php';
+            if (!file_exists($settingsFilePath)) {
+                // Если файла настроек нет и в папке модуля то выбрасываем исключение
+                throw new \Exception('Отсутствует файл настроек модуля выгрузки');
+            }
+        }
+
+        $configFile = include($settingsFilePath);
 
         $fc = new FrontController($configFile);
         $answer = array(
@@ -32,7 +47,6 @@ class AjaxController extends \Ideal\Core\AjaxController
             'errors'    => array(),
         );
 
-        $configs = Config::getInstance();
         $step = (int) $_POST['step'];
         if (isset($_POST['packageNum'])) {
             $packageNum = (int) $_POST['packageNum'];
@@ -53,7 +67,8 @@ class AjaxController extends \Ideal\Core\AjaxController
                     // Подготовка к загрузке данных — создание временных таблиц
                     $fc->loadFiles();
                     // Создание временных таблиц
-                    $fc->prepareTables();
+                    $files = $fc->getFiles();
+                    $fc->prepareTables($files['import']);
                     $answer['nextStep'] = 2;
                     $answer['infoText'] = 'Подготовка базы';
                     $answer['successText'] = 'База готова для внесения изменений';
@@ -62,13 +77,15 @@ class AjaxController extends \Ideal\Core\AjaxController
                     // Получаем список всех файлов и папок из папки выгрузки
                     $fc->loadFiles();
                     // Обработка категорий/групп товара из общего файла import.xml
-                    $answer = array_merge($answer, $fc->category());
+                    $files = $fc->getFiles();
+                    $answer = array_merge($answer, $fc->category($files['import']));
                     $answer['nextStep'] = 3;
                     break;
                 case 3:
                     $fc->loadFiles();
                     // Обработка товаров из указанного пакета/папки
-                    $answer = array_merge($answer, $fc->good($packageNum));
+                    $files = $fc->getFiles();
+                    $answer = array_merge($answer, $fc->good($files[$packageNum]['import']));
                     $answer['nextStep'] = 4;
                     $answer['infoText'] = 'Обработка товаров из пакета №' . $packageNum;
                     break;
@@ -81,7 +98,12 @@ class AjaxController extends \Ideal\Core\AjaxController
                     break;
                 case 5:
                     $fc->loadFiles();
-                    $answer = array_merge($answer, $fc->offer($packageNum));
+                    $files = $fc->getFiles();
+                    $fc->offer($files[$packageNum]['offers'], $answer);
+                    foreach($answer['offer'] as $key => $value) {
+                        $answer[$key] = $value;
+                    }
+                    unset($answer['offer']);
                     $answer['nextStep'] = 6;
                     $answer['infoText'] = 'Обработка товарных предложений из пакета №' . $packageNum;
                     break;
