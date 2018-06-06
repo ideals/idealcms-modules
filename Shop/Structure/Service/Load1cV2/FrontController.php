@@ -55,11 +55,11 @@ class FrontController
         $sessionData = http_build_query($_SESSION);
         $cookieData = http_build_query($_COOKIE);
         $logMessage = <<<LOGMESSAGE
-            Дата/время: {$dateTime}
-            Запрос: {$_SERVER['QUERY_STRING']}
-            POST-данные: {$postData}
-            SESSION-данные: {$sessionData}
-            COOKIE-данные: {$cookieData}
+Дата/время: {$dateTime}
+       Запрос: {$_SERVER['QUERY_STRING']}
+       POST-данные: {$postData}
+       SESSION-данные: {$sessionData}
+       COOKIE-данные: {$cookieData}
 LOGMESSAGE;
         self::saveToLog('info', $logMessage);
 
@@ -72,7 +72,7 @@ LOGMESSAGE;
 
     public function __destruct()
     {
-        self::saveToLog('info', "\n\n");
+        self::saveToLog('-----', "-----\n\n");
     }
 
     /**
