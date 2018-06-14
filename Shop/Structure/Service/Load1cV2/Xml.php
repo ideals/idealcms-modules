@@ -10,6 +10,9 @@ namespace Shop\Structure\Service\Load1cV2;
 
 class Xml
 {
+    /** SimpleXMLElement Данные от 1С */
+    private $xml ;
+
     public function __construct($source)
     {
         libxml_use_internal_errors(true);
