@@ -248,7 +248,7 @@ class ModelAbstract extends Core\Model
                 if (count($tmp) > 0) {
                     $response = array(
                         'success' => false,
-                        'text' => 'Такой Email уже зарегестрирован',
+                        'text' => 'Такой Email уже зарегистрирован',
                             'pass' => '',
                             'key' => ''
                         );
