@@ -185,7 +185,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         }
         $this->basket['price'] += ($quant * $good['price']);
         $this->basket['total'] += ($quant * $good['sale_price']);
-        $this->basket['disco'] += ($quant * $good['discount']);
+        $this->basket['disco'] = (float)$this->basket['disco'] + ($quant * $good['discount']);
         if (!$local) {
             return $this->buildBasket();
         } else {
