@@ -81,7 +81,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
         // Применяем скидку, если она есть
         if (!empty($basket['disco'])) {
-            $basket['total'] -= $basket['discoValue'];
+            $basket['total'] -= (float)$basket['discoValue'];
         }
         return $basket;
     }
