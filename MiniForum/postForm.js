@@ -206,7 +206,7 @@ function ajaxAddNewPost(goToPost, pageStructure, mainParentId, ID) {
     var form = $(idElement).serialize();
     $(idElement).show();
     $.post(
-        "/?mode=ajax&controller=MiniForum\\Structure\\Post\\Site&action=inset",
+        "/?mode=ajax&controller=MiniForum\\Structure\\Post\\Site&action=insert",
         {
             form: form
         },
