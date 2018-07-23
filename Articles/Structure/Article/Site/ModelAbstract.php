@@ -14,6 +14,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         if (count($url) > 0) {
             // У статьи не может быть URL с несколькими уровнями вложенности
+            $this->path = $path;
             $this->is404 = true;
             return $this;
         }
