@@ -119,7 +119,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
 
     public function getUrl($prefix, $element)
     {
-        if ($this->params['is_query_param']) {
+        if (isset($this->params['is_query_param']) && $this->params['is_query_param']) {
             $config = Config::getInstance();
             $url = $prefix . $config->urlSuffix . '?tag=' . $element['url'];
         } else {
