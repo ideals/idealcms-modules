@@ -282,7 +282,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 $pathCat = $db->select($sql);
             }
 
-            // Состовляем путь до страницы где хранится модули CatalogPlus
+            // Составляем путь до страницы где хранится модули CatalogPlus
             $tmp = array();
             foreach ($this->path as $v) {
                 if (!isset($v['structure'])) {
@@ -294,7 +294,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 $tmp[] = $v;
             }
             // Ищем страницу где хранятся категории на сайте
-            $sql = "SELECT * FROM {$tablePart} WHERE structure='CatalogPlus_Category'";
+            $cid = end($tmp);
+            $cid = isset($cid['cid']) ? rtrim($cid['cid'], '0') : '';
+            $sql = "SELECT * FROM {$tablePart} WHERE structure='CatalogPlus_Category' AND cid LIKE '{$cid}%'";
             $cat = $db->select($sql);
             if (count($cat) > 0) {
                 array_unshift($pathCat, $cat[0]);
