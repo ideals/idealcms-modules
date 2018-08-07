@@ -108,7 +108,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             $list[$k]['class'] = ($v['url'] == $tag) ? 'active' : '';
         }
 
-        if (strpos($_SERVER['REQUEST_URI'], $urlAll) === 0) {
+        if (!empty($urlAll) && strpos($_SERVER['REQUEST_URI'], $urlAll) === 0) {
             // Первый элемент добавляем только когда категории запрашиваются со своего URL
             array_unshift($list, $first);
         }
