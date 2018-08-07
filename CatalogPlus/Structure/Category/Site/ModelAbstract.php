@@ -135,7 +135,10 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
      */
     public function getStructureElements()
     {
-        return array();
+        $this->params['elements_site'] = 9999;
+        $parentUrl = $this->getParentUrl();
+        $categories = $this->getCategories($parentUrl);
+        return $categories;
     }
 
     /**
