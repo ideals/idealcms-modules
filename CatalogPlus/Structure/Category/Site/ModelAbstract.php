@@ -78,6 +78,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
         if (!isset($this->categories)) {
             $db = Db::getInstance();
             $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure='{$this->prevStructure}' AND is_active=1";
+            $_sql .= ' ORDER BY cid';
             $this->categories = $db->select($_sql);
         }
         return $this->categories;
