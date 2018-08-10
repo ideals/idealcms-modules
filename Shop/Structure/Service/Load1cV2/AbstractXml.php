@@ -86,7 +86,7 @@ class AbstractXml
     public function parse()
     {
         foreach ($this->xml as $item) {
-            $id = (string)  $item->{$this->configs['key']};
+            $id = $this->getXmlId($item);
             $this->data[$id] = array();
 
             $this->registerNamespace($item);
@@ -101,6 +101,17 @@ class AbstractXml
     public function validate()
     {
         return !empty($this->xml);
+    }
+
+    /**
+     * Получает идентификатор из данных Xml
+     *
+     * @param \SimpleXMLElement $item данные в xml формате
+     * @return string Идентификатор определённый в конфиге
+     */
+    protected function getXmlId($item)
+    {
+        return (string) $item->{$this->configs['key']};
     }
 
     /**
