@@ -41,6 +41,16 @@ class AbstractDb
         $this->configs = include $path . '/config.php';
     }
 
+    public function getTable()
+    {
+        return $this->table;
+    }
+
+    public function getTablePostfix()
+    {
+        return $this->tablePostfix;
+    }
+
     /**
      * Удаление временной таблицы
      */
