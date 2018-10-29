@@ -6,8 +6,8 @@ use Shop\Structure\Basket;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
-    private $answer;
-    private $user;
+    protected $user;
+    protected $answer;
 
     public function __construct()
     {
