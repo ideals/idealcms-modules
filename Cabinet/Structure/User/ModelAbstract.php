@@ -104,7 +104,12 @@ class ModelAbstract extends Core\Model
         if (!empty($email) && !empty($pass)) {
             $userData = $this->getUser($email);
             if ($userData) {
-                if (crypt($pass, $userData['password']) === $userData['password']) {
+                if (function_exists('password_verify')) {
+                    $trueAuth = password_verify($pass, $userData['password']);
+                } else {
+                    $trueAuth = crypt($pass, $userData['password']) === $userData['password'];
+                }
+                if ($trueAuth) {
                     $_SESSION['login']['user'] = $email;
                     $_SESSION['login']['ID'] = $userData['ID'];
                     $_SESSION['login']['input'] = true;
@@ -203,7 +208,12 @@ class ModelAbstract extends Core\Model
                 );
             } else {
                 $pass = $this->randPassword();
-                $db->update($this->_table)->set(array('password' => crypt($pass)))->where('email = :email', array
+                if (function_exists('password_hash')) {
+                    $cryptPass = password_hash($pass, PASSWORD_DEFAULT);
+                } else {
+                    $cryptPass = crypt($pass);
+                }
+                $db->update($this->_table)->set(array('password' => $cryptPass))->where('email = :email', array
                 (
                     'email' => $email
                 ))->exec();
@@ -252,30 +262,35 @@ class ModelAbstract extends Core\Model
                             'pass' => '',
                             'key' => ''
                         );
-                    } else {
-                        $key = md5(time());
+                } else {
+                    $key = md5(time());
                     $pass = $this->randPassword();
+                    if (function_exists('password_hash')) {
+                        $cryptPass = password_hash($pass, PASSWORD_DEFAULT);
+                    } else {
+                        $cryptPass = crypt($pass);
+                    }
                     $db->insert($this->_table, array(
                         'email' => $userData['email'],
                         'address' => $userData['address'],
                         'phone' => $userData['phone'],
-                        'password' => crypt($pass),
+                        'password' => $cryptPass,
                         'fio' => $userData['fio'],
                         'is_active' => 0,
-                            'prev_structure' => $this->getPrevStructure(),
-                            'act_key' => $key,
+                        'prev_structure' => $this->getPrevStructure(),
+                        'act_key' => $key,
                         'reg_date' => time()
-                        ));
+                    ));
 
-                        $response = array(
-                            'success' => true,
-                            'text' => 'Пользователь успешно зарегистрирован',
+                    $response = array(
+                        'success' => true,
+                        'text' => 'Пользователь успешно зарегистрирован',
                         'pass' => $pass,
-                            'key' => $key
-                        );
-                    }
+                        'key' => $key
+                    );
                 }
             }
+        }
         return $response;
     }
 
