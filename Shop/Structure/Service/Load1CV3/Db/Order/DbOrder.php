@@ -201,7 +201,10 @@ ORDERSQL;
 
                 $detailedOrder['sum'] = $detailedOrder['good_sum'] * 100;
                 $detailedOrder['price'] = $detailedOrder['good_price'] * 100;
-                $detailedOrder['discount'] = $detailedOrder['good_discount'] * 100;
+                $detailedOrder['discount'] = 0;
+                if ($detailedOrder['good_discount']) {
+                    $detailedOrder['discount'] = $detailedOrder['good_discount'] * 100;
+                }
 
                 // Убираем лишние поля для сохранения деталей заказа
                 unset($detailedOrder['orderId1c'], $detailedOrder['is_active'], $detailedOrder['date_create']);
