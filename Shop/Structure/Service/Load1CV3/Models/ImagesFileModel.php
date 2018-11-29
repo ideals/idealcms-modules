@@ -147,7 +147,7 @@ class ImagesFileModel
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;
-                $this->answer['tmpResult']['goods']['insert'][$val['id_1c']] = 1;
+                $this->answer['tmpResult']['goods']['insert'][$k] = 1;
             }
         }
         return $result;
