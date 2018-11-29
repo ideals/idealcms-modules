@@ -124,7 +124,7 @@ class AjaxController extends \Ideal\Core\AjaxController
             if (substr_count($dir, '/') > 3) {
                 switch ($matches[1]) {
                     case 'import':
-                        $answer['response']['infoText'] = 'Обработка товаров';
+                        $answer['response']['infoText'] = 'Обработка товаров и картинок';
                         break;
                     case 'offers':
                         $answer['response']['infoText'] = 'Обработка офферов';
