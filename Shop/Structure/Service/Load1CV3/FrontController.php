@@ -104,6 +104,14 @@ LOGMESSAGE;
     }
 
     /**
+     * Реакция на уведомление от 1С об успешности обработки информации на своей стороне
+     */
+    protected function successAction()
+    {
+        $this->response = "success\n";
+    }
+
+    /**
      * Запускает процесс сбора данных по заказам для отдачи по запросу
      */
     protected function queryAction()
