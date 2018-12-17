@@ -53,7 +53,7 @@ class FrontController
         }
 
         $cookieData = http_build_query($_COOKIE);
-        $this->logMessage .= <<<LOGMESSAGE
+        $logMessage = <<<LOGMESSAGE
 Дата/время: {$dateTime}
        Запрос: {$_SERVER['QUERY_STRING']}
        POST-данные: {$postData}
@@ -61,6 +61,9 @@ class FrontController
        COOKIE-данные: {$cookieData}
 LOGMESSAGE;
         $this->logClass = new Log();
+        if ($this->config['keep_log'] == 1) {
+            $this->logClass->log('info', $logMessage);
+        }
     }
 
     public function __destruct()
