@@ -33,9 +33,9 @@ class DocumentsModel
     {
         // Определяем пакет для отдачи правильного текста в ответе
         $dir = pathinfo($filePath, PATHINFO_DIRNAME);
-        $dirParts = explode(DIRECTORY_SEPARATOR, $dir);
+        $dirParts = explode('/', $dir);
         $packageNum = end($dirParts);
-        if (strlen($packageNum) <= 2) {
+        if (strlen($packageNum) <= 3) {
             $this->answer['infoText'] = sprintf(
                 $this->answer['infoText'],
                 'пакета №' . $packageNum
@@ -102,13 +102,14 @@ class DocumentsModel
     {
         // Забираем результаты заказов из xml
         $xmlResult = $xmlOrder->parse();
+        $fields = $xmlOrder->getFields();
 
         // Получаем ключи заказов для выборки из базы
         $orderKeys = array_keys($xmlResult);
 
         // Забираем результаты заказов из БД
         $dbOrder->setOrderKeys($orderKeys);
-        $dbResult = $dbOrder->parse();
+        $dbResult = $dbOrder->parse($fields);
 
         $xmlAddDiff = array_diff_key($xmlResult, $dbResult);
         $this->answer['add'] = count($xmlAddDiff);
@@ -123,9 +124,7 @@ class DocumentsModel
         // Отмечаем элементы для обновления
         foreach ($xmlResult as $key => &$xmlResultElement) {
             if (isset($dbResult[$key])) {
-                $xmlResultElement['update'] = true;
-                $end = end($dbResult[$key]);
-                $xmlResultElement['orderId'] = $end['id'];
+                $xmlResultElement['ID'] = $dbResult[$key]['ID'];
             }
         }
 

@@ -57,16 +57,6 @@ class DbOffer extends AbstractDb
             if (isset($element['rest'])) {
                 $elements[$k]['rest'] = (int) $element['rest'];
             }
-            if (isset($element['count'])) {
-                $elements[$k]['count'] = (int) $element['count'];
-            } else {
-                $elements[$k]['count'] = 0;
-            }
-            if (isset($element['inOrderCount'])) {
-                $elements[$k]['inOrderCount'] = (int) $element['inOrderCount'];
-            } else {
-                $elements[$k]['inOrderCount'] = 0;
-            }
             if (isset($element['price_old'])) {
                 $elements[$k]['price_old'] = (int) $element['price_old'];
             }

@@ -105,8 +105,8 @@ ORDERSQL;
 
             $deliveryInfo = '';
             // Добавляем в документ информацию о доставке
-            if (!empty($item['delivery_address'])) {
-                $deliveryInfo = $item['delivery_address'];
+            if (!empty($item['address'])) {
+                $deliveryInfo = $item['address'];
             }
             if (!empty($item['delivery_country']) && !empty($item['delivery_city'])) {
                 if ($deliveryInfo) {

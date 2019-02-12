@@ -78,20 +78,14 @@ class AbstractDb
      */
     public function save($elements)
     {
+        // Проводим обработку элементов, специфичную для каждого вида данных
+        $elements = $this->prepareForSave($elements);
+
         foreach ($elements as $element) {
             if (isset($element['ID'])) {
                 $this->update($element);
             } else {
-                $add[] = $this->getForAdd($element);
-            }
-        }
-
-        // Если есть что добавить, то добавляем мульти-запросами
-        if (isset($add)) {
-            $db = Db::getInstance();
-            while (count($add) > 0) {
-                $part = array_splice($add, 0, $this->multipleInsert);
-                $db->insertMultiple($this->table . $this->tablePostfix, $part);
+                $this->insert($element);
             }
         }
     }
@@ -157,7 +151,9 @@ class AbstractDb
     {
         $db = Db::getInstance();
         $element = $this->getForAdd($element);
-        return $db->insert($this->table . $this->tablePostfix, $element);
+        $id = $db->insert($this->table . $this->tablePostfix, $element);
+        $this->afterInsert($id, $element);
+        return $id;
     }
 
     /**
@@ -218,11 +214,31 @@ class AbstractDb
     protected function getForAdd($element)
     {
         $now = time();
-        $element['date_create'] = $now;
-        $element['date_mod'] = $now;
+        $element['date_create'] = empty($element['date_create']) ? $now : $element['date_create'];
+        $element['date_mod'] = empty($element['date_mod']) ? $now : $element['date_mod'];
 
         ksort($element);
 
         return $element;
+    }
+
+    /**
+     * Проводим подготовку элементов перед их сохранением в БД
+     * @param array $elements
+     * @return array
+     */
+    protected function prepareForSave($elements)
+    {
+        return $elements;
+    }
+
+    /**
+     * Заглушка, для внесения изменений после вставки элемента
+     *
+     * @param int $id
+     * @param array $element
+     */
+    protected function afterInsert($id, $element)
+    {
     }
 }

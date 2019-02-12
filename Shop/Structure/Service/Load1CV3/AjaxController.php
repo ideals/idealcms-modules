@@ -97,7 +97,6 @@ class AjaxController extends \Ideal\Core\AjaxController
             }
         }
 
-
         // Если все файлы обработаны, то нужно применить изменения к боевым таблицам
         if ($answer['filename'] === '') {
             if (!$onlyImageResize) {
@@ -118,6 +117,9 @@ class AjaxController extends \Ideal\Core\AjaxController
                         break;
                     case 'Documents':
                         $answer['response']['infoText'] = 'Обработка заказов из корневой директории';
+                        break;
+                    default:
+                        $answer['response']['infoText'] = 'Обработка ' . $matches[1];
                         break;
                 }
             }
