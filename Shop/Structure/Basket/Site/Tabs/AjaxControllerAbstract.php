@@ -440,7 +440,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 }
 
                 // Пробуем сохранить информацию о заказе в структуре "Order" модуля "Shop"
-                $this->saveOrderInShopSructure();
+                $this->saveOrderInShopStructure();
 
                 // Сохраняем информацию о заказе в справочник "Заказы с сайта"
                 if (!empty($tabsInfo->generalInfo->name) && !empty($tabsInfo->generalInfo->email)) {
@@ -525,7 +525,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     /**
      * Сохраняет информацию о заказе в структуре "Order" модуля "Shop"
      */
-    public function saveOrderInShopSructure()
+    public function saveOrderInShopStructure()
     {
         $config = Config::getInstance();
         $prefix = $config->db['prefix'];
