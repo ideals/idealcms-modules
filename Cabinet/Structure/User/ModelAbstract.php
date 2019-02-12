@@ -100,56 +100,51 @@ class ModelAbstract extends Core\Model
      */
     public function userAuthorization($email = '', $pass = '')
     {
-        $response = 'Предоставлены не верные данные';
-        if (!empty($email) && !empty($pass)) {
-            $userData = $this->getUser($email);
-            if ($userData) {
-                if (function_exists('password_verify')) {
-                    $trueAuth = password_verify($pass, $userData['password']);
-                } else {
-                    $trueAuth = crypt($pass, $userData['password']) === $userData['password'];
-                }
-                if ($trueAuth) {
-                    $_SESSION['login']['user'] = $email;
-                    $_SESSION['login']['ID'] = $userData['ID'];
-                    $_SESSION['login']['input'] = true;
-                    if (function_exists('boolval')) {
-                        $_SESSION['login']['is_active'] = boolval($userData['is_active']);
-                    } else {
-                        if ($userData['is_active']) {
-                            $_SESSION['login']['is_active'] = true;
-                        } else {
-                            $_SESSION['login']['is_active'] = false;
-                        }
-                    }
-                    if ($_SESSION['login']['is_active']) {
-                        if (!empty($userData['basket'])) {
-                            $basket = unserialize($userData['basket']);
-                            if ($basket->count > 0) {
-                                $_SESSION['login']['basket'] = json_encode($basket, JSON_FORCE_OBJECT);
-                            }
-                        }
+        if (empty($email) || empty($pass)) {
+            return 'Предоставлены неверные данные';
+        }
 
-                        // Обновляем дату последнего посещения
-                        $db = Db::getInstance();
-                        $db->update($this->_table)
-                            ->set(array('last_visit' => time()))
-                            ->where('ID = :ID', array('ID' => $userData['ID']))
-                            ->exec();
+        $userData = $this->getUser($email);
 
-                        $response = 'Вы успешно вошли';
-                    } else {
-                        self::logout();
-                        $response = 'Пользователь с указанными данными ещё не активирован';
-                    }
-                } else {
-                    $response = 'Ошибка в логине(email) или пароле';
-                }
-            } else {
-                $response = 'Пользователь с указанными данными ещё не зарегистрирован';
+        if (empty($userData)) {
+            return 'Пользователь с указанными данными ещё не зарегистрирован';
+        }
+
+        if (function_exists('password_verify')) {
+            $trueAuth = password_verify($pass, $userData['password']);
+        } else {
+            $trueAuth = crypt($pass, $userData['password']) === $userData['password'];
+        }
+
+        if (!$trueAuth) {
+            return 'Ошибка в логине или пароле';
+        }
+
+        $userData['is_active'] = (bool)$userData['is_active'];
+        if (!$userData['is_active']) {
+            return 'Пользователь с указанными данными ещё не активирован';
+        }
+
+        $_SESSION['login']['user'] = $email;
+        $_SESSION['login']['ID'] = $userData['ID'];
+        $_SESSION['login']['input'] = true;
+        $_SESSION['login']['is_active'] = $userData['is_active'];
+
+        if (!empty($userData['basket'])) {
+            $basket = unserialize($userData['basket']);
+            if ($basket->count > 0) {
+                $_SESSION['login']['basket'] = json_encode($basket, JSON_FORCE_OBJECT);
             }
         }
-        return $response;
+
+        // Обновляем дату последнего посещения
+        $db = Db::getInstance();
+        $db->update($this->_table)
+            ->set(array('last_visit' => time()))
+            ->where('ID = :ID', array('ID' => $userData['ID']))
+            ->exec();
+
+        return 'Вы успешно вошли';
     }
 
     /**
@@ -259,9 +254,9 @@ class ModelAbstract extends Core\Model
                     $response = array(
                         'success' => false,
                         'text' => 'Такой Email уже зарегистрирован',
-                            'pass' => '',
-                            'key' => ''
-                        );
+                        'pass' => '',
+                        'key' => ''
+                    );
                 } else {
                     $key = md5(time());
                     $pass = $this->randPassword();
