@@ -165,7 +165,10 @@ LOGMESSAGE;
             $this->tmpResult = array();
         }
 
-        $response = $model->startProcessing($workDir . $filename);
+        $path = ExchangeUtil::getLastPackageFolder(DOCUMENT_ROOT . $this->config['directory_for_keeping']);
+        $packageNum = (int)substr($path, strrpos($path, '/') + 1) + 1;
+
+        $response = $model->startProcessing($workDir . $filename, $packageNum);
 
         // Если в настройках указана надобность сохранения файлов выгрузки, то запускаем процесс переноса файлов.
         // Этот процесс не нужно запускать если происходит ручная выгрузка данных.
@@ -217,17 +220,22 @@ LOGMESSAGE;
         // Сохраняем файл из потока
         ExchangeUtil::saveFileFromStream($filename, $mode);
 
-        // Если передан файл отчёта, то запускаем процесс применения инфорамции из временных таблиц и удаляем файл
+        // Если передан файл отчёта, то запускаем процесс применения информации из временных таблиц и удаляем файл
         // отчёта
         if (stripos($filename, 'reports') !== false) {
-            unlink($filename);
+            if ($this->config['keep_files']) {
+                $newFileName = DOCUMENT_ROOT . $this->config['directory_report'] . basename($filename);
+                rename($filename, $newFileName);
+            } else {
+                unlink($filename);
+            }
             $this->tmpResult = array();
             ExchangeUtil::finalUpdates();
             $workDir = DOCUMENT_ROOT . $this->config['directory_for_processing'];
             ExchangeUtil::purge($workDir);
             ExchangeUtil::createFolder($workDir);
             if ($this->config['keep_log'] == 1) {
-                $this->logMessage .= "\n------------------------------------------------------------------------\n\n";
+                $this->logMessage .= "\n" . str_repeat('-', 70) ."\n\n";
                 $this->logClass->log('info', $this->logMessage);
 
                 $this->logClass->copySuccessLog();
@@ -273,12 +281,10 @@ LOGMESSAGE;
         $user = new UserModel();
         if ($user->login($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
             // удаление файлов от предыдущей выгрузки
-            if (empty($this->tmpResult) &&
-                $this->config['keep_files'] == 1
-            ) {
+            if (empty($this->tmpResult) && $this->config['keep_files'] == 1) {
                 ExchangeUtil::purge(DOCUMENT_ROOT . $this->config['directory_for_keeping']);
-                $firstPackageFolder = DOCUMENT_ROOT . $this->config['directory_for_keeping'] . DIRECTORY_SEPARATOR;
-                $firstPackageFolder .= '1' . DIRECTORY_SEPARATOR;
+                $firstPackageFolder = rtrim(DOCUMENT_ROOT . $this->config['directory_for_keeping'], '/');
+                $firstPackageFolder .= DIRECTORY_SEPARATOR . '1' . DIRECTORY_SEPARATOR;
                 ExchangeUtil::createFolder($firstPackageFolder);
             }
 

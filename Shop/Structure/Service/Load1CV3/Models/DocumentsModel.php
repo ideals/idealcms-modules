@@ -27,14 +27,12 @@ class DocumentsModel
      * Запуск процесса обработки файлов ImagesFile_*.xml
      *
      * @param string $filePath Полный путь до обрабатываемого файла
+     * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath)
+    public function startProcessing($filePath, $packageNum)
     {
         // Определяем пакет для отдачи правильного текста в ответе
-        $dir = pathinfo($filePath, PATHINFO_DIRNAME);
-        $dirParts = explode('/', $dir);
-        $packageNum = end($dirParts);
         if (strlen($packageNum) <= 3) {
             $this->answer['infoText'] = sprintf(
                 $this->answer['infoText'],

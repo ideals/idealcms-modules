@@ -16,19 +16,23 @@ class OffersModel
         'add'   => 0,
         'update'=> 0,
     );
+    protected $packageNum = 0;
 
     /**
      * Запуск процесса обработки файлов offers_*.xml
      *
      * @param string $filePath полный путь до обрабатываемого файла
+     * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath)
+    public function startProcessing($filePath, $packageNum)
     {
         // Файл offers_*.xml может быть двух типов.
         // Корневой содержит информацию о свойствах товаров.
         // Пакетный, содержит информацию о торговых предложениях.
         // Определяем тип файла и в зваисимости от этого запускаем нужну оюработку.
+        $this->packageNum = $packageNum;
+
         $xml = new Xml($filePath);
         $xmlDirectory = new XmlDirectory($xml);
         if ($xmlDirectory->validate()) {
@@ -134,12 +138,9 @@ class OffersModel
     protected function offers($filePath)
     {
         // Определяем пакет для отдачи правильного текста в ответе
-        $dir = pathinfo($filePath, PATHINFO_DIRNAME);
-        $dirParts = explode(DIRECTORY_SEPARATOR, $dir);
-        $packageNum = end($dirParts);
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $this->packageNum
         );
 
         // получение xml с данными о предложениях

@@ -22,14 +22,12 @@ class TegiModel
      * Запуск процесса обработки файлов Tegi_*.xml
      *
      * @param string $filePath Полный путь до обрабатываемого файла
+     * @param $packageNum
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath)
+    public function startProcessing($filePath, $packageNum)
     {
         // Определяем пакет для отдачи правильного текста в ответе
-        $dir = pathinfo($filePath, PATHINFO_DIRNAME);
-        $dirParts = explode(DIRECTORY_SEPARATOR, $dir);
-        $packageNum = (int) end($dirParts);
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
             $packageNum

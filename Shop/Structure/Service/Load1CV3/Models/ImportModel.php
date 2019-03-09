@@ -23,6 +23,8 @@ class ImportModel
         'update' => 0
     );
 
+    protected $packageNum = 0;
+
     /** @var array Общие настройки для всего процесса обмена */
     public $exchangeConfig = array();
 
@@ -35,15 +37,17 @@ class ImportModel
      * Запуск процесса обработки файлов import_*.xml
      *
      * @param string $filePath Полный путь до обрабатываемого файла
+     * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath)
+    public function startProcessing($filePath, $packageNum)
     {
         // Файл import_*.xml может быть двух типов.
         // Корневой содержит информацию о структуре каталога, свойствах хранящихся в справочниках, типах цен и
         // еденицах измерения количества.
         // Пакетный, содержит бОльшую часть информации о товарах.
-        // Определяем тип файла и в зваисимости от этого запускаем нужну оюработку.
+        // Определяем тип файла и в зависимости от этого запускаем нужну обработку.
+        $this->packageNum = $packageNum;
         $xml = new Xml($filePath);
         $xmlCategory = new XmlCategory($xml);
         if ($xmlCategory->validate()) {
@@ -83,11 +87,9 @@ class ImportModel
         if ($onlyImageResize) {
             $this->answer['successText'] = '';
             // Определяем пакет для отдачи правильного текста в ответе
-            $dirParts = explode(DIRECTORY_SEPARATOR, $pictDirectory);
-            $packageNum = (int) $dirParts[count($dirParts) - 3];
             $this->answer['infoText'] = sprintf(
                 'Обработка картинок из пакета %d',
-                $packageNum
+                $this->packageNum
             );
         }
 
@@ -312,12 +314,9 @@ class ImportModel
     protected function good($filePath)
     {
         // Определяем пакет для отдачи правильного текста в ответе
-        $dir = pathinfo($filePath, PATHINFO_DIRNAME);
-        $dirParts = explode(DIRECTORY_SEPARATOR, $dir);
-        $packageNum = end($dirParts);
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $this->packageNum
         );
 
         $xml = new Xml($filePath);
