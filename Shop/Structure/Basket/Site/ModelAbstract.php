@@ -64,17 +64,18 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             if (!isset($goods[$k])) {
                 unset($basket['goods'][$k]);
                 continue;
-            } else {
-                $good = $goods[$k];
             }
+
+            $good = $goods[$k];
+
             if (isset($good['count'])) {
                 if (isset($v['count']) && ((int)$v['count'] > (int)$good['count'])) {
                     $v['warning'][] = 'Заказано больше чем есть на складе. Уточняйте у менеджера.';
                 }
-                unset ($good['count']);
+                unset($good['count']);
             }
             $v = $basket['goods'][$k] = array_merge($v, $good);
-            $price = floatval($v['sale_price']) ?: floatval($v['price']);
+            $price = empty((float)$v['sale_price']) ? (float)$v['price'] : (float)$v['sale_price'];
             $basket['goods'][$k]['total_price'] = $v['count'] * $price;
             $basket['total'] += $basket['goods'][$k]['total_price'];
             $basket['count'] += 1;

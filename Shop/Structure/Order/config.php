@@ -78,6 +78,11 @@ return array(
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),
+        'structure' => array(
+            'label' => 'Структура для отображения деталей заказов',
+            'sql'   => 'varchar(30) not null',
+            'type'  => 'Ideal_Text'
+        ),
         'user_id' => array(
             'label' => 'Идентификатор пользователя совершившего заказ',
             'sql' => "int(11) DEFAULT '0' NOT NULL",

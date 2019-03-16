@@ -338,6 +338,7 @@ class ImportModel
         $medium->updateCategoryList($groups);
 
         // Обработка изображений переданых вместе с товарами
+        $dir = pathinfo($filePath, PATHINFO_DIRNAME);
         $pictDirectory = $dir . DIRECTORY_SEPARATOR . $this->exchangeConfig['images_directory'];
         $this->loadImages($pictDirectory);
     }
