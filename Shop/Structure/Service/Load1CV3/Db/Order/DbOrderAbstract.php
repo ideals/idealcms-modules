@@ -282,6 +282,13 @@ class DbOrderAbstract extends AbstractDb
         }
     }
 
+    /**
+     * Подготовка списка товаров заказа к сохранению в БД
+     *
+     * @param int $id ИД заказа
+     * @param array $goods Список товаров заказа
+     * @return array Обработанный списка товаров заказа
+     */
     protected function prepareGoodsForSave($id, $goods)
     {
         foreach ($goods as $goodId => &$good) {

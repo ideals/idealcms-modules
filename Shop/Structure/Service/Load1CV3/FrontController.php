@@ -203,9 +203,10 @@ LOGMESSAGE;
     protected function fileAction()
     {
         $request = new Request();
-        $filename = basename($request->filename);
-        $dirName = str_replace($filename, '', $request->filename);
-        $filename = DOCUMENT_ROOT . $this->config['directory_for_processing'] . $dirName . $filename;
+        $request->filename = str_replace('\\', '/', $request->filename);
+        $filename1 = basename($request->filename);
+        $dirName = ltrim(str_replace($filename1, '', $request->filename), '/');
+        $filename = DOCUMENT_ROOT . $this->config['directory_for_processing'] . $dirName . $filename1;
 
         // Проверяем надобность добавления передаваемого файла к уже существующему
         $needingAdd = ExchangeUtil::checkNeedingAdd($filename);
@@ -219,6 +220,10 @@ LOGMESSAGE;
 
         // Сохраняем файл из потока
         ExchangeUtil::saveFileFromStream($filename, $mode);
+
+        // Делаем бэкап переданных файлов для целей отладки
+        //$backupFile = DOCUMENT_ROOT . rtrim($this->config['directory_for_processing'], '/') . '_backup/' . $dirName . $filename1;
+        //copy($filename, $backupFile);
 
         // Если передан файл отчёта, то запускаем процесс применения информации из временных таблиц и удаляем файл
         // отчёта

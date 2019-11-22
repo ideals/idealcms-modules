@@ -253,7 +253,7 @@ JS;
                     $this->view->fio = $newUserData['fio'];
                     $this->view->email = $newUserData['email'];
                     $this->view->pass = $response['pass'];
-                    $link = 'http://' . $config->domain . $form->getValue('link') . '?';
+                    $link = 'https://' . $config->domain . $form->getValue('link') . '?';
                     $link .= 'action=finishReg';
                     $link .= '&email=' . urlencode($newUserData['email']);
                     $link .= '&key=' . urlencode($response['key']);
@@ -261,7 +261,9 @@ JS;
                     $this->view->title = $title;
                     $msg = $this->view->render();
 
-                    if ($form->sendMail($config->robotEmail, $newUserData['email'], $title, $msg, true)) {
+                    $smtp = $config->smtp;
+
+                    if ($form->sendMail($config->robotEmail, $newUserData['email'], $title, $msg, true, $smtp)) {
                         return 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
                     } else {
                         return 'Ошибка. Попробуйте чуть позже';
