@@ -18,6 +18,8 @@ use Ideal\Core\Config;
  */
 class ModelAbstract extends Core\Model
 {
+    /** @var string Название куки, в которую запоминаем пользователя */
+    protected $cookieName = 'remember';
 
     public function __construct($prevStructure)
     {
@@ -39,6 +41,7 @@ class ModelAbstract extends Core\Model
      */
     public function getLoggedUser()
     {
+        // Устанавливаем сессию, если она не установлена ранее
         if (function_exists('session_status')) {
             if (session_status() == PHP_SESSION_NONE) {
                 session_start();
@@ -48,9 +51,17 @@ class ModelAbstract extends Core\Model
                 session_start();
             }
         }
+
+        // Если установлены cookies, получаем данные из них
+        if (isset($_COOKIE[$this->remember]) && empty($_SESSION['login'])) {
+            $_SESSION['login'] = json_decode($_COOKIE[$this->remember], true);
+        }
+
+        // Если в сессии есть данные по пользователю, получаем их
         if (isset($_SESSION['login']['is_active']) && $_SESSION['login']['is_active']) {
             return $this->getUser();
         }
+
         return false;
     }
 
@@ -341,5 +352,15 @@ class ModelAbstract extends Core\Model
             }
         }
         unset($_SESSION['login']);
+    }
+
+    /**
+     * Установка имени cookie в котором хранятся данные пользователя
+     *
+     * @param string $cookieName
+     */
+    public function setCookieName($cookieName)
+    {
+        $this->cookieName = $cookieName;
     }
 }
