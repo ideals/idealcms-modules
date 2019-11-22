@@ -156,12 +156,12 @@ LOGMESSAGE;
         $tmpResultFile = DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';
         $newSeance = ExchangeUtil::checkExchangeStart($workDir . $filename, $tmpResultFile);
 
-        if ($newSeance) {
-            // Пытаемся получить информацию о полноте выгрузки
-            $isUpdate = ExchangeUtil::checkUpdateInfo($workDir . $filename);
+        // Пытаемся получить информацию о полноте выгрузки
+        $cmsConfig->isOnlyUpdate = ExchangeUtil::checkUpdateInfo($workDir . $filename);
 
+        if ($newSeance) {
             // Запускаем процесс подготовки базы для приёма данных если временный файл обновлялся более 1,5 минут назад
-            ExchangeUtil::prepareTables($isUpdate);
+            ExchangeUtil::prepareTables();
             $this->tmpResult = array();
         }
 

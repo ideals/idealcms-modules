@@ -239,16 +239,13 @@ class DbCategory extends AbstractDb
 
     /**
      * Подготовка временной таблицы для выгрузки
-     *
-     * @param $onlyUpdate bool Файл Содержит Только Обновления
      */
-    public function prepareTable($onlyUpdate)
+    public function prepareTable()
     {
-        $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();
         $this->createEmptyTestTable();
         $this->copyOrigTable();
-        if (!$onlyUpdate) {
+        if (!$this->isOnlyUpdate) {
             $db = Db::getInstance();
             // Сбрасываем счетчик товаров для групп
             $values = array(

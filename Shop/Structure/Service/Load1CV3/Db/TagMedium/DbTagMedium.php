@@ -70,15 +70,12 @@ class DbTagMedium extends AbstractDb
 
     /**
      * Подготовка временной таблицы для выгрузки
-     *
-     * @param $onlyUpdate bool Файл Содержит Только Обновления
      */
-    public function prepareTable($onlyUpdate)
+    public function prepareTable()
     {
-        $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();
         $this->createEmptyTestTable();
-        if ($onlyUpdate) {
+        if ($this->isOnlyUpdate) {
             $this->copyOrigTable();
         }
     }

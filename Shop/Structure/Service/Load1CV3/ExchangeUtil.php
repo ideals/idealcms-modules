@@ -300,34 +300,32 @@ class ExchangeUtil
 
     /**
      * Создание временных таблиц всех сущностей, участвующих в выгрузке
-     *
-     * @param bool $isUpdate флаг "полноты" выгрузки
      */
-    public static function prepareTables($isUpdate = true)
+    public static function prepareTables()
     {
         $dbCategory = new DbCategory();
-        $dbCategory->prepareTable($isUpdate);
+        $dbCategory->prepareTable();
 
         $dbGood = new DbGood();
-        $dbGood->prepareTable($isUpdate);
+        $dbGood->prepareTable();
 
         $dbMedium = new DbMedium();
-        $dbMedium->prepareTable($isUpdate);
+        $dbMedium->prepareTable();
 
         $dbOffer = new DbOffer();
-        $dbOffer->prepareTable($isUpdate);
+        $dbOffer->prepareTable();
 
         $dbDirectory = new DbDirectory();
-        $dbDirectory->prepareTable($isUpdate);
+        $dbDirectory->prepareTable();
 
         $dbTag = new DbTag();
-        $dbTag->prepareTable($isUpdate);
+        $dbTag->prepareTable();
 
         $dbTagMedium = new DbTagMedium();
-        $dbTagMedium->prepareTable($isUpdate);
+        $dbTagMedium->prepareTable();
 
         $dbOrder = new DbOrder();
-        $dbOrder->prepareTable($isUpdate);
+        $dbOrder->prepareTable();
     }
 
     /**

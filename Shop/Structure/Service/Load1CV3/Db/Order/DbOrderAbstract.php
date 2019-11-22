@@ -117,12 +117,9 @@ class DbOrderAbstract extends AbstractDb
 
     /**
      * Подготовка временной таблицы для выгрузки
-     *
-     * @param $onlyUpdate bool Файл Содержит Только Обновления
      */
-    public function prepareTable($onlyUpdate)
+    public function prepareTable()
     {
-        $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();
         $this->createEmptyTestTable();
         $this->copyOrigTable();

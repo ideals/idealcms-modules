@@ -23,7 +23,7 @@ class AbstractDb
     protected $configs;
 
     /** @var bool выгрузка содержит только изменения */
-    protected $onlyUpdate;
+    protected $isOnlyUpdate;
 
     /** @var int количество вставляемых строк за 1 insert запрос */
     protected $multipleInsert = 5;
@@ -35,6 +35,7 @@ class AbstractDb
     {
         $config = Config::getInstance();
         $this->prefix = $config->db['prefix'];
+        $this->isOnlyUpdate = $config->isOnlyUpdate;
         $path = explode('\\', get_class($this));
         $path = array_slice($path, -2, 1);
         $path = 'Shop/Structure/Service/Load1CV3/Xml/' . $path[0];
@@ -92,16 +93,13 @@ class AbstractDb
 
     /**
      * Подготовка временной таблицы для занесения данных
-     *
-     * @param bool $onlyUpdate значение СодержитТолькоИзменения из xml выгрузки
      */
-    public function prepareTable($onlyUpdate)
+    public function prepareTable()
     {
-        $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();
         $this->createEmptyTestTable();
         $this->copyOrigTable();
-        if (!$onlyUpdate) {
+        if (!$this->isOnlyUpdate) {
             $this->deactivateDataInTable();
         }
     }
