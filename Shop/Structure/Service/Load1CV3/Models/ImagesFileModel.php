@@ -83,38 +83,40 @@ class ImagesFileModel
         $dbResult = $dbImagesFile->parse();
 
         foreach ($dbResult as $key => $value) {
+            $id1c = $value['id_1c'];
             $imgs = array();
-            if (isset($data[$value['id_1c']])) {
+            if (isset($data[$id1c])) {
                 if (!empty($value['imgs'])) {
                     $imgs = json_decode($value['imgs'], true);
                 }
                 if (!empty($value['img'])) {
                     $imgs[] = $value['img'];
                 }
-                $entryTmp = substr($data[$value['id_1c']]['img'], 0, 2);
-                $checkImg = glob(DOCUMENT_ROOT . "/images/1c/{$entryTmp}/{$data[$value['id_1c']]['img']}*");
+                $entryTmp = substr($data[$id1c]['img'], 0, 2);
+                $checkImg = glob(DOCUMENT_ROOT . "/images/1c/{$entryTmp}/{$data[$id1c]['img']}*");
                 if ($checkImg) {
                     $relativePath = str_replace(DOCUMENT_ROOT, '', $checkImg[0]);
                     if (!in_array($relativePath, $imgs)) {
                         $imgs[] = $relativePath;
                     }
                 } else {
-                    $data[$value['id_1c']]['img'] = '';
+                    $data[$id1c]['img'] = '';
                 }
                 if (!empty($imgs)) {
                     $mainImgKey = false;
                     foreach ($imgs as $keyItem => $valueItem) {
-                        if (stripos($valueItem, $data[$value['id_1c']]['img']) !== false) {
-                            $mainImgKey = $keyItem;
+                        if (empty($data[$id1c]['img']) || stripos($valueItem, $data[$id1c]['img']) === false) {
+                            continue;
                         }
+                        $mainImgKey = $keyItem;
                     }
                     if ($mainImgKey !== false) {
-                        $data[$value['id_1c']]['img'] = $imgs[$mainImgKey];
+                        $data[$id1c]['img'] = $imgs[$mainImgKey];
                         unset($imgs[$mainImgKey]);
                         if (!$imgs) {
-                            $data[$value['id_1c']]['imgs'] = '';
+                            $data[$id1c]['imgs'] = '';
                         } else {
-                            $data[$value['id_1c']]['imgs'] = json_encode($imgs);
+                            $data[$id1c]['imgs'] = json_encode($imgs);
                         }
                     }
                 }

@@ -86,6 +86,9 @@ class AbstractXml
 
             $this->updateFromConfig($item, $id);
         }
+        if (empty($this->data)) {
+            $this->data = array();
+        }
     }
 
     /**

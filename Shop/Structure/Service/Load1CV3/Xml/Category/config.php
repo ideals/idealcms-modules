@@ -5,7 +5,6 @@ return array(
         'id_1c' => 'Ид',
         'name' => 'Наименование',
         'is_active' => 'ПометкаУдаления',
-        'url_full' => 'СсылкаНаСайте',
     ),
     'updateDbFields'  => array(
         'ID'        => 'ID',
