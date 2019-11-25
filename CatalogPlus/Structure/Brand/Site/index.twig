@@ -1,0 +1,43 @@
+{% extends "site.twig" %}
+
+{% block content %}
+
+	<h1>{{ header }}</h1>
+
+    {{ template.content |raw }}
+
+    {% if parts|length > 0 %}
+        <div class="row" style="text-align: center">
+        {% for part in parts %}
+            {% if (loop.index0) % 4 == 0 %}
+                {% if loop.index > 4 %}
+                    <div class="clear"></div>
+                    </div>
+                    <div class="horizontal-separator"></div>
+                    <div class="row" style="text-align: center">
+                {% endif %}
+            {% endif %}
+            <div style="float: left; width: 25%">
+                <a href="{{ part.link }}">
+                <img src="{{ part.img }}" alt="{{ part.name }}"></a>
+            </div>
+        {% endfor %}
+        <div class="clear"></div>
+        </div>
+    {% endif %}
+
+    {%if pages|length > 0 %}
+        <div class="pagination pagination-left">
+            <ul>
+                {% for page in pages %}
+                    {% if page.current == 1 %}
+                        <li class="active"><a>{{ page.num }}</a></li>
+                    {% else %}
+                        <li><a href="{{ page.url }}">{{ page.num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+{% endblock %}
