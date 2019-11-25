@@ -59,7 +59,11 @@ class DbTagMedium extends AbstractDb
         $db = Db::getInstance();
 
         // Удаление старых связей добавляемых товаров
-        $db->delete($this->table)->where('part_id IN (' . implode(',', $goodIds) . ')')->exec();
+        if (!empty($goodIds)) {
+            $db->delete($this->table . $this->tablePostfix)
+               ->where('part_id IN (' . implode(',', $goodIds) . ')')
+               ->exec();
+        }
 
         // Добавление связей по 25 штук в одном запросе
         while (count($result) > 0) {

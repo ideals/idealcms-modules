@@ -50,10 +50,22 @@ class DbOffer extends AbstractDb
         $offerModel = new Model('');
 
         $dbGood = new DbGood();
-        $goods = $dbGood->getGoods('ID, id_1c, is_active', 'is_active=1');
+        $goods = $dbGood->getGoods('ID, id_1c, is_active', '');
         $goodPrevStructure = explode('-', $dbGood->prevGood);
 
+        $db = Db::getInstance();
+        $deactivated = array();
+
         foreach ($elements as $k => $element) {
+            if ($this->isOnlyUpdate && !isset($deactivated[$element['good_id']])) {
+                // При загрузке только обновлений деактивируем все офферы этого товара, активные обновятся сами
+                // Когда загрузка полной базы - все офферы деактивируются на начальном этапе
+                $deactivated[$element['good_id']] = true;
+                $db->update($this->table)
+                   ->set(array('is_active' => 0))
+                   ->where('good_id="' . $element['good_id'] . '"')
+                   ->exec();
+            }
             if (isset($element['rest'])) {
                 $elements[$k]['rest'] = (int) $element['rest'];
             }

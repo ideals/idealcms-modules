@@ -69,8 +69,12 @@ class DbMedium extends AbstractDb
         $db = Db::getInstance();
 
         // Удаление старых связей добавляемых товаров
-        $goodIds = array('goodIds' => implode(',', $goodIds));
-        $db->delete($this->table . $this->tablePostfix)->where('good_id IN (:goodIds)', $goodIds)->exec();
+        $goodIds = implode(',', $goodIds);
+        if (!empty($goodIds)) {
+            $db->delete($this->table . $this->tablePostfix)
+               ->where('good_id IN (' . $goodIds . ')')
+               ->exec();
+        }
 
         // Добавление связей по 25 штук в одном запросе
         while (count($result) > 0) {

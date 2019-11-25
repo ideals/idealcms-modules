@@ -183,7 +183,7 @@ class OffersModel
 
     /**
      * Сравнение результатов выгрузок. Если есть в xml и нет в БД - на добавление
-     * Если есть в БД и есть в XML, но есть diff_assoc - добавляем поля для обновления.
+     * Если есть в БД всегда обновляем, чтобы была возможность деактивировать отсуствующие
      *
      * @param array $dbResult распарсенные данные из БД
      * @param array $xmlResult распарсенные данные из XML
@@ -199,15 +199,11 @@ class OffersModel
                 $this->answer['tmpResult']['offers']['insert'][$k] = 1;
                 continue;
             }
-
-            $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
-                $result[$k] = $res;
-                $result[$k]['ID'] = $dbResult[$k]['ID'];
-                $result[$k]['good_id'] = $dbResult[$k]['good_id'];
-                $this->answer['update']++;
-                $this->answer['tmpResult']['offers']['update'][$k] = 1;
-            }
+            $result[$k] = $val;
+            $result[$k]['ID'] = $dbResult[$k]['ID'];
+            $result[$k]['good_id'] = $dbResult[$k]['good_id'];
+            $this->answer['update']++;
+            $this->answer['tmpResult']['offers']['update'][$k] = 1;
         }
         return $result;
     }
