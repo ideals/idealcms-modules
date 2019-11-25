@@ -19,13 +19,17 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         parent::indexAction();
 
         $request = new Request();
-        $page = intval(substr($request->{$this->pageParamName}, 0, 10));
-        if ($page == 0) {
-            $page = 1;
+        $page = (int)substr($request->{$this->pageParamName}, 0, 10);
+        if ($page === 'all') {
+            $page = null;
+        } else {
+            $page = (int)$page === 0 ? $page = 1 : (int)$page;
         }
 
+        $this->model->setPageNum($page);
+
         $filter = new Filter();
-        $filter->setParams($_GET);
+        $filter->setParams($_REQUEST);
 
         $this->goodModel = new \CatalogPlus\Structure\Good\Site\Model('');
         $this->goodModel->setCategoryModel($this->model);
@@ -40,6 +44,5 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
         // TODO реализация вывода списка групп и подгруппы текущей активной группы
         $this->view->listCat = $this->model->getListCategory();
-
     }
 }

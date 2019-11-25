@@ -224,31 +224,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $this->categoryModel = $model;
     }
 
-    /**
-     * Установка свойств объекта по данным из массива $model
-     *
-     * Вызывается при копировании данных из одной модели в другую
-     * @param Model $model Массив переменных объекта
-     * @param bool $bypass Признак того что этот метод нужно пропустить и перейти к родительскому
-     * @return $this Либо ссылка на самого себя, либо новый объект модели
-     */
-    public function setVars($model, $bypass = false)
-    {
-        if ($bypass) {
-            return parent::setVars($model);
-        }
-
-        $category = new CatalogPlus\Structure\Category\Site\Model('');
-        $path = $model->getPath();
-        $end = array_pop($path);
-        $end['structure'] = 'CatalogPlus_Category';
-        $path[] = $end;
-        $model->setPath($path);
-        $category->setVars($model);
-        //$category->setGoods($this);
-        return $category;
-    }
-
     public function getBreadCrumbs()
     {
         if (!empty($this->pageData) && isset($this->pageData['ID'])) {
@@ -317,6 +292,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     public function getGoodsInfo($ids)
     {
+        if (empty($ids)) {
+            return array();
+        }
+
         $config = Config::getInstance();
         $db = Db::getInstance();
         $offers = false; // По умолчанию оферы не подключены
@@ -336,16 +315,19 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $goodId = array_filter($goodId);
         $offerId = array_filter($offerId);
         $table = $this->_table;
-        if ($offers && !$offerId) {
+        /**
+        if ($offers && empty($offerId)) {
             list($prevStructureId) = explode('-', $this->prevStructure);
             $prevStructure = $config->getStructureById($prevStructureId);
             $table = $config->getTableByName($prevStructure['structure']);
         }
+         */
+        $table = 'i_catalogplus_structure_good';
         $sql = "SELECT * FROM {$table} WHERE ID IN (" . implode(',', $goodId) . ")";
         if ($offers && $offerId) {
             $offerTable = $config->getTableByName('CatalogPlus_Offer');
             $field = '';
-            // Что бы поля предложений не переписывали поля товара, добовляем преставку offer_
+            // Что бы поля предложений не переписывали поля товара, добовляем приставку offer_
             foreach (array_keys($offers['fields']) as $v) {
                 if ($field == '') {
                     $field .= 'o.' . $v . ' AS offer_' . $v;
@@ -362,76 +344,28 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                     WHERE g.ID IN (" . implode(',', $goodId) . ") AND o.ID IN (" . implode(',', $offerId) . ")";
         }
         $info = $db->select($sql);
-        // Делаем массив с ключом идТовара_идПредложения и дополняем ссылкой на товар
-        foreach ($info as $k => $v) {
-            $link = '';
-            $this->getFullUrl($v, $link);
-            $v['link'] = 'href="' . $link . '"';
-            unset($info[$k]);
-            if ($offers && isset($v['offer_ID'])) {
-                $info[$v['ID'] . '_' . $v['offer_ID']] = $v;
-            } else {
-                $info[$v['ID']] = $v;
-            }
-        }
-        return $info;
-    }
+        $newInfo = array();
+        if (!empty($info[0])) {
+            // Строим путь до списка товаров
+            $urlModel = new Field\Url\Model();
+            $urlModel->setPathByPrevStructure($info[0]['prev_structure']);
 
-    /**
-     * Рекурсивная функция, генерирующая ссылку на товар
-     *
-     * @param array $v Массив с данными о текущем элементе структуры
-     * @param string $link Генерируемая ссылка на товар
-     * @param array $structure Массив с данными о текущей структуре
-     */
-    public function getFullUrl($v, &$link, $structure = array())
-    {
-        if (!isset($v['is_skip']) || !$v['is_skip']) {
-            $link = $v['url'] . '/' . $link;
-        }
-        $config = Config::getInstance();
-        $db = Db::getInstance();
-
-        if (!isset($v['cid'])) {
-            if (isset($v['prev_structure']) && !empty($v['prev_structure'])) {
-                list($idStructure, $idElement) = explode('-', $v['prev_structure']);
-                $structure = $config->getStructureById($idStructure);
-                $structureTable = $config->getTableByName($structure['structure']);
-                $sql = "SELECT * FROM {$structureTable} WHERE id = {$idElement} LIMIT 1";
-                $info = $db->select($sql);
-                $v = $info[0];
-                $this->getFullUrl($v, $link, $structure);
-            }
-        } else {
-            if (empty($structure)) {
-                $structure = $config->getStructureByName($this->getStructureName());
-            }
-            $nextUpLevel = $v['lvl'] - 1;
-            if (!$nextUpLevel) {
-                if ($v['prev_structure'] == '0-1') {
-                    $link = '/' . $link;
-                    return;
+            // Делаем массив с ключом идТовара_идПредложения и дополняем ссылкой на товар
+            foreach ($info as $k => $v) {
+                if (empty($v['is_active'])) {
+                    unset($info[$k]);
+                    continue;
+                }
+                $link = $urlModel->getUrl($v);
+                $v['link'] = 'href="' . $link . '"';
+                $v['price'] = empty($v['offer_price']) ? $v['price'] : $v['offer_price'];
+                if ($offers && isset($v['offer_ID'])) {
+                    $newInfo[$v['ID'] . '_' . $v['offer_ID']] = $v;
                 } else {
-                    list($idStructure, $idElement) = explode('-', $v['prev_structure']);
-                    $structure = $config->getStructureById($idStructure);
-                    $structureTable = $config->getTableByName($structure['structure']);
-                }
-                $sql = "SELECT * FROM {$structureTable} WHERE id = {$idElement} LIMIT 1";
-                $info = $db->select($sql);
-                $v = $info[0];
-                $this->getFullUrl($v, $link, $structure);
-            } else {
-                $cid = new Field\Cid\Model($structure['params']['levels'], $structure['params']['digits']);
-                $cid = $cid->getCidByLevel($v['cid'], $nextUpLevel);
-                $structureTable = $config->getTableByName($structure['structure']);
-                $sql = "SELECT * FROM {$structureTable} WHERE cid = '{$cid}%' LIMIT 1";
-                $info = $db->select($sql);
-                if (!empty($info)) {
-                    $v = $info[0];
-                    $this->getFullUrl($v, $link, $structure);
+                    $newInfo[$v['ID']] = $v;
                 }
             }
         }
-        $link = rtrim($link, '/') . $config->urlSuffix;
+        return $newInfo;
     }
 }

@@ -103,8 +103,13 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             $tag = $this->pageData['url'];
         }
 
+        $params = $this->params;
+        $cid = new \Ideal\Field\Cid\Model($params['levels'], $params['digits']);
+        $tree = $cid->buildTree($list, $this->path);
+        $list = $cid->plainTree($tree);
+
         foreach ($list as $k => $v) {
-            $list[$k]['link'] = 'href="' . $this->getUrl($urlAll, $v) . '"';
+            $list[$k]['link'] = 'href="' . $v['link'] . '"'; // $this->getUrl($urlAll, $v)
             $list[$k]['class'] = ($v['url'] == $tag) ? 'active' : '';
         }
 

@@ -70,13 +70,14 @@ class ModelAbstract extends Good
      * Установка свойств объекта по данным из массива $model
      *
      * Вызывается при копировании данных из одной модели в другую
+     *
      * @param Model $model Массив переменных объекта
-     * @param bool $bypass Признак того что этот метод нужно пропустить и перейти к родительскому
      * @return object Либо ссылка на самого себя, либо новый объект модели
+     * @throws \Exception
      */
-    public function setVars($model, $bypass = false)
+    public function setVars($model)
     {
-        $model = parent::setVars($model, true);
+        $model = parent::setVars($model);
         $pageData = $model->getPageData();
         $pageData['offers'] = $model->getOffers($model->prevStructure);
         $model->setPageData($pageData);
