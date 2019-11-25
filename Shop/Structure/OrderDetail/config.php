@@ -1,6 +1,6 @@
 <?php
 
-// Новости
+// Детали заказа
 return array(
     'params' => array (
         'in_structures' => array('Shop_Order'), // в каких структурах можно создавать эту структуру
@@ -30,6 +30,16 @@ return array(
             'label' => 'ID 1c товара',
             'sql'   => 'varchar(45) not null',
             'type'  => 'Ideal_Text'
+        ),
+        'name' => array(
+            'label' => 'Наименование предложения',
+            'sql'   => 'varchar(255) not null',
+            'type'  => 'Ideal_Text'
+        ),
+        'offer_id' => array(
+            'label' => 'ID товара',
+            'sql'   => 'int(4)',
+            'type'  => 'Ideal_Hidden'
         ),
         'offer_id_1c' => array(
             'label' => 'ID 1c предложения',
