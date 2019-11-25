@@ -8,30 +8,28 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function indexAction()
     {
-        $basket = $this->model->getGoods();
+        $basket = $this->model->getBasket();
 
         if (empty($basket) || (isset($basket['count']) && empty($basket['count']))) {
             // Если в корзине нет товаров — выводим шаблон с пустой корзиной
-            $this->model->setEmptyBasket();
-            parent::indexAction();
+            $this->emptyAction();
             return;
-        } else {
-            parent::indexAction();
-            $this->view->firstTab = $this->model->getFirstTab();
         }
+
+        parent::indexAction();
+        $this->view->firstTab = $this->model->getFirstTab();
 
         $this->view->goods = $basket;
     }
 
     public function detailAction()
     {
-        $basket = $this->model->getGoods();
+        $basket = $this->model->getBasket();
         $tabsInfo = $this->model->getTabsInfo();
 
         if (empty($basket) || (isset($basket['count']) && empty($basket['count']))) {
             // Если в корзине нет товаров — выводим шаблон с пустой корзиной
-            $this->model->setEmptyBasket();
-            parent::indexAction();
+            $this->emptyAction();
             return;
         }
 
@@ -42,5 +40,13 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $tabs = $this->model->getTabs();
         $this->view->tabs = $tabs;
         $this->view->currentTabId = $this->model->getCurrentTabId($tabs);
+    }
+
+    /**
+     * Отображение пустой корзины
+     */
+    public function emptyAction()
+    {
+        $this->templateInit('Shop/Structure/Basket/Site/empty.twig');
     }
 }

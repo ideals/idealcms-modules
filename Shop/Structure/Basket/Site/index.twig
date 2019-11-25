@@ -68,7 +68,7 @@
                                         </td>
                                         <td class="product-price">
                                         <span class="amount">
-                                            {{ (good.sale_price)|number_format(2, '.', ',') }}&nbsp;руб.
+                                            {{ (good.price / 100)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                         </td>
 
@@ -77,14 +77,14 @@
                                                 <input type="number" step="1" name="goods[{{ key }}]"
                                                        data-id="{{ key }}"
                                                        value="{{ good.count }}" onchange="changeCountCart(this)"
-                                                       size="4" min="1" title="Колличество"
+                                                       size="4" min="1" title="Количество"
                                                        class="input-text qty text"/>
                                             </div>
                                         </td>
 
                                         <td class="product-subtotal">
                                         <span class="amount {{ key }}">
-                                            {{ (good.total_price)|number_format(2, '.', ',') }}&nbsp;руб.
+                                            {{ (good.price * good.count / 100 )|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                         </td>
                                     </tr>
@@ -238,11 +238,11 @@
             var $this = jQuery(e);
             var id = $this.attr('data-id');
             var basket = $.parseJSON(getCookie('basket'));
-            var price = parseInt(basket['goods'][id]['sale_price'] * $this.val());
+            var price = parseInt(basket['goods'][id]['price'] / 100 * $this.val());
             $('.amount.' + id).text(price.format(2, 3, ',', '.') + ' руб.');
             var total = 0;
             $('.qty').each(function (index, elem) {
-                total += parseInt(basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val()) / 100;
+                total += parseInt(basket['goods'][$(elem).attr('data-id')]['price'] * $(elem).val()) / 100;
             });
             if (basket.discoValue != '' && basket.discoValue != 0) {
                 total = total - basket.discoValue / 100;

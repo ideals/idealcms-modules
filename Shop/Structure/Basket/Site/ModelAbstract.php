@@ -5,108 +5,240 @@ use Ideal\Core\Db;
 use Ideal\Core\Util;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
+use Ideal\Structure\Service\SiteData\ConfigPhp;
 use Ideal\Structure\User;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
     /** @var \CatalogPlus\Structure\Good\Site\Model */
-    protected $goodsModel;
+    protected $goodModel;
+
+    /** @var array Краткая корзина с товарами и сводкой данных о самой корзине */
+    protected $basketCookie;
+
+    /** @var array Корзина с товарами и сводкой данных о самой корзине */
+    protected $basket;
+
+    /** @var bool тригер на обновление информации товара(предложения) в корзине */
+    protected $update = false; // по-умолчанию обновлять не нужно корзину
+
+    /** @var int время жизни корзины в секундах, если время обновления(создания) корзины больше, то она обновляется */
+    protected $timeLive = 7200;
+
+    // Таблица со списком страниц относящихся к процессу оформления заказа
+    protected $table;
 
     public function __construct($prevStructure)
     {
         parent::__construct($prevStructure);
+
         $config = Config::getInstance();
         if ($config->getStructureByName('Catalog_Good')) {
-            $this->goodsModel = new \Catalog\Structure\Good\Site\Model($prevStructure);
+            $this->goodModel = new \Catalog\Structure\Good\Site\Model($prevStructure);
         } elseif ($config->getStructureByName('CatalogPlus_Good')) {
-            $this->goodsModel = new \CatalogPlus\Structure\Good\Site\Model($prevStructure);
+            $this->goodModel = new \CatalogPlus\Structure\Good\Site\Model($prevStructure);
         } else {
             \Ideal\Core\Util::addError('Не подключен модуль с товарами');
         }
+
+        if (isset($_COOKIE['basket'])) {
+            $this->basketCookie = json_decode($_COOKIE['basket'], true);
+            // Определяем как давно была обновлена / cоздана корзина
+            if (!isset($this->basketCookie['time'])) {
+                $this->basketCookie['timei'] = time();
+            }
+            if ((time() - $this->basketCookie['time']) > $this->timeLive) {
+                $this->update = true;
+            }
+        } else {
+            // Установка значений по умолчанию для корзины
+            $this->basketCookie = $this->getClearBasket();
+        }
+
+        // Указываем таблицы где хранятся данные
+        $this->table = $config->db['prefix'] . 'shop_structure_basket';
     }
 
     /**
-     * Получение информации с каждого этапа оформления заказа
+     * Получение полного списка товаров со всеми их свойствами
      *
      * @return array
+     * @throws \Exception
      */
-    public function getTabsInfo()
+    public function getBasket()
     {
-        $tabsInfo = array();
-        if (isset($_COOKIE['tabsInfo'])) {
-            $tabsInfo = json_decode($_COOKIE['tabsInfo'], true);
+        if (!empty($this->basket)) {
+            // Если корзина уже сформирована, возвращаем её
+            return $this->basket;
         }
-        return $tabsInfo;
-    }
-
-    /**
-     * Получение полной информации о товарах в корзине
-     *
-     * @return array
-     */
-    public function getGoods()
-    {
-        if (!isset($_COOKIE['basket'])) {
-            return false;
-        }
-        $basket = json_decode($_COOKIE['basket'], true);
-        if (count($basket['goods']) === 0) {
-            return false;
-        }
-        $basket['total'] = 0;
-        $basket['count'] = 0;
-
-        // todo где лучше раскладывать корзину по офферам тут или в товарах? Наверное лучше тут
-
-        $goods = $this->goodsModel->getGoodsInfo(array_keys($basket['goods']));
-        //$goods = $this->goodsModel->goodsFromBasket($basket['goods']);
-        foreach ($basket['goods'] as $k => $v) {
-            if (!isset($goods[$k])) {
-                unset($basket['goods'][$k]);
+        // Формируем корзину на основе краткой версии из oookies
+        $basket = $this->getClearBasket();
+        $goodsDb = $this->goodModel->getGoodsInfo(array_keys($this->basketCookie['goods']));
+        foreach ($this->basketCookie['goods'] as $id => $good) {
+            if (empty($goodsDb[$id])) {
+                // Если такого товара нет в БД (удалили из выгрузки), то убираем его из корзины
                 continue;
             }
-
-            $good = $goods[$k];
-
-            if (isset($good['count'])) {
-                if (isset($v['count']) && ((int)$v['count'] > (int)$good['count'])) {
-                    $v['warning'][] = 'Заказано больше чем есть на складе. Уточняйте у менеджера.';
-                }
-                unset($good['count']);
-            }
-            $v = $basket['goods'][$k] = array_merge($v, $good);
-            $price = empty((float)$v['sale_price']) ? (float)$v['price'] : (float)$v['sale_price'];
-            $basket['goods'][$k]['total_price'] = $v['count'] * $price;
-            $basket['total'] += $basket['goods'][$k]['total_price'];
-            $basket['count'] += 1;
+            $basket['goods'][$id] = array_merge($good, $goodsDb[$id]);
         }
-        // Применяем скидку, если она есть
-        if (!empty($basket['disco'])) {
-            $basket['total'] -= (float)$basket['discoValue'];
-        }
+        $basket = $this->recalcTotal($basket);
+        $this->basket = $basket;
+
+        $this->update = true;
+        $this->getBasketCookie();
+
         return $basket;
     }
 
     /**
-     * Получаем первый слайд для начала оформления заказа
+     * Получение краткой версии корзины, только с информацией из cookies
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function getBasketCookie()
+    {
+        if (!$this->update) {
+            return $this->basketCookie;
+        }
+
+        $this->update = false;
+
+        // Если требуется обновить корзину, перечитываем её из БД
+        $basket = $this->getBasket();
+        $goods = $basket['goods'];
+        // Выделяем только цены
+        $basketCookie = $this->getClearBasket();
+        foreach ($this->basketCookie['goods'] as $id => $good) {
+            if (empty($goods[$id])) {
+                // Если товара в корзине не оказалось, значит его отключили в БД, убираем его из корзины
+                continue;
+            }
+            $good['price'] = $goods[$id]['price'];
+            $good['price_old'] = $goods[$id]['price_old'];
+            $basketCookie['goods'][$id] = $good;
+        }
+        $basketCookie = $this->recalcTotal($basketCookie);
+        $this->basketCookie = $basketCookie;
+        $this->saveBasket();
+
+        return $basketCookie;
+    }
+
+    /**
+     * Добавление товара или изменение его количества в корзине
+     *
+     * Если параметр $good['count'] передаётся со знаком '+", то указанное количество товара будет
+     * добавлено к существующему, если без знака, то будет установлено переданное количество товара
+     *
+     * @param $good
+     * @throws \Exception
+     */
+    public function addGood($good)
+    {
+        $id = $good['id'];
+        $mode = strpos($good['count'], '+') === 0 ? 'add' : 'set';
+        $good['count'] = (int)$good['count'];
+
+        if ($good['count'] === 0) {
+            // Передано нулевое кол-во, значит нужно удалить товар из корзины
+            if (isset($this->basketCookie['goods'][$id])) {
+                $this->delGood($id);
+            }
+            return;
+        }
+
+        $goodsInfo =  $this->goodModel->getGoodsInfo(array($id));
+
+        if (empty($goodsInfo[$id])) {
+            // Не удалось получить информацию(цену) о товаре(предложении)
+            // Значит товар(предложение) отсуствует или распродан/о и нужно убрать его из корзины
+            if (isset($this->basket['goods'][$id])) {
+                $this->delGood($id);
+            }
+            return;
+        }
+
+        if (isset($this->basketCookie['goods'][$id])) {
+            if ($mode === 'add') {
+                $this->basketCookie['goods'][$id]['count'] += $good['count'];
+            } else {
+                $this->basketCookie['goods'][$id]['count'] = $good['count'];
+            }
+        } else {
+            $good['price'] = $goodsInfo[$id]['price'];
+            $good['price_old'] = $goodsInfo[$id]['price_old'];
+            $this->basketCookie['goods'][$id] = $good;
+        }
+        $this->basketCookie = $this->recalcTotal($this->basketCookie);
+        $this->saveBasket();
+        // Очищаем корзину с полными описаниями товаров - если она потребуется, то будет пересобрана
+        unset($this->basket);
+    }
+
+    /**
+     * Удаление товара из корзины
+     *
+     * @param $id
+     */
+    public function delGood($id)
+    {
+        if (!empty($this->basket['goods'][$id])) {
+            unset($this->basket['goods'][$id]);
+            $this->basket = $this->recalcTotal($this->basket);
+        }
+        unset($this->basketCookie['goods'][$id]);
+        $this->basketCookie = $this->recalcTotal($this->basketCookie);
+        $this->saveBasket();
+    }
+
+    /**
+     * Построение пустой корзины, с минимально необходимым набором полей
      *
      * @return array
      */
-    public function getFirstTab()
+    protected function getClearBasket()
     {
-        $db = Db::getInstance();
-        $sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY {$this->params['field_sort']} LIMIT 1";
-        $tab = $db->select($sql);
-        if (count($tab) < 1) {
-            return array();
+        return array(
+            'goods' => array(), // товары которые находятся в корзине
+            'total_old' => 0, // общая сумма цен без скидок
+            'total' => 0, // общая цена с учетом скидки
+            'time' => time(),
+        );
+    }
+
+    /**
+     * Пересчёт суммыарной стоимости товаров в корзине
+     *
+     * @param array $basket
+     * @return array
+     */
+    protected function recalcTotal($basket)
+    {
+        $total = $totalOld = 0;
+        if (!empty($basket['goods'])) {
+            foreach ($basket['goods'] as $good) {
+                $total += $good['price'] * $good['count'];
+                $totalOld += $good['price_old'] * $good['count'];
+            }
         }
-        $tab = $tab[0];
-        $path = $this->getPath();
-        $url = new \Ideal\Field\Url\Model();
-        // Указываем родителя для url что бы можно было получить корректный url
-        $url->setParentUrl($path);
-        $tab['link'] = 'href="' . $url->getUrl($tab) . '"';
-        return $tab;
+        $basket['total'] = $total;
+        $basket['total_old'] = $totalOld;
+
+        return $basket;
+    }
+
+    /**
+     * Сохранение корзины в Cookies
+     */
+    protected function saveBasket()
+    {
+        setcookie(
+            'basket',
+            json_encode($this->basketCookie, JSON_FORCE_OBJECT),
+            strtotime('+1 year'),
+            '/'
+        );
     }
 
     /**
@@ -146,6 +278,42 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $request->action = 'detail';
 
         return $this;
+    }
+
+    /**
+     * Получение информации с каждого этапа оформления заказа
+     *
+     * @return array
+     */
+    public function getTabsInfo()
+    {
+        $tabsInfo = array();
+        if (isset($_COOKIE['tabsInfo'])) {
+            $tabsInfo = json_decode($_COOKIE['tabsInfo'], true);
+        }
+        return $tabsInfo;
+    }
+
+    /**
+     * Получаем первый слайд для начала оформления заказа
+     *
+     * @return array
+     */
+    public function getFirstTab()
+    {
+        $db = Db::getInstance();
+        $sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY {$this->params['field_sort']} LIMIT 1";
+        $tab = $db->select($sql);
+        if (count($tab) < 1) {
+            return array();
+        }
+        $tab = $tab[0];
+        $path = $this->getPath();
+        $url = new \Ideal\Field\Url\Model();
+        // Указываем родителя для url что бы можно было получить корректный url
+        $url->setParentUrl($path);
+        $tab['link'] = 'href="' . $url->getUrl($tab) . '"';
+        return $tab;
     }
 
     /**
@@ -204,13 +372,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         ));
         
         return $tabs;
-    }
-
-    public function setEmptyBasket()
-    {
-        $pageData = $this->getPageData();
-        $pageData['template'] = 'Shop/Structure/Basket/Site/empty.twig';
-        $this->setPageData($pageData);
     }
 
     public function getCurrentTabId($tabs)

@@ -53,7 +53,7 @@ function fastAddGood(e) {
     $this.attr('onclick', 'return false');
     jQuery.ajax({
         type: 'POST',
-        data: 'quantity=1&add-to-cart=' + $this.attr('data-id'),
+        data: 'count=+1&good-id=' + $this.attr('data-id'),
         url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site&action=addGood',
         dataType: 'json',
         success: function (data) {
@@ -76,10 +76,10 @@ function fastChangeQuant(e) {
     var $this = jQuery(e);
     var onclick = $this.attr('onclick');
     $this.attr('onclick', ' return false');
-    var quant = ($this.hasAttr('data-count')) ? $this.hasAttr('data-count') : $this.val();
+    var count = ($this.hasAttr('data-count')) ? $this.hasAttr('data-count') : $this.val();
     jQuery.ajax({
         type: 'POST',
-        data: 'quantity=' + quant + '&add-to-cart=' + $this.attr('data-id'),
+        data: 'count=' + count + '&good-id=' + $this.attr('data-id'),
         url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site&action=quantGood',
         dataType: 'json',
         success: function (data) {
@@ -96,8 +96,8 @@ function fastDelGood(e) {
     $this.attr('onclick', 'return false');
     jQuery.ajax({
         type: 'POST',
-        data: 'add-to-cart=' + $this.attr('data-id'),
-        url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site&action=delGood',
+        data: 'count=0&good-id=' + $this.attr('data-id'),
+        url: '/?mode=ajax&controller=Shop\\Structure\\Basket\\Site&action=addGood',
         async: false,
         dataType: 'json',
         success: function (data) {
