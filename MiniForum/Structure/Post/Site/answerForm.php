@@ -3,12 +3,13 @@
         <div class="input-line">
             <label for="authorPF">Ваше имя:<em class="formee-req"> *</em></label>
             <input id="authorPF" value="" name="author" type="text">
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+        <div class="input-line">
             <label for="emailPF">E-mail: </label>
             <input id="emailPF" name="email" value="" type="text">
         </div>
         <div class="input-line">
-            <label for="contentPF">Сообщение:<em class="formee-req"> *</em> </label><br />
+            <label for="contentPF">Сообщение:<em class="formee-req"> *</em> </label>
             <textarea name="content"></textarea>
         </div>
         <div class="input-line" style="display: <?php if (isSet($formValues['isPosterBlock'])) echo 'block'; else echo 'none'; ?>">

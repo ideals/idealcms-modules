@@ -43,9 +43,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // Очень выжно чтобы главные посты шли в конце иначе при получении дочерних постов через getCommentsTree,
         // мы не получим все элементы
         $_sql = "SELECT * FROM {$this->_table}
-                    WHERE page_structure=:page_structure AND is_active=1 {$this->where}
+                    WHERE is_active=1 {$this->where} AND 
+                    (
+                    page_structure=:ps OR 
+                    (main_parent_id IN (SELECT ID FROM {$this->_table} WHERE page_structure=:ps) ) 
+                    )
                     ORDER BY main_parent_id DESC, date_create ASC";
-        $params = array('page_structure' => $pageStructure);
+        $params = array('ps' => $pageStructure);
         $db = Db::getInstance();
         $list = $db->select($_sql, $params);
         $posts = array();
@@ -92,7 +96,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $parent;
     }
 
-
     /**
      * @param int $page Номер отображаемой страницы
      * @return array Полученный список элементов
@@ -133,7 +136,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $post;
     }
 
-
     /**
      * Получение количества ответов на пост
      *
@@ -148,7 +150,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $answerCount = $db->select($_sql, $params);
         return isset($answerCount[0]['count']) ? $answerCount[0]['count'] : false;
     }
-
 
     public function detectPageByUrl($path, $url)
     {
@@ -242,7 +243,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
     }
 
-
     public function getChildPosts($startMargin = 0, $margin = 50)
     {
         $db = Db::getInstance();
@@ -264,7 +264,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $childPosts;
     }
 
-
     public function getPost($ID)
     {
         $db = Db::getInstance();
@@ -276,8 +275,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $post;
     }
 
-
-    public function  setPrevStructure($pageStructure)
+    public function setPrevStructure($pageStructure)
     {
         $this->pageStructure = $pageStructure;
     }
@@ -293,7 +291,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
         return $tree;
     }
-
 
     protected function buildList($tree, $indent = 0)
     {
@@ -483,6 +480,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $emailManager[$k] = trim($emailManager[$k]);
         }
 
+        $link = $_SERVER['HTTP_REFERER'];
+
         if ($post['main_parent_id'] == "0") {
             $mail->setSubj($config->domain . ': новая тема на форуме');
             // TODO сделать адекватное получение url раздела
@@ -491,7 +490,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $message = "<a href=\"{$href}\">Новая тема на форуме</a> <br /><br />"
                 . 'Автор: ' . $post['author'] . "<br />"
                 . 'Email: ' . $post['email'] . "<br />"
-                . 'Сообщение: ' . "<br />" . $post['content'];
+                . 'Сообщение: ' . "<br />" . $post['content'] . "<br /><br />"
+                . "На странице: <a href='{$link}'>{$link}</a>";
             $mail->setBody('', $message);
             $emailSend = array();
             foreach ($emailManager as $k => $email) {
@@ -523,7 +523,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $message = "<a href=\"{$href}\">На форуме сайта {$config->domain} появился новый ответ</a> <br /><br />"
             . 'Автор: ' . $post['author'] . "<br />"
             . 'Email: ' . $post['email'] . "<br />"
-            . 'Сообщение: ' . "<br />" . $post['content'] . "<br />";
+            . 'Сообщение: ' . "<br />" . $post['content'] . "<br /><br />"
+            . "На странице: <a href='{$link}'>{$link}</a>";
         $mail->setBody('', $message);
         $mail->sent($config->robotEmail, $config->mailForm);
 

@@ -38,7 +38,8 @@ class Comments extends \Ideal\Core\Widget
 
         $forum = new \MiniForum\Structure\Post\Site\Model('');
 
-        $posts = $forum->getComments($this->pageStructure); // получаем список сообщений первого уровня для страницы $pageStructure
+        // Получаем список сообщений первого уровня для страницы $pageStructure
+        $posts = $forum->getComments($this->pageStructure);
 
         $result = array(
             'isShow' => true,
@@ -69,7 +70,8 @@ class Comments extends \Ideal\Core\Widget
         }
     }
 
-    public function setPath($pageStructure) {
+    public function setPath($pageStructure)
+    {
         $this->pageStructure = $pageStructure;
     }
 }
