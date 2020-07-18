@@ -48,9 +48,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             'count' => $count,
         );
 
-        $this->basket->addGood($good);
+        $basketArr = $this->basket->addGood($good);
 
-        $basketArr = $this->basket->getBasketCookie();
+        $this->basket->saveBasketCookie();
 
         return json_encode(array(
             'error' => false,
@@ -64,7 +64,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function getBasketAction()
     {
-        return json_encode(array('basket' => $this->basket->getBasketCookie()));
+        return json_encode(array('basket' => $this->basket->saveBasketCookie()));
     }
 
     /**

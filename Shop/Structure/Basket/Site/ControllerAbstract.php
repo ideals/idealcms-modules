@@ -8,7 +8,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
     public function indexAction()
     {
-        $basket = $this->model->getBasket();
+        $basket = $this->model->calcFullBasket();
 
         if (empty($basket) || (isset($basket['count']) && empty($basket['count']))) {
             // Если в корзине нет товаров — выводим шаблон с пустой корзиной
