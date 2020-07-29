@@ -241,7 +241,7 @@ class DbOrderAbstract extends AbstractDb
         $element['structure'] = 'Shop_OrderDetail';
         $element['export'] = 0;
 
-        $element['price'] *= 100;
+        $element['price'] = str_replace(',', '.', $element['price']) * 100;
 
         $goods = $element['goods'];
         unset($element['goods']);

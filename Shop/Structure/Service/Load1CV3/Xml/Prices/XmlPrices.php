@@ -14,7 +14,9 @@ class XmlPrices extends AbstractXml
 
         if (!empty($this->data)) {
             foreach ($this->data as $k => $value) {
-                $this->data[$k]['price'] *= 100;
+                // Если в выгрузке дробное число с запятой - заменяем на точку
+                // И помножаем на 100 для хранения в БД целочисленных данных
+                $this->data[$k]['price'] = str_replace(',', '.', $value['price']) * 100;
             }
         }
 
