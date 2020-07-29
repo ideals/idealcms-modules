@@ -53,8 +53,8 @@ class ModelAbstract extends Core\Model
         }
 
         // Если установлены cookies, получаем данные из них
-        if (isset($_COOKIE[$this->remember]) && empty($_SESSION['login'])) {
-            $_SESSION['login'] = json_decode($_COOKIE[$this->remember], true);
+        if (isset($_COOKIE[$this->cookieName]) && empty($_SESSION['login'])) {
+            $_SESSION['login'] = json_decode($_COOKIE[$this->cookieName], true);
         }
 
         // Если в сессии есть данные по пользователю, получаем их
@@ -68,16 +68,19 @@ class ModelAbstract extends Core\Model
     /**
      * Пытается получить данные пользователя из базы
      *
-     * @param string $email Значение электронной почты (если известно), false в противном случае
+     * @param string $id Значение идентификатора по которому будем искать пользователя
+     * @param string $idName Название поля с индентификатором пользователя (по умолчанию - email)
      * @return mixed false или массив с данными о пользователе
+     * @throws \Exception
      */
-    public function getUser($email = '')
+    public function getUser($id = '', $idName = 'email')
     {
         $db = Db::getInstance();
         $fields = array('table' => $this->_table);
-        if (!empty($email)) {
-            $par = array('email' => strtolower($email));
-            $_sql = "SELECT * FROM &table WHERE email= :email LIMIT 1";
+        if (!empty($id)) {
+            $par = array('id' => $id);
+            $fields['idField'] = $idName;
+            $_sql = "SELECT * FROM &table WHERE &idField= :id LIMIT 1";
         } else {
             $par = array('ID' => $_SESSION['login']['ID']);
             $_sql = "SELECT * FROM &table WHERE ID= :ID LIMIT 1";
