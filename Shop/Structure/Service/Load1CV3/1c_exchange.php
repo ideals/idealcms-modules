@@ -22,9 +22,11 @@ set_include_path(
     . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/Library/'
 );
 
+// Подключаем Composer
+require_once DOCUMENT_ROOT. '/../vendor/autoload.php';
+
 // Подключаем автозагрузчик классов
 require_once 'Core/AutoLoader.php';
-require_once 'Library/pclzip.lib.php';
 
 $config = Core\Config::getInstance();
 

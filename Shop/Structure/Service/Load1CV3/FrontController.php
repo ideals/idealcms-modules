@@ -151,7 +151,7 @@ LOGMESSAGE;
         // обработкой
         $model = $this->getModel($filename);
 
-        // Првоеряем является ли запрос началом нового сеанса обмена
+        // Проверяем, является ли запрос началом нового сеанса обмена
         $cmsConfig = Config::getInstance();
         $tmpResultFile = DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';
         $newSeance = ExchangeUtil::checkExchangeStart($workDir . $filename, $tmpResultFile);
