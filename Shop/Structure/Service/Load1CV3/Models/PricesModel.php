@@ -1,6 +1,7 @@
 <?php
 namespace Shop\Structure\Service\Load1CV3\Models;
 
+use Ideal\Core\Config;
 use Shop\Structure\Service\Load1CV3\Db\Prices\DbPrices;
 use Shop\Structure\Service\Load1CV3\Xml\Prices\XmlPrices;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
@@ -96,18 +97,11 @@ class PricesModel
     {
         $result = array();
         foreach ($xmlResult as $k => $val) {
-            $goodOffer = explode('#', $k);
-            if (substr_count($k, '#') === 1) {
-                $whatIsThat = 'offers';
-                $key = $goodOffer[1];
-            } else {
-                $whatIsThat = 'goods';
-                $key = $goodOffer[0];
-            }
+            $whatIsThat = substr_count($k, '#') === 1 ? 'offers' :  'goods';
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
                 $this->answer['add']++;
-                $this->answer['tmpResult'][$whatIsThat]['insert'][$key] = 1;
+                $this->answer['tmpResult'][$whatIsThat]['insert'][$k] = 1;
                 continue;
             }
 
@@ -116,6 +110,34 @@ class PricesModel
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $result[$k]['good_id'] = $dbResult[$k]['good_id'];
+                $this->answer['update']++;
+                $this->answer['tmpResult'][$whatIsThat]['update'][$k] = 1;
+            }
+        }
+        // Если это обновление, то из xmlResult выделяем товары и находим, какие их офферы надо деактивировать
+        $config = Config::getInstance();
+        if (!empty($config->isOnlyUpdate)) {
+            // Выделяем список обновляемых товаров из xmlResult
+            $goodIds = array();
+            foreach ($xmlResult as $key => $item) {
+                $keys = explode('#', $key);
+                $goodIds[] = $keys[0];
+            }
+            // Извлекаем все офферы товаров
+            $offerIds = array();
+            foreach ($dbResult as $key => $item) {
+                $keys = explode('#', $key);
+                if (in_array($keys[0], $goodIds, true)) {
+                    $offerIds[] = $key;
+                }
+            }
+            // Находим все офферы, которых не оказалось в обновлении цен
+            $keys = array_keys($xmlResult);
+            $delete = array_diff($offerIds, $keys);
+            foreach ($delete as $key) {
+                $whatIsThat = substr_count($key, '#') === 1 ? 'offers' :  'goods';
+                $result[$key] = $dbResult[$key];
+                $result[$key]['is_active'] = 0;
                 $this->answer['update']++;
                 $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
             }

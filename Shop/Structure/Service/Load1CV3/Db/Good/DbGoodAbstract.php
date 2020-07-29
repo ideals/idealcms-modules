@@ -165,18 +165,18 @@ class DbGoodAbstract extends AbstractDb
             if (!isset($result[$item['id_1c']])) {
                 $result[$item['id_1c']] = $item;
             } else {
-                // Складываем остатки всех офферов
-                $result[$item['id_1c']]['stock'] += $item['stock'];
-
-                if ((float)$item['price'] > 0 &&
-                    ((float)$result[$item['id_1c']]['price'] == 0 ||
-                        $item['price'] < $result[$item['id_1c']]['price']
-                    )
+                $offer = $result[$item['id_1c']];
+                if ((float)$item['price'] > 0 && $item['stock'] > 0 &&
+                    ((float)$offer['price'] == 0 || $offer['stock'] == 0 || $item['price'] < $offer['price'])
                 ) {
                     // Если товар уже есть в массиве, но у рассматриваемого оффера цена ниже, то обновляекм цену у
                     // товара
                     $result[$item['id_1c']]['price'] = $item['price'];
                 }
+
+                // Складываем остатки всех офферов
+                $result[$item['id_1c']]['stock'] += $item['stock'];
+
                 if ((float)$item['price_old'] > 0 &&
                     ((float)$result[$item['id_1c']]['price_old'] == 0 ||
                         (float)$item['price_old'] > (float)$result[$item['id_1c']]['price_old']
