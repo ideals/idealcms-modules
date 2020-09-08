@@ -59,7 +59,7 @@ class ModelAbstract extends Good
 
         if (isset($pageData['imgs']) && !is_array($pageData['imgs'])) {
             // Если дополнительные картинки не разобраны в массив, разбираем
-            $pageData['imgs'] = json_decode($pageData['imgs']);
+            $pageData['imgs'] = json_decode($pageData['imgs'], true);
             $this->pageData = $pageData;
         }
 
@@ -88,7 +88,7 @@ class ModelAbstract extends Good
     {
         // Ищем все офферы товара по преструктуре
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure='{$prevStructure}'";
+        $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure='{$prevStructure}' ORDER BY name";
         $list = $db->select($_sql);
         return $list;
     }
