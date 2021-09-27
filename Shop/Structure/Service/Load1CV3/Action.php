@@ -10,9 +10,21 @@ $config = \Ideal\Core\Config::getInstance();
             </div>
             <div class="modal-body">
             </div>
-            <div class="modal-loading" style="text-align: center;">
-                <img src="/<?=$config->cmsFolder?>/Mods/Shop/Structure/Service/Load1cV2/loading.gif" style="width: 85px;">
-            </div>
+            <div class="modal-loading" style="text-align: center;"></div>
+            <style type="text/css">
+                .modal-loading {
+                    border: 16px solid #f3f3f3; /* Light grey */
+                    border-top: 16px solid #3498db; /* Blue */
+                    border-radius: 50%;
+                    width: 60px;
+                    height: 60px;
+                    animation: spin 2s linear infinite;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
             <div class="modal-footer">
                 <button type="button" disabled="disabled" class="btn btn-default btn-close" data-dismiss="modal">Закрыть</button>
             </div>
