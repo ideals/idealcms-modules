@@ -3,6 +3,7 @@ namespace Shop\Structure\Service\Load1CV3;
 
 use Ideal\Core\Request;
 use Ideal\Core\Config;
+use Ideal\Core\Util;
 use Ideal\Structure\User\Model as UserModel;
 use Shop\Structure\Service\Load1CV3\Log\Log;
 use Shop\Structure\Service\Load1CV3\Models\OrderModel;
@@ -85,12 +86,17 @@ LOGMESSAGE;
      */
     public function run()
     {
-        $request = new Request();
-        $actionName = $request->mode . 'Action';
-        if (!method_exists($this, $actionName)) {
-            throw new \BadMethodCallException('Не существует метода "' . $actionName . '" для обработки запроса');
+        try {
+            $request = new Request();
+            $actionName = $request->mode . 'Action';
+            if (!method_exists($this, $actionName)) {
+                throw new \BadMethodCallException('Не существует метода "' . $actionName . '" для обработки запроса');
+            }
+            $this->$actionName();
+        } catch (\Exception $e) {
+            echo "failure\n" . $e->getMessage();
+            Util::addError($e->getMessage());
         }
-        $this->$actionName();
         if (empty($request->par)) {
             $this->printResponse();
         } else {
@@ -99,7 +105,7 @@ LOGMESSAGE;
     }
 
     /**
-     * Реакция на запрос деактивации товаров отстутствующих в полной выгрузке
+     * Реакция на запрос деактивации товаров отсутствующих в полной выгрузке
      */
     protected function deactivateAction()
     {
@@ -141,7 +147,12 @@ LOGMESSAGE;
         if (!empty($request->workDir)) {
             $workDir = $request->workDir;
         }
-        $exist = ExchangeUtil::checkFileExist($workDir, $filename);
+        try {
+            $exist = ExchangeUtil::checkFileExist($workDir, $filename);
+        } catch (\Exception $e) {
+            $this->response = "failure\nПроблема при обработке переданного файла\n" . $e->getMessage();
+            return false;
+        }
         if (!$exist) {
             $this->response = "failure\nНе найден файл для обработки";
             return false;
