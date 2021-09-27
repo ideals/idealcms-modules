@@ -2,7 +2,6 @@
 namespace Articles\Structure\Article\Site;
 
 use Ideal\Core\Request;
-use Ideal\Core\Pagination;
 
 class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
@@ -10,7 +9,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
      * @var $model Model
      */
     public $model;
-    protected $categoryPrevStructure;
 
     public function indexAction()
     {
@@ -23,7 +21,6 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->pager = $this->model->getPager('page');
     }
 
-
     public function detailAction()
     {
         $this->templateInit('Articles/Structure/Article/Site/detail.twig');
@@ -33,5 +30,4 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
 
         $this->view->article = $this->model->getPageData();
     }
-
 }

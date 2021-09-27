@@ -73,6 +73,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     /**
      * Добавление к where-запросу фильтра по category_id
+     *
      * @param string $where Исходная WHERE-часть
      * @return string Модифицированная WHERE-часть, с расширенным запросом, если установлена GET-переменная category
      */
