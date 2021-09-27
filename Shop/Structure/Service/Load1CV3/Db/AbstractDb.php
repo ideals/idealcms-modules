@@ -58,12 +58,9 @@ class AbstractDb
     public function dropTestTable()
     {
         $db = Db::getInstance();
-
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "show tables like '{$testTable}'";
-        $result = $db->query($sql);
-        $res = $result->fetch_all(MYSQLI_ASSOC);
-        if (count($res) > 0) {
+
+        if ($this->tableExist()) {
             $sql = "DROP TABLE {$testTable}";
             $db->query($sql);
         }
@@ -102,6 +99,23 @@ class AbstractDb
         if (!$this->isOnlyUpdate) {
             $this->deactivateDataInTable();
         }
+    }
+
+    /**
+     * Определяем, создана ли уже тестовая таблица
+     *
+     * @return bool
+     */
+    public function tableExist()
+    {
+        $db = Db::getInstance();
+
+        $testTable = $this->table . $this->tablePostfix;
+        $sql = "show tables like '{$testTable}'";
+        $result = $db->query($sql);
+        $res = $result->fetch_all(MYSQLI_ASSOC);
+
+        return count($res) > 0;
     }
 
     /**
