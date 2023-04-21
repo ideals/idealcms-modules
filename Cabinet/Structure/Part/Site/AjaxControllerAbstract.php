@@ -243,7 +243,9 @@ JS;
                 $response = $userModel->userRegistration($newUserData);
                 if ($response['success']) {
                     $config = Config::getInstance();
-                    $title = 'Регистрация на ' . $config->domain;
+                    $siteName = empty($config->siteName) ? $config->domain : $config->siteName;
+                    $title = 'Регистрация на сайте ' . $siteName;
+                    $topic = 'Регистрация на сайте ' . $config->domain;
 
                     $this->templateInit('Cabinet/Structure/Part/Site/letter.twig');
                     $this->view->phone = $config->phone;
@@ -263,7 +265,7 @@ JS;
 
                     $smtp = $config->smtp;
 
-                    if ($form->sendMail($config->robotEmail, $newUserData['email'], $title, $msg, true, $smtp)) {
+                    if ($form->sendMail($config->robotEmail, $newUserData['email'], $topic, $msg, true, $smtp)) {
                         return 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
                     } else {
                         return 'Ошибка. Попробуйте чуть позже';
