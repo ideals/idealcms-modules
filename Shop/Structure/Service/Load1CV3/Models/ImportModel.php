@@ -294,7 +294,7 @@ class ImportModel
                 // Если запись уже существует в базе, то обновляем её
                 $xmlElement['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;
-                $dbCategory->update($xmlElement);
+                $dbCategory->update($xmlElement, $dbResult[$k]);
                 $this->answer['tmpResult']['category']['update'][$xmlElement['id_1c']] = 1;
             } else {
                 // Если это новая запись, то записываем её в БД
@@ -383,7 +383,7 @@ class ImportModel
             if (count($res) > 0) {
                 $val['ID'] = $res['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;
-                $dbGood->update($res);
+                $dbGood->update($res, $dbResult[$k]);
                 $this->answer['tmpResult']['goods']['update'][$val['id_1c']] = 1;
                 $dbGood->onAfterSetDbElement($dbResult[$k], $val);
             }

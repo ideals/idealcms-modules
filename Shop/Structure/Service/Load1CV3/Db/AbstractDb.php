@@ -143,10 +143,13 @@ class AbstractDb
      * Обновление данных в БД
      *
      * @param array $element массив данных об обновляемой строке БД
+     * @param ?array $oldElement
      */
-    public function update($element)
+    public function update($element, $oldElement = null)
     {
         $db = Db::getInstance();
+
+        $element = $this->prepareForUpdate($element, $oldElement);
 
         $element['date_mod'] = time();
 
@@ -252,5 +255,17 @@ class AbstractDb
      */
     protected function afterInsert($id, $element)
     {
+    }
+
+    /**
+     * Подготовка элемента к обновлению в БД
+     *
+     * @param array $element Новый набор данных элемента
+     * @param array $oldElement Старые данные элемента
+     * @return array
+     */
+    protected function prepareForUpdate($element, $oldElement)
+    {
+        return $element;
     }
 }

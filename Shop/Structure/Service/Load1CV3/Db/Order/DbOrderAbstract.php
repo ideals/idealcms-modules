@@ -253,7 +253,7 @@ class DbOrderAbstract extends AbstractDb
         return $orderId;
     }
 
-    public function update($element)
+    public function update($element, $oldElement = null)
     {
         $this->saveGoods($element['ID'], $element['goods'], false);
         unset($element['goods']);
