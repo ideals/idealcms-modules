@@ -103,7 +103,7 @@ class DbCategoryAbstract extends AbstractDb
         }
 
         // Считываем категории из нашей БД
-        $sql = 'SELECT ID, name, cid, lvl, id_1c, is_active FROM';
+        $sql = 'SELECT * FROM';
         $sql .= ' ' . $this->table . $this->tablePostfix . $categoryKeysWhere . ' ORDER BY cid';
 
         $tmp = $db->select($sql);
@@ -119,6 +119,23 @@ class DbCategoryAbstract extends AbstractDb
         }
 
         return $result;
+    }
+
+    /**
+     * Выдача только нужного набора полей записи категории в БД
+     *
+     * @param array $element
+     * @return array
+     */
+    public function getMainPartCategory($element)
+    {
+        $fields = ['ID', 'name', 'cid', 'lvl', 'id_1c', 'is_active'];
+        $item = [];
+        foreach ($fields as $field) {
+            $item[$field] = $element[$field];
+        }
+
+        return $item;
     }
 
     /**

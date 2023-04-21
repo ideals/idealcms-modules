@@ -282,7 +282,8 @@ class ImportModel
             unset($xmlElement['pos']);
 
             // Если идентичная запись уже есть в БД, то переходим к рассмотрению следующего элемента
-            if (array_key_exists($k, $dbResult) && count(array_diff_assoc($xmlElement, $dbResult[$k])) === 0) {
+            if (array_key_exists($k, $dbResult)
+                && count(array_diff_assoc($xmlElement, $dbCategory->getMainPartCategory($dbResult[$k]))) === 0) {
                 continue;
             }
 
