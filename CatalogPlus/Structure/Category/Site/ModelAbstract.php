@@ -155,6 +155,9 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
+        if ($this->pageData === false) {
+            return [];
+        }
         if ($this->pageData['structure'] == 'CatalogPlus_Good') {
             $prevStructure = explode('-', $this->pageData['prev_structure']);
             $prevStructure = end($prevStructure);

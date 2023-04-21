@@ -67,6 +67,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             return $this->goods;
         }
 
+        if (!isset($this->basketCookie['goods'])) {
+            $this->goods = [];
+            return [];
+        }
+
         // Получаем список товаров
         $this->goods = $this->goodModel->getGoodsInfo(array_keys($this->basketCookie['goods']));
 
@@ -209,7 +214,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $user = new User\Model();
         $checkActive = ($user->checkLogin()) ? '' : ' AND is_active=1';
 
-        $sql = "SELECT * FROM {$this->_table} WHERE BINARY url='{$url[0]}' {$checkActive} ORDER BY pos";
+        $urlStr = $db->escape_string($url[0]);
+        $sql = "SELECT * FROM {$this->_table} WHERE BINARY url='{$urlStr}' {$checkActive} ORDER BY pos";
 
         $tabs = $db->select($sql); // запрос на получение всех табов, с этим урлом
 

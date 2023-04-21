@@ -97,6 +97,7 @@ class PricesModel
     {
         $result = array();
         foreach ($xmlResult as $k => $val) {
+            $val['price_old'] = '0';
             $whatIsThat = substr_count($k, '#') === 1 ? 'offers' :  'goods';
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;

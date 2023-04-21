@@ -252,7 +252,9 @@ class ExchangeUtil
 
                 if (!$fileList) {
                     $errorInfo = $zip->errorInfo(true);
-                    throw new \RuntimeException('Ошибка распаковки архива 1: ' . $errorInfo);
+                    $path = $item->getRealPath();
+                    unlink($path);
+                    throw new \RuntimeException('Ошибка распаковки архива ' . $path . ' 111: ' . $errorInfo);
                 }
 
                 $file = $fileList[0];

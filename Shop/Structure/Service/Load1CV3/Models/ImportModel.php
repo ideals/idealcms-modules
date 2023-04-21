@@ -314,6 +314,11 @@ class ImportModel
      */
     protected function good($filePath)
     {
+        // Обработка изображений переданных вместе с товарами
+        $dir = pathinfo($filePath, PATHINFO_DIRNAME);
+        $pictDirectory = $dir . DIRECTORY_SEPARATOR . $this->exchangeConfig['images_directory'];
+        $this->loadImages($pictDirectory);
+
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
@@ -337,11 +342,6 @@ class ImportModel
         // Обновление информации в medium_categorylist
         $medium = new DbMedium();
         $medium->updateCategoryList($groups);
-
-        // Обработка изображений переданых вместе с товарами
-        $dir = pathinfo($filePath, PATHINFO_DIRNAME);
-        $pictDirectory = $dir . DIRECTORY_SEPARATOR . $this->exchangeConfig['images_directory'];
-        $this->loadImages($pictDirectory);
     }
 
     /**
@@ -377,7 +377,7 @@ class ImportModel
                 $this->answer['add']++;
                 $val['ID'] = $dbGood->insert($val);
                 $this->answer['tmpResult']['goods']['insert'][$val['id_1c']] = 1;
-                $dbGood->onAfterSetDbElement(array(), $val);
+                $dbGood->onAfterSetDbElement($val, $val);
                 continue;
             }
             $res = array_diff_assoc($val, $dbResult[$k]);
