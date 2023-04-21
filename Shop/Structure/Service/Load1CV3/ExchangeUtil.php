@@ -8,6 +8,7 @@ use Shop\Structure\Service\Load1CV3\Db\Good\DbGood;
 use Shop\Structure\Service\Load1CV3\Db\Medium\DbMedium;
 use Shop\Structure\Service\Load1CV3\Db\Offer\DbOffer;
 use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
+use Shop\Structure\Service\Load1CV3\Db\Oplata\DbOplata;
 use Shop\Structure\Service\Load1CV3\Db\Tag\DbTag;
 use Shop\Structure\Service\Load1CV3\Db\TagMedium\DbTagMedium;
 use Shop\Structure\Service\Load1CV3\Xml\Category\XmlCategory;
@@ -328,6 +329,9 @@ class ExchangeUtil
 
         $dbOrder = new DbOrder();
         $dbOrder->prepareTable();
+
+        $dbOplata = new DbOplata();
+        $dbOplata->prepareTable();
     }
 
     /**
@@ -337,30 +341,40 @@ class ExchangeUtil
     public static function renameTables()
     {
         $dbCategory = new DbCategory();
-        $dbTag = new DbTag();
-        $dbGood = new DbGood();
-        $dbDirectory = new DbDirectory();
-        $dbMedium = new DbMedium();
-        $dbTagMedium = new DbTagMedium();
-        $dbOffers = new DbOffer();
-        $dbOrder = new DbOrder();
-
         $dbCategory->updateOrigTable();
         $dbCategory->dropTestTable();
+
+        $dbTag = new DbTag();
         $dbTag->updateOrigTable();
         $dbTag->dropTestTable();
+
+        $dbGood = new DbGood();
         $dbGood->updateOrigTable();
         $dbGood->dropTestTable();
+
+        $dbDirectory = new DbDirectory();
         $dbDirectory->updateOrigTable();
         $dbDirectory->dropTestTable();
+
+        $dbMedium = new DbMedium();
         $dbMedium->updateOrigTable();
         $dbMedium->dropTestTable();
+
+        $dbTagMedium = new DbTagMedium();
         $dbTagMedium->updateOrigTable();
         $dbTagMedium->dropTestTable();
+
+        $dbOffers = new DbOffer();
         $dbOffers->updateOrigTable();
         $dbOffers->dropTestTable();
+
+        $dbOrder = new DbOrder();
         $dbOrder->updateOrigTable();
         $dbOrder->dropTestTable();
+
+        $dbOplata = new DbOplata();
+        $dbOplata->updateOrigTable();
+        $dbOplata->dropTestTable();
     }
 
     /**
@@ -414,6 +428,8 @@ class ExchangeUtil
                   'tegi' => 7,
                   'nomenclProSov' => 8,
                   'documents' => 9,
+                  'oplata' => 10,
+                  'addParameters' => 11,
                 );
                 preg_match('/(\w*?)_/', $exchangeFiles[$curr], $curr);
                 preg_match('/(\w*?)_/', $exchangeFiles[$next], $next);
@@ -509,7 +525,10 @@ class ExchangeUtil
         $xml = new Xml($filePath);
         $xmlOrder = new XmlOrder($xml);
 
+        // Если файл оплат будет в корне, то нужна будет следующая проверка:
+        $oplata = mb_strpos($filePath, 'Oplata') !== false;
+
         // Если временный файл последний раз обновлялся более 30 секунд назад, то начинается новый сеанс выгрузки
-        return $xmlOrder->validate() && time() - filemtime($tmpResultFile) > 30;
+        return ($xmlOrder->validate() || $oplata) && time() - filemtime($tmpResultFile) > 30;
     }
 }
