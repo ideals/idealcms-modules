@@ -5,8 +5,7 @@ use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Core\Request;
 use Ideal\Core\Util;
-use Mail\Sender;
-use Ideal\Field\Url;
+use Ideal\Mailer;
 use Ideal\Structure\User;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
@@ -469,7 +468,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     // TODO функция требует оптимизации
     public function sendMessages($post)
     {
-        $mail = new Sender();
+        $mail = new Mailer();
         $config = Config::getInstance();
 
         // Получаем массив почтовых ящиков менеджеров сайта пригодный для сравнения
