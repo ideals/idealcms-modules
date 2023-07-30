@@ -11,6 +11,7 @@ use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
 use Shop\Structure\Service\Load1CV3\Db\Oplata\DbOplata;
 use Shop\Structure\Service\Load1CV3\Db\Tag\DbTag;
 use Shop\Structure\Service\Load1CV3\Db\TagMedium\DbTagMedium;
+use Shop\Structure\Service\Load1CV3\Db\Unit\DbUnit;
 use Shop\Structure\Service\Load1CV3\Xml\Category\XmlCategory;
 use Shop\Structure\Service\Load1CV3\Xml\Order\XmlOrder;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
@@ -321,17 +322,14 @@ class ExchangeUtil
         $dbDirectory = new DbDirectory();
         $dbDirectory->prepareTable();
 
-        $dbTag = new DbTag();
-        $dbTag->prepareTable();
-
-        $dbTagMedium = new DbTagMedium();
-        $dbTagMedium->prepareTable();
-
         $dbOrder = new DbOrder();
         $dbOrder->prepareTable();
 
-        $dbOplata = new DbOplata();
-        $dbOplata->prepareTable();
+        $dbUnit = new DbUnit();
+        $dbUnit->prepareTable();
+
+        $custom = new CustomUtil();
+        $custom->prepareTables();
     }
 
     /**
@@ -343,10 +341,6 @@ class ExchangeUtil
         $dbCategory = new DbCategory();
         $dbCategory->updateOrigTable();
         $dbCategory->dropTestTable();
-
-        $dbTag = new DbTag();
-        $dbTag->updateOrigTable();
-        $dbTag->dropTestTable();
 
         $dbGood = new DbGood();
         $dbGood->updateOrigTable();
@@ -360,10 +354,6 @@ class ExchangeUtil
         $dbMedium->updateOrigTable();
         $dbMedium->dropTestTable();
 
-        $dbTagMedium = new DbTagMedium();
-        $dbTagMedium->updateOrigTable();
-        $dbTagMedium->dropTestTable();
-
         $dbOffers = new DbOffer();
         $dbOffers->updateOrigTable();
         $dbOffers->dropTestTable();
@@ -372,71 +362,67 @@ class ExchangeUtil
         $dbOrder->updateOrigTable();
         $dbOrder->dropTestTable();
 
-        $dbOplata = new DbOplata();
-        $dbOplata->updateOrigTable();
-        $dbOplata->dropTestTable();
+        $dbUnit = new DbUnit();
+        $dbUnit->updateOrigTable();
+        $dbUnit->dropTestTable();
+
+        $custom = new CustomUtil();
+        $custom->renameTables();
     }
 
     /**
-     * Формирует список xml файлов предоставленных для обраобтки в указанной директории
+     * Формирует список xml файлов предоставленных для обработки в указанной директории
      *
-     * @param string $dirToScan Полный путь до директории которую неободимо просканировать
-     * @return array Список xml файлов предоставленных для обраобтки
+     * @param string $dirToScan Полный путь до директории которую необходимо просканировать
+     * @return array Список xml файлов предоставленных для обработки
      */
     public static function getAllExchangeFiles($dirToScan)
     {
-        $exchangeFiles = array();
-        $dir = new \DirectoryIterator($dirToScan);
-        foreach ($dir as $item) {
-            if ($item->isDot()) {
-                continue;
-            }
-            if ($item->isDir()) {
-                $pathFile = $item->getPathname() . DIRECTORY_SEPARATOR;
-                /** @noinspection SlowArrayOperationsInLoopInspection */
-                $exchangeFiles = array_merge($exchangeFiles, self::getAllExchangeFiles($pathFile));
-            }
+        $dirToScan = stream_resolve_include_path($dirToScan);
+        $exchangeFiles = [];
+        $dir = new \RecursiveDirectoryIterator($dirToScan);
+        $iterator = new \RecursiveIteratorIterator($dir);
+        foreach ($iterator as $item) {
             if ($item->isFile()) {
                 $fileExtension = $item->getExtension();
-                if ($fileExtension == 'xml') {
+                if ($fileExtension === 'xml') {
                     $pathFile = $item->getPathname();
                     $fileName = $item->getFilename();
                     $exchangeFiles[$pathFile] = $fileName;
                 }
             }
         }
-        uksort($exchangeFiles, function ($curr, $next) use ($exchangeFiles) {
-            $currDir = str_replace(basename($curr), '', $curr);
-            $nextDir = str_replace(basename($next), '', $next);
 
-            $currDirLength = strlen($currDir);
-            $nextDirLength = strlen($nextDir);
-            if ($currDirLength !== $nextDirLength) {
-                return $currDirLength - $nextDirLength;
+        $config = require __DIR__ . '/load1cV3Settings.php'; // todo обнаружение в папке Mod.s
+        $modelFactory = (new ModelAbstractFactory())->setConfig($config);
+
+        uksort($exchangeFiles, function ($curr, $next) use ($exchangeFiles, $modelFactory) {
+            $currName = basename($curr);
+            $currSort = $modelFactory->createByFilename($currName)->getSort();
+            $nextName = basename($next);
+            $nextSort = $modelFactory->createByFilename($nextName)->getSort();
+
+            if ($currSort !== $nextSort) {
+                return $currSort - $nextSort;
             }
 
-            $result = strcasecmp($currDir, $nextDir);
-            if ($result === 0) {
-                // Если пути одинаковые, то выстраиваем в зависимости от веса значения
-                $weight = array(
-                  'import' => 1,
-                  'offers' => 2,
-                  'prices' => 3,
-                  'pricesold' => 4,
-                  'rests' => 5,
-                  'imagesFile' => 6,
-                  'tegi' => 7,
-                  'nomenclProSov' => 8,
-                  'documents' => 9,
-                  'oplata' => 10,
-                  'addParameters' => 11,
-                );
-                preg_match('/(\w*?)_/', $exchangeFiles[$curr], $curr);
-                preg_match('/(\w*?)_/', $exchangeFiles[$next], $next);
-                return $weight[lcfirst($curr[1])] - $weight[lcfirst($next[1])];
-            }
-            return $result;
+            $c = explode('_', $currName);
+            $n = explode('_', $nextName);
+
+            return  ($c[1] * 1000 + $c[2]) - ($n[1] * 1000 + $n[2]);
+//                  'import' => 1,
+//                  'offers' => 2,
+//                  'prices' => 3,
+//                  'pricesold' => 4,
+//                  'rests' => 5,
+//                  'imagesFile' => 6,
+//                  'tegi' => 7,
+//                  'nomenclProSov' => 8,
+//                  'documents' => 9,
+//                  'oplata' => 10,
+//                  'addParameters' => 11,
         });
+
         return $exchangeFiles;
     }
 

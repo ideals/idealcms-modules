@@ -3,18 +3,17 @@ namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Ideal\Core\Config;
 use Shop\Structure\Service\Load1CV3\Db\Prices\DbPrices;
+use Shop\Structure\Service\Load1CV3\ModelAbstract;
 use Shop\Structure\Service\Load1CV3\Xml\Prices\XmlPrices;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
-class PricesModel
+class PricesModel extends ModelAbstract
 {
-    /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
-        'infoText' => 'Обработка цен из пакета № %d',
-        'successText' => 'Добавлено: %d<br />Обновлено: %d',
-        'add' => 0,
-        'update' => 0
-    );
+    public function init(): void
+    {
+        $this->setInfoText('Обработка цен (prices)');
+        $this->setSort(1000);
+    }
 
     /**
      * Запуск процесса обработки файлов prices_*.xml
@@ -23,13 +22,10 @@ class PricesModel
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum)
+    public function startProcessing($filePath, $packageNum): array
     {
-        // Определяем пакет для отдачи правильного текста в ответе
-        $this->answer['infoText'] = sprintf(
-            $this->answer['infoText'],
-            $packageNum
-        );
+        $this->filename = $filePath;
+        $this->packageNum = $packageNum;
 
         // получение xml с данными о ценах
         $xml = new Xml($filePath);
@@ -46,21 +42,6 @@ class PricesModel
         $dbPrices->save($prices);
 
         return $this->answer();
-    }
-
-    /**
-     * Возвращаем ответ пользователю о проделанной работе
-     *
-     * @return array ответ пользователю 'add'=>count(), 'update'=>count()
-     */
-    public function answer()
-    {
-        $this->answer['successText'] = sprintf(
-            $this->answer['successText'],
-            $this->answer['add'],
-            $this->answer['update']
-        );
-        return $this->answer;
     }
 
     /**

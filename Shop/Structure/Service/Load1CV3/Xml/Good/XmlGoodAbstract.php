@@ -1,6 +1,7 @@
 <?php
 namespace Shop\Structure\Service\Load1CV3\Xml\Good;
 
+use Ideal\Field\Url;
 use Shop\Structure\Service\Load1CV3\Xml\AbstractXml;
 
 class XmlGoodAbstract extends AbstractXml
@@ -26,7 +27,7 @@ class XmlGoodAbstract extends AbstractXml
         $this->data = $this->filterData($this->data);
 
         // Заполняем массив привязки товаров к группам
-        $this->groups = array();
+        $this->groups = [];
         foreach ($this->data as $k => $good) {
             $this->groups[$good['id_1c']] = $good['groups'];
             // Убираем список групп, т.к. он не должен использоваться при сохранении товара в БД
@@ -46,6 +47,8 @@ class XmlGoodAbstract extends AbstractXml
     {
         foreach ($data as $k => $val) {
             $data[$k]['is_active'] = $val['is_active'] === 'false' ? '1' : '0';
+            $data[$k]['imgs'] = json_encode($val['imgs'], JSON_THROW_ON_ERROR);
+            $data[$k]['url'] = Url\Model::translitUrl($val['name']);
         }
 
         return $data;

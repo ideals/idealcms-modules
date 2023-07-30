@@ -158,9 +158,11 @@ LOGMESSAGE;
             return false;
         }
 
-        // Если запрошенный для обработки файл найден на сервере, то получаем модель, которая будет заниматься его
-        // обработкой
-        $model = $this->getModel($filename);
+        // Если запрошенный для обработки файл найден на сервере,
+        // то получаем модель, которая будет заниматься его обработкой
+        $model = (new ModelAbstractFactory())
+            ->setConfig($this->config)
+            ->createByFilename($filename);
 
         // Проверяем, является ли запрос началом нового сеанса обмена
         $cmsConfig = Config::getInstance();
@@ -338,35 +340,5 @@ LOGMESSAGE;
         } else {
             echo $this->response;
         }
-    }
-
-    /**
-     * Определяет модель и на основании имени файла
-     *
-     * @param string $filename Имя файла для обработки которого определяется модель
-     * @return mixed
-     * @throws \ReflectionException
-     */
-    protected function getModel($filename)
-    {
-        preg_match('/(\w*?)_/', $filename, $type);
-        if (!isset($type[1])) {
-            throw new \RuntimeException(sprintf('Файл "%s" не может быть обработан', $filename));
-        }
-
-        $model = 'Shop\\Structure\\Service\\Load1CV3\\Models\\' . ucfirst($type[1]) . 'Model';
-        if (!class_exists($model)) {
-            throw new \RuntimeException(sprintf('Не найдена модель для обработки файла "%s"', $filename));
-        }
-
-        $class = new \ReflectionClass($model);
-        $constructor = $class->getConstructor();
-        if ($constructor) {
-            $parameters = $constructor->getParameters();
-            if ($parameters && $parameters[0]->name === 'exchangeConfig') {
-                return new $model($this->config);
-            }
-        }
-        return new $model();
     }
 }

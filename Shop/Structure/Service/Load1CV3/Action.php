@@ -117,6 +117,7 @@ $config = \Ideal\Core\Config::getInstance();
                 }
                 if (errorResponse == false) {
                     if (data['filename'] != '') {
+                        console.log(data);
                         modal_body.append('<div class="alert alert-info fade in">' +
                             data['response']['infoText'] + '</div>');
                         import1c(data['filename'], data['workDir'], onlyImageResize);
@@ -169,11 +170,11 @@ $config = \Ideal\Core\Config::getInstance();
                         var anotherErrText = '<div class="alert alert-danger fade in">';
                         anotherErrText += 'При обновлении произошли ошибки, обновление прекращено:</div>';
                         modal_body.append(anotherErrText);
-                        for (var i in data['response']['errors']) {
-                            if (!data['response']['errors'].hasOwnProperty(i)) {
+                        for (var i in data['errors']) {
+                            if (!data['errors'].hasOwnProperty(i)) {
                                 continue;
                             }
-                            var addErrText = '<div class="alert alert-danger fade in">' + data['response']['errors'][i];
+                            var addErrText = '<div class="alert alert-danger fade in">' + data['errors'][i];
                             addErrText += '<br /></div>';
                             modal_body.append(addErrText);
                             modal.find('.close, .btn-close').removeAttr('disabled');

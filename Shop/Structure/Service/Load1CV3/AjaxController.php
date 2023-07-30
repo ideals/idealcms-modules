@@ -102,65 +102,25 @@ class AjaxController extends \Ideal\Core\AjaxController
             if (!$onlyImageResize) {
                 ExchangeUtil::finalUpdates();
             }
-        } elseif (!$onlyImageResize) {
+        } elseif ($onlyImageResize) {
+            $dirParts = explode('/', $answer['filename']);
+            $packageNum = (int) $dirParts[count($dirParts) - 3];
+            $answer['response']['infoText'] = 'Обработка картинок из пакета № ' . $packageNum;
+        } else {
+            $config = require __DIR__ . '/load1cV3Settings.php'; // todo обнаружение в папке Mod.s
+            $model = (new ModelAbstractFactory())->setConfig($config)->createByFilename($answer['filename']);
+            $modelAnswer = $model->answer();
+
             // Получаем заголовок для вывода на странице ручного обновления
             preg_match('/(\w*?)_/', $answer['filename'], $matches);
 
             $dir = trim(str_replace(DOCUMENT_ROOT, '', $answer['workDir']), '/');
-            if (substr_count($dir, '/') === 3) {
-                switch ($matches[1]) {
-                    case 'import':
-                        $answer['response']['infoText'] = 'Обработка разделов каталога';
-                        break;
-                    case 'offers':
-                        $answer['response']['infoText'] = 'Обработка справочников';
-                        break;
-                    case 'Documents':
-                        $answer['response']['infoText'] = 'Обработка заказов из корневой директории';
-                        break;
-                    default:
-                        $answer['response']['infoText'] = 'Обработка ' . $matches[1];
-                        break;
-                }
-            }
+            $packageNum = 0;
             if (substr_count($dir, '/') > 3) {
-                switch ($matches[1]) {
-                    case 'import':
-                        $answer['response']['infoText'] = 'Обработка товаров и картинок';
-                        break;
-                    case 'offers':
-                        $answer['response']['infoText'] = 'Обработка офферов';
-                        break;
-                    case 'prices':
-                        $answer['response']['infoText'] = 'Обработка цен';
-                        break;
-                    case 'pricesold':
-                        $answer['response']['infoText'] = 'Обработка старых цен';
-                        break;
-                    case 'rests':
-                        $answer['response']['infoText'] = 'Обработка остатков';
-                        break;
-                    case 'ImagesFile':
-                        $answer['response']['infoText'] = 'Обработка основных изображений';
-                        break;
-                    case 'Tegi':
-                        $answer['response']['infoText'] = 'Обработка тегов';
-                        break;
-                    case 'NomenclProSov':
-                        $answer['response']['infoText'] = 'Обработка совместно продаваемых товаров';
-                        break;
-                    case 'Documents':
-                        $answer['response']['infoText'] = 'Обработка заказов';
-                        break;
-                }
                 $dirParts = explode('/', $dir);
                 $packageNum = (int) end($dirParts);
-                $answer['response']['infoText'] .= ' из пакета № ' . $packageNum;
             }
-        } else {
-            $dirParts = explode('/', $answer['filename']);
-            $packageNum = (int) $dirParts[count($dirParts) - 3];
-            $answer['response']['infoText'] = 'Обработка картинок из пакета № ' . $packageNum;
+            $answer['response']['infoText'] .= sprintf($modelAnswer['infoText'], $packageNum);
         }
 
         return json_encode($answer);
