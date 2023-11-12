@@ -52,10 +52,13 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function getFileAction()
     {
-        $answer = array(
-            'errors' => array(),
+        $answer = [
+            'errors' => [],
             'workDir' => '',
-        );
+            'response' => [
+                'infoText' => '',
+            ],
+        ];
         $request = new Request();
         $dirToScan = DOCUMENT_ROOT . $this->configFile['directory_for_keeping'];
         $onlyImageResize = false;
