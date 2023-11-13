@@ -33,6 +33,9 @@ class FrontController
     {
         $this->config = $config;
 
+        // Сохраняем идентификатор основного склада для обработки товара
+        $_SESSION['main_stock_id'] = $config['main_stock_id'];
+
         // Считываем результаты работы предыдущих этапов обработки
         $cmsConfig = Config::getInstance();
         $tmpResultFile = DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';

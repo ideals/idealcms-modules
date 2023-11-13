@@ -31,13 +31,6 @@ class RestsModel extends ModelAbstract
             $packageNum
         );
 
-        // Считываем результаты работы предыдущих этапов обработки
-        // Здесь интересует идентификатор основного склада
-        $cmsConfig = Config::getInstance();
-        $tmpResultFile = DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';
-        $tmpResult = file_get_contents($tmpResultFile);
-        $tmpResult = json_decode($tmpResult, true);
-
         // получение xml с данными об остатках
         $xml = new Xml($filePath);
 
@@ -46,8 +39,6 @@ class RestsModel extends ModelAbstract
 
         // инициализируем модель остатков в XML - XmlRests
         $xmlRests = new XmlRests($xml);
-//        $xmlRests->setMainStockId($tmpResult['mainStockId']);
-        $xmlRests->setMainStockId('34240ad6-c55e-11e2-8790-70f395406fa5');
 
         // Устанавливаем связь БД и XML
         $rests = $this->parse($dbRests, $xmlRests);
