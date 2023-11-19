@@ -23,4 +23,20 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
         return 1;
     }
 
+    public function deleteByGood()
+    {
+        // Удаление прошло успешно, удаляем офферы, если они есть
+        $db = Db::getInstance();
+
+        $offers = $db->select(
+            "SELECT * FROM $this->_table WHERE prev_structure=:ps",
+            ['ps' => $this->prevStructure]
+        );
+
+        foreach ($offers as $offer) {
+            $offerModel = new \CatalogPlus\Structure\Offer\Admin\Model('');
+            $offerModel->setPageData($offer);
+            $offerModel->delete();
+        }
+    }
 }

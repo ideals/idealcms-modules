@@ -84,4 +84,14 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
 
         return $where;
     }
+
+    public function delete()
+    {
+        $result = parent::delete();
+        if ($result) {
+            [, $ps] = explode('-', $this->pageData['prev_structure'], 2);
+            $offerModel = new \CatalogPlus\Structure\Offer\Admin\Model($ps . '-' . $this->pageData['ID']);
+            $offerModel->deleteByGood();
+        }
+    }
 }
