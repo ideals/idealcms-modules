@@ -332,7 +332,7 @@ class ExchangeUtil
         $dbStorage = new DbStorage();
         $dbStorage->prepareTable();
 
-        $custom = new CustomUtil();
+        $custom = new DbCustom();
         $custom->prepareTables();
     }
 
@@ -374,7 +374,7 @@ class ExchangeUtil
         $dbStorage->updateOrigTable();
         $dbStorage->dropTestTable();
 
-        $custom = new CustomUtil();
+        $custom = new DbCustom();
         $custom->renameTables();
     }
 

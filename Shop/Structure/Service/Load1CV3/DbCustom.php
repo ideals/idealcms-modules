@@ -2,7 +2,7 @@
 
 namespace Shop\Structure\Service\Load1CV3;
 
-class CustomUtil
+class DbCustom
 {
     public function prepareTables(): void
     {
