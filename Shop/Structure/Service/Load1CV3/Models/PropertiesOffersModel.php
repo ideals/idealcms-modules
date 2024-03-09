@@ -11,7 +11,7 @@ class PropertiesOffersModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка свойств предложений (propertiesOffers)');
-        $this->setSort(20);
+        $this->setSort(60);
     }
 
     /**

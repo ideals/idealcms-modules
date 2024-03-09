@@ -13,7 +13,7 @@ class StoragesModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка складов каталога (storages)');
-        $this->setSort(2);
+        $this->setSort(30);
         // Данные о складах обработаны
     }
 

@@ -13,7 +13,7 @@ class RestsModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка остатков из пакета № %d');
-        $this->setSort(70);
+        $this->setSort(100);
     }
 
     /**

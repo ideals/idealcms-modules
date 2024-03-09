@@ -13,7 +13,7 @@ class OffersModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка офферов (offers)');
-        $this->setSort(60);
+        $this->setSort(90);
     }
 
     /**

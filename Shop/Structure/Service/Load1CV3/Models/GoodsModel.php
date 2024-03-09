@@ -13,7 +13,7 @@ class GoodsModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка товаров (goods)');
-        $this->setSort(50);
+        $this->setSort(80);
     }
 
     /**

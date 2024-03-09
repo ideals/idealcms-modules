@@ -11,7 +11,7 @@ class UnitsModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка единиц измерения (units)');
-        $this->setSort(30);
+        $this->setSort(70);
     }
 
     /**

@@ -10,7 +10,7 @@ class PriceListsModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка типов цен каталога (priceLists)');
-        $this->setSort(4);
+        $this->setSort(40);
     }
 
     public function startProcessing($filePath, $packageNum): array
