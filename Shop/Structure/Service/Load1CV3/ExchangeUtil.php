@@ -11,6 +11,7 @@ use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
 use Shop\Structure\Service\Load1CV3\Db\Oplata\DbOplata;
 use Shop\Structure\Service\Load1CV3\Db\Tag\DbTag;
 use Shop\Structure\Service\Load1CV3\Db\TagMedium\DbTagMedium;
+use Shop\Structure\Service\Load1CV3\Db\Storage\DbStorage;
 use Shop\Structure\Service\Load1CV3\Db\Unit\DbUnit;
 use Shop\Structure\Service\Load1CV3\Xml\Category\XmlCategory;
 use Shop\Structure\Service\Load1CV3\Xml\Order\XmlOrder;
@@ -328,6 +329,9 @@ class ExchangeUtil
         $dbUnit = new DbUnit();
         $dbUnit->prepareTable();
 
+        $dbStorage = new DbStorage();
+        $dbStorage->prepareTable();
+
         $custom = new CustomUtil();
         $custom->prepareTables();
     }
@@ -365,6 +369,10 @@ class ExchangeUtil
         $dbUnit = new DbUnit();
         $dbUnit->updateOrigTable();
         $dbUnit->dropTestTable();
+
+        $dbStorage = new DbStorage();
+        $dbStorage->updateOrigTable();
+        $dbStorage->dropTestTable();
 
         $custom = new CustomUtil();
         $custom->renameTables();
