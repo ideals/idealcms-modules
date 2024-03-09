@@ -3,16 +3,14 @@
 return array(
     'key'    => 'Ид',
     'fields' => array(
-        'name'      => 'Наименование',
-        'is_active' => 'ПометкаУдаления',
-/**
-        'dir_params'    => array(
+        'name'       => 'Наименование',
+        'is_active'  => 'ПометкаУдаления',
+        'dir_params' => [
             'path'  => 'ЗначенияСвойств/ЗначенияСвойства',
-            'field' => array(
+            'field' => [
                 'dir_id_1c' => 'Ид',
                 'dir_value_id' => 'Значение',
-            ),
-        ),
- */
+            ],
+        ],
     )
 );
