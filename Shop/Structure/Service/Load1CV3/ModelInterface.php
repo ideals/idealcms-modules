@@ -12,7 +12,7 @@ interface ModelInterface
     public function init(): void;
 
     /**
-     * Запуск процесса обработки файлов units_*.xml
+     * Запуск процесса обработки файлов *.xml
      *
      * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
