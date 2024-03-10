@@ -1,6 +1,6 @@
 <?php
 
-namespace Shop\Structure\Service\Load1CV3;
+namespace Mods\Shop\Structure\Service\Load1CV3\Db\Custom;
 
 class DbCustom
 {
