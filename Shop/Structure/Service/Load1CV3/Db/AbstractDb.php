@@ -101,6 +101,12 @@ class AbstractDb
         }
     }
 
+    public function renameTable()
+    {
+        $this->updateOrigTable();
+        $this->dropTestTable();
+    }
+
     /**
      * Определяем, создана ли уже тестовая таблица
      *

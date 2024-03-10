@@ -1,33 +1,32 @@
 <?php
 
-namespace Mods\Shop\Structure\Service\Load1CV3\Db\Custom;
+namespace Shop\Structure\Service\Load1CV3\Db\Custom;
 
-class DbCustom
+use Shop\Structure\Service\Load1CV3\Db\AbstractDb;
+
+class DbCustom extends AbstractDb
 {
-    public function prepareTables(): void
+    /**
+     * @noinspection MagicMethodsValidityInspection
+     * @noinspection PhpMissingParentConstructorInspection
+     */
+    public function __construct()
     {
-//        $dbTag = new DbTag();
-//        $dbTag->prepareTable();
-//
-//        $dbTagMedium = new DbTagMedium();
-//        $dbTagMedium->prepareTable();
-//
-//        $dbOplata = new DbOplata();
-//        $dbOplata->prepareTable();
     }
 
-    public function renameTables(): void
+    /**
+     * Подготовка таблиц перед началом выгрузки
+     *
+     * Нужно создать временную таблицу, на основе существующей и скопировать туда данные из основной таблицы
+     */
+    public function prepareTable(): void
     {
-//        $dbTag = new DbTag();
-//        $dbTag->updateOrigTable();
-//        $dbTag->dropTestTable();
-//
-//        $dbTagMedium = new DbTagMedium();
-//        $dbTagMedium->updateOrigTable();
-//        $dbTagMedium->dropTestTable();
+    }
 
-//        $dbOplata = new DbOplata();
-//        $dbOplata->updateOrigTable();
-//        $dbOplata->dropTestTable();
+    /**
+     * Удаление старой таблицы и переименование временной в основную
+     */
+    public function renameTable(): void
+    {
     }
 }

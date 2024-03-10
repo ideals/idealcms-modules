@@ -2,15 +2,14 @@
 namespace Shop\Structure\Service\Load1CV3;
 
 use Ideal\Core\Db;
+use Shop\Structure\Service\Load1CV3\Db\Custom\DbCustom;
 use Shop\Structure\Service\Load1CV3\Db\Category\DbCategory;
 use Shop\Structure\Service\Load1CV3\Db\Directory\DbDirectory;
 use Shop\Structure\Service\Load1CV3\Db\Good\DbGood;
 use Shop\Structure\Service\Load1CV3\Db\Medium\DbMedium;
 use Shop\Structure\Service\Load1CV3\Db\Offer\DbOffer;
-use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
 use Shop\Structure\Service\Load1CV3\Db\Oplata\DbOplata;
-use Shop\Structure\Service\Load1CV3\Db\Tag\DbTag;
-use Shop\Structure\Service\Load1CV3\Db\TagMedium\DbTagMedium;
+use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
 use Shop\Structure\Service\Load1CV3\Db\Storage\DbStorage;
 use Shop\Structure\Service\Load1CV3\Db\Unit\DbUnit;
 use Shop\Structure\Service\Load1CV3\Xml\Category\XmlCategory;
@@ -308,32 +307,15 @@ class ExchangeUtil
      */
     public static function prepareTables()
     {
-        $dbCategory = new DbCategory();
-        $dbCategory->prepareTable();
-
-        $dbGood = new DbGood();
-        $dbGood->prepareTable();
-
-        $dbMedium = new DbMedium();
-        $dbMedium->prepareTable();
-
-        $dbOffer = new DbOffer();
-        $dbOffer->prepareTable();
-
-        $dbDirectory = new DbDirectory();
-        $dbDirectory->prepareTable();
-
-        $dbOrder = new DbOrder();
-        $dbOrder->prepareTable();
-
-        $dbUnit = new DbUnit();
-        $dbUnit->prepareTable();
-
-        $dbStorage = new DbStorage();
-        $dbStorage->prepareTable();
-
-        $custom = new DbCustom();
-        $custom->prepareTables();
+        (new DbCategory())->prepareTable();
+        (new DbGood())->prepareTable();
+        (new DbMedium())->prepareTable();
+        (new DbOffer())->prepareTable();
+        (new DbDirectory())->prepareTable();
+        (new DbOrder())->prepareTable();
+        (new DbUnit())->prepareTable();
+        (new DbStorage())->prepareTable();
+        (new DbCustom())->prepareTable();
     }
 
     /**
@@ -342,40 +324,15 @@ class ExchangeUtil
      */
     public static function renameTables()
     {
-        $dbCategory = new DbCategory();
-        $dbCategory->updateOrigTable();
-        $dbCategory->dropTestTable();
-
-        $dbGood = new DbGood();
-        $dbGood->updateOrigTable();
-        $dbGood->dropTestTable();
-
-        $dbDirectory = new DbDirectory();
-        $dbDirectory->updateOrigTable();
-        $dbDirectory->dropTestTable();
-
-        $dbMedium = new DbMedium();
-        $dbMedium->updateOrigTable();
-        $dbMedium->dropTestTable();
-
-        $dbOffers = new DbOffer();
-        $dbOffers->updateOrigTable();
-        $dbOffers->dropTestTable();
-
-        $dbOrder = new DbOrder();
-        $dbOrder->updateOrigTable();
-        $dbOrder->dropTestTable();
-
-        $dbUnit = new DbUnit();
-        $dbUnit->updateOrigTable();
-        $dbUnit->dropTestTable();
-
-        $dbStorage = new DbStorage();
-        $dbStorage->updateOrigTable();
-        $dbStorage->dropTestTable();
-
-        $custom = new DbCustom();
-        $custom->renameTables();
+        (new DbCategory())->renameTable();
+        (new DbGood())->renameTable();
+        (new DbDirectory())->renameTable();
+        (new DbMedium())->renameTable();
+        (new DbOffer())->renameTable();
+        (new DbOrder())->renameTable();
+        (new DbUnit())->renameTable();
+        (new DbStorage())->renameTable();
+        (new DbCustom())->renameTable();
     }
 
     /**
