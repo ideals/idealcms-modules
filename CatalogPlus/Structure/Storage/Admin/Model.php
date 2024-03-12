@@ -7,7 +7,7 @@
  * @license   http://idealcms.ru/license.html LGPL v3
  */
 
-namespace CatalogPlus\Structure\Unit\Admin;
+namespace CatalogPlus\Structure\Storage\Admin;
 
 class Model extends ModelAbstract
 {

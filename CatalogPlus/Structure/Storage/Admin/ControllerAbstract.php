@@ -7,7 +7,7 @@
  * @license   http://idealcms.ru/license.html LGPL v3
  */
 
-namespace CatalogPlus\Structure\Unit\Admin;
+namespace CatalogPlus\Structure\Storage\Admin;
 
 use Ideal\Structure\Roster\Admin\ControllerAbstract as RosterControllerAbstract;
 
