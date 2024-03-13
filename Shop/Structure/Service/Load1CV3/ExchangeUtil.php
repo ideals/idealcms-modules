@@ -361,7 +361,7 @@ class ExchangeUtil
         $config = require __DIR__ . '/load1cV3Settings.php'; // todo обнаружение в папке Mod.s
         $modelFactory = (new ModelAbstractFactory())->setConfig($config);
 
-        uksort($exchangeFiles, function ($curr, $next) use ($exchangeFiles, $modelFactory) {
+        uksort($exchangeFiles, static function ($curr, $next) use ($modelFactory) {
             $currName = basename($curr);
             $currSort = $modelFactory->createByFilename($currName)->getSort();
             $nextName = basename($next);
@@ -374,7 +374,7 @@ class ExchangeUtil
             $c = explode('_', $currName);
             $n = explode('_', $nextName);
 
-            return  ($c[1] * 1000 + $c[2]) - ($n[1] * 1000 + $n[2]);
+            return  ($c[1] * 1000 + (int) $c[2]) - ($n[1] * 1000 + (int) $n[2]);
 //                  'import' => 1,
 //                  'offers' => 2,
 //                  'prices' => 3,

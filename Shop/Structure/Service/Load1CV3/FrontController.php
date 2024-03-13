@@ -6,7 +6,7 @@ use Ideal\Core\Config;
 use Ideal\Core\Util;
 use Ideal\Structure\User\Model as UserModel;
 use Shop\Structure\Service\Load1CV3\Log\Log;
-use Shop\Structure\Service\Load1CV3\Models\OrderModel;
+use Shop\Structure\Service\Load1CV3\Models\QueryModel;
 
 class FrontController
 {
@@ -102,9 +102,9 @@ LOGMESSAGE;
         }
         if (empty($request->par)) {
             $this->printResponse();
-        } else {
-            return $this->response;
         }
+
+        return $this->response;
     }
 
     /**
@@ -128,9 +128,9 @@ LOGMESSAGE;
      */
     protected function queryAction()
     {
-        $order = new OrderModel();
+        $order = new QueryModel($this->config);
         $xml = $order->generateExportXml();
-        header("Content-type: text/xml; charset=windows-1251");
+        header('Content-type: text/xml; charset=utf-8');
         $this->response = trim($xml);
     }
 

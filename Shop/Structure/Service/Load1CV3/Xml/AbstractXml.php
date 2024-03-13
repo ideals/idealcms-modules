@@ -51,7 +51,7 @@ class AbstractXml
             // по умолчанию считаем что выгружаются все данные, а не только обновления
             $this->updateInfo = false;
             if (!empty($updateInfo)) {
-                $this->updateInfo = (string)$updateInfo[0] == 'false' ? false : true;
+                $this->updateInfo = !((string)$updateInfo[0] === 'false');
             }
         } else {
             $this->updateInfo = true;
@@ -87,7 +87,7 @@ class AbstractXml
             $this->updateFromConfig($item, $id);
         }
         if (empty($this->data)) {
-            $this->data = array();
+            $this->data = [];
         }
     }
 
@@ -127,8 +127,8 @@ class AbstractXml
 
             $needle = $item->xpath($this->ns . $path);
 
-            // По умолчанию присваиваем заполняемому полю пустую     строку
-            $this->data[$id][$key] = is_array($value) ? array() : '';
+            // По умолчанию присваиваем заполняемому полю пустую строку
+            $this->data[$id][$key] = is_array($value) ? [] : '';
 
             // Если требуется заполнить обычное скалярное поле
             if (!is_array($value) && isset($needle[0])) {
@@ -151,7 +151,7 @@ class AbstractXml
                         $subPath = implode('/' . $this->ns, explode('/', $conf));
                         $subPath = str_replace('`', $this->ns, $subPath);
                         $res = $node->xpath($this->ns . $subPath);
-                        // todo остался нерешённым ворос, что будет, если в $res будет несколько элементов?
+                        // todo остался нерешённым вопрос, что будет, если в $res будет несколько элементов?
                         $tmp[$name] = isset($res[0]) ? (string) $res[0] : '';
                     }
                     $this->data[$id][$key][] = $tmp;

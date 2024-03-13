@@ -1,10 +1,11 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 
-class OrderModel
+class QueryModel
 {
     public function generateExportXml()
     {
@@ -15,7 +16,7 @@ class OrderModel
         $docTime = time();
 
         $template = simplexml_load_string(file_get_contents($fileTemplate));
-        $doc = $template->xpath("//КоммерческаяИнформация");
+        $doc = $template->xpath('//КоммерческаяИнформация');
         $doc[0]->addAttribute('ВерсияСхемы', '2.08');
         $doc[0]->addAttribute('ДатаФормирования', date('Y-m-d', $docTime));
 
@@ -66,7 +67,7 @@ ORDERSQL;
         if (count($orderList) === 0) {
             return '';
         }
-        $items = array();
+        $items = [];
         foreach ($orderList as $element) {
             if (isset($items[$element['id']])) {
                 $items[$element['id']]['goods'][] = array_slice($element, 18);
@@ -76,31 +77,31 @@ ORDERSQL;
             }
         }
         unset($orderList);
-        $upd = array();
-        foreach ($items as $k => $item) {
-            $doc = $template->xpath("//КоммерческаяИнформация");
-            /* @var $doc[0] \SimpleXMLElement */
-            $doc = $doc[0]->addChild("Документ");
+        $upd = [];
+        foreach ($items as $item) {
+            $doc = $template->xpath('//КоммерческаяИнформация');
+            /* @var $doc [0] \SimpleXMLElement */
+            $doc = $doc[0]->addChild('Документ');
 
             !empty($item['orderId1c']) ? $orderId1c = $item['orderId1c'] : $orderId1c = $item['id'];
 
-            $doc->addChild("Ид", $orderId1c);
-            $doc->addChild("Номер", $orderId1c);
-            $doc->addChild("Дата", date('Y-m-d', $item['date_create']));
-            $doc->addChild("Время", date('H:m:s', $item['date_create']));
-            $doc->addChild("ХозОперация", "Заказ товара");
-            $doc->addChild("Роль", "Продавец");
-            $doc->addChild("Валюта", "руб");
-            $doc->addChild("Курс", 1);
-            $doc->addChild("Сумма", number_format((float)$item['price'] / 100, 2, '.', ''));
+            $doc->addChild('Ид', $orderId1c);
+            $doc->addChild('Номер', $orderId1c);
+            $doc->addChild('Дата', date('Y-m-d', $item['date_create']));
+            $doc->addChild('Время', date('H:m:s', $item['date_create']));
+            $doc->addChild('ХозОперация', 'Заказ товара');
+            $doc->addChild('Роль', 'Продавец');
+            $doc->addChild('Валюта', 'руб');
+            $doc->addChild('Курс', 1);
+            $doc->addChild('Сумма', number_format((float)$item['price'] / 100, 2, '.', ''));
 
-            $detailsValues = $doc->addChild("ЗначенияРеквизитов");
-            $detailValue = $detailsValues->addChild("ЗначениеРеквизита");
-            $detailValue->addChild("Наименование", "Способ доставки");
-            if (!empty($item['delivery_method']) && $item['delivery_method'] != 'Самовывоз') {
-                $detailValue->addChild("Значение", 'До клиента');
+            $detailsValues = $doc->addChild('ЗначенияРеквизитов');
+            $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
+            $detailValue->addChild('Наименование', 'Способ доставки');
+            if (!empty($item['delivery_method']) && $item['delivery_method'] !== 'Самовывоз') {
+                $detailValue->addChild('Значение', 'До клиента');
             } else {
-                $detailValue->addChild("Значение", 'Самовывоз');
+                $detailValue->addChild('Значение', 'Самовывоз');
             }
 
             $deliveryInfo = '';
@@ -112,36 +113,36 @@ ORDERSQL;
                 if ($deliveryInfo) {
                     $deliveryInfo = ', ' . $deliveryInfo;
                 }
-                $deliveryInfo = "{$item['delivery_country']}, г. {$item['delivery_city']}{$deliveryInfo}";
+                $deliveryInfo = "{$item['delivery_country']}, г. {$item['delivery_city']}$deliveryInfo";
             }
 
             if ($deliveryInfo) {
-                $detailValue = $detailsValues->addChild("ЗначениеРеквизита");
-                $detailValue->addChild("Наименование", "Адрес доставки");
-                $detailValue->addChild("Значение", $deliveryInfo);
+                $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
+                $detailValue->addChild('Наименование', 'Адрес доставки');
+                $detailValue->addChild('Значение', $deliveryInfo);
 
-                $detailValue = $detailsValues->addChild("ЗначениеРеквизита");
-                $detailValue->addChild("Наименование", "Адрес получателя");
-                $detailValue->addChild("Значение", $deliveryInfo);
+                $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
+                $detailValue->addChild('Наименование', 'Адрес получателя');
+                $detailValue->addChild('Значение', $deliveryInfo);
             }
 
             // Формируем ФИО получателя
-            $deliveriFIO = '';
+            $deliveryFIO = '';
             if (!empty($item['delivery_last_name'])) {
-                $deliveriFIO .= $item['delivery_last_name'];
+                $deliveryFIO .= $item['delivery_last_name'];
             }
 
-            if (!empty($deliveriFIO)) {
-                $detailValue = $detailsValues->addChild("ЗначениеРеквизита");
-                $detailValue->addChild("Наименование", "ФИО получателя");
-                $detailValue->addChild("Значение", $deliveriFIO);
+            if (!empty($deliveryFIO)) {
+                $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
+                $detailValue->addChild('Наименование', 'ФИО получателя');
+                $detailValue->addChild('Значение', $deliveryFIO);
             }
 
             // Передаём Телефон получателя
             if (!empty($item['delivery_phone'])) {
-                $detailValue = $detailsValues->addChild("ЗначениеРеквизита");
-                $detailValue->addChild("Наименование", "Телефон получателя");
-                $detailValue->addChild("Значение", $item['delivery_phone']);
+                $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
+                $detailValue->addChild('Наименование', 'Телефон получателя');
+                $detailValue->addChild('Значение', $item['delivery_phone']);
             }
 
             $agents = $doc->addChild('Контрагенты');
@@ -152,17 +153,17 @@ ORDERSQL;
                 $buyerName = $item['buyerName'];
             }
 
-            $agent->addChild("Ид", $item['buyerID']);
-            $agent->addChild("Имя", $item['buyerName']);
+            $agent->addChild('Ид', $item['buyerID']);
+            $agent->addChild('Имя', $item['buyerName']);
 
-            // Формируем наименование покапателя
+            // Формируем наименование покупателя
 
             if (!empty($item['buyerLastName'])) {
                 $buyerName .= ' ' . $item['buyerLastName'];
-                $agent->addChild("Фамилия", $item['buyerLastName']);
+                $agent->addChild('Фамилия', $item['buyerLastName']);
             }
 
-            $regAddress = $agent->addChild("АдресРегистрации");
+            $regAddress = $agent->addChild('АдресРегистрации');
             // Если у заказчика указан адрес, то передаём его в 1С
             if (!empty($item['buyerAddress'])) {
                 $regAddress->addChild('Представление', $item['buyerAddress']);
@@ -197,9 +198,9 @@ ORDERSQL;
             !empty($buyerName) ? $workName = $buyerName : $workName = $item['buyerLogin'];
 
 
-            $agent->addChild("Наименование", $workName);
-            $agent->addChild("Роль", "Покупатель");
-            $agent->addChild("ПолноеНаименование", $buyerName);
+            $agent->addChild('Наименование', $workName);
+            $agent->addChild('Роль', 'Покупатель');
+            $agent->addChild('ПолноеНаименование', $buyerName);
 
             // Отправляем комментарий к заказу в 1С
             $orderComment = '';
@@ -235,7 +236,7 @@ ORDERSQL;
                 $xmlGood->addChild('Цена', number_format($price, 2, '.', ''));
                 $xmlGood->addChild('Количество', $good['count']);
                 $xmlGood->addChild('Сумма', number_format((float)$good['sum'] / 100, 2, '.', ''));
-                $xmlGood->addChild('Коэффициент', (int)$good['coefficient'] ? (int)$good['coefficient'] : 1);
+                $xmlGood->addChild('Коэффициент', (int)$good['coefficient'] ?: 1);
                 $props = $xmlGood->addChild('ЗначенияРеквизитов');
                 $prop = $props->addChild('ЗначениеРеквизита');
                 $prop->addChild('Наименование', 'ТипНоменклатуры');
@@ -254,13 +255,13 @@ ORDERSQL;
                     $discount->addChild('УчтеноВСумме', 'true');
                 }
             }
-            $doc->addChild("Валюта", 'RUB');
+            $doc->addChild('Валюта', 'RUB');
 
             $upd[] = $item['id'];
         }
 
         foreach ($upd as $item) {
-            $db->query("UPDATE {$i}shop_structure_order SET export=0 WHERE id={$item}");
+            $db->query("UPDATE {$i}shop_structure_order SET export=0 WHERE id=$item");
         }
         return $template->asXML();
     }
