@@ -73,13 +73,12 @@ class RestsModel extends ModelAbstract
      */
     protected function parse($dbRests, $xmlRests)
     {
-        // Забираем реззультаты категорий из БД 1m
         $dbResult = $dbRests->parse();
 
         $xmlResult = $xmlRests->parse();
 
         if (empty($xmlResult)) {
-            $xmlResult = array();
+            $xmlResult = [];
         }
 
         return $this->diff($dbResult, $xmlResult);
@@ -95,7 +94,7 @@ class RestsModel extends ModelAbstract
      */
     protected function diff(array $dbResult, array $xmlResult)
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             $goodOffer = explode('#', $k);
             if (substr_count($k, '#') === 1) {

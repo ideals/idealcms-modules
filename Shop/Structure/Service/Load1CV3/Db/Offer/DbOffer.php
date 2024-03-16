@@ -54,15 +54,20 @@ class DbOffer extends AbstractDb
         $goodPrevStructure = explode('-', $dbGood->prevGood);
 
         $db = Db::getInstance();
-        $deactivated = array();
+        $deactivated = [];
 
         foreach ($elements as $k => $element) {
+            if (!isset($element['good_id'])) {
+                // Возможно только при обновлении остатков, когда приходят остатки по складу, который мы не храним
+                unset($elements[$k]);
+                continue;
+            }
             if ($this->isOnlyUpdate && !isset($deactivated[$element['good_id']])) {
                 // При загрузке только обновлений деактивируем все офферы этого товара, активные обновятся сами
                 // Когда загрузка полной базы - все офферы деактивируются на начальном этапе
                 $deactivated[$element['good_id']] = true;
                 $db->update($this->table)
-                   ->set(array('is_active' => 0))
+                   ->set(['is_active' => 0])
                    ->where('good_id="' . $element['good_id'] . '"')
                    ->exec();
             }
@@ -82,12 +87,11 @@ class DbOffer extends AbstractDb
                 continue;
             }
             foreach ($offerModel->fields as $fieldName => $item) {
-                if ($fieldName == 'ID') {
+                if ($fieldName === 'ID') {
                     continue;
                 }
-
                 if (!isset($element[$fieldName])) {
-                    $elements[$k][$fieldName] = isset($item['default']) ? $item['default'] : '';
+                    $elements[$k][$fieldName] = $item['default'] ?? '';
                 }
             }
         }
