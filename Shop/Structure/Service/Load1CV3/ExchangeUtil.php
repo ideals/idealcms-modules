@@ -472,14 +472,7 @@ class ExchangeUtil
             return true;
         }
 
-        // Если обрабатываемый файл является файлом с заказами, то проверяем последнее обновление временного файла
-        $xml = new Xml($filePath);
-        $xmlOrder = new XmlOrder($xml);
-
-        // Если файл оплат будет в корне, то нужна будет следующая проверка:
-        $oplata = mb_strpos($filePath, 'Oplata') !== false;
-
         // Если временный файл последний раз обновлялся более 30 секунд назад, то начинается новый сеанс выгрузки
-        return ($xmlOrder->validate() || $oplata) && time() - filemtime($tmpResultFile) > 30;
+        return time() - filemtime($tmpResultFile) > 30;
     }
 }
