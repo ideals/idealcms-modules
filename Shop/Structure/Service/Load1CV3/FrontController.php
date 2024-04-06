@@ -5,6 +5,7 @@ use Ideal\Core\Request;
 use Ideal\Core\Config;
 use Ideal\Core\Util;
 use Ideal\Structure\User\Model as UserModel;
+use Shop\Structure\Service\Load1CV3\Models\InfoModel;
 use Shop\Structure\Service\Load1CV3\Log\Log;
 use Shop\Structure\Service\Load1CV3\Models\QueryModel;
 
@@ -241,6 +242,7 @@ LOGMESSAGE;
         // Делаем бэкап переданных файлов для целей отладки
 //        $backupFile = DOCUMENT_ROOT . rtrim($this->config['directory_for_processing'], '/') . '_backup/' . $dirName . $filename1;
 //        if (file_exists($filename)) {
+//            ExchangeUtil::createFolder(basename($backupFile));
 //            copy($filename, $backupFile);
 //        }
         $this->logClass->log('info', 'BODY size: ' . filesize($filename) . ' bytes');
@@ -288,7 +290,7 @@ LOGMESSAGE;
         $this->response .= "file_limit={$fileSize}\n";
         $this->response .= "sessionKey=sessionToken\n";
         // 1С ищет версию схемы в четвёртой строке при обмене заказами
-        $this->response .= 'schema_version = 2.08';
+        $this->response .= 'schema_version = 3.1';
         $fileSize = ExchangeUtil::humanFilesize($fileSize);
         $this->logMessage .= <<<LOGMESSAGE
         
@@ -328,6 +330,12 @@ LOGMESSAGE;
             $this->response .= "Пароль: {$_SERVER['PHP_AUTH_PW']}.\n";
             $this->logMessage .= "\n       Ошибка авторизации, проверьте правильность логина и пароля.";
         }
+    }
+
+    protected function infoAction(): void
+    {
+        header('Content-type: text/xml; charset=utf-8');
+        $this->response = (new InfoModel())->execute();
     }
 
     /**
