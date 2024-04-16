@@ -17,9 +17,6 @@ class DbOrderAbstract extends AbstractDb
     /** Название таблицы, которая содержит детальную информацию о заказе */
     protected string $detailedTable;
 
-    /** Название таблицы, которая содержит информацию об оплатах заказа */
-    protected string $paymentTable;
-
     /** 1С ключи для точечной выборки заказов из базы. */
     protected array $orderKeys;
 
@@ -32,7 +29,6 @@ class DbOrderAbstract extends AbstractDb
         $db = Db::getInstance();
         $this->table = $this->prefix . 'shop_structure_order';
         $this->detailedTable = $this->prefix . 'shop_structure_orderdetail';
-        $this->paymentTable = $this->prefix . 'shop_structure_orderpay';
         $this->structurePart = $this->prefix . $this->structurePart;
         $res = $db->select(
             'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "Shop_Order" LIMIT 1'
@@ -97,21 +93,6 @@ class DbOrderAbstract extends AbstractDb
             }
         }
 
-        // Считываем все оплаты для наших заказов
-        $table = $config->db['prefix'] . 'shop_structure_orderpay';
-        $sql = "SELECT ID, id_1c, order_id, orderId1c, payment_method_id, date, signature, price FROM $table WHERE orderId1c IN (" . implode(',', $orderIds) . ')';
-        $pays = $db->select($sql);
-
-        // Добавляем оплаты к каждому заказу
-        foreach ($kOrders as &$order) {
-            foreach ($pays as $k => $pay) {
-                if ($pay['orderId1c'] === $order['id_1c']) {
-                    $order['payments'][] = $pay;
-                    unset($pays[$k]);
-                }
-            }
-        }
-
         return $kOrders;
     }
 
@@ -143,12 +124,6 @@ class DbOrderAbstract extends AbstractDb
              $testTable TO $this->detailedTable,
              {$this->detailedTable}_tmp TO $testTable";
         $db->query($sql);
-
-        $testTable = $this->paymentTable . $this->tablePostfix;
-        $sql = "RENAME TABLE $this->paymentTable TO {$this->paymentTable}_tmp,
-             $testTable TO $this->paymentTable,
-             {$this->paymentTable}_tmp TO $testTable";
-        $db->query($sql);
     }
 
     /**
@@ -159,7 +134,6 @@ class DbOrderAbstract extends AbstractDb
         $db = Db::getInstance();
         $db->query('DROP TABLE IF EXISTS ' . $this->table . $this->tablePostfix);
         $db->query('DROP TABLE IF EXISTS ' . $this->detailedTable . $this->tablePostfix);
-        $db->query('DROP TABLE IF EXISTS ' . $this->paymentTable . $this->tablePostfix);
     }
 
     /**
@@ -209,9 +183,6 @@ class DbOrderAbstract extends AbstractDb
         $db->query(
             'CREATE TABLE ' . $this->detailedTable . $this->tablePostfix . ' LIKE ' . $this->detailedTable
         );
-        $db->query(
-            'CREATE TABLE ' . $this->paymentTable . $this->tablePostfix . ' LIKE ' . $this->paymentTable
-        );
     }
 
     /**
@@ -224,9 +195,6 @@ class DbOrderAbstract extends AbstractDb
 
         $testTable = $this->detailedTable . $this->tablePostfix;
         $db->query("INSERT INTO $testTable SELECT * FROM $this->detailedTable");
-
-        $testTable = $this->paymentTable . $this->tablePostfix;
-        $db->query("INSERT INTO $testTable SELECT * FROM $this->paymentTable");
     }
 
     public function insert($element)
@@ -239,14 +207,9 @@ class DbOrderAbstract extends AbstractDb
         $goods = $element['goods'];
         unset($element['goods']);
 
-        $payments = $element['payments'];
-        unset($element['payments']);
-
         $orderId = parent::insert($element);
 
         $this->saveGoods($orderId, $goods, true);
-
-        $this->savePayments($orderId, $payments, true);
 
         return $orderId;
     }
@@ -255,9 +218,6 @@ class DbOrderAbstract extends AbstractDb
     {
         $this->saveGoods($element['ID'], $element['goods'], false);
         unset($element['goods']);
-
-        $this->savePayments($element['ID'], $element['payments'], false);
-        unset($element['payments']);
 
         $element['price'] *= 100;
 
@@ -316,43 +276,5 @@ class DbOrderAbstract extends AbstractDb
         }
 
         return $goods;
-    }
-
-    protected function savePayments($id, $payments, $isNew)
-    {
-        $db = Db::getInstance();
-        $paymentsTable = $this->paymentTable . $this->tablePostfix;
-
-        if (!$isNew) {
-            // Удаляем оплаты заказа из временной таблицы, чтобы добавить их заново
-            $db->delete($paymentsTable)
-                ->where('order_id=:order_id', ['order_id' => $id])
-                ->exec();
-
-        }
-
-        $payments = $this->preparePaymentsForSave($id, $payments);
-        if (!empty($payments)) {
-            $db->insertMultiple($paymentsTable, $payments);
-        }
-    }
-
-    /**
-     * Подготовка списка оплат заказа к сохранению в БД
-     *
-     * @param int $id ИД заказа
-     * @param array $payments Список оплат заказа
-     * @return array Обработанный список оплат заказа
-     */
-    protected function preparePaymentsForSave($id, $payments)
-    {
-        foreach ($payments as &$payment) {
-            // todo получение ID структуры Order
-            $payment['prev_structure'] = '12-' . $id;
-            $payment['order_id'] = $id;
-            $payment['date_mod'] = time();
-        }
-
-        return $payments;
     }
 }

@@ -54,17 +54,6 @@ class XmlOrderAbstract extends AbstractXml
                 switch ((string) $child->{'ХозОперация'}) :
                     case 'Заказ товара':
                         $val = $this->parseOrder($child, $val);
-                        $val['payments'] = $val['payments'] ?? [];
-                        break;
-                    case 'Выплата безналичных денег':
-                        // @todo получение идентификаторов методов оплаты
-                        $val = $this->parsePay($child, $val, 1);
-                        break;
-                    case 'Выплата наличных денег':
-                        $val = $this->parsePay($child, $val, 2);
-                        break;
-                    case 'Эквайринговая операция':
-                        $val = $this->parsePay($child, $val, 3);
                         break;
                     case 'Отпуск товара':
                         $val = $this->parseShipment($child, $val);
@@ -123,25 +112,6 @@ class XmlOrderAbstract extends AbstractXml
         $this->updateFromConfig($child, $id);
 
         return $this->data[$id];
-    }
-
-    /**
-     * Обработка оплаты для соответствующего заказа
-     */
-    protected function parsePay($child, array $val, int $method): array
-    {
-        $val['payment_sum'] = ($val['payment_sum'] ?? 0) + (float) $child->{'Сумма'};
-        $val['payments'][] = [
-            'id_1c' => (string) $child->{'Ид'},
-            'order_id' => 1,
-            'orderId1c' => (string) $child->{'Основание'},
-            'payment_method_id' => $method,
-            'date' => $child->{'Дата'} . ' ' . $child->{'Время'},
-            'signature' => (string) $child->{'Ид'},
-            'price' => (int) (((float) $child->{'Сумма'}) * 100),
-        ];
-
-        return $val;
     }
 
     /**
