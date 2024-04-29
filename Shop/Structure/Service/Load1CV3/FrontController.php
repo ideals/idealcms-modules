@@ -240,11 +240,11 @@ LOGMESSAGE;
         ExchangeUtil::saveFileFromStream($filename, $mode);
 
         // Делаем бэкап переданных файлов для целей отладки
-//        $backupFile = DOCUMENT_ROOT . rtrim($this->config['directory_for_processing'], '/') . '_backup/' . $dirName . $filename1;
-//        if (file_exists($filename)) {
-//            ExchangeUtil::createFolder(basename($backupFile));
-//            copy($filename, $backupFile);
-//        }
+        $backupFile = DOCUMENT_ROOT . rtrim($this->config['directory_for_processing'], '/') . '_backup/' . $dirName . $filename1;
+        if (file_exists($filename)) {
+            ExchangeUtil::createFolder(basename($backupFile));
+            copy($filename, $backupFile);
+        }
         $this->logClass->log('info', 'BODY size: ' . filesize($filename) . ' bytes');
 
         // Если передан файл отчёта, то запускаем процесс применения информации из временных таблиц и удаляем файл
