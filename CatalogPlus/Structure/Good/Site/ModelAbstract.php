@@ -127,7 +127,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                     $table = $config->db['prefix'] . 'ideal_structure_part';
                     $shortCid = end($pathGood);
                     $shortCid = isset($shortCid['cid']) ? rtrim($shortCid['cid'], '0') : '';
-                    $sql = "SELECT * FROM {$table} WHERE Structure='CatalogPlus_Good' AND cid LIKE '{$shortCid}%'";
+                    $sql = "SELECT * FROM {$table} WHERE structure='CatalogPlus_Good' AND cid LIKE '{$shortCid}%'";
                     $goodElem = $db->select($sql);
                     $pathGood[] = $goodElem[0];
                     break;
