@@ -2,15 +2,16 @@
 namespace Shop\Structure\Service\Load1CV3;
 
 use Ideal\Core\Db;
+use Shop\Structure\Service\Load1CV3\Db\Custom\DbCustom;
 use Shop\Structure\Service\Load1CV3\Db\Category\DbCategory;
 use Shop\Structure\Service\Load1CV3\Db\Directory\DbDirectory;
 use Shop\Structure\Service\Load1CV3\Db\Good\DbGood;
 use Shop\Structure\Service\Load1CV3\Db\Medium\DbMedium;
 use Shop\Structure\Service\Load1CV3\Db\Offer\DbOffer;
-use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
 use Shop\Structure\Service\Load1CV3\Db\Oplata\DbOplata;
-use Shop\Structure\Service\Load1CV3\Db\Tag\DbTag;
-use Shop\Structure\Service\Load1CV3\Db\TagMedium\DbTagMedium;
+use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
+use Shop\Structure\Service\Load1CV3\Db\Storage\DbStorage;
+use Shop\Structure\Service\Load1CV3\Db\Unit\DbUnit;
 use Shop\Structure\Service\Load1CV3\Xml\Category\XmlCategory;
 use Shop\Structure\Service\Load1CV3\Xml\Order\XmlOrder;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
@@ -306,32 +307,15 @@ class ExchangeUtil
      */
     public static function prepareTables()
     {
-        $dbCategory = new DbCategory();
-        $dbCategory->prepareTable();
-
-        $dbGood = new DbGood();
-        $dbGood->prepareTable();
-
-        $dbMedium = new DbMedium();
-        $dbMedium->prepareTable();
-
-        $dbOffer = new DbOffer();
-        $dbOffer->prepareTable();
-
-        $dbDirectory = new DbDirectory();
-        $dbDirectory->prepareTable();
-
-        $dbTag = new DbTag();
-        $dbTag->prepareTable();
-
-        $dbTagMedium = new DbTagMedium();
-        $dbTagMedium->prepareTable();
-
-        $dbOrder = new DbOrder();
-        $dbOrder->prepareTable();
-
-        $dbOplata = new DbOplata();
-        $dbOplata->prepareTable();
+        (new DbCategory())->prepareTable();
+        (new DbGood())->prepareTable();
+        (new DbMedium())->prepareTable();
+        (new DbOffer())->prepareTable();
+        (new DbDirectory())->prepareTable();
+        (new DbOrder())->prepareTable();
+        (new DbUnit())->prepareTable();
+        (new DbStorage())->prepareTable();
+        (new DbCustom())->prepareTable();
     }
 
     /**
@@ -340,103 +324,70 @@ class ExchangeUtil
      */
     public static function renameTables()
     {
-        $dbCategory = new DbCategory();
-        $dbCategory->updateOrigTable();
-        $dbCategory->dropTestTable();
-
-        $dbTag = new DbTag();
-        $dbTag->updateOrigTable();
-        $dbTag->dropTestTable();
-
-        $dbGood = new DbGood();
-        $dbGood->updateOrigTable();
-        $dbGood->dropTestTable();
-
-        $dbDirectory = new DbDirectory();
-        $dbDirectory->updateOrigTable();
-        $dbDirectory->dropTestTable();
-
-        $dbMedium = new DbMedium();
-        $dbMedium->updateOrigTable();
-        $dbMedium->dropTestTable();
-
-        $dbTagMedium = new DbTagMedium();
-        $dbTagMedium->updateOrigTable();
-        $dbTagMedium->dropTestTable();
-
-        $dbOffers = new DbOffer();
-        $dbOffers->updateOrigTable();
-        $dbOffers->dropTestTable();
-
-        $dbOrder = new DbOrder();
-        $dbOrder->updateOrigTable();
-        $dbOrder->dropTestTable();
-
-        $dbOplata = new DbOplata();
-        $dbOplata->updateOrigTable();
-        $dbOplata->dropTestTable();
+        (new DbCategory())->renameTable();
+        (new DbGood())->renameTable();
+        (new DbDirectory())->renameTable();
+        (new DbMedium())->renameTable();
+        (new DbOffer())->renameTable();
+        (new DbOrder())->renameTable();
+        (new DbUnit())->renameTable();
+        (new DbStorage())->renameTable();
+        (new DbCustom())->renameTable();
     }
 
     /**
-     * Формирует список xml файлов предоставленных для обраобтки в указанной директории
+     * Формирует список xml файлов предоставленных для обработки в указанной директории
      *
-     * @param string $dirToScan Полный путь до директории которую неободимо просканировать
-     * @return array Список xml файлов предоставленных для обраобтки
+     * @param string $dirToScan Полный путь до директории которую необходимо просканировать
+     * @return array Список xml файлов предоставленных для обработки
      */
     public static function getAllExchangeFiles($dirToScan)
     {
-        $exchangeFiles = array();
-        $dir = new \DirectoryIterator($dirToScan);
-        foreach ($dir as $item) {
-            if ($item->isDot()) {
-                continue;
-            }
-            if ($item->isDir()) {
-                $pathFile = $item->getPathname() . DIRECTORY_SEPARATOR;
-                /** @noinspection SlowArrayOperationsInLoopInspection */
-                $exchangeFiles = array_merge($exchangeFiles, self::getAllExchangeFiles($pathFile));
-            }
+        $dirToScan = stream_resolve_include_path($dirToScan);
+        $exchangeFiles = [];
+        $dir = new \RecursiveDirectoryIterator($dirToScan);
+        $iterator = new \RecursiveIteratorIterator($dir);
+        foreach ($iterator as $item) {
             if ($item->isFile()) {
                 $fileExtension = $item->getExtension();
-                if ($fileExtension == 'xml') {
+                if ($fileExtension === 'xml') {
                     $pathFile = $item->getPathname();
                     $fileName = $item->getFilename();
                     $exchangeFiles[$pathFile] = $fileName;
                 }
             }
         }
-        uksort($exchangeFiles, function ($curr, $next) use ($exchangeFiles) {
-            $currDir = str_replace(basename($curr), '', $curr);
-            $nextDir = str_replace(basename($next), '', $next);
 
-            $currDirLength = strlen($currDir);
-            $nextDirLength = strlen($nextDir);
-            if ($currDirLength !== $nextDirLength) {
-                return $currDirLength - $nextDirLength;
+        $config = require __DIR__ . '/load1cV3Settings.php'; // todo обнаружение в папке Mod.s
+        $modelFactory = (new ModelAbstractFactory())->setConfig($config);
+
+        uksort($exchangeFiles, static function ($curr, $next) use ($modelFactory) {
+            $currName = basename($curr);
+            $currSort = $modelFactory->createByFilename($currName)->getSort();
+            $nextName = basename($next);
+            $nextSort = $modelFactory->createByFilename($nextName)->getSort();
+
+            if ($currSort !== $nextSort) {
+                return $currSort - $nextSort;
             }
 
-            $result = strcasecmp($currDir, $nextDir);
-            if ($result === 0) {
-                // Если пути одинаковые, то выстраиваем в зависимости от веса значения
-                $weight = array(
-                  'import' => 1,
-                  'offers' => 2,
-                  'prices' => 3,
-                  'pricesold' => 4,
-                  'rests' => 5,
-                  'imagesFile' => 6,
-                  'tegi' => 7,
-                  'nomenclProSov' => 8,
-                  'documents' => 9,
-                  'oplata' => 10,
-                  'addParameters' => 11,
-                );
-                preg_match('/(\w*?)_/', $exchangeFiles[$curr], $curr);
-                preg_match('/(\w*?)_/', $exchangeFiles[$next], $next);
-                return $weight[lcfirst($curr[1])] - $weight[lcfirst($next[1])];
-            }
-            return $result;
+            $c = explode('_', $currName);
+            $n = explode('_', $nextName);
+
+            return  ($c[1] * 1000 + (int) $c[2]) - ($n[1] * 1000 + (int) $n[2]);
+//                  'import' => 1,
+//                  'offers' => 2,
+//                  'prices' => 3,
+//                  'pricesold' => 4,
+//                  'rests' => 5,
+//                  'imagesFile' => 6,
+//                  'tegi' => 7,
+//                  'nomenclProSov' => 8,
+//                  'documents' => 9,
+//                  'oplata' => 10,
+//                  'addParameters' => 11,
         });
+
         return $exchangeFiles;
     }
 
@@ -521,14 +472,7 @@ class ExchangeUtil
             return true;
         }
 
-        // Если обрабатываемый файл является файлом с заказами, то проверяем последнее обновление временного файла
-        $xml = new Xml($filePath);
-        $xmlOrder = new XmlOrder($xml);
-
-        // Если файл оплат будет в корне, то нужна будет следующая проверка:
-        $oplata = mb_strpos($filePath, 'Oplata') !== false;
-
         // Если временный файл последний раз обновлялся более 30 секунд назад, то начинается новый сеанс выгрузки
-        return ($xmlOrder->validate() || $oplata) && time() - filemtime($tmpResultFile) > 30;
+        return time() - filemtime($tmpResultFile) > 30;
     }
 }

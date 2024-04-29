@@ -1,20 +1,20 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Ideal\Core\Config;
 use Shop\Structure\Service\Load1CV3\Db\Rests\DbRests;
 use Shop\Structure\Service\Load1CV3\Xml\Rests\XmlRests;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
+use Shop\Structure\Service\Load1CV3\ModelAbstract;
 
-class RestsModel
+class RestsModel extends ModelAbstract
 {
-    /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
-        'infoText' => 'Обработка остатков из пакета № %d',
-        'successText' => 'Добавлено: %d<br />Обновлено: %d',
-        'add' => 0,
-        'update' => 0
-    );
+    public function init(): void
+    {
+        $this->setInfoText('Обработка остатков из пакета № %d');
+        $this->setSort(100);
+    }
 
     /**
      * Запуск процесса обработки файлов rests_*.xml
@@ -23,20 +23,13 @@ class RestsModel
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum)
+    public function startProcessing($filePath, $packageNum): array
     {
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
             $packageNum
         );
-
-        // Считываем результаты работы предыдущих этапов обработки
-        // Здесь интересует идентификатор основного склада
-        $cmsConfig = Config::getInstance();
-        $tmpResultFile = DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';
-        $tmpResult = file_get_contents($tmpResultFile);
-        $tmpResult = json_decode($tmpResult, true);
 
         // получение xml с данными об остатках
         $xml = new Xml($filePath);
@@ -46,7 +39,6 @@ class RestsModel
 
         // инициализируем модель остатков в XML - XmlRests
         $xmlRests = new XmlRests($xml);
-        $xmlRests->setMainStockId($tmpResult['mainStockId']);
 
         // Устанавливаем связь БД и XML
         $rests = $this->parse($dbRests, $xmlRests);
@@ -61,7 +53,7 @@ class RestsModel
      *
      * @return array ответ пользователю 'add'=>count(), 'update'=>count()
      */
-    public function answer()
+    public function answer(): array
     {
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
@@ -81,13 +73,12 @@ class RestsModel
      */
     protected function parse($dbRests, $xmlRests)
     {
-        // Забираем реззультаты категорий из БД 1m
         $dbResult = $dbRests->parse();
 
         $xmlResult = $xmlRests->parse();
 
         if (empty($xmlResult)) {
-            $xmlResult = array();
+            $xmlResult = [];
         }
 
         return $this->diff($dbResult, $xmlResult);
@@ -103,7 +94,7 @@ class RestsModel
      */
     protected function diff(array $dbResult, array $xmlResult)
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             $goodOffer = explode('#', $k);
             if (substr_count($k, '#') === 1) {

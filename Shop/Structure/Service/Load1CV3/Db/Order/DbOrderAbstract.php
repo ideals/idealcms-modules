@@ -8,20 +8,17 @@ use Shop\Structure\Service\Load1CV3\Db\Good\DbGood;
 
 class DbOrderAbstract extends AbstractDb
 {
-    /** @var string Структура для получения prev_structure */
-    protected $structurePart = 'ideal_structure_datalist';
+    /** Структура для получения prev_structure */
+    protected string $structurePart = 'ideal_structure_datalist';
 
-    /** @var string Предыдущая категория для prev_structure */
-    protected $prevCat;
+    /** Предыдущая категория для prev_structure */
+    protected string $prevCat;
 
-    /** @var string Все неприсвоенные категориям товары будут лежать тут */
-    public $defaultCategory = '';
+    /** Название таблицы, которая содержит детальную информацию о заказе */
+    protected string $detailedTable;
 
-    /** @var string Название таблицы, которая содержит детальную информацию о заказе */
-    protected $detailedTable;
-
-    /** @var array 1С ключи для точечной выборки заказов из базы. */
-    protected $orderKeys;
+    /** 1С ключи для точечной выборки заказов из базы. */
+    protected array $orderKeys;
 
     /**
      *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
@@ -44,7 +41,7 @@ class DbOrderAbstract extends AbstractDb
      *
      * @return array ключ - orderId1c, значение - массив данных с детальной информацией по заказу.
      */
-    public function parse($fields)
+    public function parse($fields): array
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
@@ -56,28 +53,32 @@ class DbOrderAbstract extends AbstractDb
         }
 
         // Считываем заказы из нашей БД
-        $sql = "SELECT * FROM {$this->table} WHERE {$orderKeysWhere}";
+        $sql = "SELECT * FROM $this->table WHERE $orderKeysWhere";
         $orders = $db->select($sql);
 
         if (empty($orders)) {
-            return array();
+            return [];
         }
 
         // Собираем список идентификаторов заказов
-        $orderIds = array();
+        $orderIds = [];
         foreach ($orders as $order) {
             $orderIds[] = $order['ID'];
         }
 
         // Считываем все товары для наших заказов
         $table = $config->db['prefix'] . 'shop_structure_orderdetail';
-        $sql = "SELECT * FROM {$table} WHERE order_id IN (" . implode(',', $orderIds) . ')';
+        $sql = "SELECT * FROM $table WHERE order_id IN (" . implode(',', $orderIds) . ')';
         $goods = $db->select($sql);
 
         // Перестраиваем массив с заказами, чтобы ключами были идентификаторы из 1C
-        $kOrders = array();
+        $kOrders = [];
         foreach ($orders as $k => $order) {
-            $order['goods'] = array();
+            $order['goods'] = [];
+
+            // В 1С в дате создания заказа нет времени, поэтому отрезаем его
+            $order['date_create'] = date('Y-m-d', $order['date_create']);
+
             $kOrders[$order['orderId1c']] = $order;
             unset($orders[$k]);
         }
@@ -91,26 +92,6 @@ class DbOrderAbstract extends AbstractDb
                 }
             }
         }
-
-        /*
-        // Удаляем ненужные поля (которых нет в xml-файле)
-        foreach ($kOrders as &$kOrder) {
-            foreach ($kOrder as $k => $v) {
-                // Если поле не установлено в xml-выгрузке, убираем его
-                if (!isset($fields[$k])) {
-                    unset($kOrder[$k]);
-                }
-                if (!is_array($v)) {
-                    continue;
-                }
-                foreach ($v as $i => $item) {
-                    if (!isset($fields[$k])) {
-                        unset($kOrder[$k]);
-                    }
-                }
-            }
-        }
-        */
 
         return $kOrders;
     }
@@ -126,22 +107,22 @@ class DbOrderAbstract extends AbstractDb
     }
 
     /**
-     * Свап временной и оригинальной таблицы
+     * Обмен временной и оригинальной таблицы
      */
     public function updateOrigTable()
     {
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "RENAME TABLE {$this->table} TO {$this->table}_tmp,
-             {$testTable} TO {$this->table},
-             {$this->table}_tmp TO {$testTable}";
+        $sql = "RENAME TABLE $this->table TO {$this->table}_tmp,
+             $testTable TO $this->table,
+             {$this->table}_tmp TO $testTable";
         $db->query($sql);
 
         $testTable = $this->detailedTable . $this->tablePostfix;
-        $sql = "RENAME TABLE {$this->detailedTable} TO {$this->detailedTable}_tmp,
-             {$testTable} TO {$this->detailedTable},
-             {$this->detailedTable}_tmp TO {$testTable}";
+        $sql = "RENAME TABLE $this->detailedTable TO {$this->detailedTable}_tmp,
+             $testTable TO $this->detailedTable,
+             {$this->detailedTable}_tmp TO $testTable";
         $db->query($sql);
     }
 
@@ -151,24 +132,8 @@ class DbOrderAbstract extends AbstractDb
     public function dropTestTable()
     {
         $db = Db::getInstance();
-
-        $testTable = $this->table . $this->tablePostfix;
-        $sql = "show tables like '{$testTable}'";
-        $result = $db->query($sql);
-        $res = $result->fetch_all(MYSQLI_ASSOC);
-        if (count($res) > 0) {
-            $sql = "DROP TABLE {$testTable}";
-            $db->query($sql);
-        }
-
-        $testTable = $this->detailedTable . $this->tablePostfix;
-        $sql = "show tables like '{$testTable}'";
-        $result = $db->query($sql);
-        $res = $result->fetch_all(MYSQLI_ASSOC);
-        if (count($res) > 0) {
-            $sql = "DROP TABLE {$testTable}";
-            $db->query($sql);
-        }
+        $db->query('DROP TABLE IF EXISTS ' . $this->table . $this->tablePostfix);
+        $db->query('DROP TABLE IF EXISTS ' . $this->detailedTable . $this->tablePostfix);
     }
 
     /**
@@ -188,7 +153,7 @@ class DbOrderAbstract extends AbstractDb
     public function changeGoodInOrder($good, $goods)
     {
         // Собираем идентификаторы товаров для замены
-        $changeIds = array();
+        $changeIds = [];
         foreach ($goods as $goodItem) {
             if (isset($goodItem['ID'])) {
                 $changeIds[] = $goodItem['ID'];
@@ -198,10 +163,10 @@ class DbOrderAbstract extends AbstractDb
         if ($changeIds) {
             $db = Db::getInstance();
 
-            // Удаяем сами товары
+            // Удаляем сами товары
             $whereId = implode(',', $changeIds);
-            $sql = "UPDATE {$this->detailedTable}{$this->tablePostfix} SET good_id = {$good['ID']}";
-            $sql .= " WHERE good_id IN ({$whereId})";
+            $sql = "UPDATE $this->detailedTable$this->tablePostfix SET good_id = {$good['ID']}"
+                . " WHERE good_id IN ($whereId)";
             $db->query($sql);
         }
     }
@@ -212,15 +177,12 @@ class DbOrderAbstract extends AbstractDb
     protected function createEmptyTestTable()
     {
         $db = Db::getInstance();
-        $testTable = $this->table . $this->tablePostfix;
-
-        $sql = "CREATE TABLE {$testTable} LIKE {$this->table}";
-        $db->query($sql);
-
-        $testTable = $this->detailedTable . $this->tablePostfix;
-
-        $sql = "CREATE TABLE {$testTable} LIKE {$this->detailedTable}";
-        $db->query($sql);
+        $db->query(
+            'CREATE TABLE ' . $this->table . $this->tablePostfix . ' LIKE ' . $this->table
+        );
+        $db->query(
+            'CREATE TABLE ' . $this->detailedTable . $this->tablePostfix . ' LIKE ' . $this->detailedTable
+        );
     }
 
     /**
@@ -232,8 +194,7 @@ class DbOrderAbstract extends AbstractDb
         $db = Db::getInstance();
 
         $testTable = $this->detailedTable . $this->tablePostfix;
-        $sql = "INSERT INTO {$testTable} SELECT * FROM {$this->detailedTable}";
-        $db->query($sql);
+        $db->query("INSERT INTO $testTable SELECT * FROM $this->detailedTable");
     }
 
     public function insert($element)
@@ -271,7 +232,7 @@ class DbOrderAbstract extends AbstractDb
         if (!$isNew) {
             // Удаляем товары заказа из временной таблицы, чтобы добавить их заново
             $db->delete($goodsTable)
-               ->where('order_id=:order_id', array('order_id' => $id))
+               ->where('order_id=:order_id', ['order_id' => $id])
                ->exec();
 
         }
@@ -287,11 +248,11 @@ class DbOrderAbstract extends AbstractDb
      *
      * @param int $id ИД заказа
      * @param array $goods Список товаров заказа
-     * @return array Обработанный списка товаров заказа
+     * @return array Обработанный список товаров заказа
      */
     protected function prepareGoodsForSave($id, $goods)
     {
-        foreach ($goods as $goodId => &$good) {
+        foreach ($goods as &$good) {
             $good['sum'] *= 100;
             $good['price'] *= 100;
             $good['discount'] = empty($good['discount']) ? 0 : $good['discount'] * 100;
@@ -300,10 +261,10 @@ class DbOrderAbstract extends AbstractDb
             $good['order_id'] = $id;
             $goodIdExploded = explode('#', $good['good_id_1c']);
             $good['good_id_1c'] = $goodIdExploded[0];
-            if (!isset($goodIdExploded[1])) {
-                $good['offer_id_1c'] = $good['good_id_1c'];
-            } else {
+            if (isset($goodIdExploded[1])) {
                 $good['offer_id_1c'] = $goodIdExploded[1];
+            } else {
+                $good['offer_id_1c'] = $good['good_id_1c'];
             }
             // Пытаемся получить идентификатор товара по его 1с_id
             $good['good_id'] = 0;
@@ -313,6 +274,7 @@ class DbOrderAbstract extends AbstractDb
                 $good['good_id'] = $dbGoodInfo[$good['good_id_1c']]['ID'];
             }
         }
+
         return $goods;
     }
 }

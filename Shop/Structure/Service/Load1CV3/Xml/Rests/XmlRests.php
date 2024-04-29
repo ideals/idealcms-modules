@@ -8,24 +8,19 @@ class XmlRests extends AbstractXml
     /** @var string путь к категориям в XML */
     public $part = 'ПакетПредложений/Предложения';
 
-    /** @var string Идентификатор главного склада для получения остатков */
-    public $mainStockId = '';
-
     public function parse()
     {
-        $fields = str_replace('{Ид}', $this->mainStockId, $this->configs['fields']);
+        // Идентификатор главного склада для получения остатков
+        if (empty($_SESSION['main_stock_id'])) {
+            throw new \RuntimeException('В настройках обмена не задан идентификатор главного склада main_stock_id');
+        }
+        $mainStockId = $_SESSION['main_stock_id'];
+
+        $fields = str_replace('{Ид}', $mainStockId, $this->configs['fields']);
         $this->configs['fields'] = $fields;
 
         parent::parse();
 
         return $this->data;
-    }
-
-    /**
-     * @param string $mainStockId
-     */
-    public function setMainStockId($mainStockId)
-    {
-        $this->mainStockId = $mainStockId;
     }
 }

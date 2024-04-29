@@ -48,12 +48,12 @@ class DbMedium extends AbstractDb
             // Добавляем в список для удаления старых привязок к категориям для этого товара
             $goodIds[] = $goods[$goodId]['ID'];
 
-            if (!is_array($groupIds) || (count($groupIds) == 0)) {
+            if (!is_array($groupIds) || (count($groupIds) === 0) || reset($groupIds) === '00000000-0000-0000-0000-000000000000') {
                 // Если товар не привязан ни к одной категории, то относим его к категории по умолчанию
-                $result[] = array(
+                $result[] = [
                     'good_id' => $goods[$goodId]['ID'],
                     'category_id' => $categories['Load1c_default']['ID']
-                );
+                ];
                 continue;
             }
 

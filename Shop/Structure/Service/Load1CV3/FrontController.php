@@ -5,8 +5,9 @@ use Ideal\Core\Request;
 use Ideal\Core\Config;
 use Ideal\Core\Util;
 use Ideal\Structure\User\Model as UserModel;
+use Shop\Structure\Service\Load1CV3\Models\InfoModel;
 use Shop\Structure\Service\Load1CV3\Log\Log;
-use Shop\Structure\Service\Load1CV3\Models\OrderModel;
+use Shop\Structure\Service\Load1CV3\Models\QueryModel;
 
 class FrontController
 {
@@ -32,6 +33,9 @@ class FrontController
     public function __construct($config)
     {
         $this->config = $config;
+
+        // Сохраняем идентификатор основного склада для обработки товара
+        $_SESSION['main_stock_id'] = $config['main_stock_id'];
 
         // Считываем результаты работы предыдущих этапов обработки
         $cmsConfig = Config::getInstance();
@@ -99,9 +103,9 @@ LOGMESSAGE;
         }
         if (empty($request->par)) {
             $this->printResponse();
-        } else {
-            return $this->response;
         }
+
+        return $this->response;
     }
 
     /**
@@ -125,9 +129,9 @@ LOGMESSAGE;
      */
     protected function queryAction()
     {
-        $order = new OrderModel();
+        $order = new QueryModel($this->config);
         $xml = $order->generateExportXml();
-        header("Content-type: text/xml; charset=windows-1251");
+        header('Content-type: text/xml; charset=utf-8');
         $this->response = trim($xml);
     }
 
@@ -158,9 +162,11 @@ LOGMESSAGE;
             return false;
         }
 
-        // Если запрошенный для обработки файл найден на сервере, то получаем модель, которая будет заниматься его
-        // обработкой
-        $model = $this->getModel($filename);
+        // Если запрошенный для обработки файл найден на сервере,
+        // то получаем модель, которая будет заниматься его обработкой
+        $model = (new ModelAbstractFactory())
+            ->setConfig($this->config)
+            ->createByFilename($filename);
 
         // Проверяем, является ли запрос началом нового сеанса обмена
         $cmsConfig = Config::getInstance();
@@ -234,10 +240,11 @@ LOGMESSAGE;
         ExchangeUtil::saveFileFromStream($filename, $mode);
 
         // Делаем бэкап переданных файлов для целей отладки
-//        $backupFile = DOCUMENT_ROOT . rtrim($this->config['directory_for_processing'], '/') . '_backup/' . $dirName . $filename1;
-//        if (file_exists($filename)) {
-//            copy($filename, $backupFile);
-//        }
+        $backupFile = DOCUMENT_ROOT . rtrim($this->config['directory_for_processing'], '/') . '_backup/' . $dirName . $filename1;
+        if (file_exists($filename)) {
+            ExchangeUtil::createFolder(basename($backupFile));
+            copy($filename, $backupFile);
+        }
         $this->logClass->log('info', 'BODY size: ' . filesize($filename) . ' bytes');
 
         // Если передан файл отчёта, то запускаем процесс применения информации из временных таблиц и удаляем файл
@@ -283,7 +290,7 @@ LOGMESSAGE;
         $this->response .= "file_limit={$fileSize}\n";
         $this->response .= "sessionKey=sessionToken\n";
         // 1С ищет версию схемы в четвёртой строке при обмене заказами
-        $this->response .= 'schema_version = 2.08';
+        $this->response .= 'schema_version = 3.1';
         $fileSize = ExchangeUtil::humanFilesize($fileSize);
         $this->logMessage .= <<<LOGMESSAGE
         
@@ -325,6 +332,12 @@ LOGMESSAGE;
         }
     }
 
+    protected function infoAction(): void
+    {
+        header('Content-type: text/xml; charset=utf-8');
+        $this->response = (new InfoModel())->execute();
+    }
+
     /**
      * Отдаёт ответ о результате обработки запроса
      */
@@ -338,35 +351,5 @@ LOGMESSAGE;
         } else {
             echo $this->response;
         }
-    }
-
-    /**
-     * Определяет модель и на основании имени файла
-     *
-     * @param string $filename Имя файла для обработки которого определяется модель
-     * @return mixed
-     * @throws \ReflectionException
-     */
-    protected function getModel($filename)
-    {
-        preg_match('/(\w*?)_/', $filename, $type);
-        if (!isset($type[1])) {
-            throw new \RuntimeException(sprintf('Файл "%s" не может быть обработан', $filename));
-        }
-
-        $model = 'Shop\\Structure\\Service\\Load1CV3\\Models\\' . ucfirst($type[1]) . 'Model';
-        if (!class_exists($model)) {
-            throw new \RuntimeException(sprintf('Не найдена модель для обработки файла "%s"', $filename));
-        }
-
-        $class = new \ReflectionClass($model);
-        $constructor = $class->getConstructor();
-        if ($constructor) {
-            $parameters = $constructor->getParameters();
-            if ($parameters && $parameters[0]->name === 'exchangeConfig') {
-                return new $model($this->config);
-            }
-        }
-        return new $model();
     }
 }
