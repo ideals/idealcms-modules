@@ -16,8 +16,12 @@ class QueryModel
             '<?xml version="1.0" encoding="utf-8"?><КоммерческаяИнформация></КоммерческаяИнформация>'
         );
         $doc = $xml->xpath('//КоммерческаяИнформация');
+        $doc[0]->addAttribute('xmlns', 'urn:1C.ru:commerceml_3');
+        $doc[0]->addAttribute('xmlns:xmlns:xs', 'http://www.w3.org/2001/XMLSchema');
+        $doc[0]->addAttribute('xmlns:xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $doc[0]->addAttribute('Ид', 'Новая настройка обмена');
         $doc[0]->addAttribute('ВерсияСхемы', '3.1');
-        $doc[0]->addAttribute('ДатаФормирования', date('Y-m-d', $docTime));
+        $doc[0]->addAttribute('ДатаФормирования', date('Y-m-d\TH:i:s', $docTime));
 
         $db = Db::getInstance();
         $config = Config::getInstance();
@@ -26,20 +30,7 @@ class QueryModel
 
         $sql = <<<ORDERSQL
             SELECT 
-            sso.ID,
-            sso.status,
-            sso.date_create,
-            sso.price,
-            sso.order_comment,
-            sso.delivery_method,
-            sso.payment_method,
-            sso.delivery_fio,
-            sso.delivery_phone,
-            sso.delivery_email,
-            sso.delivery_country,
-            sso.delivery_city,
-            sso.delivery_address,
-            sso.orderId1c,
+            sso.*,
             csu.login as buyerLogin, 
             csu.name as buyerName, 
             csu.last_name as buyerLastName, 
@@ -90,9 +81,8 @@ class QueryModel
     {
         $doc = $doc->addChild('Документ');
 
-        $orderId1c = empty($order['orderId1c']) ? $order['ID'] : $order['orderId1c'];
-        $doc->addChild('Ид', $orderId1c);
-        $doc->addChild('Номер', $orderId1c);
+        $doc->addChild('Ид', $order['orderId1c'] ?: $order['ID']);
+        $doc->addChild('Номер', $order['orderId1c'] ?: $order['ID']);
         $doc->addChild('Дата', date('Y-m-d', $order['date_create']));
         $doc->addChild('Время', date('H:m:s', $order['date_create']));
         $doc->addChild('ХозОперация', 'Заказ товара');
@@ -169,12 +159,14 @@ class QueryModel
         if (!empty($phone)) {
             // Подготавливаем поле телефон для отправки в 1С.
             // При повторном обмене на сайт могут быть записаны данные в "неправильном" формате.
-            $phone = preg_replace('/\D/', '', $phone);
+            $phone = trim(preg_replace('/\D/', '', $phone));
 
             // Убираем код страны из телефонного номера (при его наличии)
             if (mb_strlen($phone) === 10) {
-                $phone= '7' . $phone;
+                $phone = '7' . $phone;
             }
+
+            $phone = '+' . $phone[0] . '(' . substr($phone, 1, 3) . ')' . substr($phone, 4);
 
             /** @var \SimpleXMLElement $buyerPhoneContact */
             $buyerPhoneContact = $contacts->addChild('Контакт');
@@ -288,14 +280,13 @@ class QueryModel
     {
         // todo вынести из основного кода, т.к. платежи должны обрабатываться в каждом проекте отдельно
         $db = Db::getInstance();
-        $pays = $db->select('SELECT * FROM i_shop_structure_orderpay WHERE is_export=1 AND order_id=' . $order['ID']);
+        $pays = $db->select('SELECT * FROM i_shop_structure_orderpay WHERE export=1 AND order_id=' . $order['ID']);
 
         $ids = [];
         foreach ($pays as $pay) {
             $ids[] = $pay['ID'];
             $child = $doc->addChild('Документ');
-            $child->addChild('Ид', $pay['id_1c']);
-//            $child->addChild('Номер1С', $orderId1c);
+            $child->addChild('Ид', $pay['id_1c'] ?: $pay['ID']);
             $child->addChild('Дата', date('Y-m-d', strtotime($pay['date'])));
             $child->addChild('Время', date('H:m:s', strtotime($pay['date'])));
             $child->addChild('ХозОперация', $this->getPayMethodName((int) $pay['payment_method_id'])['operation']);
