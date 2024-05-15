@@ -13,6 +13,7 @@ class QueryModel
         $docTime = time();
 
         $xml = simplexml_load_string(
+//            "\xEF\xBB\xBF" .
             '<?xml version="1.0" encoding="utf-8"?><КоммерческаяИнформация></КоммерческаяИнформация>'
         );
         $doc = $xml->xpath('//КоммерческаяИнформация');
@@ -45,7 +46,7 @@ class QueryModel
 
         $orders = $db->select($sql);
         if (count($orders) === 0) {
-            return '';
+            return $xml->asXML();
         }
 
         $exportOrdersIds = [];
@@ -287,6 +288,7 @@ class QueryModel
             $ids[] = $pay['ID'];
             $child = $doc->addChild('Документ');
             $child->addChild('Ид', $pay['id_1c'] ?: $pay['ID']);
+            $child->addChild('Номер', $pay['ID']);
             $child->addChild('Дата', date('Y-m-d', strtotime($pay['date'])));
             $child->addChild('Время', date('H:m:s', strtotime($pay['date'])));
             $child->addChild('ХозОперация', $this->getPayMethodName((int) $pay['payment_method_id'])['operation']);
@@ -303,6 +305,14 @@ class QueryModel
             $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
             $detailValue->addChild('Наименование', 'Оплачен');
             $detailValue->addChild('Значение', 'true'); // с сайта выгружаются только совершённые оплаты
+            /** @var \SimpleXMLElement $detailValue */
+            $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
+            $detailValue->addChild('Наименование', 'Метод оплаты');
+            $detailValue->addChild('Значение', $this->getPayMethodName((int) $pay['payment_method_id'])['name']);
+            /** @var \SimpleXMLElement $detailValue */
+            $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
+            $detailValue->addChild('Наименование', 'Метод оплаты ИД');
+            $detailValue->addChild('Значение', $pay['payment_method_id']);
         }
 
         return $ids;
@@ -318,8 +328,8 @@ class QueryModel
             ],
             2 => [
                 'name' => 'Оплата картой на сайте',
-                'type' => 'Безналичная оплата',
-                'operation' => 'Выплата безналичных денег',
+                'type' => 'Эквайринговая оплата',
+                'operation' => 'Эквайринговая операция',
             ],
             3 => [
                 'name' => 'Оплата по СБП на сайте',
