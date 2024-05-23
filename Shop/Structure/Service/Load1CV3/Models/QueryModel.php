@@ -4,6 +4,7 @@ namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
+use Shop\Structure\Order\Site\Model;
 
 class QueryModel
 {
@@ -265,14 +266,8 @@ class QueryModel
             'Закрыт' => 'F',
         ];
 
-        $newStatuses = [
-            'В обработке' => 'P',
-            'Зарезервирован. Ожидает 100% оплаты' => 'A',
-            'Изготовление на заказ' => 'W',
-            'Отгружен. Ожидает 100% оплаты' => 'X',
-            'Оплачен. Ожидает отгрузки' => 'S',
-            'Выполнен' => 'F',
-        ];
+        $orderModel = new Model('');
+        $newStatuses = array_flip($orderModel->getStatuses());
 
         return $oldStatuses[$status] ?? $newStatuses[$status] ?? 'P';
     }

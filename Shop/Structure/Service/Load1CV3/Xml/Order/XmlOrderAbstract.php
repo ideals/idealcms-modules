@@ -1,6 +1,7 @@
 <?php
 namespace Shop\Structure\Service\Load1CV3\Xml\Order;
 
+use Shop\Structure\Order\Site\Model;
 use Shop\Structure\Service\Load1CV3\Xml\AbstractXml;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
@@ -126,7 +127,22 @@ class XmlOrderAbstract extends AbstractXml
 
     protected function setStatus($val): array
     {
-        // todo на основании реквизитов Проведён, Оплачен, Отменён, здесь можно собрать статус заказа
+        /**
+         * 1) "На согласовании" - заказ в 1С не проведён и не помечен на удаление.
+         * 2) "В работе" - заказ в 1С проведён, не отменён, не оплачен полностью и не отгружен полностью.
+         * 3) "Отменён" - заказ в 1С проведён и отменён.
+         * 4) "Заказ выполнен" - заказ в 1С проведён, не отменён, оплачен полностью и отгружен полностью.
+         * 5) Заказ деактивирован - заказ в 1С помечен на удаление.
+         */
+
+        $orderModel = new Model('');
+        $status = $orderModel->getStatuses()[$val['status']];
+
+        if ($val['discard'] === 'true') {
+            $status = 'Отменён';
+        }
+
+        $val['status'] = $status;
         unset($val['discard']);
 
         return $val;
