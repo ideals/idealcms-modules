@@ -10,20 +10,26 @@ use Shop\Structure\Service\Load1CV3\ModelAbstract;
 
 class RestsModel extends ModelAbstract
 {
+    protected XmlRests $xmlRests;
+
     public function init(): void
     {
         $this->setInfoText('Обработка остатков из пакета № %d');
         $this->setSort(100);
+
+        // инициализируем модель остатков в XML - XmlRests
+        $xml = new Xml($this->filename);
+        $this->xmlRests = new XmlRests($xml);
+        $this->isOnlyUpdate = $this->xmlRests->updateInfo();
     }
 
     /**
      * Запуск процесса обработки файлов rests_*.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
@@ -31,17 +37,11 @@ class RestsModel extends ModelAbstract
             $packageNum
         );
 
-        // получение xml с данными об остатках
-        $xml = new Xml($filePath);
-
         // инициализируем модель остатков в БД - DbRests
         $dbRests = new DbRests();
 
-        // инициализируем модель остатков в XML - XmlRests
-        $xmlRests = new XmlRests($xml);
-
         // Устанавливаем связь БД и XML
-        $rests = $this->parse($dbRests, $xmlRests);
+        $rests = $this->parse($dbRests, $this->xmlRests);
 
         $dbRests->save($rests);
 

@@ -8,16 +8,23 @@ use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class OrdersModel extends ModelAbstract
 {
+    protected XmlOrder $xmlOrder;
+
     public function init(): void
     {
         $this->setInfoText('Обработка заказов');
         $this->setSort(2000);
+
+        // инициализируем модель заказов в XML - XmlOrder
+        $xml = new Xml($this->filename);
+        $this->xmlOrder = new XmlOrder($xml);
+        $this->isOnlyUpdate = $this->xmlOrder->updateInfo();
     }
 
     /**
      * @inheritDoc
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
@@ -25,18 +32,12 @@ class OrdersModel extends ModelAbstract
             $this->packageNum
         );
 
-        $xml = new Xml($filePath);
-
-        // инициализируем модель заказов в XML - XmlOrder
-        $xmlOrder = new XmlOrder($xml);
-        $xmlOrder->setExchangeConfig($this->exchangeConfig);
-
-        if ($xmlOrder->validate()) {
+        if ($this->xmlOrder->validate()) {
             // Инициализируем модель заказов в БД - DbOrder
             $dbOrder = new DbOrder();
 
             // Устанавливаем связь БД и XML
-            $orders = $this->parse($dbOrder, $xmlOrder);
+            $orders = $this->parse($dbOrder, $this->xmlOrder);
 
             // Записываем обновлённые заказы в БД
             $dbOrder->save($orders);

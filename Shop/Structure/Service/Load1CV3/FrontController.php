@@ -166,7 +166,7 @@ LOGMESSAGE;
         // то получаем модель, которая будет заниматься его обработкой
         $model = (new ModelAbstractFactory())
             ->setConfig($this->config)
-            ->createByFilename($filename);
+            ->createByFilename($workDir . $filename);
 
         // Проверяем, является ли запрос началом нового сеанса обмена
         $cmsConfig = Config::getInstance();
@@ -175,7 +175,7 @@ LOGMESSAGE;
         $newSeance = ExchangeUtil::checkExchangeStart($workDir . $filename, $tmpResultFile);
 
         // Пытаемся получить информацию о полноте выгрузки
-        $cmsConfig->isOnlyUpdate = ExchangeUtil::checkUpdateInfo($workDir . $filename);
+        $cmsConfig->isOnlyUpdate = $model->isOnlyUpdate();
 
         if ($newSeance) {
             // Запускаем процесс подготовки базы для приёма данных если временный файл обновлялся более 1,5 минут назад
@@ -186,7 +186,7 @@ LOGMESSAGE;
         $path = ExchangeUtil::getLastPackageFolder(DOCUMENT_ROOT . $this->config['directory_for_keeping']);
         $packageNum = (int)substr($path, strrpos($path, '/') + 1) + 1;
 
-        $response = $model->startProcessing($workDir . $filename, $packageNum);
+        $response = $model->startProcessing($packageNum);
 
         // Если в настройках указана надобность сохранения файлов выгрузки, то запускаем процесс переноса файлов.
         // Этот процесс не нужно запускать если происходит ручная выгрузка данных.

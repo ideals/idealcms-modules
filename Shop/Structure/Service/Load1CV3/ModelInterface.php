@@ -14,11 +14,10 @@ interface ModelInterface
     /**
      * Запуск процесса обработки файлов *.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array;
+    public function startProcessing($packageNum): array;
 
     public function answer(): array;
 

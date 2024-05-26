@@ -10,22 +10,27 @@ use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class OffersModel extends ModelAbstract
 {
+    protected XmlOffer $xmlOffers;
+
     public function init(): void
     {
         $this->setInfoText('Обработка офферов (offers)');
         $this->setSort(90);
+
+        // инициализируем модель предложений в XML - XmlOffer
+        $xml = new Xml($this->filename);
+        $this->xmlOffers = new XmlOffer($xml);
+        $this->isOnlyUpdate = $this->xmlOffers->updateInfo();
     }
 
     /**
      * Запуск процесса обработки файлов offers_*.xml
      *
-     * @param string $filePath полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
-        $this->filename = $filePath;
         $this->packageNum = $packageNum;
 
         // Файл offers_*.xml может быть двух типов.
@@ -39,17 +44,11 @@ class OffersModel extends ModelAbstract
             $this->packageNum
         );
 
-        // получение xml с данными о предложениях
-        $xml = new Xml($filePath);
-
         // инициализируем модель предложений в БД - DbOffer
         $dbOffers = new DbOffer();
 
-        // инициализируем модель предложений в XML - XmlOffer
-        $xmlOffers = new XmlOffer($xml);
-
         // Устанавливаем связь БД и XML
-        $offers = $this->offersParse($dbOffers, $xmlOffers);
+        $offers = $this->offersParse($dbOffers, $this->xmlOffers);
 
         $dbOffers->save($offers);
 

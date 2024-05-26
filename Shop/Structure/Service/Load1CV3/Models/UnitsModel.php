@@ -8,35 +8,34 @@ use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class UnitsModel extends ModelAbstract
 {
+    protected XmlUnit $xmlUnit;
+
     public function init(): void
     {
         $this->setInfoText('Обработка единиц измерения (units)');
         $this->setSort(70);
+
+        // инициализируем модель остатков в XML - XmlUnit
+        $xml = new Xml($this->filename);
+        $this->xmlUnit = new XmlUnit($xml);
+        $this->isOnlyUpdate = $this->xmlUnit->updateInfo();
     }
 
     /**
      * Запуск процесса обработки файлов units_*.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
-        $this->filename = $filePath;
         $this->packageNum = $packageNum;
-
-        // получение xml с данными об остатках
-        $xml = new Xml($filePath);
 
         // инициализируем модель остатков в БД - DbRests
         $dbUnit = new DbUnit();
 
-        // инициализируем модель остатков в XML - XmlUnit
-        $xmlUnit = new XmlUnit($xml);
-
         // Устанавливаем связь БД и XML
-        $rests = $this->parse($dbUnit, $xmlUnit);
+        $rests = $this->parse($dbUnit, $this->xmlUnit);
 
         $dbUnit->save($rests);
 

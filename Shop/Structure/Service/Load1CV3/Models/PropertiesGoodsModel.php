@@ -14,13 +14,11 @@ class PropertiesGoodsModel extends ModelAbstract
     /**
      * Запуск процесса обработки файлов propertiesGoods_*.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
-        $this->filename = $filePath;
         $this->packageNum = $packageNum;
 
         // файл со свойствами товара не содержит значимой информации, поэтому ничего не делаем

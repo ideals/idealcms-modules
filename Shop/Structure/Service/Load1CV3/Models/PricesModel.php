@@ -9,35 +9,34 @@ use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class PricesModel extends ModelAbstract
 {
+    protected XmlPrices $xmlPrices;
+
     public function init(): void
     {
         $this->setInfoText('Обработка цен (prices)');
         $this->setSort(1000);
+
+        // инициализируем модель категорий в XML - XmlCategory
+        $xml = new Xml($this->filename);
+        $this->xmlPrices = new XmlPrices($xml);
+        $this->isOnlyUpdate = $this->xmlPrices->updateInfo();
     }
 
     /**
      * Запуск процесса обработки файлов prices_*.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
-        $this->filename = $filePath;
         $this->packageNum = $packageNum;
-
-        // получение xml с данными о ценах
-        $xml = new Xml($filePath);
 
         // инициализируем модель предложений в БД - DbOffer
         $dbPrices = new DbPrices();
 
-        // инициализируем модель категорий в XML - XmlCategory
-        $xmlPrices = new XmlPrices($xml);
-
         // Устанавливаем связь БД и XML
-        $prices = $this->parse($dbPrices, $xmlPrices);
+        $prices = $this->parse($dbPrices, $this->xmlPrices);
 
         $dbPrices->save($prices);
 

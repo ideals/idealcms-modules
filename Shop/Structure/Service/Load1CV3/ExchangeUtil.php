@@ -356,9 +356,9 @@ class ExchangeUtil
 
         uksort($exchangeFiles, static function ($curr, $next) use ($modelFactory) {
             $currName = basename($curr);
-            $currSort = $modelFactory->createByFilename($currName)->getSort();
+            $currSort = $modelFactory->createByFilename($curr)->getSort();
             $nextName = basename($next);
-            $nextSort = $modelFactory->createByFilename($nextName)->getSort();
+            $nextSort = $modelFactory->createByFilename($next)->getSort();
 
             if ($currSort !== $nextSort) {
                 return $currSort - $nextSort;

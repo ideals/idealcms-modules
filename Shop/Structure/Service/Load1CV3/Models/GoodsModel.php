@@ -10,26 +10,31 @@ use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class GoodsModel extends ModelAbstract
 {
+    protected XmlGood $xmlGood;
+
     public function init(): void
     {
         $this->setInfoText('Обработка товаров (goods)');
         $this->setSort(80);
+
+        // Инициализируем модель товаров в XML - XmlGood
+        $xml = new Xml($this->filename);
+        $this->xmlGood = new XmlGood($xml);
+        $this->isOnlyUpdate = $this->xmlGood->updateInfo();
     }
 
     /**
      * Запуск процесса обработки файлов propertiesGoods_*.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
-        $this->filename = $filePath;
         $this->packageNum = $packageNum;
 
         // Обработка изображений переданных вместе с товарами
-        $dir = pathinfo($filePath, PATHINFO_DIRNAME);
+        $dir = pathinfo($this->filename, PATHINFO_DIRNAME);
         $pictDirectory = $dir . DIRECTORY_SEPARATOR . $this->exchangeConfig['images_directory'];
         $this->loadImages($pictDirectory);
 
@@ -39,19 +44,14 @@ class GoodsModel extends ModelAbstract
             $this->packageNum
         );
 
-        $xml = new Xml($filePath);
-
         // Инициализируем модель товаров в БД - DbGood
         $dbGood = new DbGood();
 
-        // Инициализируем модель товаров в XML - XmlGood
-        $xmlGood = new XmlGood($xml);
-
         // Устанавливаем связь БД и XML и производим сравнение данных
-        $this->goodParse($dbGood, $xmlGood);
+        $this->goodParse($dbGood, $this->xmlGood);
 
         // Данные для medium_categorylist
-        $groups = $xmlGood->groups;
+        $groups = $this->xmlGood->groups;
 
         // Обновление информации в medium_categorylist
         $medium = new DbMedium();

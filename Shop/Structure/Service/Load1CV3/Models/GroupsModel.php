@@ -10,37 +10,37 @@ use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class GroupsModel extends ModelAbstract
 {
+    protected XmlCategory $xmlCategory;
+
     public function init(): void
     {
         $this->setInfoText('Обработка категорий каталога (groups)');
         $this->setSort(20);
+
+        // инициализируем модель категорий в XML - XmlCategory
+        $xml = new Xml($this->filename);
+        $this->xmlCategory = new XmlCategory($xml);
+        $this->isOnlyUpdate = $this->xmlCategory->updateInfo();
     }
 
     /**
      * Запуск процесса обработки файлов propertiesGoods_*.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
-        $this->filename = $filePath;
         $this->packageNum = $packageNum;
 
-        $xml = new Xml($filePath);
-
-        // инициализируем модель категорий в XML - XmlCategory
-        $xmlCategory = new XmlCategory($xml);
-
-        $xmlCategoryXml = $xmlCategory->getXml();
+        $xmlCategoryXml = $this->xmlCategory->getXml();
 
         if (!empty($xmlCategoryXml)) {
             // инициализируем модель категорий в БД - DbCategory
             $dbCategory = new DbCategory();
 
             // Устанавливаем связь БД и XML
-            $this->categoryParse($dbCategory, $xmlCategory);
+            $this->categoryParse($dbCategory, $this->xmlCategory);
 
             // Создание категории товаров, у которых в выгрузке не присвоена категория
             $dbCategory->createDefaultCategory();

@@ -22,10 +22,18 @@ abstract class ModelAbstract implements ModelInterface
     /** @var array Общие настройки для всего процесса обмена */
     public array $exchangeConfig = [];
 
-    public function __construct($exchangeConfig)
+    protected bool $isOnlyUpdate = false;
+
+    public function __construct(array $exchangeConfig, string $filename)
     {
         $this->exchangeConfig = $exchangeConfig;
+        $this->filename = $filename;
         $this->init();
+    }
+
+    public function isOnlyUpdate(): bool
+    {
+        return $this->isOnlyUpdate;
     }
 
     /**

@@ -13,7 +13,7 @@ class PriceListsModel extends ModelAbstract
         $this->setSort(40);
     }
 
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
         $this->packageNum = $packageNum;
         $this->answer = [

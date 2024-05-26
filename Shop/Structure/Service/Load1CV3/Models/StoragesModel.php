@@ -9,37 +9,34 @@ use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class StoragesModel extends ModelAbstract
 {
+    protected XmlStorage $xmlUnit;
 
     public function init(): void
     {
         $this->setInfoText('Обработка складов каталога (storages)');
         $this->setSort(30);
-        // Данные о складах обработаны
+
+        // инициализируем модель остатков в XML - XmlUnit
+        $xml = new Xml($this->filename);
+        $this->xmlUnit = new XmlStorage($xml);
+        $this->isOnlyUpdate = $this->xmlUnit->updateInfo();
     }
 
     /**
      * Запуск процесса обработки файлов storages_*.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
-        $this->filename = $filePath;
         $this->packageNum = $packageNum;
-
-        // получение xml с данными об остатках
-        $xml = new Xml($filePath);
 
         // инициализируем модель остатков в БД - DbRests
         $dbUnit = new DbStorage();
 
-        // инициализируем модель остатков в XML - XmlUnit
-        $xmlUnit = new XmlStorage($xml);
-
         // Устанавливаем связь БД и XML
-        $storages = $this->parse($dbUnit, $xmlUnit);
+        $storages = $this->parse($dbUnit, $this->xmlUnit);
 
         $dbUnit->save($storages);
 

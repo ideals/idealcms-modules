@@ -8,34 +8,34 @@ use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class PropertiesOffersModel extends ModelAbstract
 {
+    protected XmlDirectory $xmlDirectory;
+
     public function init(): void
     {
         $this->setInfoText('Обработка свойств предложений (propertiesOffers)');
         $this->setSort(60);
+
+        // Инициализируем модель справочников в XML - XmlDirectory
+        $xml = new Xml($this->filename);
+        $this->xmlDirectory = new XmlDirectory($xml);
+        $this->isOnlyUpdate = $this->xmlDirectory->updateInfo();
     }
 
     /**
      * Запуск процесса обработки файлов propertiesOffers_*.xml
      *
-     * @param string $filePath Полный путь до обрабатываемого файла
      * @param int $packageNum Номер пакета
      * @return array Ответ по факту обработки файла
      */
-    public function startProcessing($filePath, $packageNum): array
+    public function startProcessing($packageNum): array
     {
-        $this->filename = $filePath;
         $this->packageNum = $packageNum;
-
-        $xml = new Xml($filePath);
 
         // Инициализируем модель справочников в БД - DbDirectory
         $dbDirectory = new DbDirectory();
 
-        // Инициализируем модель справочников в XML - XmlDirectory
-        $xmlDirectory = new XmlDirectory($xml);
-
         // Устанавливаем связь БД и XML, производим сравнение
-        $directories = $this->directoryParse($dbDirectory, $xmlDirectory);
+        $directories = $this->directoryParse($dbDirectory, $this->xmlDirectory);
 
         // Сохраняем результаты
         $dbDirectory->save($directories);

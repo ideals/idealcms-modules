@@ -9,11 +9,12 @@ class ModelAbstractFactory
     /**
      * Определяет модель и на основании имени файла
      *
-     * @param string $filename Имя файла для обработки которого определяется модель
+     * @param string $filePath Имя файла для обработки которого определяется модель
      * @return ModelInterface
      */
-    public function createByFilename(string $filename): ModelInterface
+    public function createByFilename(string $filePath): ModelInterface
     {
+        $filename = basename($filePath);
         preg_match('/(\w*?)_/', $filename, $type);
         if (!isset($type[1])) {
             throw new \RuntimeException(sprintf('Файл "%s" не может быть обработан', $filename));
@@ -24,16 +25,7 @@ class ModelAbstractFactory
             throw new \RuntimeException(sprintf('Не найдена модель для обработки файла "%s"', $filename));
         }
 
-        $class = new \ReflectionClass($model);
-        $constructor = $class->getConstructor();
-        if ($constructor) {
-            $parameters = $constructor->getParameters();
-            if ($parameters && $parameters[0]->name === 'exchangeConfig') {
-                return new $model($this->getConfig());
-            }
-        }
-
-        return new $model();
+        return new $model($this->getConfig(), $filePath);
     }
 
     public function getConfig(): array

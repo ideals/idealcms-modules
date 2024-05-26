@@ -111,7 +111,7 @@ class AjaxController extends \Ideal\Core\AjaxController
             $answer['response']['infoText'] = 'Обработка картинок из пакета № ' . $packageNum;
         } else {
             $config = require __DIR__ . '/load1cV3Settings.php'; // todo обнаружение в папке Mod.s
-            $model = (new ModelAbstractFactory())->setConfig($config)->createByFilename($answer['filename']);
+            $model = (new ModelAbstractFactory())->setConfig($config)->createByFilename($answer['workDir'] . $answer['filename']);
             $modelAnswer = $model->answer();
 
             // Получаем заголовок для вывода на странице ручного обновления
