@@ -4,7 +4,7 @@ namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Ideal\Core\Db;
 use Ideal\Core\Config;
-use Shop\Structure\Order\Site\Model;
+use Shop\Structure\Order\Model as OrderModel;
 
 class QueryModel
 {
@@ -248,12 +248,8 @@ class QueryModel
             'Силами перевозчика' => 3,
         ];
 
-        $newMethods = [
-            'Самовывоз' => 1,
-            'Доставка курьером по Москве (в пределах МКАД)' => 2,
-            'Доставка транспортной компанией СДЭК' => 3,
-            'Доставка Почтой России' => 4,
-        ];
+        $orderModel = new OrderModel();
+        $newMethods = array_flip($orderModel->getDeliveryMethods());
 
         return $oldMethods[$deliveryMethod] ?? $newMethods[$deliveryMethod] ?? 1;
     }
@@ -266,7 +262,7 @@ class QueryModel
             'Закрыт' => 'F',
         ];
 
-        $orderModel = new Model('');
+        $orderModel = new OrderModel();
         $newStatuses = array_flip($orderModel->getStatuses());
 
         return $oldStatuses[$status] ?? $newStatuses[$status] ?? 'P';
@@ -315,83 +311,8 @@ class QueryModel
 
     private function getPayMethodName(int $id): array
     {
-        $methods = [
-            1 => [
-                'name' => 'Оплата по реквизитам',
-                'type' => 'Безналичная оплата',
-                'operation' => 'Выплата безналичных денег',
-            ],
-            2 => [
-                'name' => 'Оплата картой на сайте',
-                'type' => 'Эквайринговая оплата',
-                'operation' => 'Эквайринговая операция',
-            ],
-            3 => [
-                'name' => 'Оплата по СБП на сайте',
-                'type' => 'Эквайринговая оплата',
-                'operation' => 'Эквайринговая операция',
-            ],
-            4 => [
-                'name' => 'Наличный расчёт 1',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            5 => [
-                'name' => 'Наличный расчёт 2',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            6 => [
-                'name' => 'Наличный расчёт 3',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            7 => [
-                'name' => 'Наличный расчёт 4',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            8 => [
-                'name' => 'Наличный расчёт 5',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            9 => [
-                'name' => 'Наличный расчёт 6',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            10 => [
-                'name' => 'Наличный расчёт 7',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            11 => [
-                'name' => 'Наличный расчёт 8',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            12 => [
-                'name' => 'Наличный расчёт 9',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            13 => [
-                'name' => 'Наличный расчёт 10',
-                'type' => 'Наличная оплата',
-                'operation' => 'Выплата наличных денег',
-            ],
-            14 => [
-                'name' => 'Оплата картой в магазине',
-                'type' => 'Эквайринговая оплата',
-                'operation' => 'Эквайринговая операция',
-            ],
-            15 => [
-                'name' => 'Оплата по СБП в магазине',
-                'type' => 'Эквайринговая оплата',
-                'operation' => 'Эквайринговая операция',
-            ],
-        ];
+        $orderModel = new OrderModel();
+        $methods = $orderModel->getPaymentMethods();
 
         return $methods[$id];
     }

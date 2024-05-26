@@ -1,7 +1,7 @@
 <?php
 namespace Shop\Structure\Service\Load1CV3\Xml\Order;
 
-use Shop\Structure\Order\Site\Model;
+use Shop\Structure\Order\Model as OrderModel;
 use Shop\Structure\Service\Load1CV3\Xml\AbstractXml;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
@@ -135,7 +135,7 @@ class XmlOrderAbstract extends AbstractXml
          * 5) Заказ деактивирован - заказ в 1С помечен на удаление.
          */
 
-        $orderModel = new Model('');
+        $orderModel = new OrderModel();
         $status = $orderModel->getStatuses()[$val['status']];
 
         if ($val['discard'] === 'true') {

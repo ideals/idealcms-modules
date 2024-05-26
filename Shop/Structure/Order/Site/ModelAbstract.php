@@ -6,17 +6,8 @@ use Ideal\Core\Config;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\Model
 {
-    public const STATUSES = [
-        'P' => 'В обработке',
-        'A' => 'Зарезервирован. Ожидает 100% оплат',
-        'W' => 'Изготовление на заказ',
-        'X' => 'Отгружен. Ожидает 100% оплат',
-        'S' => 'Оплачен. Ожидает отгрузки',
-        'F' => 'Выполнен',
-    ];
-
     /**
-     * Таблица где хранятся товары. Указывается без префикса
+     * Таблица, где хранятся товары. Указывается без префикса
      * @var string
      */
     protected $tableGood = 'shop_structure_good';
@@ -99,10 +90,5 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
             'content' => $letter,
             'price' => $price
         ));
-    }
-
-    public function getStatuses(): array
-    {
-        return self::STATUSES;
     }
 }
