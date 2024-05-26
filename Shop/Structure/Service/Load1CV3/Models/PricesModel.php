@@ -96,34 +96,7 @@ class PricesModel extends ModelAbstract
                 $this->answer['tmpResult'][$whatIsThat]['update'][$k] = 1;
             }
         }
-        // Если это обновление, то из xmlResult выделяем товары и находим, какие их офферы надо деактивировать
-        $config = Config::getInstance();
-        if (!empty($config->isOnlyUpdate)) {
-            // Выделяем список обновляемых товаров из xmlResult
-            $goodIds = array();
-            foreach ($xmlResult as $key => $item) {
-                $keys = explode('#', $key);
-                $goodIds[] = $keys[0];
-            }
-            // Извлекаем все офферы товаров
-            $offerIds = array();
-            foreach ($dbResult as $key => $item) {
-                $keys = explode('#', $key);
-                if (in_array($keys[0], $goodIds, true)) {
-                    $offerIds[] = $key;
-                }
-            }
-            // Находим все офферы, которых не оказалось в обновлении цен
-            $keys = array_keys($xmlResult);
-            $delete = array_diff($offerIds, $keys);
-            foreach ($delete as $key) {
-                $whatIsThat = substr_count($key, '#') === 1 ? 'offers' :  'goods';
-                $result[$key] = $dbResult[$key];
-                $result[$key]['is_active'] = 0;
-                $this->answer['update']++;
-                $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
-            }
-        }
+
         return $result;
     }
 }
