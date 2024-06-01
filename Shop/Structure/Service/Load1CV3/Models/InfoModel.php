@@ -11,7 +11,7 @@ class InfoModel
         $xml = simplexml_load_string(
             '<?xml version="1.0" encoding="utf-8"?>'
             . '<Справочник>'
-            . '<Статусы></Статусы>'
+            . '<Cтатусы></Cтатусы>'
             . '<ПлатежныеСистемы></ПлатежныеСистемы>'
             . '<СлужбыДоставки></СлужбыДоставки>'
             . '</Справочник>'
@@ -19,7 +19,7 @@ class InfoModel
 
         $order = new OrderModel();
 
-        $doc = $xml->xpath('//Статусы')[0];
+        $doc = $xml->xpath('//Cтатусы')[0];
         foreach ($order->getStatuses() as $key => $status) {
             $element = $doc->addChild('Элемент');
             $element->addChild('Ид', $key);
