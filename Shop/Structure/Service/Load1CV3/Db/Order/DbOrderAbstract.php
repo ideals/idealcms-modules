@@ -199,7 +199,7 @@ class DbOrderAbstract extends AbstractDb
 
     public function insert($element)
     {
-        $element['structure'] = 'Shop_OrderDetail';
+        $element['structure'] = 'Shop_OrderPay';
         $element['export'] = 0;
 
         $element['price'] = str_replace(',', '.', $element['price']) * 100;
