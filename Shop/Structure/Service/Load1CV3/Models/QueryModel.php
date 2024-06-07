@@ -123,7 +123,7 @@ class QueryModel
         if (!empty($order['payment_method'])) {
             $orderComment .= "\nСпособ оплаты: " . $order['payment_method'];
         }
-        $doc->addChild('Комментарий', $orderComment);
+        $doc->addChild('Комментарий', \htmlentities($orderComment));
     }
 
     protected function getOrderDeliveryAddress(array $order): string
