@@ -18,7 +18,9 @@ class OrdersModel extends ModelAbstract
         // инициализируем модель заказов в XML - XmlOrder
         $xml = new Xml($this->filename);
         $this->xmlOrder = new XmlOrder($xml);
-        $this->isOnlyUpdate = $this->xmlOrder->updateInfo();
+
+        // По заказам всегда идут только обновления
+        $this->isOnlyUpdate = true;
     }
 
     /**
