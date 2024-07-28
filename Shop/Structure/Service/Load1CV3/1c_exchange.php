@@ -1,6 +1,7 @@
 <?php
 namespace Shop\Structure\Service\Load1CV3;
 
+use App\HttpRecorder\HttpRecorder;
 use Ideal\Core;
 use Ideal\Core\Util;
 
@@ -27,6 +28,9 @@ $params = require $settingsFilePath;
 $cmsSettings = $config->cms;
 
 $config->cms = array_merge($cmsSettings, ['errorLog' => 'email']);
+
+$recorder = new HttpRecorder();
+$recorder($_SERVER, null, DOCUMENT_ROOT . $config->cms['tmpFolder'] . '/http-recorder');
 
 try {
     $fc = new FrontController($params);
