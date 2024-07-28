@@ -14,7 +14,7 @@ class PricesModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка цен (prices)');
-        $this->setSort(1000);
+        $this->setSort(90);
 
         // инициализируем модель категорий в XML - XmlCategory
         $xml = new Xml($this->filename);

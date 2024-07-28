@@ -13,7 +13,7 @@ class PropertiesOffersModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка свойств предложений (propertiesOffers)');
-        $this->setSort(60);
+        $this->setSort(40);
 
         // Инициализируем модель справочников в XML - XmlDirectory
         $xml = new Xml($this->filename);

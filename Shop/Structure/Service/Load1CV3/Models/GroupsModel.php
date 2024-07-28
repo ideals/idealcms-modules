@@ -15,7 +15,7 @@ class GroupsModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка категорий каталога (groups)');
-        $this->setSort(20);
+        $this->setSort(60);
 
         // инициализируем модель категорий в XML - XmlCategory
         $xml = new Xml($this->filename);

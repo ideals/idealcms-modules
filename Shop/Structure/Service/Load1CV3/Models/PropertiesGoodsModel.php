@@ -8,7 +8,7 @@ class PropertiesGoodsModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка свойств товаров (propertiesGoods)');
-        $this->setSort(50);
+        $this->setSort(30);
     }
 
     /**

@@ -15,7 +15,7 @@ class GoodsModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка товаров (goods)');
-        $this->setSort(80);
+        $this->setSort(70);
 
         // Инициализируем модель товаров в XML - XmlGood
         $xml = new Xml($this->filename);

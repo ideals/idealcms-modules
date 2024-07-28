@@ -14,7 +14,7 @@ class StoragesModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка складов каталога (storages)');
-        $this->setSort(30);
+        $this->setSort(20);
 
         // инициализируем модель остатков в XML - XmlUnit
         $xml = new Xml($this->filename);

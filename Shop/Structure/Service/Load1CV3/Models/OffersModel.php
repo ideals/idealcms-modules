@@ -15,7 +15,7 @@ class OffersModel extends ModelAbstract
     public function init(): void
     {
         $this->setInfoText('Обработка офферов (offers)');
-        $this->setSort(90);
+        $this->setSort(80);
 
         // инициализируем модель предложений в XML - XmlOffer
         $xml = new Xml($this->filename);
