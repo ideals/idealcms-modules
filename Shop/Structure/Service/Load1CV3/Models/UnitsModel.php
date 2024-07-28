@@ -31,13 +31,13 @@ class UnitsModel extends ModelAbstract
     {
         $this->packageNum = $packageNum;
 
-        // инициализируем модель остатков в БД - DbRests
+        // инициализируем модель остатков в БД
         $dbUnit = new DbUnit();
 
         // Устанавливаем связь БД и XML
-        $rests = $this->parse($dbUnit, $this->xmlUnit);
+        $units = $this->parse($dbUnit, $this->xmlUnit);
 
-        $dbUnit->save($rests);
+        $dbUnit->save($units);
 
         return $this->answer();
     }
@@ -48,7 +48,7 @@ class UnitsModel extends ModelAbstract
      * @param DbUnit $dbUnits
      * @param XmlUnit $xmlUnits
      *
-     * @return array двумерный массив с данными о ценах после сведения XML и БД
+     * @return array двумерный массив с данными об единицах измерения после сведения XML и БД
      */
     protected function parse($dbUnits, $xmlUnits)
     {
@@ -76,18 +76,10 @@ class UnitsModel extends ModelAbstract
     {
         $result = [];
         foreach ($xmlResult as $k => $val) {
-            $goodOffer = explode('#', $k);
-            if (substr_count($k, '#') === 1) {
-                $whatIsThat = 'offers';
-                $key = $goodOffer[1];
-            } else {
-                $whatIsThat = 'goods';
-                $key = $goodOffer[0];
-            }
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
                 $this->answer['add']++;
-                $this->answer['tmpResult'][$whatIsThat]['insert'][$key] = 1;
+                $this->answer['tmpResult']['units']['insert'][$k] = 1;
                 continue;
             }
 
@@ -95,9 +87,8 @@ class UnitsModel extends ModelAbstract
             if (count($res) > 0) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
-                $result[$k]['good_id'] = $dbResult[$k]['good_id'];
                 $this->answer['update']++;
-                $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
+                $this->answer['tmpResult']['units']['update'][$k] = 1;
             }
         }
 
