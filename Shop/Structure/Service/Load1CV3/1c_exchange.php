@@ -2,6 +2,7 @@
 namespace Shop\Structure\Service\Load1CV3;
 
 use Ideal\Core;
+use Ideal\Core\Util;
 
 $isConsole = true;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/_.php';
@@ -39,4 +40,10 @@ try {
 } catch (\Throwable $e) {
     print "failure\n";
     print $e->getMessage();
+}
+
+$errors = Util::$errorArray;
+if (count($errors) > 0) {
+    print "Возникли следующие ошибки: \n";
+    print_r($errors);
 }
