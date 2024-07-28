@@ -12,7 +12,7 @@ use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
 use Shop\Structure\Service\Load1CV3\Db\Storage\DbStorage;
 use Shop\Structure\Service\Load1CV3\Db\Unit\DbUnit;
 use Shop\Structure\Service\Load1CV3\Xml\Category\XmlCategory;
-use Shop\Structure\Service\Load1CV3\Xml\Storage\XmlStorage;
+use Shop\Structure\Service\Load1CV3\Xml\PriceLists\XmlPriceLists;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
 class ExchangeUtil
@@ -407,6 +407,13 @@ class ExchangeUtil
      */
     public static function finalUpdates(): void
     {
+        $db = Db::getInstance();
+        $result = $db->query('SHOW TABLES LIKE \'%_test\';');
+        $res = $result->fetch_all(MYSQLI_ASSOC);
+        if (count($res) === 0) {
+            return;
+        }
+
         $dbGood = new DbGood();
         $dbGood->updateGood();
         $dbCategory = new DbCategory();
@@ -447,14 +454,14 @@ class ExchangeUtil
             return true;
         }
 
-        // Если обрабатываемый файл является файлом со складами, то начинается новый сеанс выгрузки
+        // Если обрабатываемый файл является файлом с типами цен, то начинается новый сеанс выгрузки
         $xml = new Xml($filePath);
-        $xmlStorage = new XmlStorage($xml);
+        $xmlStorage = new XmlPriceLists($xml);
         if ($xmlStorage->validate()) {
             return true;
         }
 
-        // Если временный файл последний раз обновлялся более 40 секунд назад, то начинается новый сеанс выгрузки
-        return (time() - filemtime($tmpResultFile)) > 40;
+        // Если временный файл последний раз обновлялся более 10 минут назад, то начинается новый сеанс выгрузки
+        return (time() - filemtime($tmpResultFile)) > (40 * 60 * 10);
     }
 }
