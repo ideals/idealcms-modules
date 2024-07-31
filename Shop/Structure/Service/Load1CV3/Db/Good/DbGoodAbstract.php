@@ -165,23 +165,25 @@ class DbGoodAbstract extends AbstractDb
                 $result[$item['id_1c']] = $item;
             } else {
                 $offer = $result[$item['id_1c']];
-                if ((float) $item['price'] > 0 && ((float) $offer['price'] === 0 || $item['price'] < $offer['price'])) {
+                if ((float) $item['price'] > 0 && ((int) $offer['price'] === 0 || $item['price'] < $offer['price'])) {
                     // Если товар уже есть в массиве, но у рассматриваемого оффера цена ниже, то обновляем цену у
                     // товара
                     $result[$item['id_1c']]['price'] = $item['price'];
                 }
 
-                // Складываем остатки всех офферов
-                $result[$item['id_1c']]['stock'] += $item['stock'];
+                if ((float) $item['price'] > 0) {
+                    // Складываем остатки всех офферов (учитываем только те, где есть цены)
+                    $result[$item['id_1c']]['stock'] += $item['stock'];
+                }
 
-                if ((float)$item['price_old'] > 0 &&
-                    ((float)$result[$item['id_1c']]['price_old'] == 0 ||
-                        (float)$item['price_old'] > (float)$result[$item['id_1c']]['price_old']
+                if ((float) $item['price_old'] > 0 &&
+                    ((int) $result[$item['id_1c']]['price_old'] === 0 ||
+                        (float) $item['price_old'] > (float) $result[$item['id_1c']]['price_old']
                     )
                 ) {
                     // Если товар уже есть в массиве, но у рассматриваемого оффера старая цена выше,
                     // то обновляем старую цену у товара
-                    $result[$item['id_1c']]['price_old'] = (int)$item['price_old'];
+                    $result[$item['id_1c']]['price_old'] = (int) $item['price_old'];
                 }
             }
         }
