@@ -150,7 +150,6 @@ class GoodsModel extends ModelAbstract
                         }
 
                         copy($path, DOCUMENT_ROOT . "/images/1c/{$entryTmp}/{$entry}");
-                        $this->removeResizedPhotos("/images/1c/{$entryTmp}/{$entry}");
                     }
                     $processedImg++;
                     unlink($path);
@@ -209,24 +208,6 @@ class GoodsModel extends ModelAbstract
                 $dbGood->update($res, $dbResult[$k]);
                 $this->answer['tmpResult']['goods']['update'][$val['id_1c']] = 1;
                 $dbGood->onAfterSetDbElement($dbResult[$k], $val);
-            }
-        }
-    }
-
-    /**
-     * Удаляем картинки изменённых размеров
-     *
-     * @param string $img
-     * @return void
-     */
-    protected function removeResizedPhotos(string $img): void
-    {
-        $config = Config::getInstance();
-        $sizes = explode("\n", $config->allowResize);
-        foreach ($sizes as $size) {
-            $fileName = DOCUMENT_ROOT . '/images/resized/' . $size . '/' . $img;
-            if (file_exists($fileName)) {
-                unlink($fileName);
             }
         }
     }
