@@ -74,9 +74,9 @@ class DbGoodAbstract extends AbstractDb
         $result = [];
         foreach ($tmp as $element) {
             if ($element['id_1c'] === 'not-1c') {
-                $result[] = $element;
+                $result[] = $this->onAfterParse($element);
             } else {
-                $result[$element['id_1c']] = $element;
+                $result[$element['id_1c']] = $this->onAfterParse($element);
             }
         }
 
@@ -266,5 +266,13 @@ class DbGoodAbstract extends AbstractDb
             $sql = "DELETE FROM {$this->structureMedium}{$this->tablePostfix} WHERE good_id IN ({$whereId})";
             $db->query($sql);
         }
+    }
+
+    /**
+     * Обработка данных товара, после извлечения из БД
+     */
+    protected function onAfterParse(array $element): array
+    {
+        return $element;
     }
 }
