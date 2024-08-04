@@ -168,7 +168,7 @@ $config = \Ideal\Core\Config::getInstance();
                 if (errorResponse == false) {
                     if (data['errors'].length > 0) {
                         var anotherErrText = '<div class="alert alert-danger fade in">';
-                        anotherErrText += 'При обновлении произошли ошибки, обновление прекращено:</div>';
+                        anotherErrText += 'При обновлении произошли ошибки:</div>';
                         modal_body.append(anotherErrText);
                         for (var i in data['errors']) {
                             if (!data['errors'].hasOwnProperty(i)) {
@@ -180,6 +180,7 @@ $config = \Ideal\Core\Config::getInstance();
                             modal.find('.close, .btn-close').removeAttr('disabled');
                             modal.find('.modal-loading').hide();
                         }
+                        startPprocess(data['filename'], onlyImageResize);
                     } else {
                         if (data['response'][0] == 'success') {
                             modal_body.append('<div class="alert alert-success fade in">' +
