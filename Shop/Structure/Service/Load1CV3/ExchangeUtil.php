@@ -39,7 +39,7 @@ class ExchangeUtil
                 closedir($dh);
             }
             rmdir($path);
-        } else {
+        } elseif (file_exists($path)) {
             unlink($path);
         }
     }
