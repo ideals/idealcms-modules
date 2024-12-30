@@ -163,6 +163,9 @@ class DbGoodAbstract extends AbstractDb
             // Если товара ещё нет в массиве, то добавляем его
             if (!isset($result[$item['id_1c']])) {
                 $result[$item['id_1c']] = $item;
+                if ((float) $item['price'] === 0.0) {
+                    $result[$item['id_1c']]['stock'] = 0;
+                }
             } else {
                 $offer = $result[$item['id_1c']];
                 if ((float) $item['price'] > 0 && ((int) $offer['price'] === 0 || $item['price'] < $offer['price'])) {
