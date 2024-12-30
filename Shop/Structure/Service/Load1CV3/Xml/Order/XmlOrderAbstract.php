@@ -136,7 +136,7 @@ class XmlOrderAbstract extends AbstractXml
          */
 
         $orderModel = new OrderModel();
-        $status = $orderModel->getStatuses()[$val['status']];
+        $status = $orderModel->getStatuses()[$val['status']] ?? $orderModel->getStatuses()['U'];
 
         if ($val['discard'] === 'true') {
             $status = 'Отменён';
