@@ -195,7 +195,7 @@ class GoodsModel extends ModelAbstract
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $this->answer['add']++;
-                $dbGood->onBeforeSetDbElement($dbResult[$k], null);
+                $dbGood->onBeforeSetDbElement($val, null);
                 $val['ID'] = $dbGood->insert($val);
                 $this->answer['tmpResult']['goods']['insert'][$val['id_1c']] = 1;
                 $dbGood->onAfterSetDbElement($val, $val);
