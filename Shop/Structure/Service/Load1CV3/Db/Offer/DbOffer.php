@@ -8,9 +8,12 @@ use Shop\Structure\Service\Load1CV3\Db\Good\DbGood;
 
 class DbOffer extends AbstractDb
 {
-    protected $parse = array();
+    protected string $nullableField = 'is_active';
+
+    protected array $parse = [];
+
     /**
-     *  Установка полей класса - полного имени таблиц с префикс
+     *  Установка полей класса - полного имени таблиц с префиксом
      */
     public function __construct()
     {
@@ -66,8 +69,9 @@ class DbOffer extends AbstractDb
                 // При загрузке только обновлений деактивируем все офферы этого товара, активные обновятся сами
                 // Когда загрузка полной базы - все офферы деактивируются на начальном этапе
                 $deactivated[$element['good_id']] = true;
-                $db->update($this->table)
-                   ->set(['is_active' => 0])
+                // todo продумать, как обнулять, когда нет записей об офферах/ценах/остатках
+                $db->update($this->table . $this->tablePostfix)
+                   ->set([$this->nullableField => 0])
                    ->where('good_id="' . $element['good_id'] . '"')
                    ->exec();
             }

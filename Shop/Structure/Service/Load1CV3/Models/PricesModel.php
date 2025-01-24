@@ -86,14 +86,12 @@ class PricesModel extends ModelAbstract
                 continue;
             }
 
-            $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
-                $result[$k] = $res;
-                $result[$k]['ID'] = $dbResult[$k]['ID'];
-                $result[$k]['good_id'] = $dbResult[$k]['good_id'];
-                $this->answer['update']++;
-                $this->answer['tmpResult'][$whatIsThat]['update'][$k] = 1;
-            }
+            // Цены выгружаются всегда целиком и нужно обновлять все поступившие элементы
+            $result[$k] = $val;
+            $result[$k]['ID'] = $dbResult[$k]['ID'];
+            $result[$k]['good_id'] = $dbResult[$k]['good_id'];
+            $this->answer['update']++;
+            $this->answer['tmpResult'][$whatIsThat]['update'][$k] = 1;
         }
 
         return $result;

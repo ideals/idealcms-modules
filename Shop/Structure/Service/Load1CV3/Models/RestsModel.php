@@ -111,14 +111,11 @@ class RestsModel extends ModelAbstract
                 continue;
             }
 
-            $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
-                $result[$k] = $res;
-                $result[$k]['ID'] = $dbResult[$k]['ID'];
-                $result[$k]['good_id'] = $dbResult[$k]['good_id'];
-                $this->answer['update']++;
-                $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
-            }
+            $result[$k] = $val;
+            $result[$k]['ID'] = $dbResult[$k]['ID'];
+            $result[$k]['good_id'] = $dbResult[$k]['good_id'];
+            $this->answer['update']++;
+            $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
         }
         return $result;
     }
