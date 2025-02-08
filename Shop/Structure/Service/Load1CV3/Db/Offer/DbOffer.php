@@ -65,16 +65,21 @@ class DbOffer extends AbstractDb
                 unset($elements[$k]);
                 continue;
             }
-            if ($this->isOnlyUpdate && !isset($deactivated[$element['good_id']])) {
-                // При загрузке только обновлений деактивируем все офферы этого товара, активные обновятся сами
-                // Когда загрузка полной базы - все офферы деактивируются на начальном этапе
-                $deactivated[$element['good_id']] = true;
-                // todo продумать, как обнулять, когда нет записей об офферах/ценах/остатках
-                $db->update($this->table . $this->tablePostfix)
-                   ->set([$this->nullableField => 0])
-                   ->where('good_id="' . $element['good_id'] . '"')
-                   ->exec();
-            }
+            // todo временное отключение деактивации офферов/цен/остатков, так как 1С перешла на другую схему деактивации
+//            if ($this->isOnlyUpdate && !isset($deactivated[$k])) {
+//                $andOfferId = '';
+//                if (strpos($k, '#') !== false) {
+//                    $andOfferId = ' AND offer_id="' . $element['offer_id'] . '"';
+//                }
+//                // При загрузке только обновлений деактивируем все офферы этого товара, активные обновятся сами
+//                // Когда загрузка полной базы - все офферы деактивируются на начальном этапе
+//                $deactivated[$k] = true;
+//                // todo продумать, как обнулять, когда нет записей об офферах/ценах/остатках
+//                $db->update($this->table . $this->tablePostfix)
+//                   ->set([$this->nullableField => 0])
+//                   ->where('good_id="' . $element['good_id'] . '"' . $andOfferId)
+//                   ->exec();
+//            }
             if (isset($element['rest'])) {
                 $elements[$k]['rest'] = (int) $element['rest'];
             }
