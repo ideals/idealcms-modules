@@ -136,6 +136,7 @@ class XmlOrderAbstract extends AbstractXml
          */
 
         $orderModel = new OrderModel();
+        // todo логирование заказа с неизвестным статусом
         $status = $orderModel->getStatuses()[$val['status']] ?? $orderModel->getStatuses()['U'];
 
         if ($val['discard'] === 'true') {
