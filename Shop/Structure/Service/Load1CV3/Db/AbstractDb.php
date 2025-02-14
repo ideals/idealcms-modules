@@ -180,7 +180,7 @@ class AbstractDb
     /**
      * Вызывается перед записью данных в БД. Есть возможность скорректировать, или отменить запись
      */
-    public function onBeforeSetDbElement(array &$new, ?array $old = null): bool
+    public function onBeforeSetDbElement(?array $old, array &$new): bool
     {
         return true;
     }
