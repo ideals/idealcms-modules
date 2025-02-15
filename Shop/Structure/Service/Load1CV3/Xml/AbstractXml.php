@@ -127,6 +127,11 @@ class AbstractXml
 
             $needle = $item->xpath($this->ns . $path);
 
+            // Если не нашлось требуемого элемента, то не добавляем
+            if (count($needle) === 0) {
+                continue;
+            }
+
             // По умолчанию присваиваем заполняемому полю пустую строку
             $this->data[$id][$key] = is_array($value) ? [] : '';
 

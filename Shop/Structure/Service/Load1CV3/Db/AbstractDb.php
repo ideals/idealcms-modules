@@ -157,6 +157,11 @@ class AbstractDb
 
         $element = $this->prepareForUpdate($element, $oldElement);
 
+        if (count($element) < 2) {
+            // Если нет данных или указан только ID, то не обновляем
+            return;
+        }
+
         $element['date_mod'] = time();
 
         $db->update($this->table . $this->tablePostfix)->set($element)->where('ID=:ID', $element)->exec();

@@ -47,8 +47,10 @@ class XmlGoodAbstract extends AbstractXml
     {
         foreach ($data as $k => $val) {
             $data[$k]['is_active'] = $val['is_active'] === 'false' ? '1' : '0';
-            $data[$k]['imgs'] = json_encode($val['imgs'], JSON_THROW_ON_ERROR);
             $data[$k]['url'] = Url\Model::translitUrl($val['name']);
+            if (isset($val['imgs']) && is_array($val['imgs']) && $val['imgs'] !== []) {
+                $data[$k]['imgs'] = json_encode($val['imgs'], JSON_THROW_ON_ERROR);
+            }
         }
 
         return $data;
