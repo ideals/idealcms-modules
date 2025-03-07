@@ -29,6 +29,9 @@ class XmlGoodAbstract extends AbstractXml
         // Заполняем массив привязки товаров к группам
         $this->groups = [];
         foreach ($this->data as $k => $good) {
+            if (!isset($good['groups'])) {
+                continue;
+            }
             $this->groups[$good['id_1c']] = $good['groups'];
             // Убираем список групп, т.к. он не должен использоваться при сохранении товара в БД
             unset($this->data[$k]['groups']);
