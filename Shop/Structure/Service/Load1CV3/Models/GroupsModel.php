@@ -20,7 +20,6 @@ class GroupsModel extends ModelAbstract
         // инициализируем модель категорий в XML - XmlCategory
         $xml = new Xml($this->filename);
         $this->xmlCategory = new XmlCategory($xml);
-        $this->isOnlyUpdate = $this->xmlCategory->updateInfo();
     }
 
     /**

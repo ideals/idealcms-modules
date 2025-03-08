@@ -19,9 +19,6 @@ class OrdersModel extends ModelAbstract
         $xml = new Xml($this->filename);
         $this->xmlOrder = new XmlOrder($xml);
         $this->xmlOrder->setExchangeConfig($this->exchangeConfig);
-
-        // По заказам всегда идут только обновления
-        $this->isOnlyUpdate = true;
     }
 
     /**

@@ -223,8 +223,8 @@ class DbCategoryAbstract extends AbstractDb
             $dbMedium = new DbMedium();
             $goodsCount = $dbMedium->countGoodsToGroup();
 
-            // Рекурсивно расставляем количество товаров в категории,
-            // суммируюя количество товаров в подкатегориях
+            /// Рекурсивно расставляем количество товаров в категории,
+            /// суммируя количество товаров в подкатегориях.
             $this->recursiveRestruct($categories, $goodsCount);
 
             $this->save($categories);
@@ -252,27 +252,5 @@ class DbCategoryAbstract extends AbstractDb
         $element['structure'] = 'CatalogPlus_Category';
 
         return parent::getForAdd($element);
-    }
-
-    /**
-     * Подготовка временной таблицы для выгрузки
-     */
-    public function prepareTable()
-    {
-        $this->dropTestTable();
-        $this->createEmptyTestTable();
-        $this->copyOrigTable();
-        if (!$this->isOnlyUpdate) {
-            $db = Db::getInstance();
-            // Сбрасываем счетчик товаров для групп
-            $values = array(
-                'num' => 0,
-                'count_sale' => 0,
-                'is_not_menu' => 0,
-            );
-            $db->update($this->table . $this->tablePostfix)
-                ->set($values)
-                ->exec();
-        }
     }
 }

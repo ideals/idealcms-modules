@@ -22,9 +22,6 @@ class AbstractDb
     /** @var array массив конфигурация для таблицы */
     protected $configs;
 
-    /** @var bool выгрузка содержит только изменения */
-    protected $isOnlyUpdate;
-
     /** @var int количество вставляемых строк за 1 insert запрос */
     protected $multipleInsert = 5;
 
@@ -35,7 +32,6 @@ class AbstractDb
     {
         $config = Config::getInstance();
         $this->prefix = $config->db['prefix'];
-        $this->isOnlyUpdate = $config->isOnlyUpdate;
         $path = explode('\\', get_class($this));
         $path = array_slice($path, -2, 1);
         $path = 'Shop/Structure/Service/Load1CV3/Xml/' . $path[0];
@@ -96,15 +92,16 @@ class AbstractDb
         $this->dropTestTable();
         $this->createEmptyTestTable();
         $this->copyOrigTable();
-        if (!$this->isOnlyUpdate) {
-            $this->deactivateDataInTable();
-        }
     }
 
     public function renameTable()
     {
         $this->updateOrigTable();
         $this->dropTestTable();
+    }
+
+    public function deactivateTable(): void
+    {
     }
 
     /**

@@ -18,7 +18,6 @@ class PropertiesOffersModel extends ModelAbstract
         // Инициализируем модель справочников в XML - XmlDirectory
         $xml = new Xml($this->filename);
         $this->xmlDirectory = new XmlDirectory($xml);
-        $this->isOnlyUpdate = $this->xmlDirectory->updateInfo();
     }
 
     /**

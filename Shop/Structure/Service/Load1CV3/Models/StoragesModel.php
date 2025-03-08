@@ -19,7 +19,6 @@ class StoragesModel extends ModelAbstract
         // инициализируем модель остатков в XML - XmlUnit
         $xml = new Xml($this->filename);
         $this->xmlUnit = new XmlStorage($xml);
-        $this->isOnlyUpdate = $this->xmlUnit->updateInfo();
     }
 
     /**

@@ -139,9 +139,7 @@ class DbMedium extends AbstractDb
     {
         $this->dropTestTable();
         $this->createEmptyTestTable();
-        if ($this->isOnlyUpdate) {
-            $this->copyOrigTable();
-        }
+        $this->copyOrigTable();
     }
 
 }

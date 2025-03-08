@@ -18,7 +18,6 @@ class PriceListsModel extends ModelAbstract
         // инициализируем модель типов цен в XML
         $xml = new Xml($this->filename);
         $this->xmlPriceLists = new XmlPriceLists($xml);
-        $this->isOnlyUpdate = $this->xmlPriceLists->updateInfo();
     }
 
     public function startProcessing($packageNum): array

@@ -19,7 +19,6 @@ class PricesModel extends ModelAbstract
         // инициализируем модель категорий в XML - XmlCategory
         $xml = new Xml($this->filename);
         $this->xmlPrices = new XmlPrices($xml);
-        $this->isOnlyUpdate = $this->xmlPrices->updateInfo();
     }
 
     /**

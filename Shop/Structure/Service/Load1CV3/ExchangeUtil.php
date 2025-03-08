@@ -328,6 +328,19 @@ class ExchangeUtil
         (new DbCustom())->renameTable();
     }
 
+    public static function deactivateTables(): void
+    {
+        (new DbCategory())->deactivateTable(); // не требуется, тк категории отображаются если num>0
+        (new DbGood())->deactivateTable();
+        (new DbDirectory())->deactivateTable();
+        (new DbMedium())->deactivateTable();
+        (new DbOffer())->deactivateTable();
+        (new DbOrder())->deactivateTable();
+        (new DbUnit())->deactivateTable();
+        (new DbStorage())->deactivateTable();
+        (new DbCustom())->deactivateTable();
+    }
+
     /**
      * Формирует список xml файлов предоставленных для обработки в указанной директории
      *

@@ -20,7 +20,6 @@ class OffersModel extends ModelAbstract
         // инициализируем модель предложений в XML - XmlOffer
         $xml = new Xml($this->filename);
         $this->xmlOffers = new XmlOffer($xml);
-        $this->isOnlyUpdate = $this->xmlOffers->updateInfo();
     }
 
     /**

@@ -18,7 +18,6 @@ class UnitsModel extends ModelAbstract
         // инициализируем модель единиц измерения в XML - XmlUnit
         $xml = new Xml($this->filename);
         $this->xmlUnit = new XmlUnit($xml);
-        $this->isOnlyUpdate = $this->xmlUnit->updateInfo();
     }
 
     /**

@@ -21,7 +21,6 @@ class GoodsModel extends ModelAbstract
         // Инициализируем модель товаров в XML - XmlGood
         $xml = new Xml($this->filename);
         $this->xmlGood = new XmlGood($xml);
-        $this->isOnlyUpdate = $this->xmlGood->updateInfo();
     }
 
     /**

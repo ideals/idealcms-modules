@@ -20,7 +20,6 @@ class RestsModel extends ModelAbstract
         // инициализируем модель остатков в XML - XmlRests
         $xml = new Xml($this->filename);
         $this->xmlRests = new XmlRests($xml);
-        $this->isOnlyUpdate = $this->xmlRests->updateInfo();
     }
 
     /**

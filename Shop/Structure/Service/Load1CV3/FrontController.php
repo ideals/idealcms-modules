@@ -113,6 +113,7 @@ LOGMESSAGE;
      */
     protected function deactivateAction()
     {
+        ExchangeUtil::deactivateTables();
         $this->response = "success\n";
     }
 
@@ -173,9 +174,6 @@ LOGMESSAGE;
         $tmpResultFile = DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';
         global $newSeance;
         $newSeance = ExchangeUtil::checkExchangeStart($workDir . $filename, $tmpResultFile);
-
-        // Пытаемся получить информацию о полноте выгрузки
-        $cmsConfig->isOnlyUpdate = $model->isOnlyUpdate();
 
         if ($newSeance) {
             // Запускаем процесс подготовки базы для приёма данных если временный файл обновлялся более 1,5 минут назад
