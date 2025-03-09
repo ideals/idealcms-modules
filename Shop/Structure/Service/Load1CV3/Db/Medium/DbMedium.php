@@ -118,7 +118,7 @@ class DbMedium extends AbstractDb
 	        {$this->table}{$this->tablePostfix} as cmc
           LEFT JOIN {$this->prefix}catalogplus_structure_good{$this->tablePostfix} as csg
           ON csg.ID = cmc.good_id
-          WHERE csg.stock > 0 OR csg.possible_be_ordering_in_absence = 1
+          WHERE (csg.stock > 0 OR csg.possible_be_ordering_in_absence = 1) AND csg.is_active=1
           GROUP BY cmc.category_id
         ";
 

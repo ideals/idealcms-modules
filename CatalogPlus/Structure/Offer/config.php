@@ -43,5 +43,10 @@ return array(
             'sql'   => 'bool',
             'type'  => 'Ideal_Checkbox'
         ),
+        'is_1c_exchanged' => array(
+            'label' => 'Выгружено из 1С',
+            'sql'   => "bool DEFAULT '0' NOT NULL",
+            'type'  => 'Ideal_Checkbox'
+        ),
     ),
 );

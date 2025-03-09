@@ -212,6 +212,8 @@ class DbCategoryAbstract extends AbstractDb
     {
         $db = Db::getInstance();
 
+        $this->tablePostfix = '';
+
         // Проверяем наличие тестовых таблиц, потому что их может не быть если происходит только лишь обмен заказами
         $result = $db->query('SHOW TABLES LIKE \'' . $this->table . $this->tablePostfix . '\'');
         $res = $result->fetch_all(MYSQLI_ASSOC);
@@ -221,7 +223,7 @@ class DbCategoryAbstract extends AbstractDb
 
             // Определяем количество товаров в каждой категории
             $dbMedium = new DbMedium();
-            $goodsCount = $dbMedium->countGoodsToGroup();
+            $goodsCount = $dbMedium->setTablePostfix($this->tablePostfix)->countGoodsToGroup();
 
             /// Рекурсивно расставляем количество товаров в категории,
             /// суммируя количество товаров в подкатегориях.

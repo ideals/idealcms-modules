@@ -423,15 +423,14 @@ class ExchangeUtil
         $db = Db::getInstance();
         $result = $db->query('SHOW TABLES LIKE \'%_test\';');
         $res = $result->fetch_all(MYSQLI_ASSOC);
-        if (count($res) === 0) {
-            return;
+        if (count($res) !== 0) {
+            self::renameTables();
         }
 
         $dbGood = new DbGood();
         $dbGood->updateGood();
         $dbCategory = new DbCategory();
         $dbCategory->updateGoodsCount();
-        self::renameTables();
     }
 
     /**

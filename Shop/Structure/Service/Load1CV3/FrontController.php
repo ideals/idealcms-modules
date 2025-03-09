@@ -114,6 +114,7 @@ LOGMESSAGE;
     protected function deactivateAction()
     {
         ExchangeUtil::deactivateTables();
+        ExchangeUtil::finalUpdates();
         $this->response = "success\n";
     }
 

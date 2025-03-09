@@ -132,12 +132,7 @@ class DbGoodAbstract extends AbstractDb
     {
         $db = Db::getInstance();
 
-        // Проверяем наличие тестовых таблиц, потому что их может не быть если происходит только лишь обмен заказами
-        $result = $db->query('SHOW TABLES LIKE \'' . $this->offers . $this->tablePostfix . '\'');
-        $res = $result->fetch_all(MYSQLI_ASSOC);
-        if (count($res) === 0) {
-            return;
-        }
+        $this->tablePostfix = '';
 
         $selectFields = 'ID, id_1c, price, offer_id_1c, stock, currency, price_old, possible_be_ordering_in_absence';
         $goods = $this->getGoods($selectFields, 'is_active = 1');
@@ -213,6 +208,23 @@ class DbGoodAbstract extends AbstractDb
     public function setGoodKeys($goodKeys)
     {
         $this->goodKeys = $goodKeys;
+    }
+
+    protected function copyOrigTable()
+    {
+        parent::copyOrigTable();
+
+        $db = Db::getInstance();
+
+        $testTable = $this->table . $this->tablePostfix;
+        $sql = "UPDATE {$testTable} SET is_1c_exchanged=0";
+        $db->query($sql);
+    }
+
+    public function deactivateTable(): void
+    {
+        $db = Db::getInstance();
+        $db->query("UPDATE {$this->table} SET is_active=0 WHERE is_1c_exchanged=0");
     }
 
     /**

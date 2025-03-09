@@ -194,6 +194,7 @@ class GoodsModel extends ModelAbstract
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $this->answer['add']++;
+                $val['is_1c_exchanged'] = 1;
                 $dbGood->onBeforeSetDbElement(null, $val);
                 $val['ID'] = $dbGood->insert($val);
                 $this->answer['tmpResult']['goods']['insert'][$val['id_1c']] = 1;
@@ -205,10 +206,17 @@ class GoodsModel extends ModelAbstract
             if (count($res) > 0) {
                 $val['ID'] = $res['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;
+                $res['is_1c_exchanged'] = 1;
                 $dbGood->onBeforeSetDbElement($dbResult[$k], $res);
                 $dbGood->update($res, $dbResult[$k]);
                 $this->answer['tmpResult']['goods']['update'][$val['id_1c']] = 1;
                 $dbGood->onAfterSetDbElement($dbResult[$k], $val);
+            } else {
+                // Даже если товар не изменился, обновляем признак его наличия в выгрузке
+                $dbGood->update([
+                    'ID' => $val['ID'],
+                    'is_1c_exchanged' => 1,
+                ]);
             }
         }
     }

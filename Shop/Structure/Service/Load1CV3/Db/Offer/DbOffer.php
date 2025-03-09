@@ -28,7 +28,7 @@ class DbOffer extends AbstractDb
      */
     public function parse()
     {
-        if (count($this->parse) != 0) {
+        if (count($this->parse) !== 0) {
             return $this->parse;
         }
 
@@ -108,14 +108,20 @@ class DbOffer extends AbstractDb
         parent::save($elements);
     }
 
-    protected function deactivateDataInTable()
+    public function deactivateTable(): void
     {
-        parent::deactivateDataInTable();
+        $db = Db::getInstance();
+        $db->query("UPDATE {$this->table} SET is_active=0 WHERE is_1c_exchanged=0");
+    }
+
+    protected function copyOrigTable()
+    {
+        parent::copyOrigTable();
 
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "UPDATE {$testTable} SET price_old = 0, rest = 0";
+        $sql = "UPDATE {$testTable} SET is_1c_exchanged=0";
         $db->query($sql);
     }
 }

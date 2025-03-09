@@ -48,6 +48,13 @@ class AbstractDb
         return $this->tablePostfix;
     }
 
+    public function setTablePostfix(string $postfix): self
+    {
+        $this->tablePostfix = $postfix;
+
+        return $this;
+    }
+
     /**
      * Удаление временной таблицы
      */
@@ -220,19 +227,6 @@ class AbstractDb
 
         $testTable = $this->table . $this->tablePostfix;
         $sql = "INSERT INTO {$testTable} SELECT * FROM {$this->table}";
-        $db->query($sql);
-    }
-
-    /**
-     * Переводим все данные во временных таблицах в is_active = 0.
-     * Используется только при полной выгрузке.
-     */
-    protected function deactivateDataInTable()
-    {
-        $db = Db::getInstance();
-
-        $testTable = $this->table . $this->tablePostfix;
-        $sql = "UPDATE {$testTable} SET is_active = 0";
         $db->query($sql);
     }
 
