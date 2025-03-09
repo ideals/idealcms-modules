@@ -58,10 +58,13 @@ $config = \Ideal\Core\Config::getInstance();
     <div class="form-inline">
         <div class="col-sm-offset-2 col-sm-10">
             <button type="submit" class="btn btn-success pull-right" id="load1c">
-                Запустить выгрузку
+                Выгрузка
             </button>
             <button type="submit" class="btn btn-success pull-right" id="resizer" style="margin-right: 5px">
-                Запустить ресайз картинок
+                Ресайз картинок
+            </button>
+            <button type="submit" class="btn btn-primary pull-right" id="load1c-deactivate" style="margin-right: 5px">
+                Выгрузка с деактивацией
             </button>
             <input type="submit" class="btn btn-info pull-right" name="edit" value="Сохранить настройки" style="margin-right: 5px"/>
         </div>
@@ -76,16 +79,21 @@ $config = \Ideal\Core\Config::getInstance();
         $('#load1c').on('click', function(e) {
             modal_body.html('');
             e.preventDefault();
-            startPprocess('');
+            startProcess('');
         });
         $('#resizer').on('click', function(e) {
             modal_body.html('');
             e.preventDefault();
-            startPprocess('', true);
+            startProcess('', true);
+        });
+        $('#load1c-deactivate').on('click', function(e) {
+            modal_body.html('');
+            e.preventDefault();
+            startProcess('', false, true);
         });
     }) (jQuery);
 
-    function startPprocess(file, onlyImageResize) {
+    function startProcess(file, onlyImageResize, isDeactivate = true) {
         if (onlyImageResize === undefined) {
             onlyImageResize = false;
         }
@@ -120,9 +128,12 @@ $config = \Ideal\Core\Config::getInstance();
                         console.log(data);
                         modal_body.append('<div class="alert alert-info fade in">' +
                             data['response']['infoText'] + '</div>');
-                        import1c(data['filename'], data['workDir'], onlyImageResize);
+                        import1c(data['filename'], data['workDir'], onlyImageResize, isDeactivate);
                     } else {
                         modal_body.append('<div class="alert alert-info fade in">Завершение выгрузки</div>');
+                        if (isDeactivate) {
+                            deactivate();
+                        }
                         modal_body.append('<div class="alert alert-success fade in">Выгрузка завершена успешно' +
                             '</div>');
                         modal.find('.close, .btn-close').removeAttr('disabled');
@@ -138,7 +149,7 @@ $config = \Ideal\Core\Config::getInstance();
         });
     }
 
-    function import1c(file, workDir, onlyImageResize) {
+    function import1c(file, workDir, onlyImageResize, isDeactivate) {
         if (onlyImageResize === undefined) {
             onlyImageResize = false;
         }
@@ -180,12 +191,12 @@ $config = \Ideal\Core\Config::getInstance();
                             modal.find('.close, .btn-close').removeAttr('disabled');
                             modal.find('.modal-loading').hide();
                         }
-                        startPprocess(data['filename'], onlyImageResize);
+                        startProcess(data['filename'], onlyImageResize, isDeactivate);
                     } else {
                         if (data['response'][0] == 'success') {
                             modal_body.append('<div class="alert alert-success fade in">' +
                                 data['response']['successText'] + '</div>');
-                            startPprocess(data['filename'], onlyImageResize);
+                            startProcess(data['filename'], onlyImageResize, isDeactivate);
                         } else {
                             var failureText = '<div class="alert alert-danger fade in">' +
                                 data['response']['successText'] + '</div>';
@@ -202,5 +213,34 @@ $config = \Ideal\Core\Config::getInstance();
                 modal.find('.modal-loading').hide();
             }
         });
+    }
+
+    function deactivate() {
+        let url = window.location.href;
+        url += '&action=deactivate&controller=Shop\\Structure\\Service\\Load1CV3&mode=ajax';
+        $.ajax({
+            url: url,
+            type: 'POST',
+            success: function (dataJson) {
+                try {
+                    data = JSON.parse(dataJson);
+                } catch (err) {
+                    showError('Не удалось произвести обновление<br />' + dataJson);
+                    return;
+                }
+                if (data['error'] !== '') {
+                    showError(data['error']);
+                }
+            },
+            error: function() {
+                showError('Не удалось произвести обновление');
+            }
+        });
+    }
+
+    function showError(text) {
+        modal.find('.close, .btn-close').removeAttr('disabled');
+        modal_body.append('<div class="alert alert-danger fade in">' + text + '</div>');
+        modal.find('.modal-loading').hide();
     }
 </script>

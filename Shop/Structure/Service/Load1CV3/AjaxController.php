@@ -181,4 +181,27 @@ class AjaxController extends \Ideal\Core\AjaxController
 
         return json_encode($answer);
     }
+
+    /**
+     * @throws \JsonException
+     */
+    public function deactivateAction(): string
+    {
+        $fc = new FrontController($this->configFile);
+        $request = new Request();
+        $request->mode = 'deactivate';
+
+        $message = '';
+        $error = '';
+        try {
+            $message = $fc->run();
+        } catch (\RuntimeException $e) {
+            $error = $e->getMessage() . "<pre>" . $e->getTraceAsString() . "</pre>";
+        }
+
+        return json_encode(
+            ['error' => $error, 'message' => $message],
+            JSON_THROW_ON_ERROR
+        );
+    }
 }
