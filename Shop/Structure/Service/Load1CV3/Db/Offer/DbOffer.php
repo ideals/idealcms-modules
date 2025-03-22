@@ -65,21 +65,6 @@ class DbOffer extends AbstractDb
                 unset($elements[$k]);
                 continue;
             }
-            // todo временное отключение деактивации офферов/цен/остатков, так как 1С перешла на другую схему деактивации
-//            if ($this->isOnlyUpdate && !isset($deactivated[$k])) {
-//                $andOfferId = '';
-//                if (strpos($k, '#') !== false) {
-//                    $andOfferId = ' AND offer_id="' . $element['offer_id'] . '"';
-//                }
-//                // При загрузке только обновлений деактивируем все офферы этого товара, активные обновятся сами
-//                // Когда загрузка полной базы - все офферы деактивируются на начальном этапе
-//                $deactivated[$k] = true;
-//                // todo продумать, как обнулять, когда нет записей об офферах/ценах/остатках
-//                $db->update($this->table . $this->tablePostfix)
-//                   ->set([$this->nullableField => 0])
-//                   ->where('good_id="' . $element['good_id'] . '"' . $andOfferId)
-//                   ->exec();
-//            }
             if (isset($element['rest'])) {
                 $elements[$k]['rest'] = (int) $element['rest'];
             }
@@ -91,6 +76,10 @@ class DbOffer extends AbstractDb
                 $elements[$k]['prev_structure'] = $itemStructure;
             } else {
                 $elements[$k]['prev_structure'] = '';
+            }
+            $elements[$k]['is_1c_exchanged'] = 1;
+            if (isset($element['price'])) {
+                $elements[$k]['is_1c_price_exchanged'] = 1;
             }
             if (isset($element['ID'])) {
                 continue;
@@ -112,6 +101,7 @@ class DbOffer extends AbstractDb
     {
         $db = Db::getInstance();
         $db->query("UPDATE {$this->table} SET is_active=0 WHERE is_1c_exchanged=0");
+        $db->query("UPDATE {$this->table} SET price=0 WHERE is_1c_price_exchanged=0");
     }
 
     protected function copyOrigTable()
@@ -121,7 +111,7 @@ class DbOffer extends AbstractDb
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "UPDATE {$testTable} SET is_1c_exchanged=0";
+        $sql = "UPDATE {$testTable} SET is_1c_exchanged=0, is_1c_price_exchanged=0";
         $db->query($sql);
     }
 }

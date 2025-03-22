@@ -134,5 +134,10 @@ return array(
             'sql'   => "bool DEFAULT '0' NOT NULL",
             'type'  => 'Ideal_Checkbox'
         ),
+        'is_1c_price_exchanged' => array(
+            'label' => 'Цена выгружена из 1С',
+            'sql'   => "bool DEFAULT '0' NOT NULL",
+            'type'  => 'Ideal_Checkbox'
+        ),
     ),
 );
