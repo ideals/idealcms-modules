@@ -214,7 +214,7 @@ class GoodsModel extends ModelAbstract
             } else {
                 // Даже если товар не изменился, обновляем признак его наличия в выгрузке
                 $dbGood->update([
-                    'ID' => $val['ID'],
+                    'ID' => $dbResult[$k]['ID'],
                     'is_1c_exchanged' => 1,
                 ]);
             }
