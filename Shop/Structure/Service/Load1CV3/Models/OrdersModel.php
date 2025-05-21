@@ -89,9 +89,20 @@ class OrdersModel extends ModelAbstract
         foreach ($xmlResult as $key => &$xmlResultElement) {
             if (isset($dbResult[$key])) {
                 $xmlResultElement['ID'] = $dbResult[$key]['ID'];
+                $xmlResultElement = $this->beforeUpdate($dbResult[$key], $xmlResultElement);
             }
         }
 
         return $xmlResult;
+    }
+
+    private function beforeUpdate(array $old, array $new): array
+    {
+        if ($new['payment_sum'] == 0 || $old['payment_bank'] > 0) {
+            // todo расчёт банковских платежей из таблицы orderpay
+            $new['payment_sum'] = $old['payment_bank'];
+        }
+
+        return $new;
     }
 }
