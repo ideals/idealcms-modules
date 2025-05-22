@@ -15,7 +15,7 @@ class QueryModel
         $docTime = time();
 
         $xml = simplexml_load_string(
-            //            "\xEF\xBB\xBF" .
+            // "\xEF\xBB\xBF" .
             '<?xml version="1.0" encoding="utf-8"?><КоммерческаяИнформация></КоммерческаяИнформация>',
         );
         $doc = $xml->xpath('//КоммерческаяИнформация');
@@ -62,7 +62,7 @@ class QueryModel
 
             $exportPaymentIds[] = $this->addPaymentDocuments($doc, $order);
 
-            //            $this->addShipmentDocuments($doc, $order);
+            // $this->addShipmentDocuments($doc, $order);
 
             $exportOrdersIds[] = $order['ID'];
         }
@@ -145,6 +145,10 @@ class QueryModel
             $orderComment .= "\nСпособ оплаты: " . $order['payment_method'];
         }
 
+        if (!empty($item['delivery_info'])) {
+            $orderComment .= "\n" . trim($item['delivery_info']);
+        }
+
         $doc->addChild('Комментарий', \htmlentities($orderComment));
     }
 
@@ -223,11 +227,15 @@ class QueryModel
             }
 
             $xmlGood->addChild('Ид', $goodId1c);
-            $xmlGood->addChild('Наименование', $good['name']);
+            $goodName = $good['name'];
+            if (isset($good['offer_name']) && $good['offer_name'] !== '' && $goodName !== $good['offer_name']) {
+                $goodName .= '. ' . $good['offer_name'];
+            }
+            $xmlGood->addChild('Наименование', $goodName);
 
             // Рассчитываем сумму без скидок/наценок
             // todo проверить, как идёт расчёт скидок при заказе
-            //            $price = (float)$good['fe'] / 100 + (float)$good['discount'] / 100;
+            // $price = (float)$good['fe'] / 100 + (float)$good['discount'] / 100;
             $xmlGood->addChild('Цена', number_format($good['price'] / 100, 2, '.', ''));
             $xmlGood->addChild('Количество', $good['count']);
             $xmlGood->addChild('Сумма', number_format($good['sum'] / 100, 2, '.', ''));
