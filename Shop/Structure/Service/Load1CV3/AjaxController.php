@@ -41,7 +41,7 @@ class AjaxController extends \Ideal\Core\AjaxController
 
         $this->configFile = include($settingsFilePath);
 
-        $this->filename = (string) $_POST['filename'];
+        $this->filename = $_POST['filename'] ?? '';
     }
 
     /**
