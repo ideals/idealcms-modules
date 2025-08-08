@@ -127,6 +127,14 @@ LOGMESSAGE;
     }
 
     /**
+     * Сигнал о завершении загрузки
+     */
+    protected function completeAction()
+    {
+        $this->response = "success\n";
+    }
+
+    /**
      * Запускает процесс сбора данных по заказам для отдачи по запросу
      */
     protected function queryAction()
