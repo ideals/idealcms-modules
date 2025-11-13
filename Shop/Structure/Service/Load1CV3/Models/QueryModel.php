@@ -5,6 +5,7 @@ namespace Shop\Structure\Service\Load1CV3\Models;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Shop\Structure\Order\Model as OrderModel;
+use Shop\Structure\OrderPay\Model as OrderPayModel;
 
 class QueryModel
 {
@@ -72,8 +73,9 @@ class QueryModel
             $db->query("UPDATE {$i}shop_structure_order SET export=0 WHERE id=$orderId");
         }
 
+        $orderPay = new OrderPayModel();
         foreach ($exportPaymentIds as $paymentId) {
-            $db->query("UPDATE {$i}shop_structure_orderpay SET export=0 WHERE id=$paymentId");
+            $orderPay->setExport($paymentId, 0);
         }
 
         return $xml->asXML();
@@ -271,8 +273,8 @@ class QueryModel
     private function addPaymentDocuments($doc, $order): array
     {
         // todo вынести из основного кода, т.к. платежи должны обрабатываться в каждом проекте отдельно
-        $db = Db::getInstance();
-        $pays = $db->select('SELECT * FROM i_shop_structure_orderpay WHERE export=1 AND order_id=' . $order['ID']);
+        $orderPay = new OrderPayModel();
+        $pays = $orderPay->findForExport($order['ID']);
 
         $ids = [];
         foreach ($pays as $pay) {
