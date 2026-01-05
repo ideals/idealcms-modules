@@ -111,7 +111,7 @@ class AbstractXml
     }
 
     /**
-     * Получение значений для элементов $this->data с использование xpath запросов к node
+     * Получение значений для элементов $this->data с использованием xpath запросов к node
      * Пути для запросов берутся из конфигурационного файла.
      *
      * @param \SimpleXmlElement $item node Часть выгрузки, на которую будет выполняться запрос
@@ -128,7 +128,7 @@ class AbstractXml
             $needle = $item->xpath($this->ns . $path);
 
             // Если не нашлось требуемого элемента, то не добавляем
-            if (count($needle) === 0) {
+            if (!is_array($needle) || count($needle) === 0) {
                 continue;
             }
 
