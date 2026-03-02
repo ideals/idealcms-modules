@@ -17,6 +17,8 @@ class DbOrderAbstract extends AbstractDb
     /** Название таблицы, которая содержит детальную информацию о заказе */
     protected string $detailedTable;
 
+    protected string $orderPayTable;
+
     /** 1С ключи для точечной выборки заказов из базы. */
     protected array $orderKeys;
 
@@ -29,6 +31,7 @@ class DbOrderAbstract extends AbstractDb
         $db = Db::getInstance();
         $this->table = $this->prefix . 'shop_structure_order';
         $this->detailedTable = $this->prefix . 'shop_structure_orderdetail';
+        $this->orderPayTable = $this->prefix . 'shop_structure_orderpay';
         $this->structurePart = $this->prefix . $this->structurePart;
         $res = $db->select(
             'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "Shop_Order" LIMIT 1'
@@ -134,6 +137,7 @@ class DbOrderAbstract extends AbstractDb
         $db = Db::getInstance();
         $db->query('DROP TABLE IF EXISTS ' . $this->table . $this->tablePostfix);
         $db->query('DROP TABLE IF EXISTS ' . $this->detailedTable . $this->tablePostfix);
+        $db->query('DROP TABLE IF EXISTS ' . $this->orderPayTable . $this->tablePostfix);
     }
 
     /**
@@ -183,6 +187,9 @@ class DbOrderAbstract extends AbstractDb
         $db->query(
             'CREATE TABLE ' . $this->detailedTable . $this->tablePostfix . ' LIKE ' . $this->detailedTable
         );
+        $db->query(
+            'CREATE TABLE ' . $this->orderPayTable . $this->tablePostfix . ' LIKE ' . $this->orderPayTable
+        );
     }
 
     /**
@@ -195,6 +202,9 @@ class DbOrderAbstract extends AbstractDb
 
         $testTable = $this->detailedTable . $this->tablePostfix;
         $db->query("INSERT INTO $testTable SELECT * FROM $this->detailedTable");
+
+        $testTable = $this->orderPayTable . $this->tablePostfix;
+        $db->query("INSERT INTO $testTable SELECT * FROM $this->orderPayTable");
     }
 
     public function insert($element)
