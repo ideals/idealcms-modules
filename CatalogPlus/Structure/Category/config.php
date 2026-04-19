@@ -54,7 +54,7 @@ return [
             'label' => 'Шаблон отображения',
             'sql' => "varchar(255) default 'index.twig'",
             'type' => 'Ideal_Template',
-            'medium' => \Ideal\Medium\TemplateList\Model::class,
+            'medium' => '\\Ideal\\Medium\\TemplateList\\Model',
             'default'   => 'index.twig',
         ],
         'addon' => [
