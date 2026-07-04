@@ -7,7 +7,6 @@ interface ModelInterface
     /**
      * Инициализирует необходимые значения $answer['infoText'] и $sort
      *
-     * @return void
      */
     public function init(): void;
 

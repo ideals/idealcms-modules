@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Db;
 
 use Ideal\Core\Config;
@@ -39,6 +40,7 @@ class AbstractDb
         $path = explode('\\', get_class($this));
         $path = array_slice($path, -2, 1);
         $path = 'Shop/Structure/Service/Load1CV208/Xml/' . $path[0];
+
         $this->configs = include $path . '/config.php';
     }
 
@@ -55,13 +57,13 @@ class AbstractDb
     /**
      * Удаление временной таблицы
      */
-    public function dropTestTable()
+    public function dropTestTable(): void
     {
         $db = Db::getInstance();
         $testTable = $this->table . $this->tablePostfix;
 
         if ($this->tableExist()) {
-            $sql = "DROP TABLE {$testTable}";
+            $sql = 'DROP TABLE ' . $testTable;
             $db->query($sql);
         }
     }
@@ -74,7 +76,7 @@ class AbstractDb
      *
      * @param array $elements массив данных для записи в базу данных
      */
-    public function save($elements)
+    public function save($elements): void
     {
         // Проводим обработку элементов, специфичную для каждого вида данных
         $elements = $this->prepareForSave($elements);
@@ -91,7 +93,7 @@ class AbstractDb
     /**
      * Подготовка временной таблицы для занесения данных
      */
-    public function prepareTable()
+    public function prepareTable(): void
     {
         $this->dropTestTable();
         $this->createEmptyTestTable();
@@ -103,15 +105,13 @@ class AbstractDb
 
     /**
      * Определяем, создана ли уже тестовая таблица
-     *
-     * @return bool
      */
-    public function tableExist()
+    public function tableExist(): bool
     {
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "show tables like '{$testTable}'";
+        $sql = sprintf("show tables like '%s'", $testTable);
         $result = $db->query($sql);
         $res = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -121,14 +121,14 @@ class AbstractDb
     /**
      * Свап временной и оригинальной таблицы
      */
-    public function updateOrigTable()
+    public function updateOrigTable(): void
     {
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
 
         // Проверяем наличие тестовых таблиц, потому что их может не быть если происходит только лишь обмен заказами
-        $result = $db->query('SHOW TABLES LIKE \'' . $testTable . '\'');
+        $result = $db->query("SHOW TABLES LIKE '" . $testTable . "'");
 
         $res = $result->fetch_all(MYSQLI_ASSOC);
         if (count($res) > 0) {
@@ -145,7 +145,7 @@ class AbstractDb
      * @param array $element массив данных об обновляемой строке БД
      * @param ?array $oldElement
      */
-    public function update($element, $oldElement = null)
+    public function update($element, $oldElement = null): void
     {
         $db = Db::getInstance();
 
@@ -179,9 +179,7 @@ class AbstractDb
      * @param array $dbData Данные из БД
      * @param array $xmlData Данные из Xml
      */
-    public function onAfterSetDbElement($dbData, $xmlData)
-    {
-    }
+    public function onAfterSetDbElement($dbData, $xmlData) {}
 
     /**
      * Создание временной таблицы для сохранения данных со схемой оригинальной таблицы
@@ -191,7 +189,7 @@ class AbstractDb
         $db = Db::getInstance();
         $testTable = $this->table . $this->tablePostfix;
 
-        $sql = "CREATE TABLE {$testTable} LIKE {$this->table}";
+        $sql = sprintf('CREATE TABLE %s LIKE %s', $testTable, $this->table);
         $db->query($sql);
     }
 
@@ -203,7 +201,7 @@ class AbstractDb
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "INSERT INTO {$testTable} SELECT * FROM {$this->table}";
+        $sql = sprintf('INSERT INTO %s SELECT * FROM %s', $testTable, $this->table);
         $db->query($sql);
     }
 
@@ -216,17 +214,17 @@ class AbstractDb
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "UPDATE {$testTable} SET is_active = 0";
+        $sql = sprintf('UPDATE %s SET is_active = 0', $testTable);
         $db->query($sql);
     }
 
     /**
      * Подготовка параметров для добавления элемента в БД
      *
-     * @param array $element Добавляемый элемент
+     * @param array<string, mixed> $element Добавляемый элемент
      * @return array Модифицированный элемент
      */
-    protected function getForAdd($element)
+    protected function getForAdd(array $element): array
     {
         $now = time();
         $element['date_create'] = empty($element['date_create']) ? $now : $element['date_create'];
@@ -253,9 +251,7 @@ class AbstractDb
      * @param int $id
      * @param array $element
      */
-    protected function afterInsert($id, $element)
-    {
-    }
+    protected function afterInsert($id, $element) {}
 
     /**
      * Подготовка элемента к обновлению в БД

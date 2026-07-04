@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2;
 
 use Ideal\Core\Config;
@@ -38,6 +39,7 @@ class AbstractDb
         $path = explode('\\', get_class($this));
         $path = array_slice($path, -2, 1);
         $path = 'Shop/Structure/Service/Load1cV2/' . $path[0];
+
         $this->configs = include $path . '/config.php';
     }
 
@@ -54,61 +56,24 @@ class AbstractDb
     /**
      * Удаление временной таблицы
      */
-    public function dropTestTable()
+    public function dropTestTable(): void
     {
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "show tables like '{$testTable}'";
+        $sql = sprintf("show tables like '%s'", $testTable);
         $result = $db->query($sql);
         $res = $result->fetch_all(MYSQLI_ASSOC);
         if (count($res) > 0) {
-            $sql = "DROP TABLE {$testTable}";
+            $sql = 'DROP TABLE ' . $testTable;
             $db->query($sql);
         }
     }
 
     /**
-     * Создание временной таблицы для сохранения данных со схемой оригинальной таблицы
-     */
-    protected function createEmptyTestTable()
-    {
-        $db = Db::getInstance();
-        $testTable = $this->table . $this->tablePostfix;
-
-        $sql = "CREATE TABLE {$testTable} LIKE {$this->table}";
-        $db->query($sql);
-    }
-
-    /**
-     * Копирование данных из оригинальной таблицы во временную
-     */
-    protected function copyOrigTable()
-    {
-        $db = Db::getInstance();
-
-        $testTable = $this->table . $this->tablePostfix;
-        $sql = "INSERT INTO {$testTable} SELECT * FROM {$this->table}";
-        $db->query($sql);
-    }
-
-    /**
-     * Переводим все данные во временных таблицах в is_active = 0.
-     * Используется только при полной выгрузке.
-     */
-    protected function deactivateDataInTable()
-    {
-        $db = Db::getInstance();
-
-        $testTable = $this->table . $this->tablePostfix;
-        $sql = "UPDATE {$testTable} SET is_active = 0";
-        $db->query($sql);
-    }
-
-    /**
      * Свап временной и оригинальной таблицы
      */
-    public function updateOrigTable()
+    public function updateOrigTable(): void
     {
         $db = Db::getInstance();
 
@@ -120,37 +85,6 @@ class AbstractDb
     }
 
     /**
-     * Обновление данных в БД
-     *
-     * @param array $element массив данных об обновляемой строке БД
-     */
-    protected function update($element)
-    {
-        $db = Db::getInstance();
-
-        $element['date_mod'] = time();
-
-        $db->update($this->table . $this->tablePostfix)->set($element)->where('ID=:ID', $element)->exec();
-    }
-
-    /**
-     * Подготовка параметров для добавления элемента в БД
-     *
-     * @param array $element Добавляемый элемент
-     * @return array Модифицированный элемент
-     */
-    protected function getForAdd($element)
-    {
-        $now = time();
-        $element['date_create'] = $now;
-        $element['date_mod'] = $now;
-
-        ksort($element);
-
-        return $element;
-    }
-
-    /**
      * Сохранение полученных из XML изменений (обновление существующих, добавление новых)
      *
      * Возможна как построчная вставка, так и вставка массивом значений
@@ -158,7 +92,7 @@ class AbstractDb
      *
      * @param array $elements массив данных для записи в базу данных
      */
-    public function save($elements)
+    public function save($elements): void
     {
         foreach ($elements as $element) {
             if (isset($element['ID'])) {
@@ -171,7 +105,7 @@ class AbstractDb
         // Если есть что добавить, то добавляем мульти-запросами
         if (isset($add)) {
             $db = Db::getInstance();
-            while (count($add) > 0) {
+            while ($add !== []) {
                 $part = array_splice($add, 0, $this->multipleInsert);
                 $db->insertMultiple($this->table . $this->tablePostfix, $part);
             }
@@ -183,7 +117,7 @@ class AbstractDb
      *
      * @param bool $onlyUpdate значение СодержитТолькоИзменения из xml выгрузки
      */
-    public function prepareTable($onlyUpdate)
+    public function prepareTable($onlyUpdate): void
     {
         $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();
@@ -192,5 +126,73 @@ class AbstractDb
         if (!$onlyUpdate) {
             $this->deactivateDataInTable();
         }
+    }
+
+    /**
+     * Создание временной таблицы для сохранения данных со схемой оригинальной таблицы
+     */
+    protected function createEmptyTestTable()
+    {
+        $db = Db::getInstance();
+        $testTable = $this->table . $this->tablePostfix;
+
+        $sql = sprintf('CREATE TABLE %s LIKE %s', $testTable, $this->table);
+        $db->query($sql);
+    }
+
+    /**
+     * Копирование данных из оригинальной таблицы во временную
+     */
+    protected function copyOrigTable()
+    {
+        $db = Db::getInstance();
+
+        $testTable = $this->table . $this->tablePostfix;
+        $sql = sprintf('INSERT INTO %s SELECT * FROM %s', $testTable, $this->table);
+        $db->query($sql);
+    }
+
+    /**
+     * Переводим все данные во временных таблицах в is_active = 0.
+     * Используется только при полной выгрузке.
+     */
+    protected function deactivateDataInTable()
+    {
+        $db = Db::getInstance();
+
+        $testTable = $this->table . $this->tablePostfix;
+        $sql = sprintf('UPDATE %s SET is_active = 0', $testTable);
+        $db->query($sql);
+    }
+
+    /**
+     * Обновление данных в БД
+     *
+     * @param array<string, mixed> $element массив данных об обновляемой строке БД
+     */
+    protected function update(array $element)
+    {
+        $db = Db::getInstance();
+
+        $element['date_mod'] = time();
+
+        $db->update($this->table . $this->tablePostfix)->set($element)->where('ID=:ID', $element)->exec();
+    }
+
+    /**
+     * Подготовка параметров для добавления элемента в БД
+     *
+     * @param array<string, mixed> $element Добавляемый элемент
+     * @return array Модифицированный элемент
+     */
+    protected function getForAdd(array $element): array
+    {
+        $now = time();
+        $element['date_create'] = $now;
+        $element['date_mod'] = $now;
+
+        ksort($element);
+
+        return $element;
     }
 }

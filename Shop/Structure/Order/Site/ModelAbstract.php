@@ -1,10 +1,12 @@
 <?php
+
 namespace Shop\Structure\Order\Site;
 
+use Ideal\Structure\Part\Site\Model;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 
-class ModelAbstract extends \Ideal\Structure\Part\Site\Model
+class ModelAbstract extends Model
 {
     /**
      * Таблица, где хранятся товары. Указывается без префикса
@@ -14,7 +16,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
 
     public function getGoods()
     {
-        if (isset($_COOKIE)) {
+        if (isset($_COOKIE['basket'])) {
             $basket = $_COOKIE['basket'];
             $basket = json_decode($basket, true);
         } else {
@@ -22,22 +24,28 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
             $basket['count'] = 0;
             return $basket;
         }
+
         if (count($basket) <= 2) {
             return $basket;
         }
+
         $db = Db::getInstance();
 
         $in = "(";
         foreach ($basket['good'] as $key => $value) {
-            if ($key == 'count' OR $key == 'total_price') continue;
+            if ($key == 'count' || $key == 'total_price') {
+                continue;
+            }
+
             $in .= $key . ',';
         }
+
         $in = substr($in, 0, strlen($in) - 1);
         $in .= ")";
 
         $config = Config::getInstance();
         $table = $config->db['prefix'] . $this->tableGood;
-        $_sql = "SELECT * FROM {$table} WHERE ID IN {$in}";
+        $_sql = sprintf('SELECT * FROM %s WHERE ID IN %s', $table, $in);
         $goodIdsArr = $db->select($_sql);
         foreach ($goodIdsArr as $good) {
             $id = $good['ID'];
@@ -46,14 +54,12 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
             $basket[$id]['img'] = $good['img'];
             $basket[$id]['url'] = $good['url'];
         }
+
         return $basket;
     }
 
     /**
      * Создание заказа
-     * @param null $comment
-     * @param null $fio
-     * @param null $address
      * @return int
      */
     public function createOrder($comment = null, $fio = null, $address = null)
@@ -64,31 +70,28 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\Model
             $prevStructure = '0-' . $prevStructure['ID'];
             $this->prevStructure = $prevStructure;
         }
+
         $db = Db::getInstance();
-        $id = $db->insert($this->_table, array(
+        return $db->insert($this->_table, [
             'date_create' => time(),
             'comment' => $comment,
             'date_mod' => time(),
             'prev_structure' => $this->prevStructure,
             'fio' => $fio,
             'address' => $address,
-            'is_active' => 1
-        ));
-        return $id;
+            'is_active' => 1,
+        ]);
     }
 
     /**
-     * @param $letter
-     * @param $id
-     * @param $price
      */
-    public function updateOrder(&$letter, $id, $price)
+    public function updateOrder(&$letter, $id, $price): void
     {
         $db = Db::getInstance();
         $table = $this->_table;
-        $db->update($table, $id, array(
+        $db->update($table, $id, [
             'content' => $letter,
-            'price' => $price
-        ));
+            'price' => $price,
+        ]);
     }
 }

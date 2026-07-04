@@ -1,8 +1,9 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2\Good;
 
+use Ideal\Field\Url\Model;
 use Shop\Structure\Service\Load1cV2\AbstractXml;
-use Ideal\Field\Url;
 
 class XmlGood extends AbstractXml
 {
@@ -10,14 +11,14 @@ class XmlGood extends AbstractXml
     public $part = 'Каталог/Товары';
 
     /** @var array Привязка товаров к группам (ключ — id товара, значение — ids групп */
-    public $groups = array();
+    public $groups = [];
 
     /**
      * Парсинг xml выгрузки import.xml
      *
      * @return array двумерный массив ключ - id_1c, значения - транслитированные ключи и данные из xml
      */
-    public function parse()
+    public function parse(): array
     {
         $this->xml = $this->xml[0];
         parent::parse();
@@ -26,21 +27,22 @@ class XmlGood extends AbstractXml
             $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : '0';
 
             if (empty($val['url'])) {
-                $this->data[$k]['url'] = Url\Model::translitUrl($val['name']);
+                $this->data[$k]['url'] = Model::translitUrl($val['name']);
             }
 
             if (!empty($val['img'])) {
                 $entry = substr(basename($val['img']), 0, 2);
-                $this->data[$k]['img'] = "/images/1c/{$entry}/" . basename($val['img']);
+                $this->data[$k]['img'] = sprintf('/images/1c/%s/', $entry) . basename($val['img']);
             }
 
             if (!empty($val['imgs'])) {
                 if (is_array($val['imgs'])) {
-                    $imgs = array();
+                    $imgs = [];
                     foreach ($val['imgs'] as $img) {
                         $entry = substr(basename($img), 0, 2);
-                        $imgs[] = "/images/1c/{$entry}/" . basename($img);
+                        $imgs[] = sprintf('/images/1c/%s/', $entry) . basename($img);
                     }
+
                     // Список дополнительных картинок храним в JSON
                     $this->data[$k]['imgs'] = json_encode($imgs);
                 } else {
@@ -50,7 +52,7 @@ class XmlGood extends AbstractXml
         }
 
         // Заполняем массив привязки товаров к группам
-        $this->groups = array();
+        $this->groups = [];
         foreach ($this->data as $k => $good) {
             $this->groups[$good['id_1c']] = $good['groups'];
             // Убираем список групп, т.к. он не должен использоваться при сохранении товара в БД

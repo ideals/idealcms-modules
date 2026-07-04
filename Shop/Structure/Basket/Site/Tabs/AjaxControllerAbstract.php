@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -6,25 +7,28 @@
  * @copyright Copyright (c) 2012-2015 Ideal CMS (http://idealcms.ru)
  * @license   http://idealcms.ru/license.html LGPL v3
  */
+
 namespace Shop\Structure\Basket\Site\Tabs;
 
+use Ideal\Core\AjaxController;
+use Shop\Structure\Order\Site\Model;
 use FormPhp\Forms;
 use Ideal\Core\Request;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 
-class AjaxControllerAbstract extends \Ideal\Core\AjaxController
+class AjaxControllerAbstract extends AjaxController
 {
+    /** @var array Дополнительные HTTP-заголовки ответа  */
+    public $httpHeaders = [];
 
     // Таблицы с товарами и предложениями в конструкторе
     // TODO определять автоматически модуль из которых надо брать, сейчас прописано CatalogPlus
-    protected $tableGood;
-    protected $tableOffer;
+    protected string $tableGood;
+
+    protected string $tableOffer;
 
     protected $orderId = false;
-
-    /** @var array Дополнительные HTTP-заголовки ответа  */
-    public $httpHeaders = array();
 
     /**
      * Генерация данных и установка значений по умолчанию
@@ -39,7 +43,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
     }
 
-    public function setOrderId($orderId)
+    public function setOrderId($orderId): void
     {
         $this->orderId = $orderId;
     }
@@ -58,20 +62,21 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
-                $orderComments = array(
-                    'order_comments' => array(
+                $orderComments = [
+                    'order_comments' => [
                         'label' => 'Заметки к заказу',
-                        'value' => $form->getValue('order_comments')
-                    ),
-                    'tabName' => $form->getValue('currentTabName')
-                );
+                        'value' => $form->getValue('order_comments'),
+                    ],
+                    'tabName' => $form->getValue('currentTabName'),
+                ];
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['tabsInfo'])) {
                     $tabsInfo = json_decode($_COOKIE['tabsInfo']);
                     $tabsInfo->$tabID = $orderComments;
                 } else {
-                    $tabsInfo = (object) array($tabID => $orderComments);
+                    $tabsInfo = (object) [$tabID => $orderComments];
                 }
+
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
                 return 'stopValidationError';
@@ -87,24 +92,28 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
-                // Генерируем css
+                    // Генерируем css
                 case 'css':
                     $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
-                // Генерируем стартовую часть формы
+                    // Генерируем стартовую часть формы
                 case 'start':
                     $text = $form->start();
                     break;
             }
-            if (empty($text)) {
+
+            if ($text === '' || $text === '0') {
                 ob_start();
-            $form->render();
+                $form->render();
                 $text = ob_get_contents();
                 ob_end_clean();
             }
+
             return $text;
         }
+
+        return null;
     }
 
     // Обрабатывает запросы для формы из шаблона поумолчанию "Доставка(адрес) и способ досставки"
@@ -151,43 +160,46 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                         break;
                 }
 
-                $delivery = array(
-                    'first_name' => array('label' => 'Имя', 'value' => $form->getValue('billing_first_name_required')),
-                    'last_name' => array(
+                $delivery = [
+                    'first_name' => ['label' => 'Имя', 'value' => $form->getValue('billing_first_name_required')],
+                    'last_name' => [
                         'label' => 'Фамилия',
-                        'value' => $form->getValue('billing_last_name_required')
-                    ),
-                    'address' => array('label' => 'Адрес', 'value' => $form->getValue('billing_address_required')),
-                    'email' => array('label' => 'Email-адрес', 'value' => $form->getValue('billing_email_required')),
-                    'phone' => array('label' => 'Телефон', 'value' => $form->getValue('billing_phone')),
-                    'deliveryMethod' => array(
+                        'value' => $form->getValue('billing_last_name_required'),
+                    ],
+                    'address' => ['label' => 'Адрес', 'value' => $form->getValue('billing_address_required')],
+                    'email' => ['label' => 'Email-адрес', 'value' => $form->getValue('billing_email_required')],
+                    'phone' => ['label' => 'Телефон', 'value' => $form->getValue('billing_phone')],
+                    'deliveryMethod' => [
                         'label' => 'Доставка',
                         'value' => $form->getValue('deliveryMethod'),
-                        'selectedValue' => $selectedValue
-                    ),
-                    'tabName' => $form->getValue('currentTabName')
-                );
+                        'selectedValue' => $selectedValue,
+                    ],
+                    'tabName' => $form->getValue('currentTabName'),
+                ];
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['tabsInfo'])) {
                     $tabsInfo = json_decode($_COOKIE['tabsInfo']);
                     if (!isset($tabsInfo->generalInfo->name)) {
                         $tabsInfo->generalInfo->name = $form->getValue('billing_first_name_required');
                     }
+
                     if (!isset($tabsInfo->generalInfo->email)) {
                         $tabsInfo->generalInfo->email = $form->getValue('billing_email_required');
                     }
+
                     $tabsInfo->generalInfo->address = $form->getValue('billing_address_required');
                     $tabsInfo->$tabID = $delivery;
                 } else {
-                    $tabsInfo = (object) array(
-                        'generalInfo' => array(
+                    $tabsInfo = (object) [
+                        'generalInfo' => [
                             'name' => $form->getValue('billing_first_name_required'),
                             'email' => $form->getValue('billing_email_required'),
                             'address' => $form->getValue('billing_address_required'),
-                        ),
-                        $tabID => $delivery
-                    );
+                        ],
+                        $tabID => $delivery,
+                    ];
                 }
+
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
                 return 'stopValidationError';
@@ -203,24 +215,28 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
-                // Генерируем css
+                    // Генерируем css
                 case 'css':
                     $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
-                // Генерируем стартовую часть формы
+                    // Генерируем стартовую часть формы
                 case 'start':
                     $text = $form->start();
                     break;
             }
-            if (empty($text)) {
+
+            if ($text === '' || $text === '0') {
                 ob_start();
-            $form->render();
+                $form->render();
                 $text = ob_get_contents();
                 ob_end_clean();
-        }
+            }
+
             return $text;
         }
+
+        return null;
     }
 
     // Обрабатывает запросы для формы из шаблона поумолчанию "Авторизация"
@@ -246,13 +262,13 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то записываем значение в куки
-                $userInfo = array(
-                    'userinfo_lastname' => array('label' => 'Фамилия', 'value' => $form->getValue('userinfo_lastname')),
-                    'userinfo_name' => array('label' => 'Имя', 'value' => $form->getValue('userinfo_name')),
-                    'userinfo_phone' => array('label' => 'Телефон', 'value' => $form->getValue('userinfo_phone')),
-                    'userinfo_email' => array('label' => 'E-mail', 'value' => $form->getValue('userinfo_email')),
-                    'tabName' => $form->getValue('currentTabName')
-                );
+                $userInfo = [
+                    'userinfo_lastname' => ['label' => 'Фамилия', 'value' => $form->getValue('userinfo_lastname')],
+                    'userinfo_name' => ['label' => 'Имя', 'value' => $form->getValue('userinfo_name')],
+                    'userinfo_phone' => ['label' => 'Телефон', 'value' => $form->getValue('userinfo_phone')],
+                    'userinfo_email' => ['label' => 'E-mail', 'value' => $form->getValue('userinfo_email')],
+                    'tabName' => $form->getValue('currentTabName'),
+                ];
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['tabsInfo'])) {
                     $tabsInfo = json_decode($_COOKIE['tabsInfo']);
@@ -260,14 +276,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     $tabsInfo->generalInfo->name = $form->getValue('userinfo_name');
                     $tabsInfo->generalInfo->email = $form->getValue('userinfo_email');
                 } else {
-                    $tabsInfo = (object) array(
-                        'generalInfo' => array(
+                    $tabsInfo = (object) [
+                        'generalInfo' => [
                             'name' => $form->getValue('userinfo_name'),
                             'email' => $form->getValue('userinfo_email'),
-                        ),
-                        $tabID => $userInfo
-                    );
+                        ],
+                        $tabID => $userInfo,
+                    ];
                 }
+
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
                 return 'stopValidationError';
@@ -283,24 +300,28 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
-                // Генерируем css
+                    // Генерируем css
                 case 'css':
                     $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
-                // Генерируем стартовую часть формы
+                    // Генерируем стартовую часть формы
                 case 'start':
                     $text = $form->start();
                     break;
             }
-            if (empty($text)) {
+
+            if ($text === '' || $text === '0') {
                 ob_start();
-            $form->render();
+                $form->render();
                 $text = ob_get_contents();
                 ob_end_clean();
-        }
+            }
+
             return $text;
         }
+
+        return null;
     }
 
     // Обрабатывает запросы для формы из шаблона поумолчанию "Оплата и способ оплаты"
@@ -335,21 +356,23 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                         $selectedValue = '';
                         break;
                 }
-                $payment = array(
-                    'payment_method' => array(
+
+                $payment = [
+                    'payment_method' => [
                         'label' => 'Способ оплаты',
                         'value' => $form->getValue('payment_method'),
-                        'selectedValue' => $selectedValue
-                    ),
-                    'tabName' => $form->getValue('currentTabName')
-                );
+                        'selectedValue' => $selectedValue,
+                    ],
+                    'tabName' => $form->getValue('currentTabName'),
+                ];
                 $tabID = 'tab_' . $form->getValue('currentTabId');
                 if (isset($_COOKIE['tabsInfo'])) {
                     $tabsInfo = json_decode($_COOKIE['tabsInfo']);
                     $tabsInfo->tabsInfo->$tabID = $payment;
                 } else {
-                    $tabsInfo = (object) array($tabID => $payment);
+                    $tabsInfo = (object) [$tabID => $payment];
                 }
+
                 setcookie("tabsInfo", json_encode($tabsInfo));
             } else {
                 return 'stopValidationError';
@@ -365,24 +388,28 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     $this->httpHeaders['Content-type'] = 'application/javascript';
                     $request->mode = 'js';
                     break;
-                // Генерируем css
+                    // Генерируем css
                 case 'css':
                     $this->httpHeaders['Content-type'] = 'text/css';
                     $request->mode = 'css';
                     break;
-                // Генерируем стартовую часть формы
+                    // Генерируем стартовую часть формы
                 case 'start':
                     $text = $form->start();
                     break;
             }
-            if (empty($text)) {
+
+            if ($text === '' || $text === '0') {
                 ob_start();
-            $form->render();
+                $form->render();
                 $text = ob_get_contents();
                 ob_end_clean();
-        }
+            }
+
             return $text;
         }
+
+        return null;
     }
 
     // Обрабатывает запросы для завершающей формы
@@ -395,7 +422,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
                 // Если валидация пройдена успешно, то отрабатываем финальную часть
-                $basket = json_decode($_COOKIE['basket']);
+                $basket = json_decode($_COOKIE['basket'], true);
                 $tabsInfo = json_decode($_COOKIE['tabsInfo']);
                 $price = $basket->total;
                 $message = '<h2>Товары</h2><br />';
@@ -403,16 +430,18 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
 
                 // Собираем информацию о заказанных товарах
-                foreach ($basket->goods as $key => $good) {
-                    $summ = intval($good->count) * (intval($good->sale_price));
+                foreach ($basket['goods'] as $key => $good) {
+                    $summ = (int) $good['count'] * (int) $good['sale_price'];
                     $goodsItemId = explode('_', $key);
                     if (count($goodsItemId) > 1) {
                         $name = $this->getGoodName($goodsItemId[0], $goodsItemId[1]);
                     } else {
                         $name = $this->getGoodName($goodsItemId[0]);
                     }
-                    $message .= '<tr><td>' . $name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+
+                    $message .= '<tr><td>' . $name . '</td><td>' . (int) $good['sale_price'] . '</td><td>' . $good['count'] . '</td><td>' . $summ . '</td></tr>';
                 }
+
                 $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . $price . '</td></tr>';
                 $message .= '</table>';
 
@@ -422,17 +451,15 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                             $message .= '<br /><br /><h2>' . $tabInfo->tabName . '</h2><br />';
                             unset($tabInfo->tabName);
                             foreach ($tabInfo as $key => $field) {
-                                if (isset($field->label)) {
-                                    $label = $field->label;
-                                } else {
-                                    $label = $key;
-                                }
+                                $label = $field->label ?? $key;
+
                                 $value = '';
                                 if (isset($field->selectedValue)) {
                                     $value = $field->selectedValue;
                                 } elseif (isset($field->value)) {
                                     $value = $field->value;
                                 }
+
                                 $message .= $label . ': ' . $value . '<br />';
                             }
                         }
@@ -469,162 +496,169 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                         $tabsInfo->generalInfo->name,
                         $tabsInfo->generalInfo->email,
                         $message,
-                        $basket->total * 100
+                        $basket->total * 100,
                     );
                 }
 
                 $this->finishOrder();
                 return 'Ваш заказ принят';
-            } else {
-                return 'stopValidationError';
             }
-        } else {
-            // Обработка запросов для получения функциональных частей формы
-            $text = '';
-            switch ($request->target) {
-                // Генерируем js
-                case 'js':
-                    $script = $this->getStartJsForStep('finishForm');
-                    $form->setJs($script);
-                    $this->httpHeaders['Content-type'] = 'application/javascript';
-                    $request->mode = 'js';
-                    break;
+
+            return 'stopValidationError';
+
+        }
+
+        // Обработка запросов для получения функциональных частей формы
+        $text = '';
+        switch ($request->target) {
+            // Генерируем js
+            case 'js':
+                $script = $this->getStartJsForStep('finishForm');
+                $form->setJs($script);
+                $this->httpHeaders['Content-type'] = 'application/javascript';
+                $request->mode = 'js';
+                break;
                 // Генерируем css
-                case 'css':
-                    $this->httpHeaders['Content-type'] = 'text/css';
-                    $request->mode = 'css';
-                    break;
+            case 'css':
+                $this->httpHeaders['Content-type'] = 'text/css';
+                $request->mode = 'css';
+                break;
                 // Генерируем стартовую часть формы
-                case 'start':
-                    $text = $form->start();
-                    break;
-            }
-            if (empty($text)) {
-                ob_start();
+            case 'start':
+                $text = $form->start();
+                break;
+        }
+
+        if ($text === '' || $text === '0') {
+            ob_start();
             $form->render();
-                $text = ob_get_contents();
-                ob_end_clean();
+            $text = ob_get_contents();
+            ob_end_clean();
         }
-            return $text;
-        }
+
+        return $text;
+
     }
 
     // Запускает ряд методов для завершения работы над заказом
-    public function finishOrder()
+    public function finishOrder(): void
     {
         $this->clearBasket();
     }
 
     // Очищает информацию о корзине
-    public function clearBasket()
+    public function clearBasket(): void
     {
-        setcookie("basket", null, -1, '/');
-        setcookie("tabsInfo", null, -1, '/');
+        setcookie("basket", null, ['expires' => -1, 'path' => '/']);
+        setcookie("tabsInfo", null, ['expires' => -1, 'path' => '/']);
     }
 
     /**
      * Сохраняет информацию о заказе в структуре "Order" модуля "Shop"
      */
-    public function saveOrderInShopStructure()
+    public function saveOrderInShopStructure(): void
     {
         $config = Config::getInstance();
         $prefix = $config->db['prefix'];
-        if (class_exists('\Shop\Structure\Order\Site\Model')) {
+        if (class_exists(Model::class)) {
             $db = Db::getInstance();
-            $nextId = $db->select("SHOW TABLE STATUS WHERE name='{$prefix}shop_structure_order'");
+            $nextId = $db->select(sprintf("SHOW TABLE STATUS WHERE name='%sshop_structure_order'", $prefix));
             $orderNumber = $nextId[0]['Auto_increment'];
             $this->setOrderId($orderNumber);
 
             // Получаем идентификатор справочника "Заказы в магазине" для построения поля "prev_structure"
             $dataList = $config->getStructureByName('Ideal_DataList');
             $prevStructure = $dataList['ID'] . '-';
-            $par = array('structure' => 'Shop_Order');
-            $fields = array('table' => $config->db['prefix'] . 'ideal_structure_datalist');
+            $par = ['structure' => 'Shop_Order'];
+            $fields = ['table' => $config->db['prefix'] . 'ideal_structure_datalist'];
             $row = $db->select('SELECT ID FROM &table WHERE structure = :structure', $par, $fields);
 
             // Если справочник "Заказы в магазине" не создан, то и записывать туда ничего не нужно
             if ($row) {
                 $prevStructure .= $row[0]['ID'];
 
-                $basket = json_decode($_COOKIE['basket']);
+                $basket = json_decode($_COOKIE['basket'], true);
                 $tabsInfo = json_decode($_COOKIE['tabsInfo']);
 
 
                 $message = '<h2>Товары</h2><br />';
                 $message .= '<table>';
                 $message .= '<tr><th>Наименование</th><th>Цена</th><th>Количество</th><th>Сумма</th></tr>';
-                $Id1c = array();
+                $id1c = [];
 
-                // Собираем итнформацию о заказанных товарах
-                foreach ($basket->goods as $key => $good) {
+                // Собираем информацию о заказанных товарах
+                foreach ($basket['goods'] as $key => $good) {
                     $goodId = explode('_', $key);
                     if (isset($goodId[1])) {
                         $offerId = $goodId[1];
                     }
+
                     $goodId = $goodId[0];
                     if ($config->getStructureByName('CatalogPlus_Offer') && isset($offerId)) {
-                        $par = array('ID' => $offerId);
-                        $fields = array('table' => $config->db['prefix'] . 'catalogplus_structure_offer');
+                        $par = ['ID' => $offerId];
+                        $fields = ['table' => $config->db['prefix'] . 'catalogplus_structure_offer'];
                         $row = $db->select('SELECT * FROM &table WHERE ID = :ID LIMIT 1', $par, $fields);
                         if (count($row) > 0) {
                             if (isset($row[0]['good_id'])) {
-                                $Id1c[] = $row[0]['good_id'];
+                                $id1c[] = $row[0]['good_id'];
                             }
+
                             if (isset($row[0]['offer_id'])) {
                                 $offerId = $row[0]['offer_id'];
                             }
                         }
                     }
 
-                    $summ = intval($good->count) * (intval($good->sale_price));
+                    $summ = (int) $good['count'] * (int) $good['sale_price'];
                     $goodsItemId = explode('_', $key);
                     if (count($goodsItemId) > 1) {
                         $name = $this->getGoodName($goodsItemId[0], $goodsItemId[1]);
                     } else {
                         $name = $this->getGoodName($goodsItemId[0]);
                     }
-                    $message .= '<tr><td>' . $name . '</td><td>' . intval($good->sale_price) . '</td><td>' . $good->count . '</td><td>' . $summ . '</td></tr>';
+
+                    $message .= '<tr><td>' . $name . '</td><td>' . (int) $good['sale_price'] . '</td><td>' . $good['count'] . '</td><td>' . $summ . '</td></tr>';
 
                     if ($config->getStructureByName('Shop_OrderDetail')) {
                         $prevOrder = $config->getStructureByName('Shop_Order');
-                        $insert = array();
+                        $insert = [];
                         $insert['prev_structure'] = $prevOrder['ID'] . '-' . $this->orderId;
                         $insert['order_id'] = $this->orderId;
-                        $insert['good_id_1c'] = isset($row[0]['good_id']) ? $row[0]['good_id'] : '';
-                        $insert['offer_id_1c'] = isset($offerId) ? $offerId : '';
-                        $insert['count'] = intval($good->count);
+                        $insert['good_id_1c'] = $row[0]['good_id'] ?? '';
+                        $insert['offer_id_1c'] = $offerId ?? '';
+                        $insert['count'] = (int) $good['count'];
                         $insert['sum'] = $summ * 100;
 
                         $db->insert(
                             $prefix . 'shop_structure_orderdetail',
-                            $insert
+                            $insert,
                         );
                     }
                 }
-                $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . intval($basket->total) . '</td></tr>';
+
+                $message .= '<tr><td colspan="3"></td><td>Общая сумма заказа: ' . (int) $basket['total'] . '</td></tr>';
                 $message .= '</table>';
 
                 $address = '';
                 if (isset($tabsInfo->generalInfo->address)) {
                     $address = $tabsInfo->generalInfo->address;
                 }
+
                 // Генерируем сообщение
                 foreach ($tabsInfo as $key => $tabInfo) {
                     if ($key != 'generalInfo') {
                         $message .= '<br /><h2>' . $tabInfo->tabName . '</h2><br />';
                         unset($tabInfo->tabName);
                         foreach ($tabInfo as $key => $field) {
-                            if (isset($field->label)) {
-                                $label = $field->label;
-                            } else {
-                                $label = $key;
-                            }
+                            $label = $field->label ?? $key;
+
                             $value = '';
                             if (isset($field->selectedValue)) {
                                 $value = $field->selectedValue;
                             } elseif (isset($field->value)) {
                                 $value = $field->value;
                             }
+
                             $message .= $label . ': ' . $value . '<br />';
                         }
                     }
@@ -639,7 +673,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 // Записываем данные
                 $db->insert(
                     $prefix . 'shop_structure_order',
-                    array(
+                    [
                         'prev_structure' => $prevStructure,
                         'name' => 'Заказ № ' . $orderNumber,
                         'url' => 'zakaz-N-' . $orderNumber,
@@ -650,14 +684,24 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                         'date_mod' => time(),
                         'content' => $message,
                         'is_active' => 1,
-                        'goods_id' => implode(',', $Id1c),
+                        'goods_id' => implode(',', $id1c),
                         'export' => 1,
                         'structure' => 'Shop_OrderPay',
-                        'user_id' => $userId
-                    )
+                        'user_id' => $userId,
+                    ],
                 );
             }
         }
+    }
+
+    /**
+     * Переопределяет HTTP-заголовки ответа
+     *
+     * @return array Массив где ключи - названия заголовков, а значения - содержание заголовков
+     */
+    public function getHttpHeaders()
+    {
+        return $this->httpHeaders;
     }
 
     /**
@@ -682,10 +726,12 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                     WHERE o.ID = {$offer} AND o.is_active = 1
                     LIMIT 1";
         }
+
         $name = $db->select($sql);
         if (count($name) === 0) {
             return '';
         }
+
         return $name[0]['name'];
     }
 
@@ -695,40 +741,31 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      * @param string $formIdValue Значение идентификатора формы
      * @return string js скрипт нужный для каждого этапа оформления корзины
      */
-    protected function getStartJsForStep($formIdValue = '')
+    protected function getStartJsForStep($formIdValue = ''): string
     {
         $script = '';
         if (!empty($formIdValue)) {
             $script .= <<<JS
-                    if (typeof window.checkform != 'undefined') {
-                        window.checkform.push('#{$formIdValue}');
-                    } else {
-                        window.checkform = ['#{$formIdValue}'];
-                    }
+                                    if (typeof window.checkform != 'undefined') {
+                                        window.checkform.push('#{$formIdValue}');
+                                    } else {
+                                        window.checkform = ['#{$formIdValue}'];
+                                    }
 
-                    $('#{$formIdValue}').on('form.successSend', function (event, result) {
-                        function {$formIdValue}ServerValidationCheck() {
-                            window.stopForm = 1;
-                            if (result == 'stopValidationError') {
-                            alert('Форма заполнена неправильно');
-                                return;
-                            }
-                            window.stopForm = 0;
-                        }
-                        {$formIdValue}ServerValidationCheck();
-                    });
-JS;
+                                    $('#{$formIdValue}').on('form.successSend', function (event, result) {
+                                        function {$formIdValue}ServerValidationCheck() {
+                                            window.stopForm = 1;
+                                            if (result == 'stopValidationError') {
+                                            alert('Форма заполнена неправильно');
+                                                return;
+                                            }
+                                            window.stopForm = 0;
+                                        }
+                                        {$formIdValue}ServerValidationCheck();
+                                    });
+                JS;
         }
-        return $script;
-    }
 
-    /**
-     * Переопределяет HTTP-заголовки ответа
-     *
-     * @return array Массив где ключи - названия заголовков, а значения - содержание заголовков
-     */
-    public function getHttpHeaders()
-    {
-        return $this->httpHeaders;
+        return $script;
     }
 }

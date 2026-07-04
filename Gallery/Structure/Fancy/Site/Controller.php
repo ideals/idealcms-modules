@@ -1,4 +1,5 @@
 <?php
+
 namespace Gallery\Structure\Fancy\Site;
 
 class Controller extends ControllerAbstract

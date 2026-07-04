@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Ideal\Core\Db;
@@ -9,7 +10,7 @@ class OrderModel
     public function generateExportXml()
     {
         $fileTemplate = DOCUMENT_ROOT . '/don/Mods/Shop/Structure/Service/Load1CV208/export.xml';
-//        return file_get_contents($fileTemplate);
+        //        return file_get_contents($fileTemplate);
 
         // Время начала формирования документа
         $docTime = time();
@@ -28,45 +29,46 @@ class OrderModel
         // В этих условиях задана проверка на обязательное наличие зарегистрированного пользователя
         // Если заказ сделал анонимный пользователь, то он, пока, не попадёт в 1С.
         $orderSql = <<<ORDERSQL
-          SELECT 
-            sso.id,
-            sso.date_create,
-            sso.name,
-            sso.price,
-            sso.order_comment,
-            sso.delivery_method,
-            sso.payment_method,
-            sso.delivery_phone,
-            sso.delivery_country,
-            sso.delivery_city,
-            sso.delivery_address,
-            sso.orderId1c,
-            csu.login as buyerLogin, 
-            csu.name as buyerName, 
-            csu.last_name as buyerLastName, 
-            csu.ID as buyerID, 
-            csu.phone as buyerPhone, 
-            csu.email as buyerEmail,
-            ssod.good_id_1c,
-            ssod.offer_id_1c,
-            ssod.count,
-            ssod.sum,
-            ssod.currency,
-            ssod.name as full_name,
-            ssod.coefficient,
-            ssod.price as fe,
-            ssod.discount as discount
-          FROM {$i}shop_structure_order sso
-          LEFT JOIN {$i}shop_structure_orderdetail ssod on ssod.order_id=sso.id
-          LEFT JOIN {$i}cabinet_structure_user csu on csu.ID = sso.user_id
-          WHERE sso.goods_id != '' AND sso.export=1 AND csu.name IS NOT NULL LIMIT 0,200
-ORDERSQL;
+                      SELECT 
+                        sso.id,
+                        sso.date_create,
+                        sso.name,
+                        sso.price,
+                        sso.order_comment,
+                        sso.delivery_method,
+                        sso.payment_method,
+                        sso.delivery_phone,
+                        sso.delivery_country,
+                        sso.delivery_city,
+                        sso.delivery_address,
+                        sso.orderId1c,
+                        csu.login as buyerLogin, 
+                        csu.name as buyerName, 
+                        csu.last_name as buyerLastName, 
+                        csu.ID as buyerID, 
+                        csu.phone as buyerPhone, 
+                        csu.email as buyerEmail,
+                        ssod.good_id_1c,
+                        ssod.offer_id_1c,
+                        ssod.count,
+                        ssod.sum,
+                        ssod.currency,
+                        ssod.name as full_name,
+                        ssod.coefficient,
+                        ssod.price as fe,
+                        ssod.discount as discount
+                      FROM {$i}shop_structure_order sso
+                      LEFT JOIN {$i}shop_structure_orderdetail ssod on ssod.order_id=sso.id
+                      LEFT JOIN {$i}cabinet_structure_user csu on csu.ID = sso.user_id
+                      WHERE sso.goods_id != '' AND sso.export=1 AND csu.name IS NOT NULL LIMIT 0,200
+            ORDERSQL;
 
         $orderList = $db->select($orderSql);
         if (count($orderList) === 0) {
             return '';
         }
-        $items = array();
+
+        $items = [];
         foreach ($orderList as $element) {
             if (isset($items[$element['id']])) {
                 $items[$element['id']]['goods'][] = array_slice($element, 18);
@@ -75,14 +77,15 @@ ORDERSQL;
                 $items[$element['id']]['goods'][] = array_slice($element, 18);
             }
         }
+
         unset($orderList);
-        $upd = array();
-        foreach ($items as $k => $item) {
+        $upd = [];
+        foreach ($items as $item) {
             $doc = $template->xpath("//КоммерческаяИнформация");
             /* @var $doc[0] \SimpleXMLElement */
             $doc = $doc[0]->addChild("Документ");
 
-            !empty($item['orderId1c']) ? $orderId1c = $item['orderId1c'] : $orderId1c = $item['id'];
+            $orderId1c = empty($item['orderId1c']) ? $item['id'] : $item['orderId1c'];
 
             $doc->addChild("Ид", $orderId1c);
             $doc->addChild("Номер", $orderId1c);
@@ -92,7 +95,7 @@ ORDERSQL;
             $doc->addChild("Роль", "Продавец");
             $doc->addChild("Валюта", "руб");
             $doc->addChild("Курс", 1);
-            $doc->addChild("Сумма", number_format((float)$item['price'] / 100, 2, '.', ''));
+            $doc->addChild("Сумма", number_format((float) $item['price'] / 100, 2, '.', ''));
 
             $detailsValues = $doc->addChild("ЗначенияРеквизитов");
             $detailValue = $detailsValues->addChild("ЗначениеРеквизита");
@@ -108,11 +111,13 @@ ORDERSQL;
             if (!empty($item['address'])) {
                 $deliveryInfo = $item['address'];
             }
+
             if (!empty($item['delivery_country']) && !empty($item['delivery_city'])) {
                 if ($deliveryInfo) {
                     $deliveryInfo = ', ' . $deliveryInfo;
                 }
-                $deliveryInfo = "{$item['delivery_country']}, г. {$item['delivery_city']}{$deliveryInfo}";
+
+                $deliveryInfo = sprintf('%s, г. %s%s', $item['delivery_country'], $item['delivery_city'], $deliveryInfo);
             }
 
             if ($deliveryInfo) {
@@ -131,7 +136,7 @@ ORDERSQL;
                 $deliveriFIO .= $item['delivery_last_name'];
             }
 
-            if (!empty($deliveriFIO)) {
+            if ($deliveriFIO !== '' && $deliveriFIO !== '0') {
                 $detailValue = $detailsValues->addChild("ЗначениеРеквизита");
                 $detailValue->addChild("Наименование", "ФИО получателя");
                 $detailValue->addChild("Значение", $deliveriFIO);
@@ -194,7 +199,7 @@ ORDERSQL;
             }
 
             // Если указано имя или фамилия, то в "Рабочее наименование" отдаём эти данные
-            !empty($buyerName) ? $workName = $buyerName : $workName = $item['buyerLogin'];
+            $workName = empty($buyerName) ? $item['buyerLogin'] : $buyerName;
 
 
             $agent->addChild("Наименование", $workName);
@@ -206,9 +211,12 @@ ORDERSQL;
             if (!empty($item['order_comment'])) {
                 $orderComment .= $item['order_comment'];
             }
+
             if (!empty($item['payment_method'])) {
-                $orderComment .= "\nСпособ оплаты: {$item['payment_method']}";
+                $orderComment .= '
+Способ оплаты: ' . $item['payment_method'];
             }
+
             $doc->addChild('Комментарий', $orderComment);
 
             $xmlGoods = $doc->addChild('Товары');
@@ -231,11 +239,11 @@ ORDERSQL;
                 $itemOne->addChild('НаименованиеПолное', 'Штука');
 
                 // Рассчитываем сумму без скидок/наценок
-                $price = (float)$good['fe'] / 100 + (float)$good['discount'] / 100;
+                $price = (float) $good['fe'] / 100 + (float) $good['discount'] / 100;
                 $xmlGood->addChild('Цена', number_format($price, 2, '.', ''));
                 $xmlGood->addChild('Количество', $good['count']);
-                $xmlGood->addChild('Сумма', number_format((float)$good['sum'] / 100, 2, '.', ''));
-                $xmlGood->addChild('Коэффициент', (int)$good['coefficient'] ? (int)$good['coefficient'] : 1);
+                $xmlGood->addChild('Сумма', number_format((float) $good['sum'] / 100, 2, '.', ''));
+                $xmlGood->addChild('Коэффициент', (int) $good['coefficient'] ?: 1);
                 $props = $xmlGood->addChild('ЗначенияРеквизитов');
                 $prop = $props->addChild('ЗначениеРеквизита');
                 $prop->addChild('Наименование', 'ТипНоменклатуры');
@@ -246,22 +254,24 @@ ORDERSQL;
                     $discounts = $xmlGood->addChild('Скидки');
                     $discount = $discounts->addChild('Скидка');
                     $discount->addChild('Наименование', 'Скидка');
-                    $discount->addChild('Сумма', number_format((float)$good['discount'] / 100, 2, '.', ''));
+                    $discount->addChild('Сумма', number_format((float) $good['discount'] / 100, 2, '.', ''));
 
                     // Высчитываем процент скидки
                     $percentDiscount = $good['discount'] / ($good['sum'] / 100);
-                    $discount->addChild('Процент', number_format((float)$percentDiscount, 2, '.', ''));
+                    $discount->addChild('Процент', number_format((float) $percentDiscount, 2, '.', ''));
                     $discount->addChild('УчтеноВСумме', 'true');
                 }
             }
+
             $doc->addChild("Валюта", 'RUB');
 
             $upd[] = $item['id'];
         }
 
         foreach ($upd as $item) {
-            $db->query("UPDATE {$i}shop_structure_order SET export=0 WHERE id={$item}");
+            $db->query(sprintf('UPDATE %sshop_structure_order SET export=0 WHERE id=%s', $i, $item));
         }
+
         return $template->asXML();
     }
 }

@@ -2,8 +2,4 @@
 
 namespace Cabinet\Structure\Part\Site;
 
-
-class AjaxController extends AjaxControllerAbstract
-{
-
-}
+class AjaxController extends AjaxControllerAbstract {}

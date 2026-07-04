@@ -1,16 +1,16 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3;
 
-use App\HttpRecorder\HttpRecorder;
-use Ideal\Core;
+use Ideal\Core\Config;
 use Ideal\Core\Util;
 
 $isConsole = true;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/_.php';
 
-$config = Core\Config::getInstance();
+$config = Config::getInstance();
 
-$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $config->cmsFolder  . DIRECTORY_SEPARATOR;
+$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $config->cmsFolder . DIRECTORY_SEPARATOR;
 $settingsFilePath = $cmsFolderPath . 'load1CV3Settings.php';
 
 // Если нет файла в папке админки, то копируем его туда из папки модуля
@@ -29,21 +29,19 @@ $cmsSettings = $config->cms;
 
 $config->cms = array_merge($cmsSettings, ['errorLog' => 'email']);
 
-$recorder = new HttpRecorder();
-$recorder($_SERVER, null, DOCUMENT_ROOT . $config->cms['tmpFolder'] . '/http-recorder');
-
 try {
     $fc = new FrontController($params);
     if (ob_get_contents()) {
         ob_clean();
     }
+
     ob_start();
     $fc->run();
     $a = ob_get_clean();
     print $a;
-} catch (\Throwable $e) {
+} catch (\Throwable $throwable) {
     print "failure\n";
-    print $e->getMessage();
+    print $throwable->getMessage();
 }
 
 $errors = Util::$errorArray;

@@ -1,33 +1,34 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Db\Good;
 
 use Shop\Structure\Service\Load1CV208\Db\AbstractDb;
 use Ideal\Core\Db;
-use Shop\Structure\Service\Load1CV208\Db\Order\DbOrder;
 
 class DbGoodAbstract extends AbstractDb
 {
-    /** @var string Структура для получения prev_structure */
-    protected $structurePart = 'ideal_structure_part';
-
     /** @var string Предыдущая категория для prev_structure */
     public $prevGood;
+
     public $prevOffer;
 
-    /** @var string Структуры категорий */
-    protected $structureCat = 'catalogplus_structure_category';
+    /** @var string Структура для получения prev_structure */
+    protected string $structurePart = 'ideal_structure_part';
 
     /** @var string Структуры категорий */
-    protected $structureMedium = 'catalogplus_medium_categorylist';
+    protected string $structureCat = 'catalogplus_structure_category';
 
     /** @var string Структуры категорий */
-    protected $structureMediumTag = 'ideal_medium_taglist';
+    protected string $structureMedium = 'catalogplus_medium_categorylist';
+
+    /** @var string Структуры категорий */
+    protected string $structureMediumTag = 'ideal_medium_taglist';
 
     /** @var array массив категорий с ID и id_1c */
     protected $categories;
 
     /** @var string Структура офферов */
-    protected $offers = 'catalogplus_structure_offer';
+    protected string $offers = 'catalogplus_structure_offer';
 
     /** @var array 1С ключи для точечной выборки товаров из базы. */
     protected $goodKeys;
@@ -46,7 +47,7 @@ class DbGoodAbstract extends AbstractDb
         $this->structureMediumTag = $this->prefix . $this->structureMediumTag;
         $this->offers = $this->prefix . $this->offers;
         $res = $db->select(
-            'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Good" LIMIT 1'
+            'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Good" LIMIT 1',
         );
         $this->prevGood = '1-' . $res[0]['ID'];
     }
@@ -56,23 +57,23 @@ class DbGoodAbstract extends AbstractDb
      *
      * @return array ключ - id_1c, значение - все необходимые поля (в SQL)
      */
-    public function parse()
+    public function parse(): array
     {
         $db = Db::getInstance();
 
         $goodKeysWhere = '';
         if ($this->goodKeys) {
-            $goodKeysWhere = '\'' . implode('\',\'', $this->goodKeys) . '\'';
+            $goodKeysWhere = "'" . implode("','", $this->goodKeys) . "'";
             $goodKeysWhere = ' AND sg.id_1c IN (' . $goodKeysWhere . ')';
         }
 
         // Считываем товары из нашей БД
-        $sql = 'SELECT sg.* FROM ' . $this->table . $this->tablePostfix .
-            ' as sg WHERE sg.prev_structure=\'' . $this->prevGood . '\'' . $goodKeysWhere;
+        $sql = 'SELECT sg.* FROM ' . $this->table . $this->tablePostfix
+            . " as sg WHERE sg.prev_structure='" . $this->prevGood . "'" . $goodKeysWhere;
 
         $tmp = $db->select($sql);
 
-        $result = array();
+        $result = [];
         foreach ($tmp as $element) {
             if ($element['id_1c'] === 'not-1c') {
                 $result[] = $element;
@@ -89,12 +90,13 @@ class DbGoodAbstract extends AbstractDb
      *
      * @param array $goods массив товаров для сохранения
      */
-    public function save($goods)
+    public function save($goods): void
     {
         foreach ($goods as $k => $good) {
             if (!isset($good['prev_structure'])) {
                 $goods[$k]['prev_structure'] = $this->prevGood;
             }
+
             $goods[$k]['structure'] = 'CatalogPlus_Offer';
         }
 
@@ -104,20 +106,20 @@ class DbGoodAbstract extends AbstractDb
     /**
      * Получение информации о товарах
      *
-     * @param string $select
      * @param string $where
      * @return array key - id_1c
      */
-    public function getGoods($select = '*', $where = '')
+    public function getGoods(string $select = '*', $where = ''): array
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT {$select} FROM " . $this->table . $this->tablePostfix;
+        $sql = sprintf('SELECT %s FROM ', $select) . $this->table . $this->tablePostfix;
         if ($where !== '') {
-            $sql .= " WHERE {$where}";
+            $sql .= ' WHERE ' . $where;
         }
+
         $res = $db->select($sql);
-        $result = array();
+        $result = [];
 
         foreach ($res as $item) {
             $result[$item['id_1c']] = $item;
@@ -129,12 +131,12 @@ class DbGoodAbstract extends AbstractDb
     /**
      * Обновление параметро товаров (stock, price, price_old) в конце выгрузки
      */
-    public function updateGood()
+    public function updateGood(): void
     {
         $db = Db::getInstance();
 
         // Проверяем наличие тестовых таблиц, потому что их может не быть если происходит только лишь обмен заказами
-        $result = $db->query('SHOW TABLES LIKE \'' . $this->offers . $this->tablePostfix . '\'');
+        $result = $db->query("SHOW TABLES LIKE '" . $this->offers . $this->tablePostfix . "'");
         $res = $result->fetch_all(MYSQLI_ASSOC);
         if (count($res) === 0) {
             return;
@@ -147,27 +149,30 @@ class DbGoodAbstract extends AbstractDb
             . $this->offers . $this->tablePostfix . ' WHERE is_active = 1 ORDER BY good_id, price';
 
         $tmp = $db->select($sql);
-        $result = array();
+        $result = [];
         foreach ($tmp as $item) {
             // Если оффер принадлежит исключённому товару, то пропускаем его
             if (!isset($goods[$item['id_1c']])) {
                 continue;
             }
+
             // Если у предложения нет остатков, а товар нельзя заказать при отсутствии, то пропускаем этот оффер
             if ($item['stock'] == 0 && $goods[$item['id_1c']]['possible_be_ordering_in_absence'] != 1) {
                 // Если у товара были остатки и не стало, то надо их убрать
                 if (!isset($result[$item['id_1c']]) && $goods[$item['id_1c']]['stock'] > 0) {
                     $result[$item['id_1c']] = $item;
                 }
+
                 continue;
             }
+
             // Если товара ещё нет в массиве, то добавляем его
             if (!isset($result[$item['id_1c']])) {
                 $result[$item['id_1c']] = $item;
             } else {
                 $offer = $result[$item['id_1c']];
-                if ((float)$item['price'] > 0 && $item['stock'] > 0 &&
-                    ((float)$offer['price'] == 0 || $offer['stock'] == 0 || $item['price'] < $offer['price'])
+                if ((float) $item['price'] > 0 && $item['stock'] > 0
+                    && ((float) $offer['price'] == 0 || $offer['stock'] == 0 || $item['price'] < $offer['price'])
                 ) {
                     // Если товар уже есть в массиве, но у рассматриваемого оффера цена ниже, то обновляекм цену у
                     // товара
@@ -177,38 +182,41 @@ class DbGoodAbstract extends AbstractDb
                 // Складываем остатки всех офферов
                 $result[$item['id_1c']]['stock'] += $item['stock'];
 
-                if ((float)$item['price_old'] > 0 &&
-                    ((float)$result[$item['id_1c']]['price_old'] == 0 ||
-                        (float)$item['price_old'] > (float)$result[$item['id_1c']]['price_old']
+                if ((float) $item['price_old'] > 0
+                    && (
+                        (float) $result[$item['id_1c']]['price_old'] == 0
+                        || (float) $item['price_old'] > (float) $result[$item['id_1c']]['price_old']
                     )
                 ) {
                     // Если товар уже есть в массиве, но у рассматриваемого оффера старая цена выше,
                     // то обновляем старую цену у товара
-                    $result[$item['id_1c']]['price_old'] = (int)$item['price_old'];
+                    $result[$item['id_1c']]['price_old'] = (int) $item['price_old'];
                 }
             }
         }
 
-        $updates = array();
+        $updates = [];
         foreach ($result as $k => $item) {
             if (!isset($goods[$k])) {
                 continue;
             }
+
             $good = $goods[$k];
             $diff = array_diff_assoc($item, $good);
-            if (count($diff) > 0) {
+            if ($diff !== []) {
                 // ID товара всегда в диффе
                 $updates[$k] = $diff;
                 $updates[$k]['ID'] = $good['ID'];
             }
         }
+
         parent::save($updates);
     }
 
     /**
      * @param array $goodKeys
      */
-    public function setGoodKeys($goodKeys)
+    public function setGoodKeys($goodKeys): void
     {
         $this->goodKeys = $goodKeys;
     }
@@ -219,7 +227,7 @@ class DbGoodAbstract extends AbstractDb
      * @param array $element Добавляемый товар
      * @return array Модифицированный товар
      */
-    protected function getForAdd($element)
+    protected function getForAdd(array $element): array
     {
         $element['prev_structure'] = $this->prevGood;
         $element['measure'] = '';
@@ -237,35 +245,35 @@ class DbGoodAbstract extends AbstractDb
     {
         // Удяляются только те товары, которые имеют идентификатор
         // Собираем идентификаторы товаров для удаления
-        $delIds = array();
+        $delIds = [];
         foreach ($goods as $good) {
             if (isset($good['ID'])) {
                 $delIds[] = $good['ID'];
             }
         }
 
-        if ($delIds) {
+        if ($delIds !== []) {
             $db = Db::getInstance();
 
             // Удаяем сами товары
             $whereId = implode(',', $delIds);
-            $sql = "DELETE FROM {$this->table}{$this->tablePostfix} WHERE ID IN ({$whereId})";
+            $sql = sprintf('DELETE FROM %s%s WHERE ID IN (%s)', $this->table, $this->tablePostfix, $whereId);
             $db->query($sql);
 
             // Удаляем офферы
-            list(, $goodStructureId) = explode('-', $this->prevGood);
-            $wherePrevStructure = '\'' . $goodStructureId . '-' . implode('\',\'' . $goodStructureId . '-', $delIds);
-            $wherePrevStructure .= '\'';
-            $sql = "DELETE FROM {$this->offers}{$this->tablePostfix} WHERE prev_structure IN ({$wherePrevStructure})";
+            [, $goodStructureId] = explode('-', $this->prevGood);
+            $wherePrevStructure = "'" . $goodStructureId . '-' . implode("','" . $goodStructureId . '-', $delIds);
+            $wherePrevStructure .= "'";
+            $sql = sprintf('DELETE FROM %s%s WHERE prev_structure IN (%s)', $this->offers, $this->tablePostfix, $wherePrevStructure);
             $db->query($sql);
 
             // удаляем теги товара
-            $sql = "DELETE FROM {$this->structureMediumTag}{$this->tablePostfix} WHERE structure_id={$goodStructureId}";
-            $sql .= " AND part_id IN ({$whereId})";
+            $sql = sprintf('DELETE FROM %s%s WHERE structure_id=%s', $this->structureMediumTag, $this->tablePostfix, $goodStructureId);
+            $sql .= sprintf(' AND part_id IN (%s)', $whereId);
             $db->query($sql);
 
             // Удаляем отнесение к разделам каталога
-            $sql = "DELETE FROM {$this->structureMedium}{$this->tablePostfix} WHERE good_id IN ({$whereId})";
+            $sql = sprintf('DELETE FROM %s%s WHERE good_id IN (%s)', $this->structureMedium, $this->tablePostfix, $whereId);
             $db->query($sql);
         }
     }

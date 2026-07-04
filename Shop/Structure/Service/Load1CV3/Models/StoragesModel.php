@@ -50,7 +50,7 @@ class StoragesModel extends ModelAbstract
      *
      * @return array двумерный массив с данными о ценах после сведения XML и БД
      */
-    protected function parse($dbUnits, $xmlUnits)
+    protected function parse($dbUnits, $xmlUnits): array
     {
         // Забираем результаты единиц измерения из БД
         $dbResult = $dbUnits->parse();
@@ -72,7 +72,7 @@ class StoragesModel extends ModelAbstract
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
         $result = [];
         foreach ($xmlResult as $k => $val) {
@@ -84,7 +84,7 @@ class StoragesModel extends ModelAbstract
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;

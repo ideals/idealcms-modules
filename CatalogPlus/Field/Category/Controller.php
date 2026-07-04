@@ -1,12 +1,16 @@
 <?php
+
 namespace CatalogPlus\Field\Category;
 
-class Controller extends \Ideal\Field\AbstractController
+use Ideal\Field\AbstractController;
+use Ideal\Medium\AbstractModel;
+
+class Controller extends AbstractController
 {
-    /** @var \Ideal\Medium\AbstractModel */
+    /** @var AbstractModel */
     protected $medium; // объект доступа к редактируемым данным
 
-    public function setModel($model, $fieldName, $groupName = 'general')
+    public function setModel($model, $fieldName, $groupName = 'general'): void
     {
         parent::setModel($model, $fieldName, $groupName);
 
@@ -16,7 +20,7 @@ class Controller extends \Ideal\Field\AbstractController
     }
 
 
-    public function getInputText()
+    public function getInputText(): string
     {
         $list = $this->medium->getList();
         $variants = $this->medium->getValues();
@@ -27,27 +31,29 @@ class Controller extends \Ideal\Field\AbstractController
             if (in_array($k, $variants)) {
                 $selected = ' selected="selected"';
             }
+
             $html .= '<option value="' . $k . '"' . $selected . '>' . $v . '</option>';
         }
-        $html .= '</select>';
-        return $html;
+
+        return $html . '</select>';
     }
 
 
-    public function parseInputValue($isCreate)
+    /**
+     * @return array<string, string|null>
+     */
+    public function parseInputValue($isCreate): array
     {
         // Если товар связан с категорией через промежуточную таблицу
 
         $this->newValue = null;
         $newValue = $this->pickupNewValue();
 
-        $item = array(
+        return [
             'fieldName' => $this->htmlName,
             'value' => null,
             'message' => '',
-            'sqlAdd' => $this->medium->getSqlAdd($newValue)
-        );
-
-        return $item;
+            'sqlAdd' => $this->medium->getSqlAdd($newValue),
+        ];
     }
 }

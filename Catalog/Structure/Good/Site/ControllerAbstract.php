@@ -1,14 +1,16 @@
 <?php
+
 namespace Catalog\Structure\Good\Site;
 
+use Ideal\Core\Site\Controller;
 use Ideal\Core\Request;
 
-class ControllerAbstract extends \Ideal\Core\Site\Controller
+class ControllerAbstract extends Controller
 {
     /**
      * Отображение списка товаров из одной категории
      */
-    public function indexAction()
+    public function indexAction(): void
     {
         parent::indexAction();
 
@@ -21,7 +23,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     /**
      * Отображение карточки товара (подробного описания)
      */
-    public function detailAction()
+    public function detailAction(): void
     {
         $this->setTemplate('Catalog/Structure/Good/Site/detail.twig');
         parent::indexAction();

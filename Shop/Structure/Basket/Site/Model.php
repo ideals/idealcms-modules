@@ -1,8 +1,5 @@
 <?php
+
 namespace Shop\Structure\Basket\Site;
 
-
-class Model extends ModelAbstract
-{
-
-}
+class Model extends ModelAbstract {}

@@ -1,9 +1,10 @@
 <?php
+
 // символ ` заменяется на нэймспэйс
-return array(
+return [
     'key'    => 'Ид',
-    'fields' => array(
+    'fields' => [
         'togetherSoldTo' => '@ИдНоменклатураПредпосылка',
-        'togetherSoldThat' => '@ИдНоменклатураСледствие'
-    )
-);
+        'togetherSoldThat' => '@ИдНоменклатураСледствие',
+    ],
+];

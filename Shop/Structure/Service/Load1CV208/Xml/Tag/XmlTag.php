@@ -1,8 +1,9 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Xml\Tag;
 
+use Ideal\Field\Url\Model;
 use Shop\Structure\Service\Load1CV208\Xml\AbstractXml;
-use Ideal\Field\Url;
 
 class XmlTag extends AbstractXml
 {
@@ -10,37 +11,37 @@ class XmlTag extends AbstractXml
     public $part = 'Tegi';
 
     /** @var array Привязка товаров к тегам (ключ — id товара, значение — ids тегов) */
-    public $tags = array();
+    public $tags = [];
 
     /**
      * Парсинг xml выгрузки Tegi__*.xml
      *
      * @return array двумерный массив ключ - id_1c, значения - транслитированные ключи и данные из xml
      */
-    public function parse()
+    public function parse(): array
     {
         $id = 0;
-        $this->data = array();
+        $this->data = [];
         foreach ($this->xml as $item) {
-            $this->data[$id] = array();
+            $this->data[$id] = [];
             $this->registerNamespace($item);
             $this->updateFromConfig($item, $id);
             $id++;
         }
 
         // Заполняем массив привязки товаров к тегам
-        $this->tags = array();
-        foreach ($this->data as $k => $tag) {
-            $this->tags[$tag['goodId1c']][] = Url\Model::translitUrl($tag['tag']);
+        $this->tags = [];
+        foreach ($this->data as $tag) {
+            $this->tags[$tag['goodId1c']][] = Model::translitUrl($tag['tag']);
         }
 
         // Оставляем только уникальные теги
-        $data = array();
-        foreach ($this->data as $k => $val) {
+        $data = [];
+        foreach ($this->data as $val) {
             if (!empty($val['tag'])) {
-                $key = Url\Model::translitUrl($val['tag']);
+                $key = Model::translitUrl($val['tag']);
                 if (isset($val['parentTag']) && !empty($val['parentTag'])) {
-                    $parentKey = Url\Model::translitUrl($val['parentTag']);
+                    $parentKey = Model::translitUrl($val['parentTag']);
                     // Ищем среди уже существующих данных указанный тег и присоединяем в случае успешности поиска
                     self::appendChild($parentKey, $val['parentTag'], $val['tag'], $key, $data);
                 } else {
@@ -51,7 +52,7 @@ class XmlTag extends AbstractXml
         }
 
         // Делаем из многомерного массива одномерный, проставляем всем lvl и меняем ключи
-        $this->data = array();
+        $this->data = [];
         self::getCleanData($data);
 
         return $this->data;
@@ -61,7 +62,7 @@ class XmlTag extends AbstractXml
      * Рекурсивный метод осуществляющий поиск и объединение рогдителя и предка тегов
      *
      * @param string $parentKey - ключ родительского элемента в массиве
-     * @param array $data - массив данных для поиска
+     * @param array<string, mixed> $data - массив данных для поиска
      * @param string $parentTag - наименование родительского тега
      * @param string $tag - текущий тег для присоединения
      * @param string $key - ключ присоеденяемых данных
@@ -69,25 +70,28 @@ class XmlTag extends AbstractXml
      *
      * @return bool $needAppend - признак надобности добавления дочернего тега
      */
-    private function appendChild($parentKey, $parentTag, $tag, $key, &$data, $needAppend = true)
+    private function appendChild($parentKey, $parentTag, $tag, $key, array &$data, $needAppend = true)
     {
         if (isset($data[$parentKey])) {
             if (!isset($data[$parentKey]['child'][$key])) {
                 $data[$parentKey]['child'][$key]['name'] = $tag;
                 $data[$parentKey]['child'][$key]['url'] = $key;
             }
+
             $needAppend = false;
-        } elseif(isset($data['child']) && is_array($data['child']) && !empty($data['child'])) {
-            foreach($data['child'] as $key => $childItem) {
+        } elseif (isset($data['child']) && is_array($data['child']) && (isset($data['child']) && $data['child'] !== [])) {
+            foreach (array_keys($data['child']) as $key) {
                 $needAppend = self::appendChild($parentKey, $parentTag, $tag, $key, $data['child'][$key], $needAppend);
             }
         }
+
         if ($needAppend) {
             $data[$parentKey]['name'] = $parentTag;
             $data[$parentKey]['url'] = $parentKey;
             $data[$parentKey]['child'][$key]['name'] = $tag;
             $data[$parentKey]['child'][$key]['url'] = $key;
         }
+
         return $needAppend;
     }
 
@@ -99,14 +103,15 @@ class XmlTag extends AbstractXml
      * @param string $parentUrl - Адрес родительского элемента
      * @param integer $lvl - Уровень вложенности элемента
      */
-    private function getCleanData($data, $parentUrl = '', $lvl = 1)
+    private function getCleanData($data, string $parentUrl = '', $lvl = 1): void
     {
-        if (!empty($parentUrl)) {
+        if ($parentUrl !== '' && $parentUrl !== '0') {
             $parentUrl .= '/';
         }
-        foreach ($data as $key => $value){
+
+        foreach ($data as $key => $value) {
             $url = $parentUrl . $key;
-            $this->data[$url] = array('lvl' => $lvl, 'name' => $value['name'], 'url' => $value['url'], 'is_active' => 1);
+            $this->data[$url] = ['lvl' => $lvl, 'name' => $value['name'], 'url' => $value['url'], 'is_active' => 1];
             if (isset($value['child'])) {
                 self::getCleanData($value['child'], $url, $lvl + 1);
             }

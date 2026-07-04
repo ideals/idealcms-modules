@@ -1,23 +1,24 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Db\Category;
 
+use Ideal\Field\Cid\Model;
 use Shop\Structure\Service\Load1CV3\Db\AbstractDb;
 use Ideal\Field\Url;
 use Ideal\Core\Config;
-use Ideal\Field\Cid;
 use Ideal\Core\Db;
 use Shop\Structure\Service\Load1CV3\Db\Medium\DbMedium;
 
 class DbCategoryAbstract extends AbstractDb
 {
-    /** @var string Структура для получения prev_structure */
-    protected $structurePart = 'ideal_structure_part';
-
-    /** @var string Предыдущая категория для prev_structure */
-    protected $prevCat;
-
     /** @var string Все неприсвоенные категориям товары будут лежать тут */
     public $defaultCategory = '';
+
+    /** @var string Структура для получения prev_structure */
+    protected string $structurePart = 'ideal_structure_part';
+
+    /** @var string Предыдущая категория для prev_structure */
+    protected string $prevCat;
 
     /** @var array 1С ключи для точечной выборки разделов каталога из базы. */
     protected $categoryKeys;
@@ -32,7 +33,7 @@ class DbCategoryAbstract extends AbstractDb
         $this->table = $this->prefix . 'catalogplus_structure_category';
         $this->structurePart = $this->prefix . $this->structurePart;
         $res = $db->select(
-            'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Category" LIMIT 1'
+            'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Category" LIMIT 1',
         );
         $this->prevCat = '1-' . $res[0]['ID'];
     }
@@ -41,19 +42,19 @@ class DbCategoryAbstract extends AbstractDb
     /**
      * Если необходимо - создание категории товаров из выгрузки, у которых не была указана категория
      */
-    public function createDefaultCategory()
+    public function createDefaultCategory(): void
     {
         $db = Db::getInstance();
 
         $res = $db->select('SELECT ID FROM ' . $this->table . $this->tablePostfix . ' WHERE name="Load1c_default"');
-        if (count($res) == 0) {
+        if (count($res) === 0) {
             $config = Config::getInstance();
             $part = $config->getStructureByName('Ideal_Part');
 
             $cid = $db->select('SELECT max(cid) as cid FROM ' . $this->table . $this->tablePostfix);
-            $cidModel = new Cid\Model($part['params']['levels'], $part['params']['digits']);
+            $cidModel = new Model($part['params']['levels'], $part['params']['digits']);
             $cid = $cidModel->getBlock($cid[0]['cid'], 1, '+1');
-            $values = array(
+            $values = [
                 'lvl' => '1',
                 'id_1c' => 'Load1c_default',
                 'prev_structure' => $this->prevCat,
@@ -63,8 +64,8 @@ class DbCategoryAbstract extends AbstractDb
                 'url' => 'Load1c_default',
                 'date_create' => time(),
                 'date_mod' => time(),
-                'is_active' => '0'
-            );
+                'is_active' => '0',
+            ];
             $db->insert($this->table . $this->tablePostfix, $values);
         }
     }
@@ -74,11 +75,11 @@ class DbCategoryAbstract extends AbstractDb
      *
      * @return array массив категорий ключ - id_1c, значение - ID категории в базе
      */
-    public function getCategories()
+    public function getCategories(): array
     {
         $db = Db::getInstance();
 
-        $categories = array();
+        $categories = [];
         $res = $db->select('SELECT ID, id_1c, cid, lvl FROM ' . $this->table . $this->tablePostfix . ' ORDER BY cid');
         foreach ($res as $category) {
             $categories[$category['id_1c']] = $category;
@@ -92,13 +93,13 @@ class DbCategoryAbstract extends AbstractDb
      *
      * @return array ключ - ид_1с, значение - массив полей в таблице о категории.
      */
-    public function parse()
+    public function parse(): array
     {
         $db = Db::getInstance();
 
         $categoryKeysWhere = '';
         if ($this->categoryKeys) {
-            $categoryKeysWhere = '\'' . implode('\',\'', $this->categoryKeys) . '\'';
+            $categoryKeysWhere = "'" . implode("','", $this->categoryKeys) . "'";
             $categoryKeysWhere = ' WHERE id_1c IN (' . $categoryKeysWhere . ')';
         }
 
@@ -108,7 +109,7 @@ class DbCategoryAbstract extends AbstractDb
 
         $tmp = $db->select($sql);
 
-        $result = array();
+        $result = [];
         // Если категория не 1с ключ в массиве - порядковый номер, иначе - id_1c
         foreach ($tmp as $element) {
             if ($element['id_1c'] == 'not-1c') {
@@ -124,10 +125,9 @@ class DbCategoryAbstract extends AbstractDb
     /**
      * Выдача только нужного набора полей записи категории в БД
      *
-     * @param array $element
-     * @return array
+     * @param array<string, mixed> $element
      */
-    public function getMainPartCategory($element)
+    public function getMainPartCategory(array $element): array
     {
         $fields = ['ID', 'name', 'cid', 'lvl', 'id_1c', 'is_active'];
         $item = [];
@@ -144,11 +144,11 @@ class DbCategoryAbstract extends AbstractDb
      * @param $parentCid string полный сид
      * @return null|string id_1c
      */
-    public function getParentByCid($parentCid)
+    public function getParentByCid(string $parentCid)
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT id_1c FROM " . $this->table . $this->tablePostfix . " WHERE cid = '{$parentCid}' LIMIT 1";
+        $sql = "SELECT id_1c FROM " . $this->table . $this->tablePostfix . sprintf(" WHERE cid = '%s' LIMIT 1", $parentCid);
         $id = $db->select($sql);
 
         if (!isset($id[0]['id_1c'])) {
@@ -158,26 +158,31 @@ class DbCategoryAbstract extends AbstractDb
         return $id[0]['id_1c'];
     }
 
+    /**
+     * @param never[][] $categories
+     */
     public function recursiveRestruct(array &$categories, array $goodsCount, $cid = null, $lvl = 0, $k = null)
     {
         $config = Config::getInstance();
         $part = $config->getStructureByName('Ideal_Part');
-        $cidModel = new Cid\Model($part['params']['levels'], $part['params']['digits']);
+        $cidModel = new Model($part['params']['levels'], $part['params']['digits']);
 
         foreach ($categories as $key => $category) {
             if (!isset($category['cid'])) {
                 continue;
             }
+
             if (!is_null($cid)) {
-                if (strpos($category['cid'], $cid) !== 0) {
+                if (strpos($category['cid'], (string) $cid) !== 0) {
                     // пропускаем если не родительский сид
                     continue;
-                } else {
-                    if ($category['lvl'] == $lvl) {
-                        // пропускаем если тотже сид и уровень - также категория
-                        continue;
-                    }
                 }
+
+                if ($category['lvl'] == $lvl) {
+                    // пропускаем если тотже сид и уровень - также категория
+                    continue;
+                }
+
             }
 
             $cidNum = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
@@ -187,7 +192,8 @@ class DbCategoryAbstract extends AbstractDb
                 if (isset($goodsCount[$categories[$key]['ID']])) {
                     $tmp = $goodsCount[$categories[$key]['ID']];
                 }
-                $categories[$key] = array();
+
+                $categories[$key] = [];
                 $categories[$key]['ID'] = $category['ID'];
                 $categories[$key]['num'] = $tmp;
             }
@@ -200,22 +206,23 @@ class DbCategoryAbstract extends AbstractDb
         }
 
         if (!isset($count)) {
-            $count = isset($goodsCount[$categories[$k]['ID']]) ? $goodsCount[$categories[$k]['ID']] : 0;
+            $count = $goodsCount[$categories[$k]['ID']] ?? 0;
         }
+
         return $count;
     }
 
     /**
      * Рекурсивное обновление количества товара во всех группах (с учётом товара в подгруппах)
      */
-    public function updateGoodsCount()
+    public function updateGoodsCount(): void
     {
         $db = Db::getInstance();
 
         $this->tablePostfix = '';
 
         // Проверяем наличие тестовых таблиц, потому что их может не быть если происходит только лишь обмен заказами
-        $result = $db->query('SHOW TABLES LIKE \'' . $this->table . $this->tablePostfix . '\'');
+        $result = $db->query("SHOW TABLES LIKE '" . $this->table . $this->tablePostfix . "'");
         $res = $result->fetch_all(MYSQLI_ASSOC);
         if (count($res) > 0) {
             // Считываем список категорий
@@ -236,7 +243,7 @@ class DbCategoryAbstract extends AbstractDb
     /**
      * @param array $categoryKeys
      */
-    public function setCategoryKeys($categoryKeys)
+    public function setCategoryKeys($categoryKeys): void
     {
         $this->categoryKeys = $categoryKeys;
     }
@@ -247,7 +254,7 @@ class DbCategoryAbstract extends AbstractDb
      * @param array $element Добавляемая категория
      * @return array Модифицированная категория
      */
-    protected function getForAdd($element)
+    protected function getForAdd(array $element): array
     {
         $element['url'] = Url\Model::translitUrl($element['name']);
         $element['prev_structure'] = $this->prevCat;

@@ -1,6 +1,5 @@
 <?php
+
 namespace Gallery\Structure\Photo\Site;
 
-class Model extends ModelAbstract
-{
-}
+class Model extends ModelAbstract {}

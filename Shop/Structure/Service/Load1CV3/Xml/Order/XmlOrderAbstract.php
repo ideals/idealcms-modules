@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Xml\Order;
 
 use Shop\Structure\Order\Model as OrderModel;
@@ -18,13 +19,14 @@ class XmlOrderAbstract extends AbstractXml
      *
      * @return array двумерный массив данных
      */
-    public function parse()
+    public function parse(): array
     {
         $this->recursiveParse($this->xml);
         foreach ($this->data as $k => $val) {
             // Так как в выгрузке стоит флаг удаления, а у нас - активности, то инвертируем его
-            $this->data[$k]['is_active'] = $val['is_active'] === 'false' ? '1' : (int)$val['is_active'];
+            $this->data[$k]['is_active'] = $val['is_active'] === 'false' ? '1' : (int) $val['is_active'];
         }
+
         $this->data = $this->postParse($this->data);
 
         return $this->data;
@@ -33,9 +35,27 @@ class XmlOrderAbstract extends AbstractXml
     /**
      * Подмена значений конфигурационного файла выгрузки
      */
-    public function updateConfigs()
+    public function updateConfigs(): void
     {
         $this->configs['fields'] = array_merge($this->configs['fields'], $this->configs['updateDbFields']);
+    }
+
+    public function setExchangeConfig(array $exchangeConfig): void
+    {
+        $this->exchangeConfig = $exchangeConfig;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function validate(): bool
+    {
+        return isset($this->xml->{'Контейнер'});
+    }
+
+    public function getFields()
+    {
+        return $this->configs['fields'];
     }
 
     /**
@@ -45,7 +65,7 @@ class XmlOrderAbstract extends AbstractXml
      */
     protected function recursiveParse($groupsXML)
     {
-        if (empty($groupsXML)) {
+        if ($groupsXML === null) {
             return;
         }
 
@@ -66,27 +86,6 @@ class XmlOrderAbstract extends AbstractXml
 
             $this->data[$val['orderId1c']] = $this->setStatus($val);
         }
-    }
-
-    /**
-     * @param array $exchangeConfig
-     */
-    public function setExchangeConfig($exchangeConfig)
-    {
-        $this->exchangeConfig = $exchangeConfig;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function validate()
-    {
-        return isset($this->xml->{'Контейнер'});
-    }
-
-    public function getFields()
-    {
-        return $this->configs['fields'];
     }
 
     /**
@@ -117,15 +116,19 @@ class XmlOrderAbstract extends AbstractXml
 
     /**
      * Обработка отгрузки товара для соответствующего заказа
+     * @param array<string, mixed> $val
      */
-    protected function parseShipment($child, $val): array
+    protected function parseShipment($child, array $val): array
     {
         $val['shipment_sum'] = ($val['shipment_sum'] ?? 0) + (float) $child->{'Сумма'};
 
         return $val;
     }
 
-    protected function setStatus($val): array
+    /**
+     * @param array<string, mixed> $val
+     */
+    protected function setStatus(array $val): array
     {
         /**
          * 1) "На согласовании" - заказ в 1С не проведён и не помечен на удаление.

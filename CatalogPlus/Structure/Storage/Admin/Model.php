@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -9,7 +10,4 @@
 
 namespace CatalogPlus\Structure\Storage\Admin;
 
-class Model extends ModelAbstract
-{
-
-}
+class Model extends ModelAbstract {}

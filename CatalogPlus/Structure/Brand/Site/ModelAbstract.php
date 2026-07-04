@@ -1,24 +1,14 @@
 <?php
+
 namespace CatalogPlus\Structure\Brand\Site;
 
+use Ideal\Structure\Part\Site\Model;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Core\Request;
-use Ideal\Structure\Part;
 
-class ModelAbstract extends Part\Site\Model
+class ModelAbstract extends Model
 {
-
-    public function getWhere($where)
-    {
-        if ($where != '') {
-            $where .= " AND ";
-        }
-        $where = 'WHERE ' . $where . ' is_active=1';
-
-        return $where;
-    }
-
     /**
      * Получить общее количество элементов в списке
      * @return array Полученный список элементов
@@ -29,20 +19,21 @@ class ModelAbstract extends Part\Site\Model
         $request = new Request();
         if ($request->action == 'detail') {
             $config = Config::getInstance();
-            $where = $this->getWhere("e.brand_id='{$this->pageData['ID']}'");
+            $where = $this->getWhere(sprintf("e.brand_id='%s'", $this->pageData['ID']));
             $goodTable = $config->db['prefix'] . 'catalogplus_structure_good';
-            $_sql = " SELECT COUNT(e.ID) FROM {$goodTable} AS e {$where}";
+            $_sql = sprintf(' SELECT COUNT(e.ID) FROM %s AS e %s', $goodTable, $where);
         } else {
-            $where = $this->getWhere("e.prev_structure='{$this->prevStructure}'");
+            $where = $this->getWhere(sprintf("e.prev_structure='%s'", $this->prevStructure));
             // Считываем все элементы первого уровня
-            $_sql = "SELECT COUNT(e.ID) FROM {$this->_table} AS e {$where}";
+            $_sql = sprintf('SELECT COUNT(e.ID) FROM %s AS e %s', $this->_table, $where);
         }
+
         $list = $db->select($_sql);
 
         return $list[0]['COUNT(e.ID)'];
     }
 
-    public function detectPageByUrl($path, $url)
+    public function detectPageByUrl($path, $url): \Ideal\Core\Site\Model
     {
         $db = Db::getInstance();
         if (count($url) > 1) {
@@ -51,7 +42,7 @@ class ModelAbstract extends Part\Site\Model
         }
 
         $url = $db->real_escape_string(end($url));
-        $sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND url='{$url}'  AND date_create < " . time();
+        $sql = sprintf("SELECT * FROM %s WHERE is_active=1 AND url='%s'  AND date_create < ", $this->_table, $url) . time();
 
         $brand = $db->select($sql); // запрос на получение всех страниц, соответствующих частям url
 
@@ -77,7 +68,7 @@ class ModelAbstract extends Part\Site\Model
         $config = Config::getInstance();
         $goodTable = $config->db['prefix'] . 'catalogplus_structure_good';
         $idBrand = $this->pageData['ID'];
-        $sql = "SELECT * FROM {$goodTable} WHERE brand_id = '{$idBrand}' AND is_active=1";
+        $sql = sprintf("SELECT * FROM %s WHERE brand_id = '%s' AND is_active=1", $goodTable, $idBrand);
         $request = new Request();
         $page = intval($request->page);
         if (is_null($page)) {
@@ -92,8 +83,9 @@ class ModelAbstract extends Part\Site\Model
             $page = $this->setPageNum($page);
             $start = ($page - 1) * $onPage;
 
-            $sql .= " LIMIT {$start}, {$onPage}";
+            $sql .= sprintf(' LIMIT %s, %s', $start, $onPage);
         }
+
         $goods = $db->select($sql);
         foreach ($goods as $k => $v) {
             $goods[$k]['properties'] = unserialize($v['properties']);
@@ -110,8 +102,10 @@ class ModelAbstract extends Part\Site\Model
                 $goods[$k]['oldPrice'] = $v['price'];
                 $goods[$k]['price'] = $v['price'] - floor($v['price'] / 100 * $v['sell']);
             }
+
             $goods[$k]['link'] = 'href="/shop/detail/' . $v['url'] . $config->urlSuffix . '"';
         }
+
         return $goods;
     }
 
@@ -122,7 +116,7 @@ class ModelAbstract extends Part\Site\Model
         $header = '';
         if (isset($this->pageData['annot'])) {
             // Если есть шаблон с контентом, пытаемся из него извлечь заголовок H1
-            list($header, $text) = $this->extractHeader($this->pageData['annot']);
+            [$header, $text] = $this->extractHeader($this->pageData['annot']);
             $this->pageData['annot'] = $text;
         }
 
@@ -130,17 +124,23 @@ class ModelAbstract extends Part\Site\Model
             // Если заголовка H1 в тексте нет, берём его из названия name
             $header = $this->pageData['name'];
         }
+
         return $header;
     }
 
-    public function setObjectNew()
-    {
-
-    }
+    public function setObjectNew() {}
 
     public function getStructureElements()
     {
-        $list = $this->getList(0, 9999);
-        return $list;
+        return $this->getList(0);
+    }
+
+    protected function getWhere($where): string
+    {
+        if ($where != '') {
+            $where .= " AND ";
+        }
+
+        return 'WHERE ' . $where . ' is_active=1';
     }
 }

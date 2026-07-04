@@ -4,53 +4,67 @@ namespace Shop\Structure\Service\Load1c;
 
 class Image
 {
-    private $config;
-    private $color = array();
-    private $water;
-    private $minSizeWater;
+    /**
+     * @var string
+     */
+    public $tmpDir;
+
+    /**
+     * @var string
+     */
+    public $dirImage;
+
+    private array $config;
+
+    private array $color = [];
+
+    private string $water = 'TEXT';
+
+    private string $minSizeWater;
+
     private $nameDir;
+
     private $img;
 
-    function __construct($img, $width, $height, $nameDir, $border = true)
+    public function __construct($img, $width, $height, $nameDir, $border = true)
     {
         $this->img = $img;
         $this->nameDir = $nameDir;
         $image = basename($img);
         $dir = basename(str_replace('/' . $image, '', $img));
         $image = $dir . '/' . $image;
-
-        $this->water = 'TEXT';
         $this->tmpDir = DOCUMENT_ROOT . '/tmp/1c/import_files/';
         $this->dirImage = DOCUMENT_ROOT . '/images/1c';
 
-        if (!file_exists("{$this->dirImage}/{$nameDir}/{$dir}/")) {
-            mkdir("{$this->dirImage}/{$nameDir}/{$dir}/", 0777, true);
+        if (!file_exists(sprintf('%s/%s/%s/', $this->dirImage, $nameDir, $dir))) {
+            mkdir(sprintf('%s/%s/%s/', $this->dirImage, $nameDir, $dir), 0777, true);
         }
+
         $this->minSizeWater = "140*140";
         $this->config['font'] = 'arial.ttf';
         $this->color1("e6e6e6");
 
-        $filename = "{$this->dirImage}/{$this->nameDir}/" . $image;
+        $filename = sprintf('%s/%s/', $this->dirImage, $this->nameDir) . $image;
 
 
         if (!file_exists($filename)) {
-            $this->resize($this->tmpDir . $image, $width, $height, "{$this->dirImage}/{$nameDir}/{$dir}/", $border);
+            $this->resize($this->tmpDir . $image, $width, $height, sprintf('%s/%s/%s/', $this->dirImage, $nameDir, $dir), $border);
         }
     }
 
-    public function getName()
+    public function getName(): string
     {
-        return "images/1c/{$this->nameDir}/" . basename($this->img);
+        return sprintf('images/1c/%s/', $this->nameDir) . basename($this->img);
     }
 
-    private function color1($tmp)
+    private function color1(string $tmp): void
     {
         $this->color['r'] = hexdec(substr($tmp, 0, 2));
         $this->color['g'] = hexdec(substr($tmp, 2, 2));
         $this->color['b'] = hexdec(substr($tmp, 4, 2));
     }
 
-    private function resize($image, $newWidth = 100, $newHeight = 100, $uri = 'images/', $border = true)
+    private function resize(string $image, $newWidth = 100, $newHeight = 100, string $uri = 'images/', $border = true): void
     {
         $img = null;
         $water = $this->water;
@@ -74,13 +88,22 @@ class Image
                 break;
         }
 
-        if ($srcH < $newHeight) $newHeight = $srcH;
-        if ($srcW < $newWidth) $newWidth = $srcW;
+        if ($srcH < $newHeight) {
+            $newHeight = $srcH;
+        }
+
+        if ($srcW < $newWidth) {
+            $newWidth = $srcW;
+        }
+
         // Пропорциональное уменьшение изображения
         $tmp = $srcW / $newWidth;
         $tmp2 = $srcH / $newHeight;
         $k = $tmp2;
-        if ($tmp > $tmp2) $k = $tmp;
+        if ($tmp > $tmp2) {
+            $k = $tmp;
+        }
+
         // Подсчет новой высоты и ширины
         $h2 = $srcH / $k;
         $w2 = $srcW / $k;
@@ -88,7 +111,7 @@ class Image
         $color = imagecolorallocate($newImage, $this->color['r'], $this->color['g'], $this->color['b']);
         imagefilledrectangle($newImage, 0, 0, $w2, $h2, $color);
         imagecopyresampled($newImage, $img, 0, 0, 0, 0, $w2, $h2, $srcW, $srcH);
-        if (($w2 != $newWidth OR $h2 != $newHeight) AND $border) {
+        if (($w2 != $newWidth || $h2 != $newHeight) && $border) {
             // Если картинка была уменьшина в пропорциях
             // То она будет доведена до требуемого размера
             $tmpImage = imagecreatetruecolor($newWidth, $newHeight);
@@ -100,8 +123,9 @@ class Image
             imagecopy($tmpImage, $newImage, $margeX, $margeY, 0, 0, $w2, $h2);
             $newImage = $tmpImage;
         }
+
         $tmp = explode('*', $this->minSizeWater);
-        if ($tmp[0] < $newWidth AND $tmp[1] < $newHeight AND $water != NULL) {
+        if ($tmp[0] < $newWidth && $tmp[1] < $newHeight && $water != null) {
             $tmp = ($newWidth - 10) / strlen($water);
             if (floor($tmp) >= 20) {
                 $fontSize = 20;
@@ -110,6 +134,7 @@ class Image
             } else {
                 $fontSize = floor($tmp);
             }
+
             if ($fontSize > 5) {
                 // Вывод текста на картинку
                 $white = imagecolorallocatealpha($newImage, 250, 250, 250, 75);

@@ -1,6 +1,7 @@
 <?php
+
 namespace Cabinet\Structure\User\Admin;
 
-class Controller extends \Ideal\Structure\User\Admin\ControllerAbstract
-{
-}
+use Ideal\Structure\User\Admin\ControllerAbstract;
+
+class Controller extends ControllerAbstract {}

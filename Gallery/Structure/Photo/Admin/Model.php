@@ -1,18 +1,20 @@
 <?php
+
 namespace Gallery\Structure\Photo\Admin;
 
+use Ideal\Structure\Roster\Admin\ModelAbstract;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 
-class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
+class Model extends ModelAbstract
 {
-    public function getToolbar()
+    public function getToolbar(): string
     {
         if (isset($_GET['directory']) && is_dir(DOCUMENT_ROOT . $_GET['directory'])) {
 
             // Получение списка полей БД для сохранения фотографий
-            $fieldList = array();
-            $prefList = array();
+            $fieldList = [];
+            $prefList = [];
             foreach ($this->fields as $k => $f) {
                 if (substr($k, 0, 4) == 'img_') {
                     $fieldList[] = $k;
@@ -22,12 +24,12 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
 
             $fieldList[] = 'img';
             $typeImg = '.jpg';
-            $imageList = array();
+            $imageList = [];
 
             // Получение списка файлов в директории
             if ($handle = opendir(DOCUMENT_ROOT . $_GET['directory'])) {
                 while (($file = readdir($handle)) !== false) {
-                    if (!($file == '.' || $file == '..') && substr($file, -4) == $typeImg) {
+                    if ($file !== '.' && $file !== '..' && substr($file, -4) == $typeImg) {
                         $sizeFile = substr($file, -6);
                         $nameFile = substr($file, 0, -6);
                         $isBigPhoto = true;
@@ -38,12 +40,14 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
                                 break;
                             }
                         }
+
                         if ($isBigPhoto) {
                             $nameFile = substr($file, 0, -4);
                             $imageList[$nameFile]['img'] = $file;
                         }
                     }
                 }
+
                 closedir($handle);
             }
 
@@ -55,29 +59,28 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
             }
 
             // Добавление фотографий
-            if (count($imageList) > 0) {
+            if ($imageList !== []) {
                 $this->addPhotoGallery($imageList, $fieldList);
             }
 
         }
 
-        $input = '<input type="text" name="directory" value="" />';
-
-        return $input;
+        return '<input type="text" name="directory" value="" />';
     }
 
     /**
      * Добавление фотографий в базу данных
-     * @param $imageList Список фотографий
-     * @param $fieldList Список полей БД
-     * return void
+     * @param array<string, mixed> $imageList Список фотографий
+     * @param array $fieldList Список полей БД
+     *                         return void
+     * @param array<string, mixed> $imageList
      */
-    public function addPhotoGallery($imageList, $fieldList)
+    public function addPhotoGallery(array $imageList, $fieldList): void
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
         $_sql = "SELECT * FROM {$this->_table}
-                 WHERE structure_path = '{$this->structurePath}'";
+                 WHERE prev_structure = '$this->prevStructure'";
         $list = $db->select($_sql);
 
         foreach ($list as $l) {
@@ -87,6 +90,7 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
                 unset($imageList[$bigImg]);
             }
         }
+
         $_sql  = '';
         $date = time();
         $fields = '';
@@ -100,23 +104,24 @@ class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
             $images = '';
             foreach ($fieldList as $f) {
                 if (isset($i[$f])) {
-                    $images .= '\'' . $dir . $i[$f] . '\', ';
+                    $images .= "'" . $dir . $i[$f] . "', ";
                 } else {
-                    $images .= '\'\',';
+                    $images .= "'',";
                 }
             }
 
-            $_sql = "INSERT INTO {$this->_table} (`structure_path`,
+            $_sql = "INSERT INTO {$this->_table} (`prev_structure`,
              	                                  `pos`,
              	                                  `name`,
              	                                  {$fields}
              	                                  `date_create`,
              	                                  `is_active`)
-             	     VALUES ('{$this->structurePath}', '1', 'Toolbar',
+             	     VALUES ('{$this->prevStructure}', '1', 'Toolbar',
              	             {$images} {$date}, 1);";
             $db->query($_sql);
         }
-        if ($_sql != '') {
+
+        if ($_sql !== '') {
             header('Location: /' . $config->cmsFolder . '/index.php?par=' . $_GET['par']);
         }
     }

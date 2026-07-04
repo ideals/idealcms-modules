@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Ideal\Core\Db;
@@ -9,12 +10,12 @@ use Shop\Structure\Service\Load1CV208\Xml\NomenclProSov\XmlNomenclProSov;
 class NomenclProSovModel
 {
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка совместно продаваемых товаров из пакета № %d',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add' => 0,
-        'update' => 0
-    );
+        'update' => 0,
+    ];
 
     /**
      * Запуск процесса обработки файлов NomenclProSov_*.xml
@@ -28,7 +29,7 @@ class NomenclProSovModel
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $packageNum,
         );
 
         $xml = new Xml($filePath);
@@ -58,7 +59,7 @@ class NomenclProSovModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -71,35 +72,38 @@ class NomenclProSovModel
      *
      * @return array двумерный массив с данными о ценах после сведения XML и БД
      */
-    protected function parse($dbNomenclProSov, $xmlNomenclProSov)
+    protected function parse($dbNomenclProSov, $xmlNomenclProSov): array
     {
         $xmlResult = $xmlNomenclProSov->parse();
 
         if (empty($xmlResult)) {
-            return array();
+            return [];
         }
 
-        $trueXmlResult = array();
+        $trueXmlResult = [];
         foreach ($xmlResult as $item) {
             if (!empty($item['togetherSoldTo']) && !empty($item['togetherSoldThat'])) {
                 $trueXmlResult[$item['togetherSoldTo']][] = $item['togetherSoldThat'];
             }
         }
+
         $db = Db::getInstance();
         $table = $dbNomenclProSov->getTable();
         $tablePostfix = $dbNomenclProSov->getTablePostfix();
         foreach ($trueXmlResult as $key => $value) {
-            $ids1c = '\'' . implode('\',\'', $value) . '\'';
-            $sql = "SELECT ID FROM {$table}{$tablePostfix} WHERE id_1c IN ({$ids1c}) AND is_active = 1";
+            $ids1c = "'" . implode("','", $value) . "'";
+            $sql = sprintf('SELECT ID FROM %s%s WHERE id_1c IN (%s) AND is_active = 1', $table, $tablePostfix, $ids1c);
             $select = $db->select($sql);
-            $trueXmlResult[$key] = array('together_sold_goods' => '');
+            $trueXmlResult[$key] = ['together_sold_goods' => ''];
             if (!empty($select)) {
                 foreach ($select as $item) {
                     $trueXmlResult[$key]['together_sold_goods'] .= ',' . $item['ID'];
                 }
+
                 $trueXmlResult[$key]['together_sold_goods'] = ltrim($trueXmlResult[$key]['together_sold_goods'], ',');
             }
         }
+
         $trueXmlResult = array_filter($trueXmlResult);
 
         // Забираем результаты товаров из БД
@@ -114,26 +118,28 @@ class NomenclProSovModel
      * Если есть в БД и есть в XML, но есть diff_assoc - добавляем поля для обновления.
      *
      * @param array $dbResult распарсенные данные из БД
-     * @param array $xmlResult распарсенные данные из XML
+     * @param non-empty-array<(int<0, max> | string), mixed>[] $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             // Если из XML считали информацию о совместно продоваемых товарах для товара которого ещё нет в базе,
             // то вероятнее всего в XML указан не товар, то есть ошибка выгрузки. Не берём такие данные
             if (!isset($dbResult[$k])) {
                 continue;
             }
+
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;
                 $this->answer['tmpResult']['goods']['update'][$k] = 1;
             }
         }
+
         return $result;
     }
 }

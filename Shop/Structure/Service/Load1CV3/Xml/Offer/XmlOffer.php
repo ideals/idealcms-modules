@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Xml\Offer;
 
 use Shop\Structure\Service\Load1CV3\Xml\AbstractXml;
@@ -8,7 +9,7 @@ class XmlOffer extends AbstractXml
     /** @var string путь к категориям в XML */
     public $part = 'ПакетПредложений/Предложения';
 
-    public function parse()
+    public function parse(): array
     {
         parent::parse();
 

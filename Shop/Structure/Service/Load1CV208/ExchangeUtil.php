@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208;
 
 use Ideal\Core\Db;
@@ -8,7 +9,6 @@ use Shop\Structure\Service\Load1CV208\Db\Good\DbGood;
 use Shop\Structure\Service\Load1CV208\Db\Medium\DbMedium;
 use Shop\Structure\Service\Load1CV208\Db\Offer\DbOffer;
 use Shop\Structure\Service\Load1CV208\Db\Order\DbOrder;
-use Shop\Structure\Service\Load1CV208\Db\Oplata\DbOplata;
 use Shop\Structure\Service\Load1CV208\Db\Tag\DbTag;
 use Shop\Structure\Service\Load1CV208\Db\TagMedium\DbTagMedium;
 use Shop\Structure\Service\Load1CV208\Xml\Category\XmlCategory;
@@ -22,22 +22,26 @@ class ExchangeUtil
      *
      * @param string|null $path абсолютный путь к директории, которую нужно удалить вместе с содержимым
      */
-    public static function purge($path)
+    public static function purge($path): void
     {
         if (is_dir($path)) {
             $path = realpath($path);
             if (substr($path, -1) != DIRECTORY_SEPARATOR) {
                 $path .= DIRECTORY_SEPARATOR;
             }
+
             if ($dh = opendir($path)) {
                 while (($file = readdir($dh)) !== false) {
                     if (strpos($file, '.') === 0) {
                         continue;
                     }
+
                     self::purge($path . $file);
                 }
+
                 closedir($dh);
             }
+
             rmdir($path);
         } else {
             unlink($path);
@@ -50,7 +54,7 @@ class ExchangeUtil
      * @param string $filename Полный путь до места сохранения файла
      * @param string $mode Тип доступа
      */
-    public static function saveFileFromStream($filename, $mode)
+    public static function saveFileFromStream($filename, $mode): void
     {
         $f = fopen($filename, $mode);
         fwrite($f, file_get_contents('php://input'));
@@ -61,7 +65,7 @@ class ExchangeUtil
      * Пытается создать директорию по указанному пути
      * @param string $directory Полный путь до новой директории
      */
-    public static function createFolder($directory)
+    public static function createFolder($directory): void
     {
         /** @noinspection MkdirRaceConditionInspection */
         if (!is_dir($directory) && !mkdir($directory, 0750, true)) {
@@ -89,11 +93,7 @@ class ExchangeUtil
 
         // Если у передаваемого xml файла нет стартового тега то явно требуется дозаписать уже существующий
         $fileFromStream = file_get_contents('php://input');
-        if (strpos($fileFromStream, '<?xml') === false) {
-            return true;
-        }
-
-        return false;
+        return strpos($fileFromStream, '<?xml') === false;
     }
 
 
@@ -104,18 +104,20 @@ class ExchangeUtil
      * @param string $fromDir Директория из которой необходимо переместить файлы
      * @param string $toDir Директория в которую будут перемещены файлы
      * @param bool $filesFirst Признак того что сперва нужно переносить файлы
-     * (Нужно для переноса картинок в правильный пакет)
+     *                         (Нужно для переноса картинок в правильный пакет)
      */
-    public static function transferFilesWthStructureSaving($fromDir, $toDir, $filesFirst = true)
+    public static function transferFilesWthStructureSaving($fromDir, $toDir, $filesFirst = true): void
     {
         $dir = new \DirectoryIterator($fromDir);
         foreach ($dir as $item) {
             if ($item->isDot()) {
                 continue;
             }
+
             if ($filesFirst && $item->isDir()) {
                 continue;
             }
+
             if ($item->isDir()) {
                 $lastPackageFolder = self::getLastPackageFolder($toDir);
                 // Если найдена папка, то это картинки, других папок быть не может.
@@ -124,11 +126,13 @@ class ExchangeUtil
                 $path = $item->getPathname();
                 self::purge($path . DIRECTORY_SEPARATOR);
             }
+
             if ($item->isFile()) {
                 $path = $item->getPathname();
                 self::moveFile($path, $toDir);
             }
         }
+
         if ($filesFirst) {
             self::transferFilesWthStructureSaving($fromDir, $toDir, false);
         }
@@ -140,25 +144,28 @@ class ExchangeUtil
      * @param string $dirToSearch Полный путь до директории в которой нужно искать папку пакета
      * @return string Полный путь до папки последнего пакета
      */
-    public static function getLastPackageFolder($dirToSearch)
+    public static function getLastPackageFolder(string $dirToSearch)
     {
-        $packageDirs = array();
+        $packageDirs = [];
         $lastPackageFolder = $dirToSearch . DIRECTORY_SEPARATOR . '1' . DIRECTORY_SEPARATOR;
         $dir = new \DirectoryIterator($dirToSearch);
         foreach ($dir as $item) {
             if ($item->isDot()) {
                 continue;
             }
+
             if ($item->isDir()) {
                 $lastPackageFolder = $item->getPathname();
                 $dirName = (int) $item->getFilename();
                 $packageDirs[$dirName] = $lastPackageFolder;
             }
         }
-        if ($packageDirs) {
+
+        if ($packageDirs !== []) {
             ksort($packageDirs);
             $lastPackageFolder = end($packageDirs);
         }
+
         return $lastPackageFolder;
     }
 
@@ -169,7 +176,7 @@ class ExchangeUtil
      * @param string $src Полный путь до директории копирование которой производится
      * @param string $dst Полный путь до директории в которую производится копирование
      */
-    public static function recurseCopy($src, $dst)
+    public static function recurseCopy($src, string $dst): void
     {
         if (!is_dir($dst) && !mkdir($dst) && !is_dir($dst)) {
             throw new \RuntimeException(sprintf('Папка "%s" не создана', $dst));
@@ -180,6 +187,7 @@ class ExchangeUtil
             if ($item->isDot()) {
                 continue;
             }
+
             $path = $item->getPathname();
             $filename = $item->getFilename();
             if ($item->isDir()) {
@@ -196,19 +204,19 @@ class ExchangeUtil
      * @param string $filePath Полный путь до файла который необходимо переместить
      * @param string $directory Полный путь до директории в которой нужно разместить файл
      */
-    public static function moveFile($filePath, $directory)
+    public static function moveFile($filePath, string $directory): void
     {
         $filename = basename($filePath);
         $packageNumber = 0;
         $folder = '';
-        $mainFolderFiles = array('import', 'offers', 'Documents', 'reports');
+        $mainFolderFiles = ['import', 'offers', 'Documents', 'reports'];
 
         // Если передаваемый файл не соответствует маске то скорее всего это картинка
         preg_match('/(\w*?)_/', $filename, $type);
         if (isset($type[1])) {
             // Если файл не может находиться в корневой директории, то сразу устанавливаем номер пакета
             /** @noinspection TypeUnsafeArraySearchInspection */
-            if (in_array($type[1], $mainFolderFiles) === false) {
+            if (in_array($type[1], $mainFolderFiles, true) === false) {
                 $packageNumber++;
                 $folder = $packageNumber . DIRECTORY_SEPARATOR;
             }
@@ -222,6 +230,7 @@ class ExchangeUtil
                 $pathMask = $directory . $folder . $type[1] . '*.xml';
                 $filesGlob = glob($pathMask);
             }
+
             $packageFolder = $directory . $folder;
             self::createFolder($packageFolder);
 
@@ -245,6 +254,7 @@ class ExchangeUtil
             if ($item->isDot()) {
                 continue;
             }
+
             $fileExtension = $item->getExtension();
             if ($fileExtension == 'zip') {
                 $pathFile = $item->getPathname();
@@ -276,10 +286,12 @@ class ExchangeUtil
                 $exist = self::checkFileExist($dirToScan, $filename);
                 break;
             }
+
             if ($item->getFilename() == $filename) {
                 $exist = true;
             }
         }
+
         return $exist;
     }
 
@@ -304,7 +316,7 @@ class ExchangeUtil
     /**
      * Создание временных таблиц всех сущностей, участвующих в выгрузке
      */
-    public static function prepareTables()
+    public static function prepareTables(): void
     {
         $dbCategory = new DbCategory();
         $dbCategory->prepareTable();
@@ -329,16 +341,13 @@ class ExchangeUtil
 
         $dbOrder = new DbOrder();
         $dbOrder->prepareTable();
-
-        $dbOplata = new DbOplata();
-        $dbOplata->prepareTable();
     }
 
     /**
      * Заключительный этап выгрузки - если в процессе импорта не было ошибок
      * меняем название временных таблиц на оригинальные
      */
-    public static function renameTables()
+    public static function renameTables(): void
     {
         $dbCategory = new DbCategory();
         $dbCategory->updateOrigTable();
@@ -371,10 +380,6 @@ class ExchangeUtil
         $dbOrder = new DbOrder();
         $dbOrder->updateOrigTable();
         $dbOrder->dropTestTable();
-
-        $dbOplata = new DbOplata();
-        $dbOplata->updateOrigTable();
-        $dbOplata->dropTestTable();
     }
 
     /**
@@ -383,19 +388,21 @@ class ExchangeUtil
      * @param string $dirToScan Полный путь до директории которую неободимо просканировать
      * @return array Список xml файлов предоставленных для обраобтки
      */
-    public static function getAllExchangeFiles($dirToScan)
+    public static function getAllExchangeFiles($dirToScan): array
     {
-        $exchangeFiles = array();
+        $exchangeFiles = [];
         $dir = new \DirectoryIterator($dirToScan);
         foreach ($dir as $item) {
             if ($item->isDot()) {
                 continue;
             }
+
             if ($item->isDir()) {
                 $pathFile = $item->getPathname() . DIRECTORY_SEPARATOR;
                 /** @noinspection SlowArrayOperationsInLoopInspection */
                 $exchangeFiles = array_merge($exchangeFiles, self::getAllExchangeFiles($pathFile));
             }
+
             if ($item->isFile()) {
                 $fileExtension = $item->getExtension();
                 if ($fileExtension == 'xml') {
@@ -405,7 +412,8 @@ class ExchangeUtil
                 }
             }
         }
-        uksort($exchangeFiles, function ($curr, $next) use ($exchangeFiles) {
+
+        uksort($exchangeFiles, function ($curr, $next) use ($exchangeFiles): int {
             $currDir = str_replace(basename($curr), '', $curr);
             $nextDir = str_replace(basename($next), '', $next);
 
@@ -418,23 +426,24 @@ class ExchangeUtil
             $result = strcasecmp($currDir, $nextDir);
             if ($result === 0) {
                 // Если пути одинаковые, то выстраиваем в зависимости от веса значения
-                $weight = array(
-                  'import' => 1,
-                  'offers' => 2,
-                  'prices' => 3,
-                  'pricesold' => 4,
-                  'rests' => 5,
-                  'imagesFile' => 6,
-                  'tegi' => 7,
-                  'nomenclProSov' => 8,
-                  'documents' => 9,
-                  'oplata' => 10,
-                  'addParameters' => 11,
-                );
+                $weight = [
+                    'import' => 1,
+                    'offers' => 2,
+                    'prices' => 3,
+                    'pricesold' => 4,
+                    'rests' => 5,
+                    'imagesFile' => 6,
+                    'tegi' => 7,
+                    'nomenclProSov' => 8,
+                    'documents' => 9,
+                    'oplata' => 10,
+                    'addParameters' => 11,
+                ];
                 preg_match('/(\w*?)_/', $exchangeFiles[$curr], $curr);
                 preg_match('/(\w*?)_/', $exchangeFiles[$next], $next);
                 return $weight[lcfirst($curr[1])] - $weight[lcfirst($next[1])];
             }
+
             return $result;
         });
         return $exchangeFiles;
@@ -447,14 +456,15 @@ class ExchangeUtil
      * @param string $dirToSearch Название директории в которой хранятся картинки
      * @return array Список директорий содержащих картинки для обраобтки
      */
-    public static function getAllImagesFolder($dirToScan, $dirToSearch)
+    public static function getAllImagesFolder($dirToScan, $dirToSearch): array
     {
-        $exchangeFiles = array();
+        $exchangeFiles = [];
         $dir = new \DirectoryIterator($dirToScan);
         foreach ($dir as $item) {
             if ($item->isDot()) {
                 continue;
             }
+
             if ($item->isDir()) {
                 $pathFile = $item->getPathname() . DIRECTORY_SEPARATOR;
                 if (strpos($pathFile, $dirToSearch) === false) {
@@ -465,6 +475,7 @@ class ExchangeUtil
                 }
             }
         }
+
         ksort($exchangeFiles);
         return $exchangeFiles;
     }
@@ -472,10 +483,11 @@ class ExchangeUtil
     /**
      * Применение новых данных взятых из файлов обновлений
      */
-    public static function finalUpdates()
+    public static function finalUpdates(): void
     {
         $dbGood = new DbGood();
         $dbGood->updateGood();
+
         $dbCategory = new DbCategory();
         $dbCategory->updateGoodsCount();
         self::renameTables();
@@ -488,12 +500,24 @@ class ExchangeUtil
      * @param int $precision Количество знаков в десятичной части
      * @return string Человекопонятное отображение размера файла
      */
-    public static function humanFilesize($size, $precision = 2)
+    public static function humanFilesize($size, $precision = 2): string
     {
-        $mark = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
-        for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
+        $units = ['B','kB','MB','GB','TB','PB','EB','ZB','YB'];
+
+        // Если размер 0, логарифм не берется, возвращаем сразу
+        if ($size <= 0) {
+            return '0' . $units[0];
         }
-        return round($size, $precision).$mark[$i];
+
+        // Вычисляем индекс в массиве единиц
+        $i = (int) floor(log($size, 1024));
+
+        // Ограничиваем индекс длиной массива (на случай эксабайтов и выше)
+        $i = min($i, count($units) - 1);
+
+        $value = $size / (1024 ** $i);
+
+        return round($value, $precision) . $units[$i];
     }
 
     /**
@@ -508,7 +532,7 @@ class ExchangeUtil
     {
         // Если нет временных таблиц, то начинается новый сеанс выгрузки
         $db = Db::getInstance();
-        $result = $db->query('SHOW TABLES LIKE \'%_test\';');
+        $result = $db->query("SHOW TABLES LIKE '%_test';");
         $res = $result->fetch_all(MYSQLI_ASSOC);
         if (count($res) === 0) {
             return true;

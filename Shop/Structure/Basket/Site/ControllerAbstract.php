@@ -1,12 +1,13 @@
 <?php
+
 namespace Shop\Structure\Basket\Site;
 
 class ControllerAbstract extends \Ideal\Core\Site\Controller
 {
-    /** @var  Model model */
+    /** @var  \Shop\Structure\Basket\Site\Model model */
     protected $model;
 
-    public function indexAction()
+    public function indexAction(): void
     {
         $basket = $this->model->calcFullBasket();
 
@@ -22,7 +23,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->goods = $basket;
     }
 
-    public function detailAction()
+    public function detailAction(): void
     {
         $basket = $this->model->getBasket();
         $tabsInfo = $this->model->getTabsInfo();
@@ -45,7 +46,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
     /**
      * Отображение пустой корзины
      */
-    public function emptyAction()
+    public function emptyAction(): void
     {
         $this->templateInit('Shop/Structure/Basket/Site/empty.twig');
     }

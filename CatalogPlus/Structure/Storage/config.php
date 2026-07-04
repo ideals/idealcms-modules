@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -14,7 +15,7 @@ return [
         'elements_cms' => 10, // количество элементов в списке в CMS
         'field_name' => '', // поле для входа в список потомков
         'field_sort' => 'name ASC', // поле, по которому проводится сортировка в CMS
-        'field_list' => ['ID', 'name', 'id_1c', 'date_create', 'is_active']
+        'field_list' => ['ID', 'name', 'id_1c', 'date_create', 'is_active'],
     ],
     'fields' => [
         'ID' => [
@@ -40,7 +41,7 @@ return [
         'date_mod' => [
             'label' => 'Дата модификации',
             'sql'   => 'int(11) not null',
-            'type'  => 'Ideal_DateAuto'
+            'type'  => 'Ideal_DateAuto',
         ],
         'name' => [
             'label' => 'Наименование',

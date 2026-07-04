@@ -1,7 +1,7 @@
 <?php
+
 namespace Catalog\Structure\Category\Admin;
 
-class Controller extends \Ideal\Structure\Part\Admin\ControllerAbstract
-{
+use Ideal\Structure\Part\Admin\ControllerAbstract;
 
-}
+class Controller extends ControllerAbstract {}

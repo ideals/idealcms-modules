@@ -1,6 +1,7 @@
 <?php
+
 // @codingStandardsIgnoreFile
-return array(
+return [
     'directory_for_processing' => "/tmp/1c/processing/", // Папка для временного хранения файлов в процессе обмена информацией с 1С | Ideal_Text
     'images_directory' => "import_files/", // Каталог изображений | Ideal_Text
     'resize' => "", // Значение ресайза изображения | Ideal_Text
@@ -13,4 +14,4 @@ return array(
     'supportedExtensionsImage' => "jpeg\njpg\ngif\npng\nbmp", // поддерживаемые системой, расширения изображений (по одному в строку) | Ideal_Area
     'clear_comment' => "", // Данные для и исключения из комментариев приходящих от 1С (по одному на строку, формат "регулярные выражения") | Ideal_RegexpList
     'main_stock_id' => '', // Идентификатор главного склада для получения остатков | Ideal_Text
-);
+];

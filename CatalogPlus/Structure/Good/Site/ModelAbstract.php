@@ -1,33 +1,37 @@
 <?php
+
 namespace CatalogPlus\Structure\Good\Site;
 
+use Ideal\Core\Site\Model;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Core\Util;
 use Ideal\Field;
 use CatalogPlus;
 
-class ModelAbstract extends \Ideal\Core\Site\Model
+class ModelAbstract extends Model
 {
     /**
      * @var $categoryModel \CatalogPlus\Structure\Category\Site\Model
      */
     protected $categoryModel;
+
     protected $currentCategory;
+
     /** @var bool Отображать в категории товары из подкатегорий */
     protected $showNestedElements = true;
 
     /** @var mixed null - если фильтр не установлен, Объект фильтра если фильтр был применён */
-    protected $filter = null;
+    protected $filter;
 
-    public function setFilter($filter)
+    public function setFilter($filter): void
     {
         $this->filter = $filter;
         $this->filter->setCategoryModel($this->categoryModel);
         $this->filter->setShowNestedElements($this->showNestedElements);
     }
 
-    public function detectPageByUrl($path, $url)
+    public function detectPageByUrl($path, $url): Model
     {
         // Определяем, нет ли в URL категории
         $this->categoryModel = new CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
@@ -48,7 +52,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
 
         $url = $db->escape_string(array_shift($url));
-        $_sql = "SELECT * FROM {$this->_table} WHERE BINARY url='{$url}' LIMIT 1";
+        $_sql = sprintf("SELECT * FROM %s WHERE BINARY url='%s' LIMIT 1", $this->_table, $url);
         $list = $db->select($_sql);
 
         // Товар не нашли, возвращаем 404
@@ -72,7 +76,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this->categoryModel->getCategories($parentUrl);
     }
 
-    public function getStructureElements()
+    public function getStructureElements(): array
     {
         $this->categoryModel = new CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
         $this->categoryModel->setPath($this->path);
@@ -85,21 +89,25 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getData()
     {
         $data = $this->pageData['data'];
-        $configAddon = new CatalogPlus\Addon\Data\Model('');
+
         if ($data['ID']) {
             unset($data['ID']);
         }
+
         if ($data['prev_structure']) {
             unset($data['prev_structure']);
         }
+
         foreach ($data as $k => $v) {
             unset($data[$k]);
             if ((is_string($v) && strlen($v) < 1) || (is_null($v))) {
                 continue;
             }
-            $data[$k]['name'] = $configAddon->fields[$k]['label'];
+
+            $data[$k]['name'] = $k;
             $data[$k]['value'] = $v;
         }
+
         return $data;
     }
 
@@ -111,27 +119,29 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $list = parent::getList($page);
         // Path для выстраивания правильного пути к товарам
-        $pathGood = array();
+        $pathGood = [];
         $config = Config::getInstance();
 
         // Строим path для товаров
-        if (isset($this->categoryModel)) {
+        if ($this->categoryModel !== null) {
             $cidCat = $this->categoryModel->getPath();
-            foreach ($cidCat as $k => $v) {
+            foreach ($cidCat as $v) {
                 if (!isset($v['structure'])) {
                     continue;
                 }
+
                 if ($v['structure'] == 'CatalogPlus_Category') {
                     // Добавляем элемент где хранятся товары в админке
                     $db = Db::getInstance();
                     $table = $config->db['prefix'] . 'ideal_structure_part';
                     $shortCid = end($pathGood);
                     $shortCid = isset($shortCid['cid']) ? rtrim($shortCid['cid'], '0') : '';
-                    $sql = "SELECT * FROM {$table} WHERE structure='CatalogPlus_Good' AND cid LIKE '{$shortCid}%'";
+                    $sql = sprintf("SELECT * FROM %s WHERE structure='CatalogPlus_Good' AND cid LIKE '%s%%'", $table, $shortCid);
                     $goodElem = $db->select($sql);
                     $pathGood[] = $goodElem[0];
                     break;
                 }
+
                 $pathGood[] = $v;
             }
         }
@@ -139,7 +149,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // Построение правильных URL
         $url = new Field\Url\Model();
         $url->setParentUrl($pathGood);
-        if (is_array($list) and count($list) != 0) {
+        if (is_array($list) && $list !== []) {
             foreach ($list as $k => $v) {
                 $list[$k]['link'] = $url->getUrl($v);
             }
@@ -151,7 +161,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getShortCidCat()
     {
         $cid = false;
-        if (isset($this->categoryModel)) {
+        if ($this->categoryModel !== null) {
             $category = $this->categoryModel->getPageData();
             if (isset($category['ID'])) {
                 $params = $this->categoryModel->params;
@@ -159,12 +169,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 $cid = $cidModel->getCidByLevel($category['cid'], $category['lvl'], false);
             }
         }
+
         return $cid;
     }
 
     public function detectPath()
     {
-        if (isset($this->categoryModel)) {
+        if ($this->categoryModel !== null) {
             // Установлена категория, значит определять товар не нужно, определяем предков структуры товара
             $path = parent::detectPath();
             // todo определить вложенные категории
@@ -177,11 +188,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $config = Config::getInstance();
 
         $good = $this->pageData;
-        list($parentStructure, $parentId) = explode('-', $good['prev_structure']);
+        [$parentStructure, $parentId] = explode('-', $good['prev_structure']);
         if ($parentStructure == 0) {
             // Частный случай - определение пути не из конкретного товара, а из уровня выше
             return parent::detectPath();
         }
+
         $structure = $config->getStructureById($parentStructure);
 
         // Находим предка — структуру статей
@@ -198,17 +210,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this->path;
     }
 
-    protected function getLocalPath()
-    {
-        return array();
-    }
-
     public function getHeader()
     {
         $header = '';
         if (isset($this->pageData['content'])) {
             // Если есть шаблон с контентом, пытаемся из него извлечь заголовок H1
-            list($header, $text) = $this->extractHeader($this->pageData['content']);
+            [$header, $text] = $this->extractHeader($this->pageData['content']);
             $this->pageData['content'] = $text;
         }
 
@@ -216,10 +223,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // Если заголовка H1 в тексте нет, берём его из названия name
             $header = $this->pageData['name'];
         }
+
         return $header;
     }
 
-    public function setCategoryModel($model)
+    public function setCategoryModel($model): void
     {
         $this->categoryModel = $model;
     }
@@ -229,7 +237,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if (!empty($this->pageData) && isset($this->pageData['ID'])) {
             $db = Db::getInstance();
             $config = Config::getInstance();
-            $pathCat = array();
+            $pathCat = [];
             $this->categoryModel = new CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
             $tableMid = $config->db['prefix'] . 'catalogplus_medium_categorylist';
             $tableCat = $config->db['prefix'] . 'catalogplus_structure_category';
@@ -242,44 +250,50 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // Выстраиваем путь к категории
             if (count($cat) > 0) {
                 $cat = $cat[0]['cid'];
-                $cids = array();
+                $cids = [];
                 for ($i = 1; $i < $this->categoryModel->params['levels']; $i++) {
                     $tmp = substr($cat, 0, $i * $this->categoryModel->params['digits']);
                     $tmp = str_pad(
                         $tmp,
                         $this->categoryModel->params['digits'] * $this->categoryModel->params['levels'],
-                        '0'
+                        '0',
                     );
                     $cids[$tmp] = $tmp;
                 }
-                $tmp = implode('\', \'', $cids);
-                $sql = "SELECT * FROM {$tableCat} WHERE cid IN ('{$tmp}') ORDER BY cid";
+
+                $tmp = implode("', '", $cids);
+                $sql = sprintf("SELECT * FROM %s WHERE cid IN ('%s') ORDER BY cid", $tableCat, $tmp);
                 $pathCat = $db->select($sql);
             }
 
             // Составляем путь до страницы где хранится модули CatalogPlus
-            $tmp = array();
+            $tmp = [];
             foreach ($this->path as $v) {
                 if (!isset($v['structure'])) {
                     continue;
                 }
+
                 if ($v['structure'] == 'CatalogPlus_Good') {
                     break;
                 }
+
                 $tmp[] = $v;
             }
+
             // Ищем страницу где хранятся категории на сайте
             $cid = end($tmp);
             $cid = isset($cid['cid']) ? rtrim($cid['cid'], '0') : '';
-            $sql = "SELECT * FROM {$tablePart} WHERE structure='CatalogPlus_Category' AND cid LIKE '{$cid}%'";
+            $sql = sprintf("SELECT * FROM %s WHERE structure='CatalogPlus_Category' AND cid LIKE '%s%%'", $tablePart, $cid);
             $cat = $db->select($sql);
             if (count($cat) > 0) {
                 array_unshift($pathCat, $cat[0]);
             }
+
             $pathCat = array_merge($tmp, $pathCat);
             $pathCat[] = end($this->path);
             $this->path = $pathCat;
         }
+
         return parent::getBreadCrumbs();
     }
 
@@ -290,10 +304,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      * @return array информация о товарах и их предложениях
      * @throws \Exception
      */
-    public function getGoodsInfo($ids)
+    public function getGoodsInfo($ids): array
     {
         if (empty($ids)) {
-            return array();
+            return [];
         }
 
         $config = Config::getInstance();
@@ -303,18 +317,19 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // А если подключены то загружаем о них данные
             $offers = $config->getStructureByName('CatalogPlus_Offer');
         }
-        $goodId = array();
-        $offerId = array();
+
+        $goodId = [];
+        $offerId = [];
         foreach ($ids as $k => $v) {
             if (stripos($v, '_') !== false) {
-                list($goodId[], $offerId[]) = explode('_', $v);
+                [$goodId[], $offerId[]] = explode('_', $v);
             } else {
                 $goodId[] = intval($v);
             }
         }
+
         $goodId = array_filter($goodId);
         $offerId = array_filter($offerId);
-        $table = $this->_table;
         /**
         if ($offers && empty($offerId)) {
             list($prevStructureId) = explode('-', $this->prevStructure);
@@ -323,18 +338,20 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
          */
         $table = 'i_catalogplus_structure_good';
-        $sql = "SELECT * FROM {$table} WHERE ID IN (" . implode(',', $goodId) . ")";
+        $sql = sprintf('SELECT * FROM %s WHERE ID IN (', $table) . implode(',', $goodId) . ")";
         if ($offers && $offerId) {
             $offerTable = $config->getTableByName('CatalogPlus_Offer');
             $field = '';
             // Что бы поля предложений не переписывали поля товара, добовляем приставку offer_
             foreach (array_keys($offers['fields']) as $v) {
-                if ($field == '') {
+                if ($field === '') {
                     $field .= 'o.' . $v . ' AS offer_' . $v;
                     continue;
                 }
+
                 $field .= ', o.' . $v . ' AS offer_' . $v;
             }
+
             // Узнаем ID структуры товаров что бы можно было сделать join для предложений
             $idStructure = $config->getStructureByName('CatalogPlus_Good');
             $idStructure = $idStructure['ID'];
@@ -343,8 +360,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                     INNER JOIN {$offerTable} AS o ON (o.prev_structure = CONCAT('{$idStructure}-', g.ID))
                     WHERE g.ID IN (" . implode(',', $goodId) . ") AND o.ID IN (" . implode(',', $offerId) . ")";
         }
+
         $info = $db->select($sql);
-        $newInfo = array();
+        $newInfo = [];
         if (!empty($info[0])) {
             // Строим путь до списка товаров
             $urlModel = new Field\Url\Model();
@@ -356,6 +374,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                     unset($info[$k]);
                     continue;
                 }
+
                 $link = $urlModel->getUrl($v);
                 $v['link'] = 'href="' . $link . '"';
                 $v['price'] = empty($v['offer_price']) ? $v['price'] : $v['offer_price'];
@@ -366,6 +385,15 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 }
             }
         }
+
         return $newInfo;
+    }
+
+    /**
+     * @return array{}
+     */
+    public function getLocalPath(): array
+    {
+        return [];
     }
 }

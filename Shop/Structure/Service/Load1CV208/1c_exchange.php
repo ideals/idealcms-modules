@@ -1,7 +1,8 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208;
 
-use Ideal\Core;
+use Ideal\Core\Config;
 
 ini_set('display_errors', 'On');
 
@@ -9,7 +10,7 @@ $cmsFolder = 'don';
 $subFolder = '';
 
 // Абсолютный адрес корня сервера, не должен оканчиваться на слэш.
-define('DOCUMENT_ROOT', getenv('SITE_ROOT') ? getenv('SITE_ROOT') : $_SERVER['DOCUMENT_ROOT']);
+define('DOCUMENT_ROOT', getenv('SITE_ROOT') ?: $_SERVER['DOCUMENT_ROOT']);
 
 // В пути поиска по умолчанию включаем корень сайта, путь к Ideal и папке кастомизации CMS
 set_include_path(
@@ -19,18 +20,18 @@ set_include_path(
     . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/'
     . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Mods.c/'
     . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Mods/'
-    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/Library/'
+    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/Library/',
 );
 
 // Подключаем Composer
-require_once DOCUMENT_ROOT. '/../vendor/autoload.php';
+require_once DOCUMENT_ROOT . '/../vendor/autoload.php';
 
 // Подключаем автозагрузчик классов
-require_once 'Core/AutoLoader.php';
+require_once __DIR__ . '/Core/AutoLoader.php';
 
-$config = Core\Config::getInstance();
+$config = Config::getInstance();
 
-$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $cmsFolder  . DIRECTORY_SEPARATOR;
+$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $cmsFolder . DIRECTORY_SEPARATOR;
 $settingsFilePath = $cmsFolderPath . 'Load1CV208Settings.php';
 
 // Если нет файла в папке админки, то копируем его туда из папки модуля
@@ -53,12 +54,13 @@ $config->loadSettings();
 /** @var array $cmsSettings Массив общих настроек cms*/
 $cmsSettings = $config->cms;
 
-$config->cms = array_merge($cmsSettings, array('errorLog'=>'email'));
+$config->cms = array_merge($cmsSettings, ['errorLog' => 'email']);
 
 $fc = new FrontController($params);
 if (ob_get_contents()) {
     ob_clean();
 }
+
 ob_start();
 $fc->run();
 $a = ob_get_clean();

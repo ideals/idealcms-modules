@@ -1,16 +1,18 @@
 <?php
+
 namespace Articles\Structure\Article\Site;
 
+use Ideal\Core\Site\Controller;
 use Ideal\Core\Request;
 
-class ControllerAbstract extends \Ideal\Core\Site\Controller
+class ControllerAbstract extends Controller
 {
     /**
      * @var $model Model
      */
     public $model;
 
-    public function indexAction()
+    public function indexAction(): void
     {
         parent::indexAction();
 
@@ -21,7 +23,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->pager = $this->model->getPager('page');
     }
 
-    public function detailAction()
+    public function detailAction(): void
     {
         $this->templateInit('Articles/Structure/Article/Site/detail.twig');
 

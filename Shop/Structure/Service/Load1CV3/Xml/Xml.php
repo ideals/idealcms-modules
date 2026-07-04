@@ -1,8 +1,11 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Xml;
 
 class Xml
 {
+    public $ns;
+
     /** SimpleXMLElement Данные от 1С */
     private $xml ;
 
@@ -12,15 +15,18 @@ class Xml
         if (!file_exists($source)) {
             throw new \RuntimeException('Отсутствует файл выгрузки');
         }
+
         $this->xml = simplexml_load_string(file_get_contents($source));
 
-        if (false === $this->xml) {
+        if ($this->xml === false) {
             $errors = '';
             foreach (libxml_get_errors() as $error) {
                 $errors .= $error->message;
             }
+
             throw new \RuntimeException("Во время загрузки файла: {$source} \nвозникли следующие ошибки: {$errors}");
         }
+
         $namespaces = $this->xml->getDocNamespaces();
 
         if (isset($namespaces[''])) {
@@ -33,13 +39,14 @@ class Xml
     public function getPart($className)
     {
         $path = explode('/', $className->part);
-        if (isset($this->ns)) {
+        if (property_exists($this, 'ns') && $this->ns !== null) {
             $path = implode('/' . $this->ns, $path);
             $path = str_replace('`', $this->ns, $path);
             $path = $this->ns . $path;
         } else {
             $path = implode('/', $path);
         }
+
         return $this->xml->xpath('//' . $path);
     }
 }

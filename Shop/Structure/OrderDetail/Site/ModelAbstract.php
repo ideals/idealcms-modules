@@ -1,6 +1,7 @@
 <?php
+
 namespace Shop\Structure\OrderDetail\Site;
 
-class ModelAbstract extends \Ideal\Structure\Part\Site\Model
-{
-}
+use Ideal\Structure\Part\Site\Model;
+
+class ModelAbstract extends Model {}

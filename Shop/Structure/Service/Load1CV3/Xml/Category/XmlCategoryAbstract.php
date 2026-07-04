@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Xml\Category;
 
 use Shop\Structure\Service\Load1CV3\Xml\AbstractXml;
@@ -13,12 +14,13 @@ class XmlCategoryAbstract extends AbstractXml
      *
      * @return array двумерный массив данных
      */
-    public function parse()
+    public function parse(): array
     {
         $this->recursiveParse($this->xml);
         foreach ($this->data as $k => $val) {
-            $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : (int)$val['is_active'];
+            $this->data[$k]['is_active'] = $val['is_active'] == 'false' ? '1' : (int) $val['is_active'];
         }
+
         return $this->data;
     }
 
@@ -26,8 +28,9 @@ class XmlCategoryAbstract extends AbstractXml
      * Запись в xml новых данных по ИД
      *
      * @param $elem array массив значений для добавления в xml node
+     * @param array<string, mixed> $elem
      */
-    public function updateElement($elem)
+    public function updateElement(array $elem): void
     {
         $path = '//' . $this->ns . '*[' . $this->ns . 'Ид="' . $elem['Ид'] . '"]';
         unset($elem['id_1c']);
@@ -43,7 +46,7 @@ class XmlCategoryAbstract extends AbstractXml
     /**
      * Подмена значений конфигурационного файла выгрузки
      */
-    public function updateConfigs()
+    public function updateConfigs(): void
     {
         $this->configs['fields'] = array_merge($this->configs['fields'], $this->configs['updateDbFields']);
     }
@@ -51,16 +54,16 @@ class XmlCategoryAbstract extends AbstractXml
     /**
      * Добавление в XML структуру нового элемента
      *
-     * @param array $element данные о добавляемой категории
+     * @param array<string, mixed> $element данные о добавляемой категории
      */
-    public function addChild($element)
+    public function addChild(array $element): void
     {
         $path = '//' . $this->ns . 'Группа';
 
         // Если есть родитель - выбираем его в XML и добавляем новые поля уже к нему
         if ($element['parent'] != null) {
             $path .= '[' . $this->ns . 'Ид="' . $element['parent'] . '"]';
-        // Если нет родителя - добавляем на 1ый уровень
+            // Если нет родителя - добавляем на 1ый уровень
         } else {
             $path = '//' . $this->ns . 'Классификатор/' . $this->ns . 'Группы';
         }
@@ -85,18 +88,14 @@ class XmlCategoryAbstract extends AbstractXml
      * @param \SimpleXMLElement $groupsXML - узел для преобразования
      * @param int $i при повторном парсинге есть элементы с not-1c - им ставим порядковый ключ в массиве
      * @param int $lvl уровень вложенности
-     * @return array одномерный массив
+     * @return array{} одномерный массив
      */
-    protected function recursiveParse($groupsXML, $i = 0, $lvl = 1)
+    protected function recursiveParse($groupsXML, $i = 0, $lvl = 1): array
     {
-        $groups = array();
+        $groups = [];
         if (!empty($groupsXML)) {
             foreach ($groupsXML->{'Группа'} as $child) {
-                if ((string) $child->{'Ид'} == 'not-1c') {
-                    $id = $i++;
-                } else {
-                    $id = (string) $child->{'Ид'};
-                }
+                $id = (string) $child->{'Ид'} === 'not-1c' ? $i++ : (string) $child->{'Ид'};
 
                 $this->data[$id]['lvl'] = $lvl;
                 $namespaces = $child->getDocNamespaces();
@@ -113,6 +112,7 @@ class XmlCategoryAbstract extends AbstractXml
                 }
             }
         }
+
         return $groups;
     }
 }

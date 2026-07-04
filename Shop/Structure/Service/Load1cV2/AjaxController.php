@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -11,6 +12,7 @@ namespace Shop\Structure\Service\Load1cV2;
 
 use Ideal\Core\Config;
 use Ideal\Core\Util;
+use Shop\Structure\Service\Load1cV2\Log\Log;
 
 /**
  * Контроллер, вызываемый при загрузке из файлов через админку
@@ -41,26 +43,18 @@ class AjaxController extends \Ideal\Core\AjaxController
 
         $configFile = include($settingsFilePath);
 
-        $fc = new FrontController($configFile);
-        $answer = array(
+        $fc = new FrontController($configFile, new Log());
+        $answer = [
             'continue'  => true,
-            'errors'    => array(),
-        );
+            'errors'    => [],
+        ];
 
         $step = (int) $_POST['step'];
-        if (isset($_POST['packageNum'])) {
-            $packageNum = (int) $_POST['packageNum'];
-        } else {
-            $packageNum = 1;
-        }
+        $packageNum = isset($_POST['packageNum']) ? (int) $_POST['packageNum'] : 1;
 
-        if (isset($_POST['fixStep']) && $_POST['fixStep'] != 'false') {
-            $fixStep = true;
-        } else {
-            $fixStep = false;
-        }
+        $fixStep = isset($_POST['fixStep']) && $_POST['fixStep'] != 'false';
 
-        $configs->cms = array_merge($configs->cms, array('errorLog'=>'var'));
+        $configs->cms = array_merge($configs->cms, ['errorLog' => 'var']);
         try {
             switch ($step) {
                 case 1:
@@ -68,7 +62,7 @@ class AjaxController extends \Ideal\Core\AjaxController
                     $fc->loadFiles();
                     // Создание временных таблиц
                     $files = $fc->getFiles();
-                    $fc->prepareTables($files['import']);
+                    $fc->prepareTables();
                     $answer['nextStep'] = 2;
                     $answer['infoText'] = 'Подготовка базы';
                     $answer['successText'] = 'База готова для внесения изменений';
@@ -78,7 +72,7 @@ class AjaxController extends \Ideal\Core\AjaxController
                     $fc->loadFiles();
                     // Обработка категорий/групп товара из общего файла import.xml
                     $files = $fc->getFiles();
-                    $answer = array_merge($answer, $fc->category($files['import']));
+                    $answer = array_merge($answer, $fc->category());
                     $answer['nextStep'] = 3;
                     break;
                 case 3:
@@ -99,10 +93,11 @@ class AjaxController extends \Ideal\Core\AjaxController
                 case 5:
                     $fc->loadFiles();
                     $files = $fc->getFiles();
-                    $fc->offer($files[$packageNum]['offers'], $answer);
-                    foreach($answer['offer'] as $key => $value) {
+                    $fc->offer($files[$packageNum]['offers']);
+                    foreach ($answer['offer'] as $key => $value) {
                         $answer[$key] = $value;
                     }
+
                     unset($answer['offer']);
                     $answer['nextStep'] = 6;
                     $answer['infoText'] = 'Обработка товарных предложений из пакета №' . $packageNum;
@@ -115,14 +110,11 @@ class AjaxController extends \Ideal\Core\AjaxController
                     if ($packageNum < $countPackages) {
                         $packageNum++;
                         $answer['packageNum'] = $packageNum;
-                        if (!$fixStep) {
-                            $answer['nextStep'] = 3;
-                        } else {
-                            $answer['nextStep'] = 6;
-                        }
+                        $answer['nextStep'] = $fixStep ? 6 : 3;
                     } else {
                         $answer['nextStep'] = 7;
                     }
+
                     break;
                 case 7:
                     $answer['infoText'] = 'Завершение выгрузки';
@@ -131,9 +123,9 @@ class AjaxController extends \Ideal\Core\AjaxController
                     $fc->renameTables();
                     break;
             }
-        } catch (\RuntimeException $e) {
+        } catch (\RuntimeException $runtimeException) {
             $answer['continue'] = false;
-            $answer['errors'][] = $e->getMessage() . "<pre>" . $e->getTraceAsString() . "</pre>";
+            $answer['errors'][] = $runtimeException->getMessage() . "<pre>" . $runtimeException->getTraceAsString() . "</pre>";
             return json_encode($answer);
         }
 

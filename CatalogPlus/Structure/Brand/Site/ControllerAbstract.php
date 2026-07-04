@@ -1,12 +1,13 @@
 <?php
+
 namespace CatalogPlus\Structure\Brand\Site;
 
-use Ideal\Structure\Part;
+use Ideal\Structure\Part\Site\Controller;
 use Ideal\Core\Request;
 
-class ControllerAbstract extends Part\Site\Controller
+class ControllerAbstract extends Controller
 {
-    public function detailAction()
+    public function detailAction(): void
     {
         $this->templateInit('CatalogPlus/Structure/Brand/Site/detail.twig');
         $this->view->pager = $this->model->getPager('page');

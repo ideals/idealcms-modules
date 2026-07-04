@@ -1,17 +1,18 @@
 <?php
+
 namespace Gallery\Structure\Fancy\Site;
 
-use Ideal\Core;
+use Ideal\Core\Site\Controller;
 use Ideal\Core\Request;
 
-class ControllerAbstract extends Core\Site\Controller
+class ControllerAbstract extends Controller
 {
     /**
      * @var $model Model
      */
     public $model;
 
-    public function indexAction()
+    public function indexAction(): void
     {
         parent::indexAction();
 

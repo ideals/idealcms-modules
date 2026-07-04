@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Db\Offer;
 
 use CatalogPlus\Structure\Offer\Site\Model;
@@ -26,9 +27,9 @@ class DbOffer extends AbstractDb
      *
      * @return array ключ - id_1c, значение - все необходимые поля (в SQL)
      */
-    public function parse()
+    public function parse(): array
     {
-        if (count($this->parse) !== 0) {
+        if ($this->parse !== []) {
             return $this->parse;
         }
 
@@ -48,16 +49,14 @@ class DbOffer extends AbstractDb
         return $this->parse;
     }
 
-    public function save($elements)
+    public function save($elements): void
     {
         $offerModel = new Model('');
 
         $dbGood = new DbGood();
         $goods = $dbGood->getGoods('ID, id_1c, is_active', '');
         $goodPrevStructure = explode('-', $dbGood->prevGood);
-
-        $db = Db::getInstance();
-        $deactivated = [];
+        Db::getInstance();
 
         foreach ($elements as $k => $element) {
             if (!isset($element['good_id'])) {
@@ -65,29 +64,36 @@ class DbOffer extends AbstractDb
                 unset($elements[$k]);
                 continue;
             }
+
             if (isset($element['rest'])) {
                 $elements[$k]['rest'] = (int) $element['rest'];
             }
+
             if (isset($element['price_old'])) {
                 $elements[$k]['price_old'] = (int) $element['price_old'];
             }
+
             if (isset($element['good_id'], $goods[$element['good_id']])) {
                 $itemStructure = $goodPrevStructure[1] . '-' . $goods[$element['good_id']]['ID'];
                 $elements[$k]['prev_structure'] = $itemStructure;
             } else {
                 $elements[$k]['prev_structure'] = '';
             }
+
             $elements[$k]['is_1c_exchanged'] = 1;
             if (isset($element['price'])) {
                 $elements[$k]['is_1c_price_exchanged'] = 1;
             }
+
             if (isset($element['ID'])) {
                 continue;
             }
+
             foreach ($offerModel->fields as $fieldName => $item) {
                 if ($fieldName === 'ID') {
                     continue;
                 }
+
                 if (!isset($element[$fieldName])) {
                     $elements[$k][$fieldName] = $item['default'] ?? '';
                 }
@@ -100,8 +106,8 @@ class DbOffer extends AbstractDb
     public function deactivateTable(): void
     {
         $db = Db::getInstance();
-        $db->query("UPDATE {$this->table} SET is_active=0 WHERE is_1c_exchanged=0");
-        $db->query("UPDATE {$this->table} SET price=0 WHERE is_1c_price_exchanged=0");
+        $db->query(sprintf('UPDATE %s SET is_active=0 WHERE is_1c_exchanged=0', $this->table));
+        $db->query(sprintf('UPDATE %s SET price=0 WHERE is_1c_price_exchanged=0', $this->table));
     }
 
     protected function copyOrigTable()
@@ -111,7 +117,7 @@ class DbOffer extends AbstractDb
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
-        $sql = "UPDATE {$testTable} SET is_1c_exchanged=0, is_1c_price_exchanged=0";
+        $sql = sprintf('UPDATE %s SET is_1c_exchanged=0, is_1c_price_exchanged=0', $testTable);
         $db->query($sql);
     }
 }

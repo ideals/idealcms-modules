@@ -1,9 +1,8 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2\Directory;
 
 use Shop\Structure\Service\Load1cV2\AbstractDb;
-use Ideal\Field\Url;
-use Shop\Structure\Service\Load1cV2\Category;
 use Ideal\Core\Db;
 
 /**
@@ -29,7 +28,7 @@ class DbDirectory extends AbstractDb
      *
      * @return array ключ - id_1c, значение - все необходимые поля (в SQL)
      */
-    public function parse()
+    public function parse(): array
     {
         $db = Db::getInstance();
 
@@ -38,7 +37,7 @@ class DbDirectory extends AbstractDb
 
         $tmp = $db->select($sql);
 
-        $result = array();
+        $result = [];
         foreach ($tmp as $value) {
             $result[$value['dir_value_id']] = $value;
         }
@@ -56,15 +55,15 @@ class DbDirectory extends AbstractDb
     {
         $db = Db::getInstance();
 
-        $where = array();
+        $where = [];
         foreach ($params as $value) {
-            $where[] = " (`dir_id_1c` = '{$value['dir_id_1c']}' AND `dir_value_id` = '{$value['dir_value_id']}') ";
+            $where[] = sprintf(" (`dir_id_1c` = '%s' AND `dir_value_id` = '%s') ", $value['dir_id_1c'], $value['dir_value_id']);
         }
 
         $where = implode('OR', $where);
 
         // Считываем товары из нашей БД
-        $sql = "SELECT ID FROM " . $this->table . $this->tablePostfix . " WHERE {$where}";
+        $sql = "SELECT ID FROM " . $this->table . $this->tablePostfix . (' WHERE ' . $where);
         $result = $db->select($sql);
 
         return json_encode($result);
@@ -75,7 +74,7 @@ class DbDirectory extends AbstractDb
      *
      * @param $onlyUpdate bool Файл Содержит Только Обновления
      */
-    public function prepareTable($onlyUpdate)
+    public function prepareTable($onlyUpdate): void
     {
         $this->onlyUpdate = $onlyUpdate;
         $this->dropTestTable();

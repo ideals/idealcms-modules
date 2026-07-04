@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -9,14 +10,14 @@
 
 namespace Cabinet\Structure\User;
 
-use Ideal\Core;
+use Ideal\Core\Model;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 
 /**
  * Класс для работы со сторонними пользователями в системе
  */
-class ModelAbstract extends Core\Model
+class ModelAbstract extends Model
 {
     /** @var string Название куки, в которую запоминаем пользователя */
     protected $cookieName = 'remember';
@@ -33,6 +34,39 @@ class ModelAbstract extends Core\Model
         }
     }
 
+    /**
+     * Генерация пароля
+     * @param int $min Минимальное количество в пароле
+     * @param int $max Максимальное количество в пароле
+     * @return string
+     */
+    public static function randPassword($min = 8, $max = 12)
+    {
+        $length = random_int($min, $max);
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        return substr(str_shuffle($chars), 0, $length);
+    }
+
+    /**
+     * Выход пользователя
+     */
+    public static function logout(): void
+    {
+        // TODO Проверяем подключена ли структуры корзины.
+        // Если корзина не пуста, то вызываем метод её сохранения для выходящего пользователя
+        // и очищаем куку корзины
+        // header("Set-Cookie: basket=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+        if (function_exists('session_status')) {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+        } elseif (session_id() == '') {
+            session_start();
+        }
+
+        unset($_SESSION['login']);
+    }
+
 
     /**
      * Отдаёт информацию о залогиненном пользователе либо false
@@ -43,13 +77,11 @@ class ModelAbstract extends Core\Model
     {
         // Устанавливаем сессию, если она не установлена ранее
         if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
+            if (session_status() === PHP_SESSION_NONE) {
                 session_start();
             }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
+        } elseif (session_id() == '') {
+            session_start();
         }
 
         // Если установлены cookies, получаем данные из них
@@ -76,32 +108,35 @@ class ModelAbstract extends Core\Model
     public function getUser($id = '', $idName = 'email')
     {
         $db = Db::getInstance();
-        $fields = array('table' => $this->_table);
+        $fields = ['table' => $this->_table];
         if (!empty($id)) {
-            $par = array('id' => $id);
+            $par = ['id' => $id];
             $fields['idField'] = $idName;
             $_sql = "SELECT * FROM &table WHERE &idField= :id LIMIT 1";
         } else {
-            $par = array('ID' => $_SESSION['login']['ID']);
+            $par = ['ID' => $_SESSION['login']['ID']];
             $_sql = "SELECT * FROM &table WHERE ID= :ID LIMIT 1";
         }
+
         $result = $db->select($_sql, $par, $fields);
         if (count($result) > 0) {
 
             // Если подключена структура "Order" модуля "Shop", то пытаемся получить информацию о заказах пользователя
-            $config = Core\Config::getInstance();
+            $config = Config::getInstance();
             if ($config->getStructureByName('Shop_Order')) {
                 $shopOrderTable = $config->getTableByName('Shop_Order');
-                $fields = array('table' => $shopOrderTable);
-                $par = array('user_id' => $_SESSION['login']['ID']);
+                $fields = ['table' => $shopOrderTable];
+                $par = ['user_id' => $_SESSION['login']['ID']];
                 $_sql = "SELECT * FROM &table WHERE user_id= :user_id";
                 $resultOrders = $db->select($_sql, $par, $fields);
                 if (count($resultOrders) > 0) {
                     $result[0]['orders'] = $resultOrders;
                 }
             }
+
             return $result[0];
         }
+
         return false;
     }
 
@@ -112,7 +147,7 @@ class ModelAbstract extends Core\Model
      * @param string $pass Пароль
      * @return string Ответ на попытку авторизации
      */
-    public function userAuthorization($email = '', $pass = '')
+    public function userAuthorization($email = '', $pass = ''): string
     {
         if (empty($email) || empty($pass)) {
             return 'Предоставлены неверные данные';
@@ -134,7 +169,7 @@ class ModelAbstract extends Core\Model
             return 'Ошибка в логине или пароле';
         }
 
-        $userData['is_active'] = (bool)$userData['is_active'];
+        $userData['is_active'] = (bool) $userData['is_active'];
         if (!$userData['is_active']) {
             return 'Пользователь с указанными данными ещё не активирован';
         }
@@ -154,8 +189,8 @@ class ModelAbstract extends Core\Model
         // Обновляем дату последнего посещения
         $db = Db::getInstance();
         $db->update($this->_table)
-            ->set(array('last_visit' => time()))
-            ->where('ID = :ID', array('ID' => $userData['ID']))
+            ->set(['last_visit' => time()])
+            ->where('ID = :ID', ['ID' => $userData['ID']])
             ->exec();
 
         return 'Вы успешно вошли';
@@ -168,24 +203,26 @@ class ModelAbstract extends Core\Model
      *
      * @return string Ответ на попытку сохранения данных о пользователе
      */
-    public function saveUserData(array $userData)
+    public function saveUserData(array $userData): string
     {
         $response = 'Предоставлены не верные данные';
-        if (!empty($userData)) {
+        if ($userData !== []) {
             $update = array_filter($userData);
             $db = Db::getInstance();
             if (isset($update['password'])) {
                 $update['password'] = $db->real_escape_string($update['password']);
-                if (strlen($update['password']) > 0) {
+                if ($update['password'] !== '') {
                     $update['password'] = crypt($update['password']);
                 }
             }
+
             $db->update($this->_table)
                 ->set($update)
-                ->where('ID = :ID', array('ID' => $_SESSION['login']['ID']))
+                ->where('ID = :ID', ['ID' => $_SESSION['login']['ID']])
                 ->exec();
             $response = 'Данные сохранены';
         }
+
         return $response;
     }
 
@@ -194,92 +231,89 @@ class ModelAbstract extends Core\Model
      *
      * @param string $email Электронная почта
      *
-     * @return array Ответ на попытку восстановления пароля, а так же новый сгенерированны пароль для пользователя
+     * @return array<string, bool|string> Ответ на попытку восстановления пароля, а так же новый сгенерированны пароль для пользователя
      */
-    public function restorePassword($email = '')
+    public function restorePassword($email = ''): array
     {
-        $response = array(
+        $response = [
             'success' => false,
             'text' => 'Не известно для кого восстанавливать пароль',
             'pass' => '',
-        );
+        ];
         if (!empty($email)) {
             $db = Db::getInstance();
-            $par = array('email' => $email);
-            $fields = array('table' => $this->_table);
+            $par = ['email' => $email];
+            $fields = ['table' => $this->_table];
             $user = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
-            if (count($user) == 0) {
-                $response = array(
+            if (count($user) === 0) {
+                $response = [
                     'success' => false,
                     'text' => 'Данный E-mail еще не зарегистрирован',
                     'pass' => '',
-                    'key' => ''
-                );
+                    'key' => '',
+                ];
             } else {
-                $pass = $this->randPassword();
-                if (function_exists('password_hash')) {
-                    $cryptPass = password_hash($pass, PASSWORD_DEFAULT);
-                } else {
-                    $cryptPass = crypt($pass);
-                }
-                $db->update($this->_table)->set(array('password' => $cryptPass))->where('email = :email', array
-                (
-                    'email' => $email
-                ))->exec();
-                $response = array(
+                $pass = static::randPassword();
+                $cryptPass = function_exists('password_hash') ? password_hash($pass, PASSWORD_DEFAULT) : crypt($pass);
+
+                $db->update($this->_table)->set(['password' => $cryptPass])->where(
+                    'email = :email',
+                    [
+                        'email' => $email,
+                    ],
+                )->exec();
+                $response = [
                     'success' => true,
                     'text' => 'Пароль обновлён',
                     'pass' => $pass,
-                );
+                ];
             }
         }
+
         return $response;
     }
 
     /**
      * Регистрация нового пользователя в системе
      *
-     * @param array $userData Данные пользователя желающего зарегистрироваться
+     * @param array<string, mixed> $userData Данные пользователя желающего зарегистрироваться
      *
-     * @return array Ответ на попытку региистрации в системе, а так же пароль сгенерированны для нового пользователя и ключ авторизации
+     * @return array<string, string|bool> Ответ на попытку региистрации в системе, а так же пароль сгенерированны для нового пользователя и ключ авторизации
      */
-    public function userRegistration(array $userData)
+    public function userRegistration(array $userData): array
     {
-        $response = array(
+        $response = [
             'success' => false,
             'text' => 'Нет данных о новом пользователе',
             'pass' => '',
-            'key' => ''
-        );
-        if (!empty($userData)) {
+            'key' => '',
+        ];
+        if ($userData !== []) {
             if (!isset($userData['email']) || !isset($userData['address']) || !isset($userData['phone']) || !isset($userData['fio'])) {
-                $response = array(
+                $response = [
                     'success' => false,
                     'text' => 'Недостаточно данных для регистрации нового пользователя',
                     'pass' => '',
-                    'key' => ''
-                );
+                    'key' => '',
+                ];
             } else {
                 $db = Db::getInstance();
-                $par = array('email' => strtolower($userData['email']));
-                $fields = array('table' => $this->_table);
+                $par = ['email' => strtolower($userData['email'])];
+                $fields = ['table' => $this->_table];
                 $tmp = $db->select("SELECT ID FROM &table WHERE email= :email LIMIT 1", $par, $fields);
                 if (count($tmp) > 0) {
-                    $response = array(
+                    $response = [
                         'success' => false,
                         'text' => 'Такой Email уже зарегистрирован',
                         'pass' => '',
-                        'key' => ''
-                    );
+                        'key' => '',
+                    ];
                 } else {
                     $key = md5(time());
-                    $pass = $this->randPassword();
-                    if (function_exists('password_hash')) {
-                        $cryptPass = password_hash($pass, PASSWORD_DEFAULT);
-                    } else {
-                        $cryptPass = crypt($pass);
-                    }
-                    $db->insert($this->_table, array(
+                    $pass = static::randPassword();
+                    $cryptPass = function_exists('password_hash') ? password_hash($pass, PASSWORD_DEFAULT) : crypt($pass);
+
+                    $db->insert($this->_table, [
                         'email' => $userData['email'],
                         'address' => $userData['address'],
                         'phone' => $userData['phone'],
@@ -288,32 +322,20 @@ class ModelAbstract extends Core\Model
                         'is_active' => 0,
                         'prev_structure' => $this->getPrevStructure(),
                         'act_key' => $key,
-                        'reg_date' => time()
-                    ));
+                        'reg_date' => time(),
+                    ]);
 
-                    $response = array(
+                    $response = [
                         'success' => true,
                         'text' => 'Пользователь успешно зарегистрирован',
                         'pass' => $pass,
-                        'key' => $key
-                    );
+                        'key' => $key,
+                    ];
                 }
             }
         }
-        return $response;
-    }
 
-    /**
-     * Генерация пароля
-     * @param int $min Минимальное количество в пароле
-     * @param int $max Максимальное количество в пароле
-     * @return string
-     */
-    static public function randPassword($min = 8, $max = 12)
-    {
-        $length = rand($min, $max);
-        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        return substr(str_shuffle($chars), 0, $length);
+        return $response;
     }
 
     /**
@@ -321,40 +343,20 @@ class ModelAbstract extends Core\Model
      *
      * @return bool Ответ на попытку активации пользователя
      */
-    public function finishReg()
+    public function finishReg(): bool
     {
         $db = Db::getInstance();
         $email = mysqli_real_escape_string($db, $_GET['email']);
         $key = mysqli_real_escape_string($db, $_GET['key']);
-        $_sql = "SELECT * FROM {$this->_table} WHERE email='{$email}' AND act_key='{$key}' LIMIT 1";
+        $_sql = sprintf("SELECT * FROM %s WHERE email='%s' AND act_key='%s' LIMIT 1", $this->_table, $email, $key);
         $result = $db->select($_sql);
-        if (count($result) == 1) {
-            $_sql = "UPDATE {$this->_table} SET is_active=1, act_key=''";
+        if (count($result) === 1) {
+            $_sql = sprintf("UPDATE %s SET is_active=1, act_key=''", $this->_table);
             $db->query($_sql);
             return true;
         }
-        return false;
-    }
 
-    /**
-     * Выход пользователя
-     */
-    public static function logout()
-    {
-        // TODO Проверяем подключена ли структуры корзины.
-        // Если корзина не пуста, то вызываем метод её сохранения для выходящего пользователя
-        // и очищаем куку корзины
-        // header("Set-Cookie: basket=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
-        if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
-        }
-        unset($_SESSION['login']);
+        return false;
     }
 
     /**
@@ -362,7 +364,7 @@ class ModelAbstract extends Core\Model
      *
      * @param string $cookieName
      */
-    public function setCookieName($cookieName)
+    public function setCookieName($cookieName): void
     {
         $this->cookieName = $cookieName;
     }

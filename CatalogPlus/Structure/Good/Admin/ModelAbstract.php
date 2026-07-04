@@ -1,33 +1,39 @@
 <?php
+
 namespace CatalogPlus\Structure\Good\Admin;
 
+use CatalogPlus\Structure\Offer\Admin\Model;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Core\Request;
+use Ideal\Core\Util;
 
 class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
 {
     protected $categoryPrevStructure;
 
-    public function getToolbar()
+    private array $categories;
+
+    public function getToolbar(): string
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
         // Поиск всех категорий для составления фильтра
         $_table = $config->db['prefix'] . 'ideal_structure_part';
-        $_sql = "SELECT * FROM {$_table} WHERE structure='CatalogPlus_Category' LIMIT 1";
-        $tmp = $db->select($_sql);
+        $sql = sprintf("SELECT * FROM %s WHERE structure='CatalogPlus_Category' LIMIT 1", $_table);
+        $tmp = $db->select($sql);
         if (count($tmp) > 0) {
             // Построение prevStructure
             $categoryPrevStructure = explode('-', $tmp[0]['prev_structure']);
             $categoryPrevStructure = end($categoryPrevStructure) . '-' . $tmp[0]['ID'];
             $this->categoryPrevStructure = $categoryPrevStructure;
         } else {
-            \FB::error($this, 'CatalogPlus');
+            Util::addError('CatalogPlus: запрос вернул 0 результатов: ' . $sql);
         }
+
         $_table = $config->db['prefix'] . 'catalogplus_structure_category';
-        $_sql = "SELECT * FROM {$_table} WHERE prev_structure='{$this->categoryPrevStructure}' AND is_active=1 ORDER BY cid";
-        $this->categories = $db->select($_sql);
+        $sql = sprintf("SELECT * FROM %s WHERE prev_structure='%s' AND is_active=1 ORDER BY cid", $_table, $this->categoryPrevStructure);
+        $this->categories = $db->select($sql);
 
         $request = new Request();
         $currentCategory = '';
@@ -41,17 +47,28 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
             if ($category['ID'] == $currentCategory) {
                 $selected = 'selected="selected"';
             }
-            for ($i = 1; $i < (int)$category['lvl']; $i++) {
+
+            for ($i = 1; $i < (int) $category['lvl']; $i++) {
                 if ($i > 8) {
                     break;
                 }
+
                 $category['name'] = '-' . $category['name'];
             }
+
             $select .= '<option ' . $selected . ' value="' . $category['ID'] . '">' . $category['name'] . '</option>';
         }
-        $select .= '</select>';
 
-        return $select;
+        return $select . '</select>';
+    }
+
+    public function delete(): void
+    {
+        parent::delete();
+
+        [, $ps] = explode('-', $this->pageData['prev_structure'], 2);
+        $offerModel = new Model($ps . '-' . $this->pageData['ID']);
+        $offerModel->deleteByGood();
     }
 
 
@@ -67,6 +84,7 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
         if (isset($request->toolbar['category'])) {
             $currentCategory = $request->toolbar['category'];
         }
+
         if ($currentCategory != '') {
             $db = DB::getInstance();
             $config = Config::getInstance();
@@ -74,24 +92,16 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
             if ($where != '') {
                 $where .= ' AND ';
             }
+
             // Выборка статей, принадлежащих этой категории
             $where .= 'ID IN (SELECT good_id FROM ' . $table . ' WHERE category_id='
                 . $db->real_escape_string($currentCategory) . ')';
         }
+
         if ($where != '') {
             $where = 'WHERE ' . $where;
         }
 
         return $where;
-    }
-
-    public function delete()
-    {
-        $result = parent::delete();
-        if ($result) {
-            [, $ps] = explode('-', $this->pageData['prev_structure'], 2);
-            $offerModel = new \CatalogPlus\Structure\Offer\Admin\Model($ps . '-' . $this->pageData['ID']);
-            $offerModel->deleteByGood();
-        }
     }
 }

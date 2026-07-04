@@ -2,6 +2,4 @@
 
 namespace Catalog\Structure\Good\Site;
 
-class Model extends ModelAbstract
-{
-}
+class Model extends ModelAbstract {}

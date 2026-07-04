@@ -1,11 +1,13 @@
 <?php
+
 namespace CatalogPlus\Structure\Good\Site;
 
+use Ideal\Core\Site\Controller;
 use Ideal\Core\Config;
 
-class ControllerAbstract extends \Ideal\Core\Site\Controller
+class ControllerAbstract extends Controller
 {
-    public function indexAction()
+    public function indexAction(): void
     {
         parent::indexAction();
         $pageData = $this->model->getPageData();
@@ -14,10 +16,11 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
             $this->error404Action();
             return;
         }
+
         $config = Config::getInstance();
         $offers = $config->getStructureByName('CatalogPlus_Offer');
         if ($offers) {
-            $this->view->offers = $this->model->getGoodsInfo(array($pageData['ID']));
+            $this->view->offers = $this->model->getGoodsInfo([$pageData['ID']]);
         }
     }
 }

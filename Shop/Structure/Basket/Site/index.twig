@@ -47,7 +47,7 @@
                                     <tr class="cart_table_item">
                                         <td class="product-remove">
                                             <a class="remove" title="Удалить" data-id="{{ key }}"
-                                               onclick="deleteGood(this);return false">&times;</a>
+                                               onclick="fastDelGood(this);return false">&times;</a>
                                         </td>
                                         <td class="product-thumbnail">
                                             <a {{ good.link|raw }}">
@@ -67,7 +67,7 @@
                                             {% endif %}
                                         </td>
                                         <td class="product-price">
-                                        <span class="amount">
+                                        <span class="summ amount">
                                             {{ (good.price / 100)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                         </td>
@@ -105,7 +105,7 @@
                                     <tr class="cart-subtotal">
                                         <th>Стоимость товаров</th>
                                         <td>
-                                        <span class="amount">
+                                        <span class="summ amount">
                                             {{ (goods.total)|number_format(2, '.', ',') }}&nbsp;руб.
                                         </span>
                                         </td>
@@ -121,7 +121,7 @@
                                         <th>Сумма заказа</th>
                                         <td>
                                             <strong>
-                                            <span class="amount">
+                                            <span class="summ amount">
                                                 {{ (goods.total)|number_format(2, '.', ',') }}&nbsp;руб.
                                             </span>
                                             </strong>
@@ -248,25 +248,6 @@
                 total = total - basket.discoValue / 100;
             }
             $('.cart_totals .amount').text(total.format(2, 3, ',', '.') + ' руб.');
-        }
-        function deleteGood(e) {
-            var deleteResponse = fastDelGood(e);
-            if (deleteResponse == 'true') {
-                var $this = jQuery(e);
-                var id = $this.attr('data-id');
-                var basket = $.parseJSON(getCookie('basket'));
-                delete basket.goods[id];
-                var total = 0;
-                $('.qty').each(function (index, elem) {
-                    if ($(elem).attr('data-id') != id) {
-                        total += (basket['goods'][$(elem).attr('data-id')]['sale_price'] * $(elem).val());
-                    }
-                });
-                $('.cart_totals .amount').text((parseInt(total)).format(2, 3, ',', '.') + ' руб.');
-                if (total == 0) {
-                    location.reload();
-                }
-            }
         }
         function update() {
             var $ = jQuery;

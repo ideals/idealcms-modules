@@ -1,42 +1,44 @@
 <?php
+
 namespace CatalogPlus\Structure\Offer\Admin;
 
+use Ideal\Structure\Roster\Admin\ModelAbstract;
 use Ideal\Core\Db;
 
-class Model extends \Ideal\Structure\Roster\Admin\ModelAbstract
+class Model extends ModelAbstract
 {
-    protected function getWhere($where)
-    {
-        if ($where != '') {
-            $where = 'WHERE ' . $where;
-        }
-        return $where;
-    }
-
-
-    public function delete()
+    public function delete(): void
     {
         $db = Db::getInstance();
-        $db->delete($this->_table)->where('ID=:id', array('id' => $this->pageData['ID']));
+        $db->delete($this->_table)->where('ID=:id', ['id' => $this->pageData['ID']]);
         $db->exec();
         // TODO сделать проверку успешности удаления
         return 1;
     }
 
-    public function deleteByGood()
+    public function deleteByGood(): void
     {
         // Удаление прошло успешно, удаляем офферы, если они есть
         $db = Db::getInstance();
 
         $offers = $db->select(
-            "SELECT * FROM $this->_table WHERE prev_structure=:ps",
-            ['ps' => $this->prevStructure]
+            sprintf('SELECT * FROM %s WHERE prev_structure=:ps', $this->_table),
+            ['ps' => $this->prevStructure],
         );
 
         foreach ($offers as $offer) {
-            $offerModel = new \CatalogPlus\Structure\Offer\Admin\Model('');
+            $offerModel = new Model('');
             $offerModel->setPageData($offer);
             $offerModel->delete();
         }
+    }
+
+    protected function getWhere($where)
+    {
+        if ($where != '') {
+            $where = 'WHERE ' . $where;
+        }
+
+        return $where;
     }
 }

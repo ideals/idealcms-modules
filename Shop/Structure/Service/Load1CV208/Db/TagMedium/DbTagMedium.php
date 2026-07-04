@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Db\TagMedium;
 
 use Shop\Structure\Service\Load1CV208\Db\AbstractDb;
@@ -26,17 +27,16 @@ class DbTagMedium extends AbstractDb
     /**
      * Обновление таблицы связи товаров с тегами
      *
-     * @param $goodToTag
      */
-    public function updateTagList($goodToTag)
+    public function updateTagList($goodToTag): void
     {
         $dbTag = new DbTag();
         $tags = $dbTag->getTags();
 
         $dbGood = new DbGood();
         $goods = $dbGood->getGoods('ID, id_1c', 'is_active = 1');
-
-        $result = $goodIds = array();
+        $result = [];
+        $goodIds = [];
         foreach ($goodToTag as $goodId => $tagsUrl) {
             if (!isset($goods[$goodId])) {
                 // Непонятно, как такое возможно, товара нет, а связьс тегом есть?
@@ -48,25 +48,25 @@ class DbTagMedium extends AbstractDb
 
             // Добавляем все привязки этого товара в массив для добавления в БД
             foreach ($tagsUrl as $urlTag) {
-                $result[] = array(
+                $result[] = [
                     'part_id' => $goods[$goodId]['ID'],
                     'tag_id' => $tags[$urlTag]['ID'],
-                    'structure_id' => '11'
-                );
+                    'structure_id' => '11',
+                ];
             }
         }
 
         $db = Db::getInstance();
 
         // Удаление старых связей добавляемых товаров
-        if (!empty($goodIds)) {
+        if ($goodIds !== []) {
             $db->delete($this->table . $this->tablePostfix)
                ->where('part_id IN (' . implode(',', $goodIds) . ')')
                ->exec();
         }
 
         // Добавление связей по 25 штук в одном запросе
-        while (count($result) > 0) {
+        while ($result !== []) {
             $part = array_splice($result, 0, 25);
             $db->insertMultiple($this->table . $this->tablePostfix, $part);
         }
@@ -75,7 +75,7 @@ class DbTagMedium extends AbstractDb
     /**
      * Подготовка временной таблицы для выгрузки
      */
-    public function prepareTable()
+    public function prepareTable(): void
     {
         $this->dropTestTable();
         $this->createEmptyTestTable();

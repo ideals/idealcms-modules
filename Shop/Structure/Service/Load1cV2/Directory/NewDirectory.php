@@ -1,7 +1,6 @@
 <?php
-namespace Shop\Structure\Service\Load1cV2\Directory;
 
-use Ideal\Field\Url;
+namespace Shop\Structure\Service\Load1cV2\Directory;
 
 /**
  * Created by PhpStorm.
@@ -12,12 +11,12 @@ use Ideal\Field\Url;
 class NewDirectory
 {
     /** @var array ответ пользователю об обновленных и добавленных */
-    protected $answer = array(
+    protected $answer = [
         'infoText'  => 'Справочники',
         'successText'   => 'Добавлено: %d<br />Обновлено: %d',
         'add'   => 0,
-        'update'=> 0,
-    );
+        'update' => 0,
+    ];
 
     /** @var  bool содержит ли xml только обновления */
     protected $onlyUpdate;
@@ -43,7 +42,7 @@ class NewDirectory
      *
      * @return array разница, которую передаем объекту DbGood для сохранения
      */
-    public function parse()
+    public function parse(): array
     {
         // Забираем реззультаты категорий из БД 1m
         $dbResult = $this->dbDirectory->parse();
@@ -64,7 +63,7 @@ class NewDirectory
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -74,12 +73,12 @@ class NewDirectory
      * Если есть в БД и есть в XML, но есть diff_assoc - добавляем поля для обновления.
      *
      * @param array $dbResult распарсенные данные из БД
-     * @param array $xmlResult распарсенные данные из XML
+     * @param mixed[] $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
@@ -88,11 +87,12 @@ class NewDirectory
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = array_merge($dbResult[$k], $res);
                 $this->answer['update']++;
             }
         }
+
         return $result;
     }
 }

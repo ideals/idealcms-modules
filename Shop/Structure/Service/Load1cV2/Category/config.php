@@ -1,13 +1,14 @@
 <?php
-return array(
+
+return [
     'key' => 'Ид',
-    'fields' => array(
+    'fields' => [
         'id_1c' => 'Ид',
         'name' => 'Наименование',
-    ),
-    'updateDbFields'  => array(
+    ],
+    'updateDbFields'  => [
         'ID'        => 'ID',
         'is_active' => 'is_active',
-        'pos'       => 'pos'
-    ),
-);
+        'pos'       => 'pos',
+    ],
+];

@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Ideal\Core\Config;
@@ -9,12 +10,12 @@ use Shop\Structure\Service\Load1CV208\Xml\Xml;
 class RestsModel
 {
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка остатков из пакета № %d',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add' => 0,
-        'update' => 0
-    );
+        'update' => 0,
+    ];
 
     /**
      * Запуск процесса обработки файлов rests_*.xml
@@ -28,7 +29,7 @@ class RestsModel
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $packageNum,
         );
 
         // Считываем результаты работы предыдущих этапов обработки
@@ -66,7 +67,7 @@ class RestsModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -79,7 +80,7 @@ class RestsModel
      *
      * @return array двумерный массив с данными о ценах после сведения XML и БД
      */
-    protected function parse($dbRests, $xmlRests)
+    protected function parse($dbRests, $xmlRests): array
     {
         // Забираем реззультаты категорий из БД 1m
         $dbResult = $dbRests->parse();
@@ -87,7 +88,7 @@ class RestsModel
         $xmlResult = $xmlRests->parse();
 
         if (empty($xmlResult)) {
-            $xmlResult = array();
+            $xmlResult = [];
         }
 
         return $this->diff($dbResult, $xmlResult);
@@ -101,9 +102,9 @@ class RestsModel
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             $goodOffer = explode('#', $k);
             if (substr_count($k, '#') === 1) {
@@ -113,6 +114,7 @@ class RestsModel
                 $whatIsThat = 'goods';
                 $key = $goodOffer[0];
             }
+
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
                 $this->answer['add']++;
@@ -121,7 +123,7 @@ class RestsModel
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $result[$k]['good_id'] = $dbResult[$k]['good_id'];
@@ -129,6 +131,7 @@ class RestsModel
                 $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
             }
         }
+
         return $result;
     }
 }

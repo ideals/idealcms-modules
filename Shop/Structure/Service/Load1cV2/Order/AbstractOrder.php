@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2\Order;
 
 use Ideal\Core\Db;
@@ -12,7 +13,7 @@ class AbstractOrder
     public function generateExportXml()
     {
         $fileTemplate = array_slice(explode('\\', __FILE__), 0, -1);
-        array_push($fileTemplate, 'export.xml');
+        $fileTemplate[] = 'export.xml';
         $fileTemplate = implode('\\', $fileTemplate);
 
         // Время начала формирования документа
@@ -26,24 +27,25 @@ class AbstractOrder
         $config = Config::getInstance();
 
         $i = $config->db['prefix'];
-        $orderSql = "SELECT sho.id, sho.date_create, sho.name, sho.price,".
-            " csu.login as buyerLogin, csu.name as buyerName, csu.last_name as buyerLastName, csu.ID as buyerID, csu.address as buyerAddress, csu.phone as buyerPhone, csu.email as buyerEmail,".
-            " d.good_id_1c, d.offer_id_1c, d.count, d.sum,stg.currency, sto.name as full_name, stg.coefficient, sto.price as fe".
-            " FROM {$i}shop_structure_order sho".
-            " LEFT JOIN {$i}shop_structure_orderdetail d on d.order_id=sho.id".
-            " LEFT JOIN {$i}catalogplus_structure_good stg on d.good_id_1c=stg.id_1c".
-            " LEFT JOIN {$i}cabinet_structure_user csu on csu.ID = sho.user_id".
-            " LEFT JOIN {$i}catalogplus_structure_offer sto on sto.offer_id=d.offer_id_1c".
+        $orderSql = "SELECT sho.id, sho.date_create, sho.name, sho.price,"
+            . " csu.login as buyerLogin, csu.name as buyerName, csu.last_name as buyerLastName, csu.ID as buyerID, csu.address as buyerAddress, csu.phone as buyerPhone, csu.email as buyerEmail,"
+            . " d.good_id_1c, d.offer_id_1c, d.count, d.sum,stg.currency, sto.name as full_name, stg.coefficient, sto.price as fe"
+            . sprintf(' FROM %sshop_structure_order sho', $i)
+            . sprintf(' LEFT JOIN %sshop_structure_orderdetail d on d.order_id=sho.id', $i)
+            . sprintf(' LEFT JOIN %scatalogplus_structure_good stg on d.good_id_1c=stg.id_1c', $i)
+            . sprintf(' LEFT JOIN %scabinet_structure_user csu on csu.ID = sho.user_id', $i)
+            . sprintf(' LEFT JOIN %scatalogplus_structure_offer sto on sto.offer_id=d.offer_id_1c', $i)
 
             // В этих условиях задана проверка на обязательное наличие зарегистрированного пользователя
             // Если заказ сделал анонимный пользователь, то он, пока, не попадёт в 1С.
-            " where sho.goods_id<>'' AND sho.export=1 AND csu.name IS NOT NULL LIMIT 0,200";
+            . " where sho.goods_id<>'' AND sho.export=1 AND csu.name IS NOT NULL LIMIT 0,200";
 
         $orderList = $db->select($orderSql);
         if (count($orderList) === 0) {
             die(print "success\n");
         }
-        $items = array();
+
+        $items = [];
         foreach ($orderList as $element) {
             if (isset($items[$element['id']])) {
                 $items[$element['id']]['goods'][] = array_slice($element, 10);
@@ -52,9 +54,10 @@ class AbstractOrder
                 $items[$element['id']]['goods'][] = array_slice($element, 10);
             }
         }
+
         unset($orderList);
-        $upd = array();
-        foreach ($items as $k => $item) {
+        $upd = [];
+        foreach ($items as $item) {
 
             // Генерируем идентификатор документа
             // TODO Узнать, зачем генерировать идентификатор документа такого вида?
@@ -124,10 +127,10 @@ class AbstractOrder
 
                 $xmlGood->addChild('Ид', $good['good_id_1c']);
                 $xmlGood->addChild('Наименование', $good['full_name']);
-                $xmlGood->addChild('ЦенаЗаЕдиницу', (int) $good['fe']/100);
+                $xmlGood->addChild('ЦенаЗаЕдиницу', (int) $good['fe'] / 100);
                 $xmlGood->addChild('Количество', $good['count']);
-                $xmlGood->addChild('Сумма', $good['sum']/100);
-                $xmlGood->addChild('Коэффициент', intval($good['coefficient']) ? intval($good['coefficient']) : 1);
+                $xmlGood->addChild('Сумма', $good['sum'] / 100);
+                $xmlGood->addChild('Коэффициент', intval($good['coefficient']) ?: 1);
                 $props = $xmlGood->addChild('ЗначенияРеквизитов');
                 $prop = $props->addChild('ЗначениеРеквизита');
                 $prop->addChild("Наименование", "ВидНоменклатуры");
@@ -145,14 +148,16 @@ class AbstractOrder
             if (!isset($currency)) {
                 $currency = "RUB";
             }
+
             $doc->addChild("Валюта", $currency);
 
             $upd[] = $item['id'];
         }
 
         foreach ($upd as $item) {
-            $db->query("UPDATE {$i}shop_structure_order SET export=0 WHERE id={$item}");
+            $db->query(sprintf('UPDATE %sshop_structure_order SET export=0 WHERE id=%s', $i, $item));
         }
+
         return $template->asXML();
     }
 }

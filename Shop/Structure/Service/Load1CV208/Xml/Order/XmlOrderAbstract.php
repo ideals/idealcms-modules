@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Xml\Order;
 
 use Shop\Structure\Service\Load1CV208\Xml\AbstractXml;
@@ -9,20 +10,21 @@ class XmlOrderAbstract extends AbstractXml
     public $part = '*';
 
     /** @var array Общие настройки для всего процесса обмена */
-    public $exchangeConfig = array();
+    public $exchangeConfig = [];
 
     /**
      * Преобразование XML выгрузки к массиву схожему с массивом данных из базы
      *
      * @return array двумерный массив данных
      */
-    public function parse()
+    public function parse(): array
     {
         $this->recursiveParse($this->xml);
-        foreach ($this->data as $k => &$val) {
+        foreach ($this->data as &$val) {
             // Так как в выгрузке стоит флаг удаления, а у нас - активности, то инвертируем его
-            $val['is_active'] = $val['is_active'] == 'false' ? '1' : (int)$val['is_active'];
+            $val['is_active'] = $val['is_active'] == 'false' ? '1' : (int) $val['is_active'];
         }
+
         $this->data = $this->postParse($this->data);
 
         return $this->data;
@@ -31,43 +33,15 @@ class XmlOrderAbstract extends AbstractXml
     /**
      * Подмена значений конфигурационного файла выгрузки
      */
-    public function updateConfigs()
+    public function updateConfigs(): void
     {
         $this->configs['fields'] = array_merge($this->configs['fields'], $this->configs['updateDbFields']);
     }
 
     /**
-     * Приведение XML выгрузки к двумерному массиву
-     *
-     * @param Xml $groupsXML - узел для преобразования
-     */
-    protected function recursiveParse($groupsXML)
-    {
-        if (empty($groupsXML)) {
-            return;
-        }
-
-        foreach ($groupsXML->{'Документ'} as $child) {
-            $child = $this->filterXml($child);
-            if (empty($child)) {
-                continue;
-            }
-            $id = (string) $child->{'Ид'};
-            $namespaces = $child->getDocNamespaces();
-
-            if (isset($namespaces[''])) {
-                $defaultNamespaceUrl = $namespaces[''];
-                $child->registerXPathNamespace('default', $defaultNamespaceUrl);
-            }
-
-            $this->updateFromConfig($child, $id);
-        }
-    }
-
-    /**
      * @param array $exchangeConfig
      */
-    public function setExchangeConfig($exchangeConfig)
+    public function setExchangeConfig($exchangeConfig): void
     {
         $this->exchangeConfig = $exchangeConfig;
     }
@@ -75,7 +49,7 @@ class XmlOrderAbstract extends AbstractXml
     /**
      * @inheritdoc
      */
-    public function validate()
+    public function validate(): bool
     {
         return isset($this->xml->{'Документ'});
     }
@@ -88,6 +62,35 @@ class XmlOrderAbstract extends AbstractXml
     public function filterXml($child)
     {
         return $child;
+    }
+
+    /**
+     * Приведение XML выгрузки к двумерному массиву
+     *
+     * @param Xml $groupsXML - узел для преобразования
+     */
+    protected function recursiveParse($groupsXML)
+    {
+        if ($groupsXML === null) {
+            return;
+        }
+
+        foreach ($groupsXML->{'Документ'} as $child) {
+            $child = $this->filterXml($child);
+            if (empty($child)) {
+                continue;
+            }
+
+            $id = (string) $child->{'Ид'};
+            $namespaces = $child->getDocNamespaces();
+
+            if (isset($namespaces[''])) {
+                $defaultNamespaceUrl = $namespaces[''];
+                $child->registerXPathNamespace('default', $defaultNamespaceUrl);
+            }
+
+            $this->updateFromConfig($child, $id);
+        }
     }
 
     /**

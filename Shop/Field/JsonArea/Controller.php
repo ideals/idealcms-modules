@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -23,14 +24,13 @@ use Ideal\Field\AbstractController;
  */
 class Controller extends AbstractController
 {
-
     /** {@inheritdoc} */
     protected static $instance;
 
     /**
      * {@inheritdoc}
      */
-    public function getInputText()
+    public function getInputText(): string
     {
         $value = implode("\n", json_decode(htmlspecialchars_decode($this->getValue())));
         return
@@ -39,11 +39,10 @@ class Controller extends AbstractController
             . '">' . $value . '</textarea>';
     }
 
-    public function pickupNewValue()
+    public function pickupNewValue(): string
     {
         $value = parent::pickupNewValue();
         $value = str_replace("\r", '', $value);
-        $value = htmlspecialchars(json_encode(explode("\n", $value)));
-        return $value;
+        return htmlspecialchars(json_encode(explode("\n", $value)));
     }
 }

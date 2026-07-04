@@ -1,6 +1,5 @@
 <?php
+
 namespace Cabinet\Structure\Part\Site;
 
-class Controller extends ControllerAbstract
-{
-}
+class Controller extends ControllerAbstract {}

@@ -1,8 +1,9 @@
 <?php
+
 // символ ` заменяется на нэймспэйс
-return array(
+return [
     'key'    => 'Ид',
-    'fields' => array(
+    'fields' => [
         'name'       => 'Наименование',
         'is_active'  => 'ПометкаУдаления',
         'dir_params' => [
@@ -12,5 +13,5 @@ return array(
                 'dir_value_id' => 'Значение',
             ],
         ],
-    )
-);
+    ],
+];

@@ -1,7 +1,7 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Models;
 
-use Ideal\Core\Config;
 use Shop\Structure\Service\Load1CV3\Db\Prices\DbPrices;
 use Shop\Structure\Service\Load1CV3\ModelAbstract;
 use Shop\Structure\Service\Load1CV3\Xml\Prices\XmlPrices;
@@ -50,7 +50,7 @@ class PricesModel extends ModelAbstract
      *
      * @return array двумерный массив с данными о ценах после сведения XML и БД
      */
-    protected function parse($dbPrices, $xmlPrices)
+    protected function parse($dbPrices, $xmlPrices): array
     {
         // Забираем цены из БД
         $dbResult = $dbPrices->parse();
@@ -58,7 +58,7 @@ class PricesModel extends ModelAbstract
         $xmlResult = $xmlPrices->parse();
 
         if (empty($xmlResult)) {
-            $xmlResult = array();
+            $xmlResult = [];
         }
 
         return $this->diff($dbResult, $xmlResult);
@@ -72,12 +72,12 @@ class PricesModel extends ModelAbstract
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             $val['price_old'] = '0';
-            $whatIsThat = substr_count($k, '#') === 1 ? 'offers' :  'goods';
+            $whatIsThat = substr_count($k, '#') === 1 ? 'offers' : 'goods';
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
                 $this->answer['add']++;

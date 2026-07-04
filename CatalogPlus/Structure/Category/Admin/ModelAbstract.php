@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  * @link      http://github.com/ideals/idealcms репозиторий исходного кода
@@ -8,25 +9,27 @@
 
 namespace CatalogPlus\Structure\Category\Admin;
 
+use Ideal\Structure\Part\Admin\Model;
 use Ideal\Core\Db;
 
-class ModelAbstract extends \Ideal\Structure\Part\Admin\Model
+class ModelAbstract extends Model
 {
     /**
      * @var array category Массив категорий
      */
-    protected $category = array();
+    protected $category = [];
+
     /**
      * Выполняет загрузку категорий на сайте.
      * @param string $key Указывает по какому ключу стоить массив, для 1с это будет id_1c для остальных случаев name
      */
-    public function loadCategory($key = '1c_id')
+    public function loadCategory($key = '1c_id'): void
     {
         $db = Db::getInstance();
         $table = $this->_table;
-        $_sql = "SELECT * FROM {$table} ORDER BY cid";
+        $_sql = sprintf('SELECT * FROM %s ORDER BY cid', $table);
         $result = $db->select($_sql);
-        foreach ($result as $k => $v) {
+        foreach ($result as $v) {
             $this->category[$v['id_1c']] = $v;
         }
     }
@@ -41,6 +44,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Admin\Model
         if (!isset($this->category[$nameCategory])) {
             return false;
         }
+
         return $this->category[$nameCategory];
     }
 }

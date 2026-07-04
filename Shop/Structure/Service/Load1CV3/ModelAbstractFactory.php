@@ -10,7 +10,6 @@ class ModelAbstractFactory
      * Определяет модель и на основании имени файла
      *
      * @param string $filePath Имя файла для обработки которого определяется модель
-     * @return ModelInterface
      */
     public function createByFilename(string $filePath): ModelInterface
     {

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -6,19 +7,20 @@
  * @copyright Copyright (c) 2012-2015 Ideal CMS (http://idealcms.ru)
  * @license   http://idealcms.ru/license.html LGPL v3
  */
+
 namespace Catalog\Structure\Category\Widget;
 
+use Ideal\Core\Widget;
+use Ideal\Field\Url\Model;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
-use Ideal\Field\Url;
 
-class Categories extends \Ideal\Core\Widget
+class Categories extends Widget
 {
     /**
      * Получение списка категорий на первом уровне
-     * @return array
      */
-    public function getData()
+    public function getData(): array
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
@@ -28,17 +30,19 @@ class Categories extends \Ideal\Core\Widget
                     ORDER BY cid";
         $menuList = $db->select($_sql);
 
-        $menu = array();
+        $menu = [];
         // Построение правильных url
-        $url = new Url\Model();
+        $url = new Model();
         foreach ($menuList as $v) {
             $tmp = $url->getUrlWithPrefix($v, $this->prefix);
             if ($tmp === $_SERVER['REQUEST_URI']) {
                 $v['active'] = true;
             }
+
             $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $this->prefix) . '"';
             $menu[$v['cid']] = $v;
         }
+
         unset($menuList);
 
         $path = $this->model->getPath();
@@ -46,9 +50,11 @@ class Categories extends \Ideal\Core\Widget
             if (!isset($v['cid'])) {
                 continue;
             }
+
             if (!isset($menu[$v['cid']])) {
                 continue;
             }
+
             if (isset($v['prev_structure']) && ($v['prev_structure'] == $this->prevStructure)
                 && ($v['ID'] == $menu[$v['cid']]['ID'])
             ) {
@@ -56,6 +62,7 @@ class Categories extends \Ideal\Core\Widget
                 break;
             }
         }
+
         return $menu;
     }
 }

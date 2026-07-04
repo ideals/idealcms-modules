@@ -1,9 +1,6 @@
 <?php
-namespace CatalogPlus\Structure\Good\Site;
 
-use Ideal\Core\Site;
-use Ideal\Field;
-use CatalogPlus;
+namespace CatalogPlus\Structure\Good\Site;
 
 class Plugin
 {
@@ -21,8 +18,8 @@ class Plugin
 
         $url = basename($_SERVER['REQUEST_URI']);
 
-        $good = new CatalogPlus\Structure\Good\Site\Model('6');
-        $result = $good->detectPageByUrl($url, array());
+        $good = new Model('6');
+        $result = $good->detectPageByUrl($url, []);
         if ($result == 404) {
             // Товара с таким URL не нашли
             $router->is404 = true;

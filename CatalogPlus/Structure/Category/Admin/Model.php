@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  * @link      http://github.com/ideals/idealcms репозиторий исходного кода
@@ -8,8 +9,4 @@
 
 namespace CatalogPlus\Structure\Category\Admin;
 
-
-class Model extends ModelAbstract
-{
-
-}
+class Model extends ModelAbstract {}

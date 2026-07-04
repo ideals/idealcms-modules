@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Shop\Structure\Service\Load1CV208\Db\Pricesold\DbPricesold;
@@ -9,12 +10,12 @@ use Shop\Structure\Service\Load1CV208\Xml\Xml;
 class PricesoldModel
 {
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка старых цен из пакета № %d',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add' => 0,
-        'update' => 0
-    );
+        'update' => 0,
+    ];
 
     /**
      * Запуск процесса обработки файлов pricesold_*.xml
@@ -28,7 +29,7 @@ class PricesoldModel
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $packageNum,
         );
 
         // получение xml с данными о старых ценах
@@ -53,7 +54,7 @@ class PricesoldModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -110,7 +111,7 @@ class PricesoldModel
      *
      * @return array двумерный массив с данными о ценах после сведения XML и БД
      */
-    protected function parse($dbPricesOld, $xmlPricesOld)
+    protected function parse($dbPricesOld, $xmlPricesOld): array
     {
         // Забираем старые цены из БД
         $dbResult = $dbPricesOld->parse();
@@ -118,11 +119,11 @@ class PricesoldModel
         $xmlResult = $xmlPricesOld->parse();
 
         if (empty($xmlResult)) {
-            $xmlResult = array();
+            $xmlResult = [];
         }
 
         // Умножаем старые цены на 100 длля хранения в БД
-        array_walk($xmlResult, function ($v, $k) use (&$xmlResult) {
+        array_walk($xmlResult, function (array $v, $k) use (&$xmlResult): void {
             if (isset($v['price_old'])) {
                 $xmlResult[$k]['price_old'] *= 100;
             }
@@ -136,12 +137,12 @@ class PricesoldModel
      * Если есть в БД и есть в XML, но есть diff_assoc - добавляем поля для обновления.
      *
      * @param array $dbResult распарсенные данные из БД
-     * @param array $xmlResult распарсенные данные из XML
+     * @param array<mixed, array<string, float|int>> $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             $goodOffer = explode('#', $k);
             if (substr_count($k, '#') === 1) {
@@ -151,6 +152,7 @@ class PricesoldModel
                 $whatIsThat = 'goods';
                 $key = $goodOffer[0];
             }
+
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
                 $this->answer['add']++;
@@ -159,7 +161,7 @@ class PricesoldModel
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $result[$k]['good_id'] = $dbResult[$k]['good_id'];
@@ -167,6 +169,7 @@ class PricesoldModel
                 $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
             }
         }
+
         return $result;
     }
 }

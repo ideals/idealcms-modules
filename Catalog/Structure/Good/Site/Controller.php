@@ -1,6 +1,5 @@
 <?php
+
 namespace Catalog\Structure\Good\Site;
 
-class Controller extends ControllerAbstract
-{
-}
+class Controller extends ControllerAbstract {}

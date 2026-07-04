@@ -15,8 +15,8 @@ class QueryModel
         $docTime = time();
 
         $xml = simplexml_load_string(
-//            "\xEF\xBB\xBF" .
-            '<?xml version="1.0" encoding="utf-8"?><КоммерческаяИнформация></КоммерческаяИнформация>'
+            //            "\xEF\xBB\xBF" .
+            '<?xml version="1.0" encoding="utf-8"?><КоммерческаяИнформация></КоммерческаяИнформация>',
         );
         $doc = $xml->xpath('//КоммерческаяИнформация');
         $doc[0]->addAttribute('xmlns', 'urn:1C.ru:commerceml_3');
@@ -32,19 +32,19 @@ class QueryModel
         $i = $config->db['prefix'];
 
         $sql = <<<ORDERSQL
-            SELECT 
-            sso.*,
-            csu.login as buyerLogin, 
-            csu.name as buyerName, 
-            csu.last_name as buyerLastName, 
-            csu.ID as buyerId, 
-            csu.id_1c as buyerId1c, 
-            csu.phone as buyerPhone, 
-            csu.email as buyerEmail
-          FROM {$i}shop_structure_order sso
-          LEFT JOIN {$i}cabinet_structure_user csu on csu.ID = sso.user_id
-          WHERE sso.export=1 AND csu.name IS NOT NULL LIMIT 0,200
-        ORDERSQL;
+                SELECT 
+                sso.*,
+                csu.login as buyerLogin, 
+                csu.name as buyerName, 
+                csu.last_name as buyerLastName, 
+                csu.ID as buyerId, 
+                csu.id_1c as buyerId1c, 
+                csu.phone as buyerPhone, 
+                csu.email as buyerEmail
+              FROM {$i}shop_structure_order sso
+              LEFT JOIN {$i}cabinet_structure_user csu on csu.ID = sso.user_id
+              WHERE sso.export=1 AND csu.name IS NOT NULL LIMIT 0,200
+            ORDERSQL;
 
         $orders = $db->select($sql);
         if (count($orders) === 0) {
@@ -62,7 +62,7 @@ class QueryModel
 
             $exportPaymentIds[] = $this->addPaymentDocuments($doc, $order);
 
-//            $this->addShipmentDocuments($doc, $order);
+            //            $this->addShipmentDocuments($doc, $order);
 
             $exportOrdersIds[] = $order['ID'];
         }
@@ -70,7 +70,7 @@ class QueryModel
         $exportPaymentIds = array_merge(...$exportPaymentIds);
 
         foreach ($exportOrdersIds as $orderId) {
-            $db->query("UPDATE {$i}shop_structure_order SET export=0 WHERE id=$orderId");
+            $db->query(sprintf('UPDATE %sshop_structure_order SET export=0 WHERE id=%s', $i, $orderId));
         }
 
         $orderPay = new OrderPayModel();
@@ -81,6 +81,24 @@ class QueryModel
         return $xml->asXML();
     }
 
+    /**
+     * @param array<string, mixed> $order
+     */
+    protected function getOrderDeliveryAddress(array $order): string
+    {
+        $deliveryInfo = $order['delivery_address'] ?? '';
+
+        if (!empty($order['delivery_country']) && !empty($order['delivery_city'])) {
+            $deliveryInfo = $deliveryInfo ? ', ' . $deliveryInfo : '';
+            $deliveryInfo = $order['delivery_country'] . ', г. ' . $order['delivery_city'] . $deliveryInfo;
+        }
+
+        return $deliveryInfo;
+    }
+
+    /**
+     * @param array<string, mixed> $order
+     */
     private function createOrderDocument(\SimpleXMLElement $doc, array $order): void
     {
         $doc = $doc->addChild('Документ');
@@ -97,9 +115,10 @@ class QueryModel
 
         /** @var \SimpleXMLElement $detailsValues */
         $detailsValues = $doc->addChild('ЗначенияРеквизитов');
+        $deliveryInfo = $this->getOrderDeliveryAddress($order);
 
         // Добавляем в документ информацию о доставке
-        if ($deliveryInfo = $this->getOrderDeliveryAddress($order)) {
+        if ($deliveryInfo !== '' && $deliveryInfo !== '0') {
             /** @var \SimpleXMLElement $detailValue */
             $detailValue = $detailsValues->addChild('ЗначениеРеквизита');
             $detailValue->addChild('Наименование', 'Адрес доставки');
@@ -125,21 +144,13 @@ class QueryModel
         if (!empty($order['payment_method'])) {
             $orderComment .= "\nСпособ оплаты: " . $order['payment_method'];
         }
+
         $doc->addChild('Комментарий', \htmlentities($orderComment));
     }
 
-    protected function getOrderDeliveryAddress(array $order): string
-    {
-        $deliveryInfo = $order['delivery_address'] ?? '';
-
-        if (!empty($order['delivery_country']) && !empty($order['delivery_city'])) {
-            $deliveryInfo = $deliveryInfo ? ', ' . $deliveryInfo : '';
-            $deliveryInfo = $order['delivery_country'] . ', г. ' . $order['delivery_city'] . $deliveryInfo;
-        }
-
-        return $deliveryInfo;
-    }
-
+    /**
+     * @param array<string, mixed> $order
+     */
     private function generateBuyer(\SimpleXMLElement $doc, array $order): void
     {
         /** @var \SimpleXMLElement $agents */
@@ -188,11 +199,14 @@ class QueryModel
         }
     }
 
+    /**
+     * @param array<string, mixed> $order
+     */
     private function generateGoodsList(\SimpleXMLElement $doc, array $order): void
     {
         $db = Db::getInstance();
         $goods = $db->select(
-            'SELECT * FROM i_shop_structure_orderdetail WHERE order_id=' . $order['ID']
+            'SELECT * FROM i_shop_structure_orderdetail WHERE order_id=' . $order['ID'],
         );
 
         /** @var \SimpleXMLElement $xmlGoods */
@@ -213,7 +227,7 @@ class QueryModel
 
             // Рассчитываем сумму без скидок/наценок
             // todo проверить, как идёт расчёт скидок при заказе
-//            $price = (float)$good['fe'] / 100 + (float)$good['discount'] / 100;
+            //            $price = (float)$good['fe'] / 100 + (float)$good['discount'] / 100;
             $xmlGood->addChild('Цена', number_format($good['price'] / 100, 2, '.', ''));
             $xmlGood->addChild('Количество', $good['count']);
             $xmlGood->addChild('Сумма', number_format($good['sum'] / 100, 2, '.', ''));
@@ -232,7 +246,7 @@ class QueryModel
                 /** @var \SimpleXMLElement $discount */
                 $discount = $discounts->addChild('Скидка');
                 $discount->addChild('Наименование', 'Скидка');
-                $discount->addChild('Сумма', number_format((float)$good['discount'] / 100, 2, '.', ''));
+                $discount->addChild('Сумма', number_format((float) $good['discount'] / 100, 2, '.', ''));
 
                 // Высчитываем процент скидки
                 $percentDiscount = $good['discount'] / (($good['discount'] + $good['sum']) / 100);
@@ -270,7 +284,10 @@ class QueryModel
         return $oldStatuses[$status] ?? $newStatuses[$status] ?? 'P';
     }
 
-    private function addPaymentDocuments($doc, $order): array
+    /**
+     * @param array<string, mixed> $order
+     */
+    private function addPaymentDocuments($doc, array $order): array
     {
         // todo вынести из основного кода, т.к. платежи должны обрабатываться в каждом проекте отдельно
         $orderPay = new OrderPayModel();

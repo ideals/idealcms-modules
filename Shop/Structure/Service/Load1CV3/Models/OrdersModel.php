@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Shop\Structure\Service\Load1CV3\Db\Order\DbOrder;
@@ -29,7 +30,7 @@ class OrdersModel extends ModelAbstract
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $this->packageNum
+            $this->packageNum,
         );
 
         if ($this->xmlOrder->validate()) {
@@ -96,6 +97,10 @@ class OrdersModel extends ModelAbstract
         return $xmlResult;
     }
 
+    /**
+     * @param array<string, mixed> $old
+     * @param array<string, mixed> $new
+     */
     private function beforeUpdate(array $old, array $new): array
     {
         if ($new['payment_sum'] == 0 || $old['payment_bank'] > 0) {

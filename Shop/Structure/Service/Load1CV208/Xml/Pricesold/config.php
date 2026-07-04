@@ -1,8 +1,9 @@
 <?php
+
 // символ ` заменяется на нэймспэйс
-return array(
+return [
     'key'    => '@ИДНоменклатуры',
-    'fields' => array(
-        'price_old' => '@Цена'
-    )
-);
+    'fields' => [
+        'price_old' => '@Цена',
+    ],
+];

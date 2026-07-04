@@ -1,11 +1,12 @@
 <?php
+
 namespace Shop\Structure\Basket\Site;
 
 use Ideal\Core\Db;
+use Ideal\Core\Site\Model;
 use Ideal\Core\Util;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
-use Ideal\Structure\Service\SiteData\ConfigPhp;
 use Ideal\Structure\User;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
@@ -17,7 +18,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     protected $basketCookie;
 
     /** @var array Список товаров в корзине с полным набором свойств */
-    protected $goods = array();
+    protected $goods = [];
 
     /** @var int Время жизни корзины в секундах, по истечении которого она обновляется в cookies */
     protected $timeLive = 7200;
@@ -117,14 +118,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      * Если параметр $good['count'] передаётся со знаком '+", то указанное количество товара будет
      * добавлено к существующему, если без знака, то будет установлено переданное количество товара
      *
-     * @param $good
      * @throws \Exception
      */
     public function addGood($good)
     {
         $id = $good['id'];
         $mode = strpos($good['count'], '+') === 0 ? 'add' : 'set';
-        $good['count'] = (int)$good['count'];
+        $good['count'] = (int) $good['count'];
 
         if ($good['count'] === 0) {
             // Передано нулевое кол-во, значит нужно удалить товар из корзины
@@ -150,7 +150,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /**
      * Удаление товара из корзины
      *
-     * @param $id
      * @throws \Exception
      */
     public function delGood($id)
@@ -160,21 +159,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
 
         return $this->calcFullBasket();
-    }
-
-    /**
-     * Построение пустой корзины, с минимально необходимым набором полей
-     *
-     * @return array
-     */
-    protected function getClearBasket()
-    {
-        return array(
-            'goods' => array(), // товары которые находятся в корзине
-            'total_old' => 0, // общая сумма цен без скидок
-            'total' => 0, // общая цена с учетом скидки
-            'time' => time(),
-        );
     }
 
     /**
@@ -197,7 +181,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             'basket',
             json_encode($this->basketCookie, JSON_FORCE_OBJECT),
             strtotime('+1 year'),
-            '/'
+            '/',
         );
 
         return $this->basketCookie;
@@ -206,7 +190,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /**
      * {@inheritdoc}
      */
-    public function detectPageByUrl($path, $url)
+    public function detectPageByUrl($path, $url): Model
     {
         $db = Db::getInstance();
 
@@ -229,7 +213,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if (count($tabs) > 1) {
             $c = count($tabs);
             Util::addError("В базе несколько ({$c}) табов для корзины с одинаковым url: " . implode('/', $url));
-            $tabs = array($tabs[0]); // выводим таб который стоит раньше
+            $tabs = [$tabs[0]]; // выводим таб который стоит раньше
         }
 
         $tabs[0]['structure'] = 'Shop_Basket';
@@ -250,7 +234,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      */
     public function getTabsInfo()
     {
-        $tabsInfo = array();
+        $tabsInfo = [];
         if (isset($_COOKIE['tabsInfo'])) {
             $tabsInfo = json_decode($_COOKIE['tabsInfo'], true);
         }
@@ -268,7 +252,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $sql = "SELECT * FROM {$this->_table} WHERE is_active=1 ORDER BY {$this->params['field_sort']} LIMIT 1";
         $tab = $db->select($sql);
         if (count($tab) < 1) {
-            return array();
+            return [];
         }
         $tab = $tab[0];
         $path = $this->getPath();
@@ -326,14 +310,14 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // Добавляем самый первый таб - ссылка на корзину
         $basket = array_pop($path);
         $url->setParentUrl($path);
-        array_unshift($tabs, array(
+        array_unshift($tabs, [
             'ID' => "0",
             'name' => $basket['name'],
             'link' => "href='{$url->getUrl($basket)}'",
             'url' => $basket['url'],
-            'is_show' => true
-        ));
-        
+            'is_show' => true,
+        ]);
+
         return $tabs;
     }
 
@@ -346,5 +330,20 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             }
         }
         return false;
+    }
+
+    /**
+     * Построение пустой корзины, с минимально необходимым набором полей
+     *
+     * @return array
+     */
+    protected function getClearBasket()
+    {
+        return [
+            'goods' => [], // товары которые находятся в корзине
+            'total_old' => 0, // общая сумма цен без скидок
+            'total' => 0, // общая цена с учетом скидки
+            'time' => time(),
+        ];
     }
 }

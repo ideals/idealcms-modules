@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  * @link      http://github.com/ideals/idealcms репозиторий исходного кода
@@ -8,17 +9,20 @@
 
 namespace MiniForum\Structure\Post\Widget;
 
-use MiniForum\Structure\Post\Site;
+use Ideal\Core\Widget;
+use MiniForum\Structure\Post\Site\Model;
 
 /**
  * Виджет отображения комментариев под каждой страницей на сайте
  */
-class Comments extends \Ideal\Core\Widget
+class Comments extends Widget
 {
     /** @var  \Ideal\Core\Site\Model Модель, содержащая данные отображаемой странице */
     protected $model;
+
     /** @var bool Флаг нужно отбражать на этой странице форум или не нужно */
     protected $isShow = true;
+
     /** @var string Идентификатор страницы состоящий из prev_structure и ID */
     protected $pageStructure = '';
 
@@ -29,25 +33,23 @@ class Comments extends \Ideal\Core\Widget
      *
      * @return array Массив с флагом отображения форума и списком сообщений для отображения на странице
      */
-    public function getData()
+    public function getData(): array
     {
         if (!$this->isShow) {
             // Если комментарии отображать не нужно, ничего не делаем
-            return array('isShow' => false);
+            return ['isShow' => false];
         }
 
-        $forum = new \MiniForum\Structure\Post\Site\Model('');
+        $forum = new Model('');
 
         // Получаем список сообщений первого уровня для страницы $pageStructure
         $posts = $forum->getComments($this->pageStructure);
 
-        $result = array(
+        return [
             'isShow' => true,
             'pageStructure' => $this->pageStructure,
             'posts' => $posts,
-        );
-
-        return $result;
+        ];
     }
 
     /**
@@ -59,18 +61,18 @@ class Comments extends \Ideal\Core\Widget
      *
      * @param array $exceptions Массив с параметрами исключаемых страниц
      */
-    public function setParams($exceptions)
+    public function setParams($exceptions): void
     {
         $page = $this->model->getPageData();
 
         // Если были найдены сходные элементы в обоих массивах, отключаем вывод виджета форума
-        if (count(array_intersect_assoc($page, $exceptions)) > 0) {
+        if (array_intersect_assoc($page, $exceptions) !== []) {
             $this->isShow = false;
             return;
         }
     }
 
-    public function setPath($pageStructure)
+    public function setPath($pageStructure): void
     {
         $this->pageStructure = $pageStructure;
     }

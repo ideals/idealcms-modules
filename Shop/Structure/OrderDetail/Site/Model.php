@@ -2,6 +2,6 @@
 
 namespace Shop\Structure\OrderDetail\Site;
 
-class Model extends \Ideal\Structure\Part\Site\ModelAbstract
-{
-}
+use Ideal\Structure\Part\Site\ModelAbstract;
+
+class Model extends ModelAbstract {}

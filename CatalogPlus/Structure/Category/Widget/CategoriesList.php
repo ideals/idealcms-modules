@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -9,10 +10,10 @@
 
 namespace CatalogPlus\Structure\Category\Widget;
 
+use Ideal\Field\Url\Model;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Core\Widget;
-use Ideal\Field;
 
 /**
  * Виджет для получение иерархии категорий товара заданной вложенности
@@ -30,21 +31,21 @@ class CategoriesList extends Widget
     protected $lvl = 4;
 
     /** @var array Массив, позволяющий избежать получения из БД категорий, если они были получены вне виджета */
-    protected $menuList = array();
+    protected $menuList = [];
 
     /**
      * Получение списка категорий продукции
      *
      * @return array Список категорий товаров
      */
-    public function getData()
+    public function getData(): array
     {
         $menuList = $this->getList();
 
         $path = $this->model->getPath();
         $object = array_pop($path);
         $prev = array_pop($path);
-        $digits = (isset($this->model->params['digits'])) ? $this->model->params['digits'] : 3;
+        $digits = $this->model->params['digits'] ?? 3;
         $smallCidActive = '';
         if (isset($object['structure']) && $object['structure'] == 'CatalogPlus_Category' && $prev['structure'] == 'CatalogPlus_Category') {
             $smallCidActive = substr($object['cid'], 0, $digits * $object['lvl']);
@@ -52,31 +53,34 @@ class CategoriesList extends Widget
 
         $lvl = 1;
         $config = Config::getInstance();
-        $menuUrl = array('0' => array('url' => $config->structures[0]['url']));
-        $url = new Field\Url\Model();
+        $menuUrl = ['0' => ['url' => $config->structures[0]['url']]];
+        $url = new Model();
 
-        $menu = array();
+        $menu = [];
         foreach ($menuList as $k => $v) {
             $menu[$k] = $v;
             if ($v['lvl'] > $lvl) {
                 if ($v['url'] != '/') {
                     $menuUrl[] = $menuList[$k - 1];
                 }
+
                 $url->setParentUrl($menuUrl);
             } elseif ($v['lvl'] < $lvl) {
                 $menuUrl = array_slice($menuUrl, 0, ($v['lvl'] - $lvl));
                 $url->setParentUrl($menuUrl);
             }
+
             $lvl = $v['lvl'];
 
             // Определяем активен ли данный пункт меню
             $menu[$k]['isActivePage'] = 0;
             $currentCid = substr($v['cid'], 0, $v['lvl'] * $digits);
             if (isset($object['lvl']) && $object['lvl'] >= $lvl
-                && substr($smallCidActive, 0, strlen($currentCid)) == $currentCid
+                && substr($smallCidActive, 0, strlen($currentCid)) === $currentCid
             ) {
                 $menu[$k]['isActivePage'] = 1;
             }
+
             if (isset($v['is_skip']) && $v['is_skip'] == 0) {
                 if (isset($v['url_full']) && $v['url_full'] != '') {
                     $menu[$k]['link'] = $v['url_full'];
@@ -85,40 +89,8 @@ class CategoriesList extends Widget
                 }
             }
         }
-        $categoryList = $this->getSubCategories($menu);
-        return $categoryList;
-    }
 
-    /**
-     * Рекурсивный метод для построения иерархии вложенных категорий
-     *
-     * @param array $menu Массив, в котором строится иерархия
-     * @return array Массив с построенной иерархией дочерних элементов
-     */
-    protected function getSubCategories(&$menu)
-    {
-        // Записываем в массив первый элемент
-        $categoryList = array(
-            array_shift($menu)
-        );
-
-        $prev = $categoryList[0]['lvl'];
-
-        while (count($menu) != 0) {
-            $m = reset($menu);
-            if ($m['lvl'] == $prev) {
-                $categoryList[] = array_shift($menu);
-                $prev = $m['lvl'];
-            } elseif ($m['lvl'] > $prev) {
-                end($categoryList);
-                $key = key($categoryList);
-                $categoryList[$key]['subCategoryList'] = $this->getSubCategories($menu);
-            } else {
-                return $categoryList;
-            }
-        }
-        return $categoryList;
-
+        return $this->getSubCategories($menu);
     }
 
     /**
@@ -154,9 +126,8 @@ class CategoriesList extends Widget
                  FROM {$table}
                  WHERE is_active=1 AND is_not_menu=0 AND lvl<{$this->lvl}
                  ORDER BY cid";
-        $menuList = $db->select($_sql);
 
-        return $menuList;
+        return $db->select($_sql);
     }
 
     /**
@@ -164,7 +135,7 @@ class CategoriesList extends Widget
      *
      * @param int $lvl Уровень вложенности, до которого выбираются категории
      */
-    public function setLvl($lvl)
+    public function setLvl($lvl): void
     {
         $this->lvl = $lvl;
     }
@@ -174,8 +145,40 @@ class CategoriesList extends Widget
      *
      * @param array $menuList Массив с плоским списком категорий товара
      */
-    public function setMenuList($menuList)
+    public function setMenuList($menuList): void
     {
         $this->menuList = $menuList;
+    }
+
+    /**
+     * Рекурсивный метод для построения иерархии вложенных категорий
+     *
+     * @param array $menu Массив, в котором строится иерархия
+     * @return array Массив с построенной иерархией дочерних элементов
+     */
+    protected function getSubCategories(&$menu): array
+    {
+        // Записываем в массив первый элемент
+        $categoryList = [
+            array_shift($menu),
+        ];
+
+        $prev = $categoryList[0]['lvl'];
+
+        while ($menu !== []) {
+            $m = reset($menu);
+            if ($m['lvl'] == $prev) {
+                $categoryList[] = array_shift($menu);
+                $prev = $m['lvl'];
+            } elseif ($m['lvl'] > $prev) {
+                $key = array_key_last($categoryList);
+                $categoryList[$key]['subCategoryList'] = $this->getSubCategories($menu);
+            } else {
+                return $categoryList;
+            }
+        }
+
+        return $categoryList;
+
     }
 }

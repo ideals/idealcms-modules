@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -6,15 +7,15 @@
  * @copyright Copyright (c) 2012-2015 Ideal CMS (http://idealcms.ru)
  * @license   http://idealcms.ru/license.html LGPL v3
  */
+
 namespace Shop\Structure\Basket\Site;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
-    /** @var Model Дополнительные HTTP-заголовки ответа  */
-    protected $basket;
-
     /** @var array Дополнительные HTTP-заголовки ответа  */
-    public $httpHeaders = array();
+    public $httpHeaders = [];
+
+    protected Model $basket;
 
     /**
      * Инициализация сессии
@@ -28,6 +29,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         } elseif (session_id() === '') {
             session_start();
         }
+
         $this->httpHeaders['Content-type'] = 'application/json';
         $this->basket = new Model('');
     }
@@ -35,48 +37,47 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     /**
      * Добавление товара в корзину
      *
-     * @return string
      * @throws \Exception
      */
-    public function addGoodAction()
+    public function addGoodAction(): string
     {
-        $goodId = isset($_REQUEST['good-id']) ? $_REQUEST['good-id'] : '';
-        $count = isset($_REQUEST['count']) ? $_REQUEST['count'] : 0;
+        $goodId = $_REQUEST['good-id'] ?? '';
+        $count = $_REQUEST['count'] ?? 0;
 
-        $good = array(
+        $good = [
             'id' => $goodId,
             'count' => $count,
-        );
+        ];
 
         $basketArr = $this->basket->addGood($good);
 
         $this->basket->saveBasketCookie();
 
-        return json_encode(array(
+        return json_encode([
             'error' => false,
             'text' => '',
             'basket' => $basketArr,
-        ));
+        ]);
     }
 
     /**
      * Вывод корзины в json
      */
-    public function getBasketAction()
+    public function getBasketAction(): string
     {
-        return json_encode(array('basket' => $this->basket->saveBasketCookie()));
+        return json_encode(['basket' => $this->basket->saveBasketCookie()]);
     }
 
     /**
      * Очищает корзину
      */
-    public function clearBasketAction()
+    public function clearBasketAction(): string
     {
         setcookie('basket', null, -1, '/');
         setcookie('tabsInfo', null, -1, '/');
-        return json_encode(array(
+        return json_encode([
             'error' => false,
             'text' => 'Корзина очищена',
-        ));
+        ], JSON_THROW_ON_ERROR);
     }
 }

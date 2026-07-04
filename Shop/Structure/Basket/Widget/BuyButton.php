@@ -1,17 +1,17 @@
 <?php
+
 /**
  * Передаёт данные для кнопки покупки
  */
 
 namespace Shop\Structure\Basket\Widget;
 
-use Ideal\Core\Db;
-use Ideal\Core\Config;
-use Ideal\Core\Util;
+use Ideal\Core\Widget;
 
-class BuyButton extends \Ideal\Core\Widget
+class BuyButton extends Widget
 {
     private $goodId;
+
     private $goodPrice;
 
     /**
@@ -20,7 +20,7 @@ class BuyButton extends \Ideal\Core\Widget
      * @param $id Идентификатор товара
      * @param $price Стоимость одного товара
      */
-    public function setGoodId($id, $price)
+    public function setGoodId($id, $price): void
     {
         $this->goodId = $id;
         $this->goodPrice = $price;
@@ -29,17 +29,15 @@ class BuyButton extends \Ideal\Core\Widget
 
     /**
      * Передача всех данных кнопки заказа
-     * @return array
+     * @return array<string, mixed>
      */
-    public function getData()
+    public function getData(): array
     {
-        $button = array(
+        return [
             'goodId' => $this->goodId,
             'goodPrice' => $this->goodPrice,
-            'goodAmount' => 0 // количество этого товара в корзине
-        );
-
-        return $button;
+            'goodAmount' => 0, // количество этого товара в корзине
+        ];
     }
 
 }

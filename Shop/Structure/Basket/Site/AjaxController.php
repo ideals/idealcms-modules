@@ -1,7 +1,5 @@
 <?php
+
 namespace Shop\Structure\Basket\Site;
 
-class AjaxController extends AjaxControllerAbstract
-{
-
-}
+class AjaxController extends AjaxControllerAbstract {}

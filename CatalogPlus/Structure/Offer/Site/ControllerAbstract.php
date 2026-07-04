@@ -1,6 +1,7 @@
 <?php
+
 namespace CatalogPlus\Structure\Offer\Site;
 
-class ControllerAbstract extends \Ideal\Core\Site\Controller
-{
-}
+use Ideal\Core\Site\Controller;
+
+class ControllerAbstract extends Controller {}

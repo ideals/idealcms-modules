@@ -1,7 +1,5 @@
 <?php
+
 namespace CatalogPlus\Structure\Category;
 
-
-class Filter extends FilterAbstract
-{
-}
+class Filter extends FilterAbstract {}

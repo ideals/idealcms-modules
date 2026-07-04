@@ -1,9 +1,12 @@
 <?php
+
 namespace Catalog\Structure\Category\Site;
+
+use Ideal\Field\Cid\Model;
 
 class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
 {
-    public function getSubCategories()
+    public function getSubCategories(): void
     {
         // todo сделать получение подкатегорий на основании текущей категории
         // с ключами массива в виде айдишников категорий и с дополнительным параметром parent_url
@@ -18,8 +21,7 @@ class ModelAbstract extends \Ideal\Structure\Part\Site\ModelAbstract
             return '';
         }
 
-        $cidModel = new \Ideal\Field\Cid\Model($this->params['levels'], $this->params['digits']);
-        $cid = $cidModel->getCidByLevel($this->pageData['cid'], $this->pageData['lvl'], false);
-        return $cid;
+        $cidModel = new Model($this->params['levels'], $this->params['digits']);
+        return $cidModel->getCidByLevel($this->pageData['cid'], $this->pageData['lvl'], false);
     }
 }

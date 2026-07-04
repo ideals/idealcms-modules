@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -12,7 +13,7 @@ namespace Shop\Structure\Service\Load1CV3;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Core\Util;
-use Shop\Structure\Service\Load1CV3\Models\ImportModel;
+use Shop\Structure\Service\Load1CV3\Models\GoodsModel;
 
 /**
  * Контроллер, вызываемый при загрузке из файлов через админку
@@ -22,6 +23,9 @@ use Shop\Structure\Service\Load1CV3\Models\ImportModel;
  */
 class AjaxController extends \Ideal\Core\AjaxController
 {
+    public $configFile;
+
+    public $filename;
 
     public function __construct()
     {
@@ -62,7 +66,7 @@ class AjaxController extends \Ideal\Core\AjaxController
         $request = new Request();
         $dirToScan = DOCUMENT_ROOT . $this->configFile['directory_for_keeping'];
         $onlyImageResize = false;
-        if ($request->onlyImageResize && (string)$request->onlyImageResize === 'true') {
+        if ($request->onlyImageResize && (string) $request->onlyImageResize === 'true') {
             $onlyImageResize = true;
         }
 
@@ -92,8 +96,10 @@ class AjaxController extends \Ideal\Core\AjaxController
                     if (!$onlyImageResize) {
                         $answer['workDir'] = str_replace(basename($key), '', $key);
                     }
+
                     break;
                 }
+
                 if ($value == $this->filename) {
                     $next = true;
                 }
@@ -123,6 +129,7 @@ class AjaxController extends \Ideal\Core\AjaxController
                 $dirParts = explode('/', $dir);
                 $packageNum = (int) end($dirParts);
             }
+
             $answer['response']['infoText'] .= sprintf($modelAnswer['infoText'], $packageNum);
         }
 
@@ -137,14 +144,14 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function importFileAction()
     {
-        $answer = array(
-            'errors' => array(),
-        );
+        $answer = [
+            'errors' => [],
+        ];
         $request = new Request();
-        $workDir = (string)$request->workDir;
+        $workDir = (string) $request->workDir;
 
         $onlyImageResize = false;
-        if ($request->onlyImageResize && (string)$request->onlyImageResize === 'true') {
+        if ($request->onlyImageResize && (string) $request->onlyImageResize === 'true') {
             $onlyImageResize = true;
         }
 
@@ -164,7 +171,7 @@ class AjaxController extends \Ideal\Core\AjaxController
         } else {
             try {
                 $answer['filename'] = $this->filename;
-                $importModel = new ImportModel($this->configFile);
+                $importModel = new GoodsModel($this->configFile, $this->filename);
                 $importModel->loadImages($workDir, true);
                 $answer['response'] = $importModel->answer();
                 array_unshift($answer['response'], 'success');
@@ -195,13 +202,13 @@ class AjaxController extends \Ideal\Core\AjaxController
         $error = '';
         try {
             $message = $fc->run();
-        } catch (\RuntimeException $e) {
-            $error = $e->getMessage() . "<pre>" . $e->getTraceAsString() . "</pre>";
+        } catch (\RuntimeException $runtimeException) {
+            $error = $runtimeException->getMessage() . "<pre>" . $runtimeException->getTraceAsString() . "</pre>";
         }
 
         return json_encode(
             ['error' => $error, 'message' => $message],
-            JSON_THROW_ON_ERROR
+            JSON_THROW_ON_ERROR,
         );
     }
 }

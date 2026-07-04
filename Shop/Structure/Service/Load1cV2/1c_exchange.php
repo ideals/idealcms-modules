@@ -1,6 +1,8 @@
 <?php
-use Shop\Structure\Service\Load1cV2;
-use Ideal\Core;
+
+use Ideal\Core\Config;
+use Shop\Structure\Service\Load1cV2\Log\Log;
+use Shop\Structure\Service\Load1cV2\FrontController;
 
 ini_set('display_errors', 'On');
 
@@ -8,7 +10,7 @@ $cmsFolder = 'don';
 $subFolder = '';
 
 // Абсолютный адрес корня сервера, не должен оканчиваться на слэш.
-define('DOCUMENT_ROOT', getenv('SITE_ROOT') ? getenv('SITE_ROOT') : $_SERVER['DOCUMENT_ROOT']);
+define('DOCUMENT_ROOT', getenv('SITE_ROOT') ?: $_SERVER['DOCUMENT_ROOT']);
 
 // В пути поиска по умолчанию включаем корень сайта, путь к Ideal и папке кастомизации CMS
 set_include_path(
@@ -18,18 +20,18 @@ set_include_path(
     . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/'
     . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Mods.c/'
     . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Mods/'
-    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/Library/'
+    . PATH_SEPARATOR . DOCUMENT_ROOT . $subFolder . '/' . $cmsFolder . '/Ideal/Library/',
 );
 
 // Подключаем Composer
-require_once '../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 // Подключаем автозагрузчик классов
-require_once 'Core/AutoLoader.php';
+require_once __DIR__ . '/Core/AutoLoader.php';
 
-$config = Core\Config::getInstance();
+$config = Config::getInstance();
 
-$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $cmsFolder  . DIRECTORY_SEPARATOR;
+$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $cmsFolder . DIRECTORY_SEPARATOR;
 $settingsFilePath = $cmsFolderPath . 'load1cV2Settings.php';
 
 // Если нет файла в папке админки, то копируем его туда из папки модуля
@@ -43,7 +45,7 @@ if (!file_exists($settingsFilePath)) {
 
 $params = require $settingsFilePath;
 
-$config->cms = array_merge($config->cms, array('errorLog'=>'email'));
+$config->cms = array_merge($config->cms, ['errorLog' => 'email']);
 
 // Каталог, в котором находятся модифицированные скрипты CMS
 $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
@@ -52,11 +54,12 @@ $config->cmsFolder = trim($subFolder . '/' . $cmsFolder, '/');
 $config->loadSettings();
 
 // Класс логирования
-$logClass = new Shop\Structure\Service\Load1cV2\Log\Log();
-$fc = new Load1cV2\FrontController($params, $logClass);
+$logClass = new Log();
+$fc = new FrontController($params, $logClass);
 if (ob_get_contents()) {
     ob_clean();
 }
+
 ob_start();
 $fc->import();
 $a = ob_get_clean();

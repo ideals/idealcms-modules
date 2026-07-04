@@ -4,8 +4,13 @@ namespace Shop\Structure\Service\Load1cV2;
 
 class Image
 {
-    private $color = array();
-    private $water;
+    /**
+     * @var string
+     */
+    public $dirImage;
+
+    private array $color = [];
+
     private $img;
 
     public function __construct($img, $width, $height, $border = true)
@@ -13,33 +18,32 @@ class Image
         $this->img = $img;
         $image = basename($img);
         $entry = substr($image, 0, 2);
-
-        $this->water = 'TEXT';
-        $this->tmpDir = DOCUMENT_ROOT . '/tmp/1c/1/';
         $this->dirImage = DOCUMENT_ROOT . '/images/1c';
 
-        if (!file_exists("{$this->dirImage}/{$entry}")) {
-            mkdir("{$this->dirImage}/{$entry}", 0750, true);
+        if (!file_exists(sprintf('%s/%s', $this->dirImage, $entry))) {
+            mkdir(sprintf('%s/%s', $this->dirImage, $entry), 0750, true);
         }
+
         $this->color1("e6e6e6");
 
-        $filename = "{$this->dirImage}/{$entry}/" . $image;
+        $filename = sprintf('%s/%s/', $this->dirImage, $entry) . $image;
 
 
         if (file_exists($filename)) {
             unlink($filename);
         }
-        $this->resize($this->img, $width, $height, "{$this->dirImage}/{$entry}/", $border);
+
+        $this->resize($this->img, $width, $height, sprintf('%s/%s/', $this->dirImage, $entry), $border);
     }
 
-    private function color1($tmp)
+    private function color1(string $tmp): void
     {
         $this->color['r'] = hexdec(substr($tmp, 0, 2));
         $this->color['g'] = hexdec(substr($tmp, 2, 2));
         $this->color['b'] = hexdec(substr($tmp, 4, 2));
     }
 
-    private function resize($image, $newWidth = 100, $newHeight = 100, $uri = 'images/', $border = true)
+    private function resize($image, $newWidth = 100, $newHeight = 100, string $uri = 'images/', $border = true): void
     {
         $img = null;
         $i = pathinfo($image);
@@ -65,9 +69,11 @@ class Image
         if ($srcH < $newHeight) {
             $newHeight = $srcH;
         }
+
         if ($srcW < $newWidth) {
             $newWidth = $srcW;
         }
+
         // Пропорциональное уменьшение изображения
         $tmp = $srcW / $newWidth;
         $tmp2 = $srcH / $newHeight;
@@ -75,6 +81,7 @@ class Image
         if ($tmp > $tmp2) {
             $k = $tmp;
         }
+
         // Подсчет новой высоты и ширины
         $h2 = $srcH / $k;
         $w2 = $srcW / $k;

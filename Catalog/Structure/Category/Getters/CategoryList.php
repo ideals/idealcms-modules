@@ -1,4 +1,5 @@
 <?php
+
 namespace Catalog\Structure\Category\Getters;
 
 use Ideal\Core\Config;
@@ -7,6 +8,7 @@ use Ideal\Core\Db;
 class CategoryList
 {
     protected $obj;
+
     protected $fieldName;
 
     public function __construct($obj, $fieldName)
@@ -16,7 +18,10 @@ class CategoryList
     }
 
 
-    public function  getList()
+    /**
+     * @return mixed[]
+     */
+    public function getList(): array
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
@@ -24,7 +29,7 @@ class CategoryList
         $_sql = 'SELECT ID, name FROM ' . $_table;
         $arr = $db->select($_sql);
 
-        $list = array();
+        $list = [];
         foreach ($arr as $item) {
             $list[$item['ID']] = $item['name'];
         }
@@ -33,7 +38,10 @@ class CategoryList
     }
 
 
-    public function getVariants()
+    /**
+     * @return mixed[]
+     */
+    public function getVariants(): array
     {
         $db = Db::getInstance();
 
@@ -42,10 +50,10 @@ class CategoryList
         $goodId = $pageData['ID'];
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'shop_category_good';
-        $_sql = "SELECT category_id FROM {$_table} WHERE good_id='{$goodId}'";
+        $_sql = sprintf("SELECT category_id FROM %s WHERE good_id='%s'", $_table, $goodId);
         $arr = $db->select($_sql);
 
-        $list = array();
+        $list = [];
         foreach ($arr as $v) {
             $list[] = $v['category_id'];
         }
@@ -54,11 +62,10 @@ class CategoryList
     }
 
 
-    public function getSqlAdd($newValue)
+    public function getSqlAdd(string $newValue): string
     {
-        $_sql = "DELETE FROM i_shop_category_good WHERE good_id='{{ objectId }}';"
-              . "INSERT INTO i_shop_category_good SET good_id='{{ objectId }}', category_id='{$newValue}';";
-        return $_sql;
+        return "DELETE FROM i_shop_category_good WHERE good_id='{{ objectId }}';"
+              . sprintf("INSERT INTO i_shop_category_good SET good_id='{{ objectId }}', category_id='%s';", $newValue);
     }
 
 }

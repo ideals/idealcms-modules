@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Shop\Structure\Service\Load1CV3\Db\Unit\DbUnit;
@@ -49,7 +50,7 @@ class UnitsModel extends ModelAbstract
      *
      * @return array двумерный массив с данными об единицах измерения после сведения XML и БД
      */
-    protected function parse($dbUnits, $xmlUnits)
+    protected function parse($dbUnits, $xmlUnits): array
     {
         // Забираем результаты единиц измерения из БД
         $dbResult = $dbUnits->parse();
@@ -71,7 +72,7 @@ class UnitsModel extends ModelAbstract
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
         $result = [];
         foreach ($xmlResult as $k => $val) {
@@ -83,7 +84,7 @@ class UnitsModel extends ModelAbstract
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;

@@ -1,6 +1,7 @@
 <?php
+
 namespace CatalogPlus\Structure\Offer\Admin;
 
-class Controller extends \Ideal\Structure\Roster\Admin\ControllerAbstract
-{
-}
+use Ideal\Structure\Roster\Admin\ControllerAbstract;
+
+class Controller extends ControllerAbstract {}

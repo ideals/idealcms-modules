@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Db\Order;
 
 use Ideal\Core\Config;
@@ -34,7 +35,7 @@ class DbOrderAbstract extends AbstractDb
         $this->orderPayTable = $this->prefix . 'shop_structure_orderpay';
         $this->structurePart = $this->prefix . $this->structurePart;
         $res = $db->select(
-            'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "Shop_Order" LIMIT 1'
+            'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "Shop_Order" LIMIT 1',
         );
         $this->prevCat = '3-' . $res[0]['ID'];
     }
@@ -56,7 +57,7 @@ class DbOrderAbstract extends AbstractDb
         }
 
         // Считываем заказы из нашей БД
-        $sql = "SELECT * FROM $this->table WHERE $orderKeysWhere";
+        $sql = sprintf('SELECT * FROM %s WHERE %s', $this->table, $orderKeysWhere);
         $orders = $db->select($sql);
 
         if (empty($orders)) {
@@ -71,7 +72,7 @@ class DbOrderAbstract extends AbstractDb
 
         // Считываем все товары для наших заказов
         $table = $config->db['prefix'] . 'shop_structure_orderdetail';
-        $sql = "SELECT * FROM $table WHERE order_id IN (" . implode(',', $orderIds) . ')';
+        $sql = sprintf('SELECT * FROM %s WHERE order_id IN (', $table) . implode(',', $orderIds) . ')';
         $goods = $db->select($sql);
 
         // Перестраиваем массив с заказами, чтобы ключами были идентификаторы из 1C
@@ -102,7 +103,7 @@ class DbOrderAbstract extends AbstractDb
     /**
      * Подготовка временной таблицы для выгрузки
      */
-    public function prepareTable()
+    public function prepareTable(): void
     {
         $this->dropTestTable();
         $this->createEmptyTestTable();
@@ -112,27 +113,27 @@ class DbOrderAbstract extends AbstractDb
     /**
      * Обмен временной и оригинальной таблицы
      */
-    public function updateOrigTable()
+    public function updateOrigTable(): void
     {
         $db = Db::getInstance();
 
         $testTable = $this->table . $this->tablePostfix;
         $sql = "RENAME TABLE $this->table TO {$this->table}_tmp,
-             $testTable TO $this->table,
-             {$this->table}_tmp TO $testTable";
+             {$testTable} TO $this->table,
+             {$this->table}_tmp TO {$testTable}";
         $db->query($sql);
 
         $testTable = $this->detailedTable . $this->tablePostfix;
         $sql = "RENAME TABLE $this->detailedTable TO {$this->detailedTable}_tmp,
-             $testTable TO $this->detailedTable,
-             {$this->detailedTable}_tmp TO $testTable";
+             {$testTable} TO $this->detailedTable,
+             {$this->detailedTable}_tmp TO {$testTable}";
         $db->query($sql);
     }
 
     /**
      * Удаление временной таблицы
      */
-    public function dropTestTable()
+    public function dropTestTable(): void
     {
         $db = Db::getInstance();
         $db->query('DROP TABLE IF EXISTS ' . $this->table . $this->tablePostfix);
@@ -140,10 +141,7 @@ class DbOrderAbstract extends AbstractDb
         $db->query('DROP TABLE IF EXISTS ' . $this->orderPayTable . $this->tablePostfix);
     }
 
-    /**
-     * @param array $orderKeys
-     */
-    public function setOrderKeys($orderKeys)
+    public function setOrderKeys(array $orderKeys): void
     {
         $this->orderKeys = $orderKeys;
     }
@@ -151,10 +149,10 @@ class DbOrderAbstract extends AbstractDb
     /**
      * Заменяет идентификатор товара в заказе на новый
      *
-     * @param array $good Актуальная информация
+     * @param array<string, mixed> $good Актуальная информация
      * @param array $goods Список устаревших товаров
      */
-    public function changeGoodInOrder($good, $goods)
+    public function changeGoodInOrder(array $good, $goods): void
     {
         // Собираем идентификаторы товаров для замены
         $changeIds = [];
@@ -164,47 +162,15 @@ class DbOrderAbstract extends AbstractDb
             }
         }
 
-        if ($changeIds) {
+        if ($changeIds !== []) {
             $db = Db::getInstance();
 
             // Удаляем сами товары
             $whereId = implode(',', $changeIds);
-            $sql = "UPDATE $this->detailedTable$this->tablePostfix SET good_id = {$good['ID']}"
-                . " WHERE good_id IN ($whereId)";
+            $sql = sprintf('UPDATE %s%s SET good_id = %s', $this->detailedTable, $this->tablePostfix, $good['ID'])
+                . sprintf(' WHERE good_id IN (%s)', $whereId);
             $db->query($sql);
         }
-    }
-
-    /**
-     * Создание временной таблицы для сохранения данных со схемой оригинальной таблицы
-     */
-    protected function createEmptyTestTable()
-    {
-        $db = Db::getInstance();
-        $db->query(
-            'CREATE TABLE ' . $this->table . $this->tablePostfix . ' LIKE ' . $this->table
-        );
-        $db->query(
-            'CREATE TABLE ' . $this->detailedTable . $this->tablePostfix . ' LIKE ' . $this->detailedTable
-        );
-        $db->query(
-            'CREATE TABLE ' . $this->orderPayTable . $this->tablePostfix . ' LIKE ' . $this->orderPayTable
-        );
-    }
-
-    /**
-     * Копирование данных из оригинальной таблицы во временную
-     */
-    protected function copyOrigTable()
-    {
-        parent::copyOrigTable();
-        $db = Db::getInstance();
-
-        $testTable = $this->detailedTable . $this->tablePostfix;
-        $db->query("INSERT INTO $testTable SELECT * FROM $this->detailedTable");
-
-        $testTable = $this->orderPayTable . $this->tablePostfix;
-        $db->query("INSERT INTO $testTable SELECT * FROM $this->orderPayTable");
     }
 
     public function insert($element)
@@ -224,7 +190,7 @@ class DbOrderAbstract extends AbstractDb
         return $orderId;
     }
 
-    public function update($element, $oldElement = null)
+    public function update($element, $oldElement = null): void
     {
         $this->saveGoods($element['ID'], $element['goods'], false);
         unset($element['goods']);
@@ -232,6 +198,38 @@ class DbOrderAbstract extends AbstractDb
         $element['price'] *= 100;
 
         parent::update($element);
+    }
+
+    /**
+     * Создание временной таблицы для сохранения данных со схемой оригинальной таблицы
+     */
+    protected function createEmptyTestTable()
+    {
+        $db = Db::getInstance();
+        $db->query(
+            'CREATE TABLE ' . $this->table . $this->tablePostfix . ' LIKE ' . $this->table,
+        );
+        $db->query(
+            'CREATE TABLE ' . $this->detailedTable . $this->tablePostfix . ' LIKE ' . $this->detailedTable,
+        );
+        $db->query(
+            'CREATE TABLE ' . $this->orderPayTable . $this->tablePostfix . ' LIKE ' . $this->orderPayTable,
+        );
+    }
+
+    /**
+     * Копирование данных из оригинальной таблицы во временную
+     */
+    protected function copyOrigTable()
+    {
+        parent::copyOrigTable();
+        $db = Db::getInstance();
+
+        $testTable = $this->detailedTable . $this->tablePostfix;
+        $db->query(sprintf('INSERT INTO %s SELECT * FROM %s', $testTable, $this->detailedTable));
+
+        $testTable = $this->orderPayTable . $this->tablePostfix;
+        $db->query(sprintf('INSERT INTO %s SELECT * FROM %s', $testTable, $this->orderPayTable));
     }
 
     protected function saveGoods($id, $goods, $isNew)
@@ -271,11 +269,8 @@ class DbOrderAbstract extends AbstractDb
             $good['order_id'] = $id;
             $goodIdExploded = explode('#', $good['good_id_1c']);
             $good['good_id_1c'] = $goodIdExploded[0];
-            if (isset($goodIdExploded[1])) {
-                $good['offer_id_1c'] = $goodIdExploded[1];
-            } else {
-                $good['offer_id_1c'] = $good['good_id_1c'];
-            }
+            $good['offer_id_1c'] = $goodIdExploded[1] ?? $good['good_id_1c'];
+
             // Пытаемся получить идентификатор товара по его 1с_id
             $good['good_id'] = 0;
             $dbGood = new dbGood();

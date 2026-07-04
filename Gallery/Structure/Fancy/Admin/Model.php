@@ -1,9 +1,7 @@
 <?php
+
 namespace Gallery\Structure\Fancy\Admin;
 
-use Ideal\Structure\Roster;
+use Ideal\Structure\Roster\Admin\ModelAbstract;
 
-class Model extends Roster\Admin\ModelAbstract
-{
-
-}
+class Model extends ModelAbstract {}

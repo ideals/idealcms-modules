@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Db\Storage;
 
 use Shop\Structure\Service\Load1CV3\Db\AbstractDb;

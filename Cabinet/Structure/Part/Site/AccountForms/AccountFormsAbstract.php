@@ -1,7 +1,8 @@
 <?php
+
 namespace Cabinet\Structure\Part\Site\AccountForms;
 
-use FormPhp;
+use FormPhp\Forms;
 use Ideal\Core\View;
 use Ideal\Core\Config;
 
@@ -10,11 +11,10 @@ use Ideal\Core\Config;
  */
 class AccountFormsAbstract
 {
-
     /** @var string Адрес страницы, на которой располагается форма */
     protected $link = '';
 
-    public function setLink($link)
+    public function setLink($link): void
     {
         $this->link = $link;
     }
@@ -30,19 +30,17 @@ class AccountFormsAbstract
         $formView = $this->templateInit('Cabinet/Structure/Part/Site/AccountForms/loginForm.twig');
         $formView->start = $form->start();
         $formView->link = $this->link;
-        $formHtml = $formView->render();
-        return $formHtml;
+        return $formView->render();
     }
 
     /**
      * Генерирует объект формы входа
      *
-     * @return \FormPhp\Forms
      * @throws \Exception
      */
-    public function getLoginFormObject()
+    public function getLoginFormObject(): Forms
     {
-        $form = new FormPhp\Forms('loginForm');
+        $form = new Forms('loginForm');
         $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\Part\\\\Site&action=login');
         $form->add('login', 'text');
         $form->add('pass', 'text');
@@ -63,19 +61,17 @@ class AccountFormsAbstract
         $formView = $this->templateInit('Cabinet/Structure/Part/Site/AccountForms/lkForm.twig');
         $formView->start = $form->start();
         $formView->user = $user;
-        $formHtml = $formView->render();
-        return $formHtml;
+        return $formView->render();
     }
 
     /**
      * Генерирует объект формы личного кабинета
      *
-     * @return \FormPhp\Forms
      * @throws \Exception
      */
-    public function getLkFormObject()
+    public function getLkFormObject(): Forms
     {
-        $form = new FormPhp\Forms('lkForm');
+        $form = new Forms('lkForm');
         $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\Part\\\\Site&action=save');
         $form->add('fname', 'text');
         $form->add('phone', 'text');
@@ -95,19 +91,17 @@ class AccountFormsAbstract
         $form = $this->getRestoreFormObject();
         $formView = $this->templateInit('Cabinet/Structure/Part/Site/AccountForms/restoreForm.twig');
         $formView->start = $form->start();
-        $formHtml = $formView->render();
-        return $formHtml;
+        return $formView->render();
     }
 
     /**
      * Генерирует объект формы восстановления пароля
      *
-     * @return \FormPhp\Forms
      * @throws \Exception
      */
-    public function getRestoreFormObject()
+    public function getRestoreFormObject(): Forms
     {
-        $form = new FormPhp\Forms('restoreForm');
+        $form = new Forms('restoreForm');
         $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\Part\\\\Site&action=restore');
         $form->add('login', 'text');
         $form->setValidator('login', 'required');
@@ -126,19 +120,17 @@ class AccountFormsAbstract
         $formView = $this->templateInit('Cabinet/Structure/Part/Site/AccountForms/registrationForm.twig');
         $formView->start = $form->start();
         $formView->link = $this->link;
-        $formHtml = $formView->render();
-        return $formHtml;
+        return $formView->render();
     }
 
     /**
      * Генерирует объект формы регистрации
      *
-     * @return \FormPhp\Forms
      * @throws \Exception
      */
-    public function getRegistrationFormObject()
+    public function getRegistrationFormObject(): Forms
     {
-        $form = new FormPhp\Forms('registrationForm');
+        $form = new Forms('registrationForm');
         $form->setAjaxUrl('/?mode=ajax&controller=\\\\Cabinet\\\\Structure\\\\Part\\\\Site&action=registration');
         $form->setClearForm(false);
         $form->add('lastname', 'text');
@@ -165,14 +157,14 @@ class AccountFormsAbstract
      * Используется для получения представления форм с помошью шаблонизатора Twig.
      *
      * @param string $tplName Имя шаблона
-     * @return \Ideal\Core\View
      */
-    protected function templateInit($tplName = '')
+    protected function templateInit($tplName = ''): View
     {
         if (!stream_resolve_include_path($tplName)) {
             echo 'Нет файла шаблона ' . $tplName;
             exit;
         }
+
         $tplRoot = dirname(stream_resolve_include_path($tplName));
         $tplName = basename($tplName);
 
@@ -180,7 +172,7 @@ class AccountFormsAbstract
         $config = Config::getInstance();
         $cmsFolder = DOCUMENT_ROOT . '/' . $config->cmsFolder;
 
-        $folders = array_merge(array($tplRoot, $cmsFolder));
+        $folders = [$tplRoot, $cmsFolder];
         $view = new View($folders, $config->cache['templateSite']);
         $view->loadTemplate($tplName);
         return $view;

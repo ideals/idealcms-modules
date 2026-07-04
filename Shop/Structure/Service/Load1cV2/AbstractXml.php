@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2;
 
 /**
@@ -35,7 +36,6 @@ class AbstractXml
      * Получение необходимой части выгрузки из всего xml, объявление namespace по умолчанию,
      * подключение конфигураций, получение информации об updateInfo
      *
-     * @param Xml $xml
      */
     public function __construct(Xml $xml)
     {
@@ -58,7 +58,7 @@ class AbstractXml
             // по умолчанию считаем что выгружаются все данные, а не только обновления
             $this->updateInfo = false;
             if (!empty($updateInfo)) {
-                $this->updateInfo = (string) $updateInfo[0] == 'false' ? false : true;
+                $this->updateInfo = (string) $updateInfo[0] !== 'false';
             }
         } else {
             $this->updateInfo = true;
@@ -83,22 +83,24 @@ class AbstractXml
     /**
      * Преобразование xml к многомерному массиву значений
      */
-    public function parse()
+    public function parse(): array
     {
         foreach ($this->xml as $item) {
             $id = $this->getXmlId($item);
-            $this->data[$id] = array();
+            $this->data[$id] = [];
 
             $this->registerNamespace($item);
 
             $this->updateFromConfig($item, $id);
         }
+
+        return $this->data;
     }
 
     /**
      * Проверяет соответствие переданных данных ожидаемой структуре
      */
-    public function validate()
+    public function validate(): bool
     {
         return !empty($this->xml);
     }
@@ -109,7 +111,7 @@ class AbstractXml
      * @param \SimpleXMLElement $item данные в xml формате
      * @return string Идентификатор определённый в конфиге
      */
-    protected function getXmlId($item)
+    protected function getXmlId($item): string
     {
         return (string) $item->{$this->configs['key']};
     }
@@ -132,7 +134,7 @@ class AbstractXml
             $needle = $item->xpath($this->ns . $path);
 
             // По умолчанию присваиваем заполняемому полю пустую строку
-            $this->data[$id][$key] = is_array($value) ? array() : '';
+            $this->data[$id][$key] = is_array($value) ? [] : '';
 
             // Если требуется заполнить обычное скалярное поле
             if (!is_array($value) && isset($needle[0])) {
@@ -150,12 +152,13 @@ class AbstractXml
             if (is_array($value) && isset($value['field'])) {
                 foreach ($needle as $node) {
                     $this->registerNamespace($node);
-                    $tmp = array();
+                    $tmp = [];
                     foreach ($value['field'] as $name => $conf) {
                         $res = $node->xpath($this->ns . $conf);
                         // todo остался нерешённым ворос, что будет, если в $res будет несколько элементов?
                         $tmp[$name] = (string) $res[0];
                     }
+
                     $this->data[$id][$key][] = $tmp;
                 }
             }
@@ -171,7 +174,7 @@ class AbstractXml
     {
         if (isset($this->namespaces[''])) {
             $item->registerXPathNamespace('default', $this->namespaces['']);
-            if (!isset($this->ns)) {
+            if ($this->ns === null) {
                 $this->ns = 'default:';
             }
         }

@@ -2,10 +2,11 @@
 
 namespace Cabinet\Structure\Part\Site;
 
-use Cabinet\Structure\User;
+use Ideal\Structure\Part\Site\Controller;
+use Cabinet\Structure\User\Model;
 use Cabinet\Structure\Part\Site\AccountForms\AccountForms;
 
-class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
+class ControllerAbstract extends Controller
 {
     /** @var  Model model */
     protected $model;
@@ -13,12 +14,12 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     /**
      * Метод обрабатывающий реакцию на открытие главной страницы личного кабинета
      */
-    public function indexAction()
+    public function indexAction(): void
     {
         parent::indexAction();
 
         // Для модели пользователя преструктура не важна
-        $user = new User\Model('');
+        $user = new Model('');
         $loggedUser = $user->getLoggedUser();
 
         $accountForms = new AccountForms();
@@ -36,7 +37,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     /**
      * Метод обрабатывающий реакцию на открытие внутренних страниц личного кабинета
      */
-    public function detailAction()
+    public function detailAction(): void
     {
         $pageData = $this->model->getPageData();
         $template = basename($pageData['template']);
@@ -51,7 +52,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
 
         // Получаем название формы для текущей страницы
         $formName = $this->getFormName();
-        if (!empty($formName)) {
+        if ($formName !== '' && $formName !== '0') {
             $accountForms = new AccountForms();
             $accountForms->setLink($this->model->getFullUrl());
 
@@ -64,31 +65,32 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     /**
      * Подтверждение регистрации
      */
-    public function finishRegAction()
+    public function finishRegAction(): void
     {
         $this->templateInit('Cabinet/Structure/Part/Site/finishReg.twig');
         if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
+            if (session_status() === PHP_SESSION_NONE) {
                 session_start();
             }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
+        } elseif (session_id() == '') {
+            session_start();
         }
+
         if (isset($_GET['email']) && isset($_GET['key'])) {
-            $user = new User\Model('');
+            $user = new Model('');
             $user->finishReg();
-            if (isset($_SESSION['login']['is_active'])) $_SESSION['login']['is_active'] = true;
+            if (isset($_SESSION['login']['is_active'])) {
+                $_SESSION['login']['is_active'] = true;
+            }
         }
     }
 
     /**
      * Метод обрабатывающий реакцию на выход пользователя из личного кабинета
      */
-    public function logoutAction()
+    public function logoutAction(): void
     {
-        User\Model::logout();
+        Model::logout();
 
         // Перенаправляем пользователя на ту страницу на которой был инициирован процесс выхода
         if (isset($_SERVER['HTTP_REFERER'])) {
@@ -97,6 +99,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
         } else {
             $url = '/';
         }
+
         header('Location: ' . $url);
         die();
     }
@@ -104,17 +107,15 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     /**
      * Получает наименование формы для просматриваемой внутренней страницы личного кабинета
      */
-    public function getFormName()
+    public function getFormName(): string
     {
         $pageData = $this->model->getPageData();
         $template = basename($pageData['template']);
         switch ($template) {
             case 'restorePassword.twig':
                 return 'restore';
-                break;
             case 'registration.twig':
                 return 'registration';
-                break;
             default:
                 return '';
         }

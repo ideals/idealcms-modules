@@ -1,4 +1,5 @@
 <?php
+
 namespace Articles\Structure\Article\Admin;
 
 use Ideal\Core\Config;
@@ -9,19 +10,22 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
 {
     protected $categoryPrevStructure;
 
-    public function getToolbar()
+    private array $categories;
+
+    public function getToolbar(): string
     {
         if (is_null($this->categoryPrevStructure)) {
             return '';
         }
+
         $db = Db::getInstance();
         $config = Config::getInstance();
         $_table = $config->db['prefix'] . 'ideal_structure_tag';
-        $_sql = "SELECT * FROM {$_table} WHERE prev_structure='{$this->categoryPrevStructure}' AND is_active=1 ORDER BY cid";
+        $_sql = sprintf("SELECT * FROM %s WHERE prev_structure='%s' AND is_active=1 ORDER BY cid", $_table, $this->categoryPrevStructure);
         $this->categories = $db->select($_sql);
 
         $request = new Request();
-        $currentCategory = isset($request->toolbar['category']) ? $request->toolbar['category'] : 0;
+        $currentCategory = $request->toolbar['category'] ?? 0;
 
         $select = '<select name="toolbar[category]" class="form-control"><option value="">Все статьи</option>';
         foreach ($this->categories as $category) {
@@ -29,11 +33,11 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
             if ($category['ID'] == $currentCategory) {
                 $selected = 'selected="selected"';
             }
+
             $select .= '<option ' . $selected . ' value="' . $category['ID'] . '">' . $category['name'] . '</option>';
         }
-        $select .= '</select>';
 
-        return $select;
+        return $select . '</select>';
     }
 
 
@@ -48,9 +52,9 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
 
         $request = new Request();
         if (!isset($request->toolbar['category'])) {
-            $where = parent::getWhere($where);
-            return $where;
+            return parent::getWhere($where);
         }
+
         $currentCategory = $request->toolbar['category'];
 
         $config = Config::getInstance();
@@ -62,8 +66,6 @@ class ModelAbstract extends \Ideal\Structure\Roster\Admin\ModelAbstract
                 . $db->escape_string($currentCategory) . ')';
         }
 
-        $where = parent::getWhere($where);
-
-        return $where;
+        return parent::getWhere($where);
     }
 }

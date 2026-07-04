@@ -1,18 +1,20 @@
 <?php
+
 namespace Articles\Structure\Article\Site;
 
+use Ideal\Core\Site\Model;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Core\Util;
 
-class ModelAbstract extends \Ideal\Core\Site\Model
+class ModelAbstract extends Model
 {
-    public function detectPageByUrl($path, $url)
+    public function detectPageByUrl($path, $url): Model
     {
         $articleUrl = array_shift($url);
 
-        if (count($url) > 0) {
+        if ($url !== []) {
             // У статьи не может быть URL с несколькими уровнями вложенности
             $this->path = $path;
             $this->is404 = true;
@@ -21,8 +23,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $db = Db::getInstance();
 
-        $par = array('url' => $articleUrl);
-        $fields = array('table' => $this->_table);
+        $par = ['url' => $articleUrl];
+        $fields = ['table' => $this->_table];
         $_sql = "SELECT * FROM &table WHERE BINARY url = :url LIMIT 1";
 
         $list = $db->select($_sql, $par, $fields); // запрос на получение всех страниц, соответствующих частям url
@@ -33,6 +35,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $this->is404 = true;
             return $this;
         }
+
         $list[0]['structure'] = 'Articles_Article';
 
         $this->path = array_merge($path, $list);
@@ -47,8 +50,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function getStructureElements()
     {
         $this->params['elements_site'] = 9999;
-        $articles = $this->getList(1);
-        return $articles;
+        return $this->getList(1);
     }
 
     /**
@@ -62,7 +64,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         // Построение правильных URL
         $url = new \Ideal\Field\Url\Model();
         $url->setParentUrl($this->path);
-        if (is_array($list) and count($list) != 0 ) {
+        if (is_array($list) && $list !== []) {
             foreach ($list as $k => $v) {
                 $list[$k]['link'] = $url->getUrl($v);
             }
@@ -71,29 +73,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $list;
     }
 
-    /**
-     * Добавление к where-запросу фильтра по category_id
-     *
-     * @param string $where Исходная WHERE-часть
-     * @return string Модифицированная WHERE-часть, с расширенным запросом, если установлена GET-переменная category
-     */
-    protected function getWhere($where)
-    {
-        if ($where != '') {
-            $where = 'WHERE ' . $where;
-        }
-        $time = time();
-        $where .= " AND is_active=1 AND date_create < {$time}";
-
-        return $where;
-    }
-
     public function detectPath()
     {
         $config = Config::getInstance();
 
         $article = $this->pageData;
-        list($parentStructure, $parentId) = explode('-', $article['prev_structure']);
+        [$parentStructure, $parentId] = explode('-', $article['prev_structure']);
         $structure = $config->getStructureById($parentStructure);
 
         // Находим предка — структуру статей
@@ -116,16 +101,17 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $header = '';
         // Если есть шаблон с контентом, пытаемся из него извлечь заголовок H1
         if (isset($this->pageData['content']) && !empty($this->pageData['content'])) {
-            list($header, $text) = $this->extractHeader($this->pageData['content']);
+            [$header, $text] = $this->extractHeader($this->pageData['content']);
             $this->pageData['content'] = $text;
         } elseif (!empty($this->pageData['addon'])) {
             // Последовательно пытаемся получить заголовок из всех аддонов до первого найденного
             $addons = json_decode($this->pageData['addon']);
-            for ($i = 0; $i < count($addons); $i++) {
+            $counter = count($addons);
+            for ($i = 0; $i < $counter; $i++) {
                 if (isset($this->pageData['addons'][$i]['content'])
                     && $this->pageData['addons'][$i]['content'] !== ''
                 ) {
-                    list($header, $text) = $this->extractHeader($this->pageData['addons'][$i]['content']);
+                    [$header, $text] = $this->extractHeader($this->pageData['addons'][$i]['content']);
                     if (!empty($header)) {
                         $this->pageData['addons'][$i]['content'] = $text;
                         break;
@@ -138,6 +124,24 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // Если заголовка H1 в тексте нет, берём его из названия name
             $header = $this->pageData['name'];
         }
+
         return $header;
+    }
+
+    /**
+     * Добавление к where-запросу фильтра по category_id
+     *
+     * @param string $where Исходная WHERE-часть
+     * @return string Модифицированная WHERE-часть, с расширенным запросом, если установлена GET-переменная category
+     */
+    protected function getWhere($where): string
+    {
+        if ($where != '') {
+            $where = 'WHERE ' . $where;
+        }
+
+        $time = time();
+
+        return $where . (' AND is_active=1 AND date_create < ' . $time);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Xml\Rests;
 
 use Shop\Structure\Service\Load1CV208\Xml\AbstractXml;
@@ -11,7 +12,7 @@ class XmlRests extends AbstractXml
     /** @var string Идентификатор главного склада для получения остатков */
     public $mainStockId = '';
 
-    public function parse()
+    public function parse(): array
     {
         $fields = str_replace('{Ид}', $this->mainStockId, $this->configs['fields']);
         $this->configs['fields'] = $fields;
@@ -24,7 +25,7 @@ class XmlRests extends AbstractXml
     /**
      * @param string $mainStockId
      */
-    public function setMainStockId($mainStockId)
+    public function setMainStockId($mainStockId): void
     {
         $this->mainStockId = $mainStockId;
     }

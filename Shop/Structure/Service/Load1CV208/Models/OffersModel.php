@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Shop\Structure\Service\Load1CV208\Db\Offer\DbOffer;
@@ -10,12 +11,13 @@ use Shop\Structure\Service\Load1CV208\Xml\Xml;
 class OffersModel
 {
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка офферов из пакета № %d',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add'   => 0,
-        'update'=> 0,
-    );
+        'update' => 0,
+    ];
+
     protected $packageNum = 0;
 
     /**
@@ -40,6 +42,7 @@ class OffersModel
         } else {
             $this->offers($filePath);
         }
+
         return $this->answer();
     }
 
@@ -53,9 +56,32 @@ class OffersModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
+    }
+
+    /**
+     * Парсинг данных DbGood и XmlGood, и их сравнение
+     *
+     * @param DbOffer $dbOffers
+     * @param XmlOffer $xmlOffers
+     *
+     * @return array разница, которую передаем объекту DbGood для сохранения
+     */
+    public function offersParse($dbOffers, $xmlOffers): array
+    {
+        // Забираем офферы из БД
+        $dbResult = $dbOffers->parse();
+
+        // Забираем офферы из xml
+        $xmlResult = $xmlOffers->parse();
+
+        if (empty($xmlResult)) {
+            $xmlResult = [];
+        }
+
+        return $this->offersDiff($dbResult, $xmlResult);
     }
 
     /**
@@ -90,7 +116,7 @@ class OffersModel
      *
      * @return array разница, которую передаем объекту DbGood для сохранения
      */
-    protected function directoryParse($dbDirectory, $xmlDirectory)
+    protected function directoryParse($dbDirectory, $xmlDirectory): array
     {
         // Забираем справочники из БД
         $dbResult = $dbDirectory->parse();
@@ -106,12 +132,12 @@ class OffersModel
      * Если есть в БД и есть в XML, но есть diff_assoc - добавляем поля для обновления.
      *
      * @param array $dbResult распарсенные данные из БД
-     * @param array $xmlResult распарсенные данные из XML
+     * @param mixed[] $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function directoryDiff(array $dbResult, array $xmlResult)
+    protected function directoryDiff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
@@ -121,12 +147,13 @@ class OffersModel
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = array_merge($dbResult[$k], $res);
                 $this->answer['update']++;
                 $this->answer['tmpResult']['directory']['update'][$val['dir_id_1c']] = 1;
             }
         }
+
         return $result;
     }
 
@@ -140,7 +167,7 @@ class OffersModel
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $this->packageNum
+            $this->packageNum,
         );
 
         // получение xml с данными о предложениях
@@ -159,29 +186,6 @@ class OffersModel
     }
 
     /**
-     * Парсинг данных DbGood и XmlGood, и их сравнение
-     *
-     * @param DbOffer $dbOffers
-     * @param XmlOffer $xmlOffers
-     *
-     * @return array разница, которую передаем объекту DbGood для сохранения
-     */
-    public function offersParse($dbOffers, $xmlOffers)
-    {
-        // Забираем офферы из БД
-        $dbResult = $dbOffers->parse();
-
-        // Забираем офферы из xml
-        $xmlResult = $xmlOffers->parse();
-
-        if (empty($xmlResult)) {
-            $xmlResult = array();
-        }
-
-        return $this->offersDiff($dbResult, $xmlResult);
-    }
-
-    /**
      * Сравнение результатов выгрузок. Если есть в xml и нет в БД - на добавление
      * Если есть в БД всегда обновляем, чтобы была возможность деактивировать отсуствующие
      *
@@ -189,9 +193,9 @@ class OffersModel
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function offersDiff(array $dbResult, array $xmlResult)
+    protected function offersDiff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
@@ -199,12 +203,14 @@ class OffersModel
                 $this->answer['tmpResult']['offers']['insert'][$k] = 1;
                 continue;
             }
+
             $result[$k] = $val;
             $result[$k]['ID'] = $dbResult[$k]['ID'];
             $result[$k]['good_id'] = $dbResult[$k]['good_id'];
             $this->answer['update']++;
             $this->answer['tmpResult']['offers']['update'][$k] = 1;
         }
+
         return $result;
     }
 }

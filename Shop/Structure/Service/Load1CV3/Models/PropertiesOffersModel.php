@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Shop\Structure\Service\Load1CV3\Db\Directory\DbDirectory;
@@ -50,7 +51,7 @@ class PropertiesOffersModel extends ModelAbstract
      *
      * @return array разница, которую передаем объекту DbGood для сохранения
      */
-    protected function directoryParse($dbDirectory, $xmlDirectory)
+    protected function directoryParse($dbDirectory, $xmlDirectory): array
     {
         // Забираем справочники из БД
         $dbResult = $dbDirectory->parse();
@@ -66,12 +67,12 @@ class PropertiesOffersModel extends ModelAbstract
      * Если есть в БД и есть в XML, но есть diff_assoc - добавляем поля для обновления.
      *
      * @param array $dbResult распарсенные данные из БД
-     * @param array $xmlResult распарсенные данные из XML
+     * @param mixed[] $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function directoryDiff(array $dbResult, array $xmlResult)
+    protected function directoryDiff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
@@ -81,12 +82,13 @@ class PropertiesOffersModel extends ModelAbstract
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = array_merge($dbResult[$k], $res);
                 $this->answer['update']++;
                 $this->answer['tmpResult']['directory']['update'][$val['dir_id_1c']] = 1;
             }
         }
+
         return $result;
     }
 }

@@ -1,11 +1,13 @@
 <?php
+
 namespace Catalog\Structure\Category\Site;
 
-use Catalog\Structure\Good;
+use Ideal\Core\Site\Controller;
+use Catalog\Structure\Good\Site\Model;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 
-class ControllerAbstract extends \Ideal\Core\Site\Controller
+class ControllerAbstract extends Controller
 {
     /** @var bool Отображать товары из вложенных категорий */
     protected $isShowSubGoods = false;
@@ -14,7 +16,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
      * В этот экшен мы попадаем, когда в категории есть вложенные категории,
      * а не сразу же идёт список товара
      */
-    public function indexAction()
+    public function indexAction(): void
     {
         parent::indexAction();
 
@@ -29,7 +31,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         if ($this->isShowSubGoods) {
             // Определяем модель товаров этой категории
             $prevStructure = $structure['ID'] . '-' . $pageDate['ID'];
-            $goods = new Good\Site\Model($prevStructure);
+            $goods = new Model($prevStructure);
             $goods->setPath($this->model->getPath());
             $goods->setCategoryModel($this->model);
             $this->view->goods = $goods->getList($page);

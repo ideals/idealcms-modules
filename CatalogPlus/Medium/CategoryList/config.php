@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -6,18 +7,18 @@
  * @copyright Copyright (c) 2012-2015 Ideal CMS (http://idealcms.ru)
  * @license   http://idealcms.ru/license.html LGPL v3
  */
-return array(
-    'params' => array(
-        'has_table' => true
-    ),
-    'fields' => array(
-        'good_id' => array(
+return [
+    'params' => [
+        'has_table' => true,
+    ],
+    'fields' => [
+        'good_id' => [
             'label' => 'Идентификатор родителя',
             'sql'   => 'int(11)',
-        ),
-        'category_id' => array(
+        ],
+        'category_id' => [
             'label' => 'Идентификатор потомка',
             'sql'   => 'int(11)',
-        )
-    )
-);
+        ],
+    ],
+];

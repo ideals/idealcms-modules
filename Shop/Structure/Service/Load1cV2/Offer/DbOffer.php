@@ -1,11 +1,10 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2\Offer;
 
 use CatalogPlus\Structure\Offer\Site\Model;
 use Shop\Structure\Service\Load1cV2\AbstractDb;
-use Ideal\Field\Url;
 use Ideal\Core\Db;
-use Shop\Structure\Service\Load1cV2\Category;
 
 /**
  * Created by PhpStorm.
@@ -16,7 +15,8 @@ use Shop\Structure\Service\Load1cV2\Category;
 
 class DbOffer extends AbstractDb
 {
-    protected $parse = array();
+    protected $parse = [];
+
     /**
      *  Установка полей класса - полного имени таблиц с префикс
      */
@@ -33,7 +33,7 @@ class DbOffer extends AbstractDb
      */
     public function parse()
     {
-        if (count($this->parse) != 0) {
+        if (count($this->parse) !== 0) {
             return $this->parse;
         }
 
@@ -53,7 +53,7 @@ class DbOffer extends AbstractDb
         return $this->parse;
     }
 
-    public function save($elements)
+    public function save($elements): void
     {
         if (!$this->onlyUpdate) {
             $offerModel = new Model('');
@@ -69,7 +69,7 @@ class DbOffer extends AbstractDb
                     }
 
                     if (!isset($element[$fieldName])) {
-                        $elements[$k][$fieldName] = isset($item['default']) ? $item['default'] : '';
+                        $elements[$k][$fieldName] = $item['default'] ?? '';
                     }
                 }
             }

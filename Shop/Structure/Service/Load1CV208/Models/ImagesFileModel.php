@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Shop\Structure\Service\Load1CV208\Db\ImagesFile\DbImagesFile;
@@ -8,12 +9,12 @@ use Shop\Structure\Service\Load1CV208\Xml\ImagesFile\XmlImagesFile;
 class ImagesFileModel
 {
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка основных изображений из пакета № %d',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add' => 0,
-        'update' => 0
-    );
+        'update' => 0,
+    ];
 
     /**
      * Запуск процесса обработки файлов ImagesFile_*.xml
@@ -27,7 +28,7 @@ class ImagesFileModel
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $packageNum,
         );
 
         $xml = new Xml($filePath);
@@ -57,7 +58,7 @@ class ImagesFileModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -70,10 +71,10 @@ class ImagesFileModel
      *
      * @return array двумерный массив с данными о ценах после сведения XML и БД
      */
-    protected function parse($dbImagesFile, $xmlImagesFile)
+    protected function parse($dbImagesFile, $xmlImagesFile): array
     {
         $xmlResult = $xmlImagesFile->parse();
-        $data = array();
+        $data = [];
         foreach ($xmlResult as $value) {
             $data[$value['goodId1c']]['img'] = $value['file'];
         }
@@ -82,18 +83,20 @@ class ImagesFileModel
         $dbImagesFile->setGoodKeys(array_keys($data));
         $dbResult = $dbImagesFile->parse();
 
-        foreach ($dbResult as $key => $value) {
+        foreach ($dbResult as $value) {
             $id1c = $value['id_1c'];
-            $imgs = array();
+            $imgs = [];
             if (isset($data[$id1c])) {
                 if (!empty($value['imgs'])) {
                     $imgs = json_decode($value['imgs'], true);
                 }
+
                 if (!empty($value['img'])) {
                     $imgs[] = $value['img'];
                 }
+
                 $entryTmp = substr($data[$id1c]['img'], 0, 2);
-                $checkImg = glob(DOCUMENT_ROOT . "/images/1c/{$entryTmp}/{$data[$id1c]['img']}*");
+                $checkImg = glob(DOCUMENT_ROOT . sprintf('/images/1c/%s/%s*', $entryTmp, $data[$id1c]['img']));
                 if ($checkImg) {
                     $relativePath = str_replace(DOCUMENT_ROOT, '', $checkImg[0]);
                     if (!in_array($relativePath, $imgs)) {
@@ -102,22 +105,21 @@ class ImagesFileModel
                 } else {
                     $data[$id1c]['img'] = '';
                 }
+
                 if (!empty($imgs)) {
                     $mainImgKey = false;
                     foreach ($imgs as $keyItem => $valueItem) {
-                        if (empty($data[$id1c]['img']) || stripos($valueItem, $data[$id1c]['img']) === false) {
+                        if (empty($data[$id1c]['img']) || stripos($valueItem, (string) $data[$id1c]['img']) === false) {
                             continue;
                         }
+
                         $mainImgKey = $keyItem;
                     }
+
                     if ($mainImgKey !== false) {
                         $data[$id1c]['img'] = $imgs[$mainImgKey];
                         unset($imgs[$mainImgKey]);
-                        if (!$imgs) {
-                            $data[$id1c]['imgs'] = '';
-                        } else {
-                            $data[$id1c]['imgs'] = json_encode($imgs);
-                        }
+                        $data[$id1c]['imgs'] = $imgs ? json_encode($imgs) : '';
                     }
                 }
             }
@@ -132,24 +134,26 @@ class ImagesFileModel
      * Если есть в БД и есть в XML, но есть diff_assoc - добавляем поля для обновления.
      *
      * @param array $dbResult распарсенные данные из БД
-     * @param array $xmlResult распарсенные данные из XML
+     * @param array<mixed, array<string, mixed>> $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 continue;
             }
+
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;
                 $this->answer['tmpResult']['goods']['insert'][$k] = 1;
             }
         }
+
         return $result;
     }
 }

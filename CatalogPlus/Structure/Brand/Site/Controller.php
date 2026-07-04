@@ -1,7 +1,5 @@
 <?php
+
 namespace CatalogPlus\Structure\Brand\Site;
 
-class Controller extends ControllerAbstract
-{
-
-}
+class Controller extends ControllerAbstract {}

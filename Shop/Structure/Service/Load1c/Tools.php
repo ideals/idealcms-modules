@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -13,12 +14,12 @@ class Tools extends ToolsAbstract
 {
     public function __construct()
     {
-        $this->fields = array(
+        $this->fields = [
             'Ид' => 'id_1c',
             'Наименование' => 'name',
             'БазоваяЕдиница' => 'measure',
             'Картинка' => 'img',
-            'ЗначенияСвойств' => array(
+            'ЗначенияСвойств' => [
                 'Артикул' => 'article',
                 'Кол-во в упаковке, шт' => 'quantity',
                 'Категория на сайте' => 'category',
@@ -29,11 +30,11 @@ class Tools extends ToolsAbstract
                 'ДлЦветовая температура, Кина' => 'temperature',
                 'Цоколь' => 'socle',
                 'Цвет' => 'color',
-            ),
-            'ЗначенияРеквизитов' => array(
+            ],
+            'ЗначенияРеквизитов' => [
                 'Полное наименование' => 'full_name',
-                'Вес' => 'weight'
-            ),
+                'Вес' => 'weight',
+            ],
             /*
             'ХарактеристикиТовара' => array(
                 'Размер' => 'size'
@@ -43,8 +44,8 @@ class Tools extends ToolsAbstract
             'ЦенаЗаЕдиницу' => 'price',
             'Валюта' => 'currency',
             'Единица' => 'item',
-            'Коэффициент' => 'coefficient'
-        );
+            'Коэффициент' => 'coefficient',
+        ];
         parent::__construct();
     }
 }

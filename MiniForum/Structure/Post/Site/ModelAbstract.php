@@ -1,6 +1,8 @@
 <?php
+
 namespace MiniForum\Structure\Post\Site;
 
+use Ideal\Core\Site\Model;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Core\Request;
@@ -8,14 +10,20 @@ use Ideal\Core\Util;
 use Ideal\Mailer;
 use Ideal\Structure\User;
 
-class ModelAbstract extends \Ideal\Core\Site\Model
+class ModelAbstract extends Model
 {
     public $cid;
+
     protected $post;
+
     protected $where;
+
     protected $pageStructure = false;
+
     protected $prevStructure;
+
     protected $parentUrl = '/forum';
+
     protected $isModerator = false;
 
     public function __construct($prevStructure)
@@ -31,68 +39,41 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
     }
 
-    public function getWhere($where)
-    {
-        return 'WHERE ' . $where . $this->where . ' AND is_active=1 AND parent_id=0';
-    }
-
-    public function getComments($pageStructure)
+    /**
+     * @return mixed[]
+     */
+    public function getComments($pageStructure): array
     {
         // todo сделать ограничение на количество комментариев на странице
         // Очень выжно чтобы главные посты шли в конце иначе при получении дочерних постов через getCommentsTree,
         // мы не получим все элементы
         $_sql = "SELECT * FROM {$this->_table}
-                    WHERE is_active=1 {$this->where} AND 
+                    WHERE is_active=1 {$this->where} AND
                     (
-                    page_structure=:ps OR 
-                    (main_parent_id IN (SELECT ID FROM {$this->_table} WHERE page_structure=:ps) ) 
+                    page_structure=:ps OR
+                    (main_parent_id IN (SELECT ID FROM {$this->_table} WHERE page_structure=:ps) )
                     )
                     ORDER BY main_parent_id DESC, date_create ASC";
-        $params = array('ps' => $pageStructure);
+        $params = ['ps' => $pageStructure];
         $db = Db::getInstance();
         $list = $db->select($_sql, $params);
-        $posts = array();
-        foreach ($list as $k => &$v) {
+        $posts = [];
+        foreach ($list as &$v) {
             $v['date_create'] = Util::dateReach($v['date_create']) . ' ' . date('G:i', $v['date_create']);
             $v['content'] = nl2br($v['content']);
             if ($v['main_parent_id'] != 0) {
                 continue;
             }
+
             $element = $v;
             $element['margin'] = 0;
             $element['elements'] = $this->buildTree($list, $v['ID']);
             $element['elements'] = $this->buildList($element['elements'], 1);
-            $posts = array_merge($this->buildChildrenPosts(50, array('0' => $element)), $posts);
+            $posts = array_merge($this->buildChildrenPosts(50, ['0' => $element]), $posts);
         }
 
 
         return $posts;
-    }
-
-    /**
-     * @param $margin
-     * @param $parent
-     */
-    protected function buildChildrenPosts($margin, $parent)
-    {
-        $end = end($parent);
-
-        $children = isset($end['elements']) ? $end['elements'] : null;
-
-        if (!isset($children[0]['ID'])) {
-            return $parent;
-        }
-
-        foreach ($children as &$v) {
-            $v['margin'] = $v['indent'] * $margin;
-        }
-
-        unset($parent[0]['elements']);
-        $parent = array_merge($parent, $children);
-
-        $parent = $this->buildChildrenPosts($margin, $parent);
-
-        return $parent;
     }
 
     /**
@@ -111,53 +92,14 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $posts;
     }
 
-    protected function parsePost($post)
-    {
-        $config = Config::getInstance();
-
-        $post['link'] = '/forum' . '/' . $post['ID'] . $config->urlSuffix;
-        $post['date_create'] = Util::dateReach($post['date_create']) . ' ' . date('G:i', $post['date_create']);
-
-        //Резделяем текст в соответствии с условиями
-        $text = $this->splitMessage($post['content'], 30, 200);
-
-        $post['firstText'] = $text[0];
-        $post['secondText'] = $text[1];
-
-        if ((mb_strlen($post['firstText'] . $post['secondText']) < mb_strlen($post['content']))
-                && ($post['secondText'] !== '')) {
-                $post['secondText'] .= '...';
-        }
-
-        $post['firstText'] = str_replace('\r\n', ' ', $post['firstText']);
-        $post['secondText'] = str_replace('\r\n', ' ', $post['secondText']);
-
-        return $post;
-    }
-
-    /**
-     * Получение количества ответов на пост
-     *
-     * @param $post
-     * @return mixed
-     */
-    protected function getAnswerCount($postID)
-    {
-        $db = Db::getInstance();
-        $_sql = "SELECT COUNT(*) AS count FROM {$this->_table} WHERE main_parent_id=:main_parent_id";
-        $params = array('main_parent_id' => $postID['ID']);
-        $answerCount = $db->select($_sql, $params);
-        return isset($answerCount[0]['count']) ? $answerCount[0]['count'] : false;
-    }
-
-    public function detectPageByUrl($path, $url)
+    public function detectPageByUrl($path, $url): Model
     {
         // Условие отбора
         $where = '';
         $db = Db::getInstance();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND ID=:url {$where}";
-        $params = array('url' => $url[0]);
+        $_sql = sprintf('SELECT * FROM %s WHERE is_active=1 AND ID=:url %s', $this->_table, $where);
+        $params = ['url' => $url[0]];
         $post = $db->select($_sql, $params); // запрос на получение всех страниц, соответствующих частям url
 
         // Страницу не нашли, возвращаем 404
@@ -180,7 +122,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $this;
     }
 
-    public function setTitle($title = '')
+    public function setTitle($title = ''): string
     {
         if ($title == '') {
             $tmp = count($this->path) - 2;
@@ -192,6 +134,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         } else {
             $this->pageData['title'] = $title;
         }
+
         $this->pageData['title'] = htmlspecialchars($this->pageData['title']);
         return htmlspecialchars($title);
     }
@@ -202,13 +145,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $second = false;
         if (mb_strlen($str) > 0) {
             preg_match_all('/(.*)[\.\?\!]/U', $str, $second, PREG_OFFSET_CAPTURE);
-            $second = isset($second['0']['0']['0']) ? $second['0']['0']['0'] : null;
+            $second = $second['0']['0']['0'] ?? null;
         }
-        if ($second) {
-            $rText[0] = mb_substr($text, 0, $min) . $second;
-        } else {
-            $rText[0] = $text;
-        }
+
+        $rText[0] = $second ? mb_substr($text, 0, $min) . $second : $text;
+
         $textSize = mb_strlen($rText[0]);
 
         $rText[1] = '';
@@ -224,7 +165,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $rText;
     }
 
-    public function setDescription($description = '')
+    public function setDescription($description = ''): void
     {
         if ($description == '') {
             $this->pageData['description'] = Util::smartTrim($this->pageData['content'], 170);
@@ -233,13 +174,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         }
     }
 
-    public function setKeywords($keywords = '')
+    public function setKeywords($keywords = ''): void
     {
-        if ($keywords == '') {
-            $this->pageData['keywords'] = Util::smartTrim($this->pageData['content'], 200);
-        } else {
-            $this->pageData['keywords'] = $keywords;
-        }
+        $this->pageData['keywords'] = $keywords == '' ? Util::smartTrim($this->pageData['content'], 200) : $keywords;
     }
 
     public function getChildPosts($startMargin = 0, $margin = 50)
@@ -247,8 +184,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
         $root = $this->pageData['ID'];
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND main_parent_id=:main_parent_id {$this->where}";
-        $params = array('main_parent_id' => $root);
+        $_sql = sprintf('SELECT * FROM %s WHERE is_active=1 AND main_parent_id=:main_parent_id %s', $this->_table, $this->where);
+        $params = ['main_parent_id' => $root];
         $childPosts = $db->select($_sql, $params);
 
         $childPosts = $this->buildTree($childPosts, $root);
@@ -257,7 +194,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         foreach ($childPosts as $k => $post) {
             $childPosts[$k]['margin'] = $startMargin + $post['indent'] * $margin;
             $childPosts[$k]['content'] = nl2br($childPosts[$k]['content']);
-            $childPosts[$k]['date_create'] = Util::dateReach($childPosts[$k]['date_create']). ' ' . date('G:i', $post['date_create']);
+            $childPosts[$k]['date_create'] = Util::dateReach($childPosts[$k]['date_create']) . ' ' . date('G:i', $post['date_create']);
         }
 
         return $childPosts;
@@ -267,44 +204,18 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     {
         $db = Db::getInstance();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE ID = :ID LIMIT 1";
-        $params = array("ID" => $ID);
-        $post = $db->select($_sql, $params);
+        $_sql = sprintf('SELECT * FROM %s WHERE ID = :ID LIMIT 1', $this->_table);
+        $params = ["ID" => $ID];
 
-        return $post;
+        return $db->select($_sql, $params);
     }
 
-    public function setPrevStructure($pageStructure)
+    public function setPrevStructure($pageStructure): void
     {
         $this->pageStructure = $pageStructure;
     }
 
-    protected function buildTree(&$list, $root)
-    {
-        $tree = array();
-        foreach ($list as $k => $v) {
-            if ($v['parent_id'] == $root) {
-                $v['elements'] = $this->buildTree($list, $v['ID']);
-                $tree[] = $v;
-            }
-        }
-        return $tree;
-    }
-
-    protected function buildList($tree, $indent = 0)
-    {
-        $list = array();
-        foreach ($tree as $k => $v) {
-            $v['indent'] = $indent;
-            $newList = $this->buildList($v['elements'], $indent + 1);
-            unset($v['elements']);
-            $list[] = $v;
-            $list = array_merge($list, $newList);
-        }
-        return $list;
-    }
-
-    public function setPost($post)
+    public function setPost($post): void
     {
         $this->post = $post;
     }
@@ -320,31 +231,33 @@ class ModelAbstract extends \Ideal\Core\Site\Model
          */
         if ((isset($this->post['is_poster']) && $this->post['is_poster'] == 'true') || ($this->post['email'] == 'zzz@zzz.zz')) {
             if ($this->post['main_parent_id'] !== '0') { // Если добавляется ответ
-                $_sql = "SELECT date_create FROM &table WHERE parent_id = :parent_id ORDER BY date_create";
-                $params = array('parent_id' => $this->post['parent_id']);
-                $fields = array('table' => $this->_table);
-                $dates = $db->select($_sql, $params, $fields);
+                $sql = "SELECT date_create FROM &table WHERE parent_id = :parent_id ORDER BY date_create";
+                $params = ['parent_id' => $this->post['parent_id']];
+                $fields = ['table' => $this->_table];
+                $dates = $db->select($sql, $params, $fields);
 
                 if (count($dates) > 0) { // Если на родительское сообщение уже были ответы
                     $date = end($dates);
-                    $date_create = $date['date_create'];
+                    $dateCreate = $date['date_create'];
 
                 } else {
-                    $_sql = "SELECT date_create FROM &table WHERE ID = :parent_id";
-                    $params = array('parent_id' => $this->post['parent_id']);
-                    $fields = array('table' => $this->_table);
-                    $date = $db->select($_sql, $params, $fields);
-                    $date_create = $date[0]['date_create'];
+                    $sql = "SELECT date_create FROM &table WHERE ID = :parent_id";
+                    $params = ['parent_id' => $this->post['parent_id']];
+                    $fields = ['table' => $this->_table];
+                    $date = $db->select($sql, $params, $fields);
+                    $dateCreate = $date[0]['date_create'];
                 }
 
                 $threeWeek = 21 * 24 * 60 * 60; // 21 days; 24 hours; 60 mins; 60secs
-                $time = mt_rand($date_create, $date_create + $threeWeek);
+                $time = mt_rand($dateCreate, $dateCreate + $threeWeek);
 
             } else { // Если создается тема
                 $time = $par['date_create'] = mt_rand(mktime(0, 0, 0, 11, 1, 2012), mktime(0, 0, 0, 10, 31, 2013));
             }
+
             // Имитация завершена
         }
+
         $values['prev_structure'] = $this->prevStructure;
         $values['parent_id'] = $this->post['parent_id'];
         $values['main_parent_id'] = $this->post['main_parent_id'];
@@ -352,7 +265,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $values['author'] = $this->post['author'];
         $values['email'] = $this->post['email'];
         $values['content'] = $this->isModerator ? $this->post['content'] : strip_tags($this->post['content']);
-        $values['referer'] = isset($_COOKIE['referer']) ? $_COOKIE['referer'] : 'empty';
+        $values['referer'] = $_COOKIE['referer'] ?? 'empty';
         $values['date_create'] = $time;
         $values['is_active'] = 1;
         $values['is_mail'] = $this->post['is_mail'] ? 1 : 0;
@@ -367,7 +280,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if ($values['main_parent_id'] == "0") {
             $values['is_mail'] = 1;
         }
-        $this->subscribe(array($this->post['email']), $this->post['main_parent_id'], $this->post['is_mail']);
+
+        $this->subscribe([$this->post['email']], $this->post['main_parent_id'], $this->post['is_mail']);
 
         return $result; //ID нового ответа || false
     }
@@ -375,40 +289,40 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function updatePost()
     {
         $db = Db::getInstance();
-        $values = array(
+        $values = [
             'author' => $this->post['author'],
             'email' => $this->post['email'],
             'content' => $this->post['content'],
-        );
-        $params = array('ID' => $this->post['ID']);
-        $result = $db
+        ];
+        $params = ['ID' => $this->post['ID']];
+        return $db
             ->update($this->_table)
             ->set($values)
             ->where('ID = :ID', $params)
-            ->exec();
-        return $result; //true || false
+            ->exec(); //true || false
     }
 
     public function deletePost()
     {
         $db = Db::getInstance();
         $result = $db->delete($this->_table)
-                ->where('ID = :ID', array('ID' => $this->post['ID']))
+                ->where('ID = :ID', ['ID' => $this->post['ID']])
                 ->exec();
 
         if ($this->post['main_parent_id'] == 0) {
             // Это первое сообщение, удаляем всё подчистую
             $db->delete($this->_table)
-                ->where('ID = :main_parent_id', array('main_parent_id' => $this->post['ID']))
+                ->where('ID = :main_parent_id', ['main_parent_id' => $this->post['ID']])
                 ->exec();
 
         } else {
             // Заменяем у всех потомков родительский id
             $db->update($this->_table)
-                ->set(array('parent_id' => $this->post['parent_id']))
-                ->where('parent_id = :parent_id', array('parent_id' => $this->post['ID']))
+                ->set(['parent_id' => $this->post['parent_id']])
+                ->where('parent_id = :parent_id', ['parent_id' => $this->post['ID']])
                 ->exec();
         }
+
         return $result; //true || false
     }
 
@@ -418,12 +332,11 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     public function moderatedPost()
     {
         $db = Db::getInstance();
-        $result = $db->update($this->_table)
-            ->set(array('is_moderated' => $this->post['isModerated']))
-            ->where('ID = :ID', array('ID' => $this->post['ID']))
-            ->exec();
 
-        return $result; //true || false
+        return $db->update($this->_table)
+            ->set(['is_moderated' => $this->post['isModerated']])
+            ->where('ID = :ID', ['ID' => $this->post['ID']])
+            ->exec(); //true || false
     }
 
     /*
@@ -432,17 +345,23 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      * $mainPost - указывает на раздел, в от которого мы отписываем
      * $subscribe - если false, то отписываем, если true, то подписываем
      * */
+    /**
+     * @param string[] $emails
+     */
     public function subscribe(array $emails, $mainPost, $subscribe)
     {
-        foreach ($emails as $k => $email) {
-            if ($k == 0) {
-                $where['param']['email'] = $email;
-                $where['sql'] = "email = :email";
-                continue;
-            }
-            $where['param']["email{$k}"] = $email;
-            $where['sql'] .= " OR email = :email{$k}";
+        if ($emails === []) {
+            return false;
         }
+
+        $where['param']['email'] = array_shift($emails);
+        $where['sql'] = 'email = :email';
+
+        foreach ($emails as $k => $email) {
+            $where['param']['email' . $k] = $email;
+            $where['sql'] .= ' OR email = :email' . $k;
+        }
+
         // Если отписываемся, то ищем те поля, где подписка включена и наоборот
         if ($subscribe == false) {
             $setGetMail = 0;
@@ -451,22 +370,26 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $setGetMail = 1;
             $whereGetMail = 0;
         }
+
         $db = Db::getInstance();
         $where['sql'] = 'is_mail = :whereGetMail AND main_parent_id = :mainPost AND ' . $where['sql'];
         $where['param']['whereGetMail'] = $whereGetMail;
         $where['param']['mainPost'] = $mainPost;
-        $db = $db->update('i_miniforum_structure_post')
-            ->set(array('is_mail' => $setGetMail))
+
+        return $db->update('i_miniforum_structure_post')
+            ->set(['is_mail' => $setGetMail])
             ->where($where['sql'], $where['param'])
             ->exec();
-        return $result = $db; //true || false
     }
 
     /*
      * Рассылка сообщения всем подписчикам данного поста
      * $mainParentID - ID корневого сообщения*/
     // TODO функция требует оптимизации
-    public function sendMessages($post)
+    /**
+     * @param array<string, mixed> $post
+     */
+    public function sendMessages(array $post): ?bool
     {
         $mail = new Mailer();
         $config = Config::getInstance();
@@ -486,18 +409,22 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             // TODO сделать адекватное получение url раздела
             $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['ID'] . $config->urlSuffix;
 
-            $message = "<a href=\"{$href}\">Новая тема на форуме</a> <br /><br />"
+            $message = sprintf('<a href="%s">Новая тема на форуме</a> <br /><br />', $href)
                 . 'Автор: ' . $post['author'] . "<br />"
                 . 'Email: ' . $post['email'] . "<br />"
                 . 'Сообщение: ' . "<br />" . $post['content'] . "<br /><br />"
-                . "На странице: <a href='{$link}'>{$link}</a>";
+                . sprintf("На странице: <a href='%s'>%s</a>", $link, $link);
             $mail->setBody('', $message);
-            $emailSend = array();
-            foreach ($emailManager as $k => $email) {
+            $emailSend = [];
+            foreach ($emailManager as $email) {
                 // Не отправляем сообщение менеджеру сайта, в случае если он создал новую тему
-                if ($email == $post['email']) continue;
+                if ($email == $post['email']) {
+                    continue;
+                }
+
                 $emailSend[] = '<' . $email . '>';
             }
+
             $emailSend = implode(", ", $emailSend);
             $mail->sent($config->robotEmail, $emailSend);
             return true;
@@ -505,11 +432,13 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         $db = Db::getInstance();
         $_sql = "SELECT email, ID, date_create, main_parent_id FROM &table WHERE (is_mail = 1 AND main_parent_id = :main_parent_id) OR ID = :main_parent_id GROUP BY email";
-        $params = array('main_parent_id' => $post['main_parent_id']);
-        $fields = array('table' => 'i_miniforum_structure_post');
+        $params = ['main_parent_id' => $post['main_parent_id']];
+        $fields = ['table' => 'i_miniforum_structure_post'];
         $postsDB = $db->select($_sql, $params, $fields);
         // Если нет почтовых ящиков, возвращаем false
-        if (!$postsDB) return false;
+        if (!$postsDB) {
+            return false;
+        }
 
         // Задаём тему для всех отправляемых сообщений
         $mail->setSubj($config->domain . ': новый ответ на сообщение');
@@ -519,37 +448,45 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         };
 
         // Сообщение для менеджера сайта
-        $message = "<a href=\"{$href}\">На форуме сайта {$config->domain} появился новый ответ</a> <br /><br />"
+        $message = sprintf('<a href="%s">На форуме сайта %s появился новый ответ</a> <br /><br />', $href, $config->domain)
             . 'Автор: ' . $post['author'] . "<br />"
             . 'Email: ' . $post['email'] . "<br />"
             . 'Сообщение: ' . "<br />" . $post['content'] . "<br /><br />"
-            . "На странице: <a href='{$link}'>{$link}</a>";
+            . sprintf("На странице: <a href='%s'>%s</a>", $link, $link);
         $mail->setBody('', $message);
         $mail->sent($config->robotEmail, $config->mailForm);
 
         $message = "Здравствуйте! <br />
                     На форуме сайта {$config->domain} появился новый ответ на Ваше сообщение, <br />
                     Автор ответа : {$post['author']} <br />";
-        $message .= "Прочитать ответ: <a href=\"{$href}\">\"{$href}\"</a> <br /><br />";
+        $message .= sprintf('Прочитать ответ: <a href="%s">"%s"</a> <br /><br />', $href, $href);
 
-        foreach ($postsDB as $k => $postDB) {
+        foreach ($postsDB as $postDB) {
             // Не отправляем повторно письмо менеджерам сайта
-            if (array_search($postDB['email'], $emailManager) !== false) continue;
+            if (in_array($postDB['email'], $emailManager)) {
+                continue;
+            }
+
             // Создаём хеш на основе данных поста
-            $hash = (string)$postDB['email'] . (string)$postDB['main_parent_id'] . (string)$postDB['ID'] . (string)$postDB['date_create'];
-            $hash = crypt((string)$hash, (string)$postDB['ID']);
+            $hash = $postDB['email'] . $postDB['main_parent_id'] . $postDB['ID'] . $postDB['date_create'];
+            $hash = crypt($hash, (string) $postDB['ID']);
             // Создаём ссылку для отписки
             $hrefUnsubscribe = $href . '?email=' . urlencode($postDB['email']) . '&post=' . urlencode($postDB['main_parent_id']) . '&id=' . urlencode($postDB['ID']) . '&hash=' . urlencode($hash);
-            $unsubscribe = "Чтобы больше не получать уведомления об ответах на Ваше сообщение нажмите сюда: <a href=\"{$hrefUnsubscribe}\">{$hrefUnsubscribe}</a></br>";
+            $unsubscribe = sprintf('Чтобы больше не получать уведомления об ответах на Ваше сообщение нажмите сюда: <a href="%s">%s</a></br>', $hrefUnsubscribe, $hrefUnsubscribe);
             // Не даём отписаться создателю темы
-            if ($postDB['ID'] === $post['main_parent_id']) $unsubscribe = '';
+            if ($postDB['ID'] === $post['main_parent_id']) {
+                $unsubscribe = '';
+            }
+
             $mail->setBody('', $message . $unsubscribe);
             $mail->sent($config->robotEmail, $postDB['email']);
         }
+
+        return null;
     }
 
 
-    function unsubjectLink($email, $id, $mainParentID, $hash)
+    public function unsubjectLink($email, $id, $mainParentID, $hash): bool
     {
         $db = Db::getInstance();
 
@@ -559,15 +496,16 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $hash = $db->escape_string((urldecode($hash)));
 
         $_sql = "SELECT email, ID, date_create, main_parent_id FROM i_miniforum_structure_post WHERE ID = :ID";
-        $params = array('ID' => $id);
-        $fields = array('table' => 'i_miniforum_structure_post');
+        $params = ['ID' => $id];
+        $fields = ['table' => 'i_miniforum_structure_post'];
         $post = $db->select($_sql, $params, $fields);
-        $trueHash = (string)$post[0]['email'] . (string)$post[0]['main_parent_id'] . (string)$post[0]['ID'] . (string)$post[0]['date_create'];
-        $trueHash = crypt((string)$trueHash, (string)$post[0]['ID']);
+        $trueHash = $post[0]['email'] . $post[0]['main_parent_id'] . $post[0]['ID'] . $post[0]['date_create'];
+        $trueHash = crypt($trueHash, (string) $post[0]['ID']);
         if ($trueHash === $hash) {
-            $this->subscribe(array($email), $mainParentID, false);
+            $this->subscribe([$email], $mainParentID, false);
             return true;
         }
+
         return false;
     }
 
@@ -580,7 +518,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $db = Db::getInstance();
         $config = Config::getInstance();
 
-        $_sql = "SELECT * FROM {$this->_table} WHERE is_active=1 AND parent_id=0 AND is_moderated=1";
+        $_sql = sprintf('SELECT * FROM %s WHERE is_active=1 AND parent_id=0 AND is_moderated=1', $this->_table);
         $list = $db->select($_sql);
 
         foreach ($list as $k => $v) {
@@ -588,6 +526,110 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $list[$k]['name'] = $list[$k]['name'][0] . $list[$k]['name'][1];
             $list[$k]['link'] = $this->parentUrl . '/' . $v['ID'] . $config->urlSuffix;
         }
+
         return $list;
     }
-} 
+
+    protected function getWhere($where): string
+    {
+        return 'WHERE ' . $where . $this->where . ' AND is_active=1 AND parent_id=0';
+    }
+
+    /**
+     */
+    protected function buildChildrenPosts($margin, $parent)
+    {
+        $end = end($parent);
+
+        $children = $end['elements'] ?? null;
+
+        if (!isset($children[0]['ID'])) {
+            return $parent;
+        }
+
+        foreach ($children as &$v) {
+            $v['margin'] = $v['indent'] * $margin;
+        }
+
+        unset($parent[0]['elements']);
+        $parent = array_merge($parent, $children);
+
+        return $this->buildChildrenPosts($margin, $parent);
+    }
+
+    /**
+     * @param array<string, mixed> $post
+     */
+    protected function parsePost(array $post): array
+    {
+        $config = Config::getInstance();
+
+        $post['link'] = '/forum' . '/' . $post['ID'] . $config->urlSuffix;
+        $post['date_create'] = Util::dateReach($post['date_create']) . ' ' . date('G:i', $post['date_create']);
+
+        //Резделяем текст в соответствии с условиями
+        $text = $this->splitMessage($post['content'], 30, 200);
+
+        $post['firstText'] = $text[0];
+        $post['secondText'] = $text[1];
+
+        if ((mb_strlen($post['firstText'] . $post['secondText']) < mb_strlen($post['content']))
+                && ($post['secondText'] !== '')) {
+            $post['secondText'] .= '...';
+        }
+
+        $post['firstText'] = str_replace('\r\n', ' ', $post['firstText']);
+        $post['secondText'] = str_replace('\r\n', ' ', $post['secondText']);
+
+        return $post;
+    }
+
+    /**
+     * Получение количества ответов на пост
+     *
+     * @param $post
+     * @return mixed
+     * @param array<string, mixed> $postID
+     */
+    protected function getAnswerCount(array $postID)
+    {
+        $db = Db::getInstance();
+        $_sql = sprintf('SELECT COUNT(*) AS count FROM %s WHERE main_parent_id=:main_parent_id', $this->_table);
+        $params = ['main_parent_id' => $postID['ID']];
+        $answerCount = $db->select($_sql, $params);
+        return $answerCount[0]['count'] ?? false;
+    }
+
+    /**
+     * @return mixed[]
+     */
+    protected function buildTree(&$list, $root): array
+    {
+        $tree = [];
+        foreach ($list as $v) {
+            if ($v['parent_id'] == $root) {
+                $v['elements'] = $this->buildTree($list, $v['ID']);
+                $tree[] = $v;
+            }
+        }
+
+        return $tree;
+    }
+
+    /**
+     * @return mixed[]
+     */
+    protected function buildList($tree, $indent = 0): array
+    {
+        $list = [];
+        foreach ($tree as $v) {
+            $v['indent'] = $indent;
+            $newList = $this->buildList($v['elements'], $indent + 1);
+            unset($v['elements']);
+            $list[] = $v;
+            $list = array_merge($list, $newList);
+        }
+
+        return $list;
+    }
+}

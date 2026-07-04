@@ -27,26 +27,26 @@ $config = \Ideal\Core\Config::getInstance();
 
     <?php
     $config = \Ideal\Core\Config::getInstance();
-    $file = new \Ideal\Structure\Service\SiteData\ConfigPhp();
-    $cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $config->cmsFolder . DIRECTORY_SEPARATOR;
-    $settingsFilePath = $cmsFolderPath . 'load1cV2Settings.php';
+$file = new \Ideal\Structure\Service\SiteData\ConfigPhp();
+$cmsFolderPath = DOCUMENT_ROOT . DIRECTORY_SEPARATOR . $config->cmsFolder . DIRECTORY_SEPARATOR;
+$settingsFilePath = $cmsFolderPath . 'load1cV2Settings.php';
 
-    // Если нет файла в папке админки, то копируем его туда из папки модуля
-    if (!file_exists($settingsFilePath)) {
-        $settingsFilePathMod = $cmsFolderPath . 'Mods/Shop/Structure/Service/Load1cV2/load1cV2Settings.php';
-        if (!file_exists($settingsFilePathMod)) {
-            // Если файла настроек нет и в папке модуля то выбрасываем исключение
-            throw new \Exception('Отсутствует файл настроек модуля выгрузки');
-        }
-        copy($settingsFilePathMod, $settingsFilePath);
+// Если нет файла в папке админки, то копируем его туда из папки модуля
+if (!file_exists($settingsFilePath)) {
+    $settingsFilePathMod = $cmsFolderPath . 'Mods/Shop/Structure/Service/Load1cV2/load1cV2Settings.php';
+    if (!file_exists($settingsFilePathMod)) {
+        // Если файла настроек нет и в папке модуля то выбрасываем исключение
+        throw new \Exception('Отсутствует файл настроек модуля выгрузки');
     }
+    copy($settingsFilePathMod, $settingsFilePath);
+}
 
-    $file->loadFile($settingsFilePath);
-    if (isset($_POST['edit'])) {
-        $file->changeAndSave($settingsFilePath);
-    }
-    echo $file->showEdit();
-    ?>
+$file->loadFile($settingsFilePath);
+if (isset($_POST['edit'])) {
+    $file->changeAndSave($settingsFilePath);
+}
+echo $file->showEdit();
+?>
     <div class="form-inline">
         <div class="col-sm-offset-2 col-sm-10">
             <button type="submit" class="btn btn-success pull-right" id="load1c">

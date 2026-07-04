@@ -1,70 +1,70 @@
 <?php
 
 // Новости
-return array(
-    'params' => array (
-        'in_structures' => array('Ideal_Part'), // в каких структурах можно создавать эту структуру
+return [
+    'params' =>  [
+        'in_structures' => ['Ideal_Part'], // в каких структурах можно создавать эту структуру
         'elements_cms'  => 10,            // количество элементов в списке в CMS
         'elements_site' => 15,            // количество элементов в списке на сайте
         'field_name'    => '',            // поле для входа в список потомков
         'field_sort'    => 'pos DESC',    // поле, по которому проводится сортировка
-        'field_list'    => array('pos', 'name', 'is_active', 'date_create')
-     ),
-    'fields'   => array (
-        'ID' => array(
+        'field_list'    => ['pos', 'name', 'is_active', 'date_create'],
+    ],
+    'fields'   =>  [
+        'ID' => [
             'label' => 'Идентификатор',
             'sql'   => 'int(4) unsigned not null auto_increment primary key',
-            'type'  => 'Ideal_Hidden'
-        ),
-        'structure_path' => array(
+            'type'  => 'Ideal_Hidden',
+        ],
+        'structure_path' => [
             'label' => 'ID родительских структур',
             'sql'   => 'char(15)',
-            'type'  => 'Ideal_Hidden'
-        ),
-        'pos' => array(
+            'type'  => 'Ideal_Hidden',
+        ],
+        'pos' => [
             'label' => '№',
             'sql'   => 'int not null',
-            'type'  => 'Ideal_Pos'
-        ),
-        'name' => array(
+            'type'  => 'Ideal_Pos',
+        ],
+        'name' => [
             'label' => 'Заголовок',
             'sql'   => 'varchar(255) not null',
-            'type'  => 'Ideal_Text'
-        ),
-        'url' => array(
+            'type'  => 'Ideal_Text',
+        ],
+        'url' => [
             'label' => 'URL',
             'sql'   => 'varchar(255) not null',
-            'type'  => 'Ideal_UrlAuto'
-        ),
-        'img' => array(
+            'type'  => 'Ideal_UrlAuto',
+        ],
+        'img' => [
             'label' => 'Картинка',
             'sql'   => 'varchar(255)',
-            'type'  => 'Ideal_Image'
-        ),
-        'video' => array(
+            'type'  => 'Ideal_Image',
+        ],
+        'video' => [
             'label' => 'Видео',
             'sql'   => 'varchar(255) not null',
-            'type'  => 'Ideal_Text'
-        ),
-        'annot'=> array(
+            'type'  => 'Ideal_Text',
+        ],
+        'annot' => [
             'label' => 'Аннотация',
             'sql'   => 'text',
-            'type'  => 'Ideal_Area'
-        ),
-        'date_create' => array(
+            'type'  => 'Ideal_Area',
+        ],
+        'date_create' => [
             'label' => 'Дата создания',
             'sql'   => 'int(11) not null',
-            'type'  => 'Ideal_DateSet'
-        ),
-        'content' => array(
+            'type'  => 'Ideal_DateSet',
+        ],
+        'content' => [
             'label' => 'Сообщение',
             'sql'   => 'text',
-            'type'  => 'Ideal_RichEdit'
-        ),
-        'is_active' => array(
+            'type'  => 'Ideal_RichEdit',
+        ],
+        'is_active' => [
             'label' => 'Отображать на сайте',
             'sql'   => 'bool',
-            'type'  => 'Ideal_Checkbox'
-        ),
-    ),
-);
+            'type'  => 'Ideal_Checkbox',
+        ],
+    ],
+];

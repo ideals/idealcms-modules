@@ -1,16 +1,17 @@
 <?php
+
 namespace Cabinet\Structure\Part\Site;
 
+use Ideal\Core\AjaxController;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Cabinet\Structure\User;
 use Cabinet\Structure\Part\Site\AccountForms\AccountForms;
 
-class AjaxControllerAbstract extends \Ideal\Core\AjaxController
+class AjaxControllerAbstract extends AjaxController
 {
-
     /** @var array Дополнительные HTTP-заголовки ответа  */
-    public $httpHeaders = array();
+    public $httpHeaders = [];
 
     /**
      * TODO
@@ -22,13 +23,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     public function __construct()
     {
         if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
+            if (session_status() === PHP_SESSION_NONE) {
                 session_start();
             }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
+        } elseif (session_id() == '') {
+            session_start();
         }
     }
 
@@ -42,9 +41,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         $config = Config::getInstance();
         $prevStructure = $config->getStructureByName('Cabinet_Part');
         $prevStructure = '0-' . $prevStructure['ID'];
+
         $this->model = new Model($prevStructure);
         $accountForms = new AccountForms();
         $accountForms->setLink($this->model->getFullUrl());
+
         $form = $accountForms->getLoginFormObject();
         $request = new Request();
         if ($form->isPostRequest()) {
@@ -52,45 +53,45 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
                 $email = strtolower($form->getValue('login'));
                 $pass = htmlspecialchars($form->getValue('pass'));
                 $userModel = new User\Model('');
-                $response = $userModel->userAuthorization($email, $pass);
-                return $response;
-            } else {
-                return 'Вы указали не все данные';
+                return $userModel->userAuthorization($email, $pass);
             }
-        } else {
-            $response = '';
-            switch ($request->subMode) {
-                // Генерируем js
-                case 'js':
-                    $script = <<<JS
-                    $('#loginForm').on('form.successSend', function () {
-                        location.reload();
-                    });
-JS;
-                    $form->setJs($script);
-                    $request->mode = 'js';
-                    $form->setSendHeader(false);
-                    $this->httpHeaders['Content-type'] = 'application/javascript';
-                    ob_start();
-                    $form->render();
-                    $text = ob_get_contents();
-                    ob_end_clean();
-                    return $text;
-                    break;
-                // Генерируем css
-                case 'css':
-                    $request->mode = 'css';
-                    $form->setSendHeader(false);
-                    $this->httpHeaders['Content-type'] = 'text/css';
-                    ob_start();
-                    $form->render();
-                    $text = ob_get_contents();
-                    ob_end_clean();
-                    return $text;
-                    break;
-            }
-            return $response;
+
+            return 'Вы указали не все данные';
+
         }
+
+        $response = '';
+        switch ($request->subMode) {
+            // Генерируем js
+            case 'js':
+                $script = <<<JS
+                                        $('#loginForm').on('form.successSend', function () {
+                                            location.reload();
+                                        });
+                    JS;
+                $form->setJs($script);
+                $request->mode = 'js';
+                $form->setSendHeader(false);
+                $this->httpHeaders['Content-type'] = 'application/javascript';
+                ob_start();
+                $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
+                return $text;
+                // Генерируем css
+            case 'css':
+                $request->mode = 'css';
+                $form->setSendHeader(false);
+                $this->httpHeaders['Content-type'] = 'text/css';
+                ob_start();
+                $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
+                return $text;
+        }
+
+        return $response;
+
     }
 
     /**
@@ -103,58 +104,60 @@ JS;
         $config = Config::getInstance();
         $prevStructure = $config->getStructureByName('Cabinet_Part');
         $prevStructure = '0-' . $prevStructure['ID'];
+
         $this->model = new Model($prevStructure);
         $accountForms = new AccountForms();
         $accountForms->setLink($this->model->getFullUrl());
+
         $form = $accountForms->getLkFormObject();
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
-                $userData = array();
+                $userData = [];
                 $userData['fio'] = $form->getValue('fname');
                 $userData['phone'] = $form->getValue('phone');
                 $userData['address'] = $form->getValue('addr');
                 $userData['password'] = $form->getValue('pass');
 
                 $userModel = new User\Model('');
-                $response = $userModel->saveUserData($userData);
-                return $response;
-            } else {
-                return "Заполнены не все поля.";
+                return $userModel->saveUserData($userData);
             }
-        } else {
-            $response = '';
-            switch ($request->subMode) {
-                // Генерируем js
-                case 'js':
-                    $script = <<<JS
-                    $('#lkForm').on('form.successSend', function () {
-                        location.reload();
-                    });
-JS;
-                    $form->setJs($script);
-                    $request->mode = 'js';
-                    $form->setSendHeader(false);
-                    $this->httpHeaders['Content-type'] = 'application/javascript';
-                    ob_start();
-                    $form->render();
-                    $text = ob_get_contents();
-                    ob_end_clean();
-                    return $text;
-                    break;
-                // Генерируем css
-                case 'css':
-                    $request->mode = 'css';
-                    $form->setSendHeader(false);
-                    $this->httpHeaders['Content-type'] = 'text/css';
-                    ob_start();
-                    $form->render();
-                    $text = ob_get_contents();
-                    ob_end_clean();
-                    return $text;
-                    break;
-            }
-            return $response;
+
+            return "Заполнены не все поля.";
+
         }
+
+        $response = '';
+        switch ($request->subMode) {
+            // Генерируем js
+            case 'js':
+                $script = <<<JS
+                                        $('#lkForm').on('form.successSend', function () {
+                                            location.reload();
+                                        });
+                    JS;
+                $form->setJs($script);
+                $request->mode = 'js';
+                $form->setSendHeader(false);
+                $this->httpHeaders['Content-type'] = 'application/javascript';
+                ob_start();
+                $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
+                return $text;
+                // Генерируем css
+            case 'css':
+                $request->mode = 'css';
+                $form->setSendHeader(false);
+                $this->httpHeaders['Content-type'] = 'text/css';
+                ob_start();
+                $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
+                return $text;
+        }
+
+        return $response;
+
     }
 
     /**
@@ -186,9 +189,10 @@ JS;
                     $html = $this->view->render();
                     if ($form->sendMail($config->robotEmail, $email, $title, $html, true)) {
                         return ' Вам выслан новый пароль.';
-                    } else {
-                        return ' Услуга временно недоступна попробуйте позже.';
                     }
+
+                    return ' Услуга временно недоступна попробуйте позже.';
+
                 }
             } else {
                 return 'Указан не верный e-mail';
@@ -206,8 +210,7 @@ JS;
                     $text = ob_get_contents();
                     ob_end_clean();
                     return $text;
-                    break;
-                // Генерируем css
+                    // Генерируем css
                 case 'css':
                     $request->mode = 'css';
                     $form->setSendHeader(false);
@@ -217,10 +220,12 @@ JS;
                     $text = ob_get_contents();
                     ob_end_clean();
                     return $text;
-                    break;
             }
+
             return $response;
         }
+
+        return null;
     }
 
     /**
@@ -233,7 +238,7 @@ JS;
         $form = $accountForms->getRegistrationFormObject();
         if ($form->isPostRequest()) {
             if ($form->isValid()) {
-                $newUserData = array();
+                $newUserData = [];
                 $newUserData['fio'] = $form->getValue('lastname') . ' ' . $form->getValue('name');
                 $newUserData['phone'] = $form->getValue('phone');
                 $newUserData['address'] = $form->getValue('addr');
@@ -267,43 +272,46 @@ JS;
 
                     if ($form->sendMail($config->robotEmail, $newUserData['email'], $topic, $msg, true, $smtp)) {
                         return 'Вам было отправлено письмо с инструкцией для дальнейшей регистрации';
-                    } else {
-                        return 'Ошибка. Попробуйте чуть позже';
                     }
-                } else {
-                    return $response['text'];
+
+                    return 'Ошибка. Попробуйте чуть позже';
+
                 }
-            } else {
-                return "Заполнены не все поля.";
+
+                return $response['text'];
+
             }
-        } else {
-            $response = '';
-            switch ($request->subMode) {
-                // Генерируем js
-                case 'js':
-                    $request->mode = 'js';
-                    $form->setSendHeader(false);
-                    $this->httpHeaders['Content-type'] = 'application/javascript';
-                    ob_start();
-                    $form->render();
-                    $text = ob_get_contents();
-                    ob_end_clean();
-                    return $text;
-                    break;
-                // Генерируем css
-                case 'css':
-                    $request->mode = 'css';
-                    $form->setSendHeader(false);
-                    $this->httpHeaders['Content-type'] = 'text/css';
-                    ob_start();
-                    $form->render();
-                    $text = ob_get_contents();
-                    ob_end_clean();
-                    return $text;
-                    break;
-            }
-            return $response;
+
+            return "Заполнены не все поля.";
+
         }
+
+        $response = '';
+        switch ($request->subMode) {
+            // Генерируем js
+            case 'js':
+                $request->mode = 'js';
+                $form->setSendHeader(false);
+                $this->httpHeaders['Content-type'] = 'application/javascript';
+                ob_start();
+                $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
+                return $text;
+                // Генерируем css
+            case 'css':
+                $request->mode = 'css';
+                $form->setSendHeader(false);
+                $this->httpHeaders['Content-type'] = 'text/css';
+                ob_start();
+                $form->render();
+                $text = ob_get_contents();
+                ob_end_clean();
+                return $text;
+        }
+
+        return $response;
+
     }
 
     /**

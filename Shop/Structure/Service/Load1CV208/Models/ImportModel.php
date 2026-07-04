@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Ideal\Core\Config;
@@ -14,19 +15,18 @@ use Shop\Structure\Service\Load1CV208\Xml\Stock\XmlStock;
 
 class ImportModel
 {
+    /** @var array Общие настройки для всего процесса обмена */
+    public $exchangeConfig = [];
 
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка товаров из пакета № %d',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add' => 0,
-        'update' => 0
-    );
+        'update' => 0,
+    ];
 
     protected $packageNum = 0;
-
-    /** @var array Общие настройки для всего процесса обмена */
-    public $exchangeConfig = array();
 
     public function __construct($exchangeConfig)
     {
@@ -56,6 +56,7 @@ class ImportModel
         } else {
             $this->good($filePath);
         }
+
         return $this->answer();
     }
 
@@ -69,7 +70,7 @@ class ImportModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -82,14 +83,14 @@ class ImportModel
      *
      * @return bool признак (не)успешного завершения работы метода
      */
-    public function loadImages($pictDirectory, $onlyImageResize = false)
+    public function loadImages(string $pictDirectory, $onlyImageResize = false): bool
     {
         if ($onlyImageResize) {
             $this->answer['successText'] = '';
             // Определяем пакет для отдачи правильного текста в ответе
             $this->answer['infoText'] = sprintf(
                 'Обработка картинок из пакета %d',
-                $this->packageNum
+                $this->packageNum,
             );
         }
 
@@ -102,11 +103,11 @@ class ImportModel
         $handle = opendir($pictDirectory);
 
         if (isset($this->exchangeConfig['resize']) && !empty($this->exchangeConfig['resize'])) {
-            list($w, $h) = explode('x', $this->exchangeConfig['resize']);
+            [$w, $h] = explode('x', $this->exchangeConfig['resize']);
         }
 
         while (false !== ($entry = readdir($handle))) {
-            if (0 === strpos($entry, '.')) {
+            if (strpos($entry, '.') === 0) {
                 continue;
             }
 
@@ -114,25 +115,27 @@ class ImportModel
                 $incHandle = opendir($pictDirectory . $entry);
 
                 while (false !== ($img = readdir($incHandle))) {
-                    if (0 === strpos($img, '.')) {
+                    if (strpos($img, '.') === 0) {
                         continue;
                     }
+
                     $imgExtension = pathinfo($img, PATHINFO_EXTENSION);
                     if (stripos($this->exchangeConfig['supportedExtensionsImage'], $imgExtension) !== false) {
                         $path = $pictDirectory . $entry . '/' . $img;
-                        if (isset($w, $h) && !empty($w) && !empty($h)) {
+                        if (isset($w, $h) && ($w !== '' && $w !== '0') && ($h !== '' && $h !== '0')) {
                             new Image($path, $w, $h);
                         } else {
                             $image = basename($img);
                             $entryTmp = substr($image, 0, 2);
-                            $concurrDir = DOCUMENT_ROOT . "/images/1c/{$entryTmp}";
+                            $concurrDir = DOCUMENT_ROOT . ('/images/1c/' . $entryTmp);
                             /** @noinspection MkdirRaceConditionInspection */
                             if (!is_dir($concurrDir) && !mkdir($concurrDir, 0750, true)) {
                                 throw new \RuntimeException(sprintf('Не удалось создать директорию "%s"', $concurrDir));
                             }
 
-                            copy($path, DOCUMENT_ROOT . "/images/1c/{$entryTmp}/{$img}");
+                            copy($path, DOCUMENT_ROOT . sprintf('/images/1c/%s/%s', $entryTmp, $img));
                         }
+
                         $processedImg++;
                         unlink($path);
                     }
@@ -148,30 +151,33 @@ class ImportModel
                 $imgExtension = pathinfo($entry, PATHINFO_EXTENSION);
                 if (stripos($this->exchangeConfig['supportedExtensionsImage'], $imgExtension) !== false) {
                     $path = $pictDirectory . $entry;
-                    if (isset($w, $h) && !empty($w) && !empty($h)) {
+                    if (isset($w, $h) && ($w !== '' && $w !== '0') && ($h !== '' && $h !== '0')) {
                         new Image($path, $w, $h);
                     } else {
                         $image = basename($entry);
                         $entryTmp = substr($image, 0, 2);
 
-                        $concurrDir = DOCUMENT_ROOT . "/images/1c/{$entryTmp}";
+                        $concurrDir = DOCUMENT_ROOT . ('/images/1c/' . $entryTmp);
                         /** @noinspection MkdirRaceConditionInspection */
                         if (!is_dir($concurrDir) && !mkdir($concurrDir, 0750, true)) {
                             throw new \RuntimeException(sprintf('Не удалось создать директорию "%s"', $concurrDir));
                         }
 
-                        copy($path, DOCUMENT_ROOT . "/images/1c/{$entryTmp}/{$entry}");
+                        copy($path, DOCUMENT_ROOT . sprintf('/images/1c/%s/%s', $entryTmp, $entry));
                     }
+
                     $processedImg++;
                     unlink($path);
                 }
             }
         }
+
         if ($processedImg !== 0) {
             $this->answer['successText'] .= '<br />Обработано картинок - ' . $processedImg;
         } else {
             $this->answer['successText'] .= '<br />Картинки пригодные для обработки отсутствуют в данном пакете';
         }
+
         return true;
     }
 
@@ -181,7 +187,7 @@ class ImportModel
      * @param string $filePath путь до одного из основных файлов выгрузки
      * @return bool Флг (не)успешного завершения работы метода
      */
-    protected function category($filePath)
+    protected function category($filePath): ?bool
     {
         $xml = new Xml($filePath);
 
@@ -194,7 +200,8 @@ class ImportModel
             $this->answer['successText'] = 'Ошибка определения основного склада, нет данных';
             return false;
         }
-        $this->answer['tmpResult']['mainStockId'] = (string)$mainStockId;
+
+        $this->answer['tmpResult']['mainStockId'] = (string) $mainStockId;
 
         // инициализируем модель категорий в XML - XmlCategory
         $xmlCategory = new XmlCategory($xml);
@@ -211,7 +218,9 @@ class ImportModel
             // Создание категории товаров, у которых в выгрузке не присвоена категория
             $dbCategory->createDefaultCategory();
         }
+
         $this->answer['infoText'] = 'Обработка разделов каталога';
+        return null;
     }
 
     /**
@@ -240,27 +249,27 @@ class ImportModel
                 $parentCid = $cid->getCidByLevel($dbElement['cid'], $dbElement['lvl'] - 1, false);
                 $parentCid = $cid->reconstruct($parentCid);
                 $parent = $dbResult[$parentCid]['id_1c'];
-                $data = array(
+                $data = [
                     'ID' => $dbElement['ID'],
                     'parent' => $parent,
                     'is_active' => $dbElement['is_active'],
                     'pos' => $cid->getBlock($dbElement['cid'], $dbElement['lvl']),
                     'Ид' => $dbElement['id_1c'],
-                    'Наименование' => $dbElement['name']
-                );
+                    'Наименование' => $dbElement['name'],
+                ];
                 $xmlCategory->addChild($data);
             } elseif (isset($xmlResult[$key])) {
                 // Добавляем информацию из бд в xml
-                $data = array(
+                $data = [
                     'ID' => $dbElement['ID'],
                     'pos' => $cid->getBlock($dbElement['cid'], $dbElement['lvl']),
-                    'Ид' => $dbElement['id_1c']
-                );
+                    'Ид' => $dbElement['id_1c'],
+                ];
                 $xmlCategory->updateElement($data);
             }
         }
 
-        $keys = array();
+        $keys = [];
         $cidNum = '001';
         // Получаем обновленную сплющенную информацию по категориям из XML
         $xmlCategory->updateConfigs();
@@ -270,12 +279,14 @@ class ImportModel
         foreach ($newXmlResult as $k => $xmlElement) {
             $i = 1;
             if (isset($xmlElement['pos']) && $xmlElement['pos'] !== '') {
-                $i = (int)$xmlElement['pos'];
+                $i = (int) $xmlElement['pos'];
             }
+
             $fullCid = $cid->setBlock($cidNum, $xmlElement['lvl'], $i, true);
-            while (in_array($fullCid, $keys)) {
+            while (in_array($fullCid, $keys, true)) {
                 $fullCid = $cid->setBlock($cidNum, $xmlElement['lvl'], ++$i, true);
             }
+
             $cidNum = $fullCid;
             $xmlElement['cid'] = $fullCid;
             $keys[] = $fullCid;
@@ -283,7 +294,7 @@ class ImportModel
 
             // Если идентичная запись уже есть в БД, то переходим к рассмотрению следующего элемента
             if (array_key_exists($k, $dbResult)
-                && count(array_diff_assoc($xmlElement, $dbCategory->getMainPartCategory($dbResult[$k]))) === 0) {
+                && array_diff_assoc($xmlElement, $dbCategory->getMainPartCategory($dbResult[$k])) === []) {
                 continue;
             }
 
@@ -322,7 +333,7 @@ class ImportModel
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $this->packageNum
+            $this->packageNum,
         );
 
         $xml = new Xml($filePath);
@@ -380,8 +391,9 @@ class ImportModel
                 $dbGood->onAfterSetDbElement($val, $val);
                 continue;
             }
+
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $val['ID'] = $res['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;
                 $dbGood->update($res, $dbResult[$k]);

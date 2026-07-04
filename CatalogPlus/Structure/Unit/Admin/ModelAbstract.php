@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -11,6 +12,4 @@ namespace CatalogPlus\Structure\Unit\Admin;
 
 use Ideal\Structure\Roster\Admin\ModelAbstract as RosterModelAbstract;
 
-class ModelAbstract extends RosterModelAbstract
-{
-}
+class ModelAbstract extends RosterModelAbstract {}

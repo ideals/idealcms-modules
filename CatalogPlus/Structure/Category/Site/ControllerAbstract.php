@@ -1,29 +1,33 @@
 <?php
+
 namespace CatalogPlus\Structure\Category\Site;
 
+use Ideal\Core\Site\Controller;
+use CatalogPlus\Structure\Good\Site\Model;
 use Ideal\Core\Request;
 use CatalogPlus\Structure\Category\Filter;
 
-class ControllerAbstract extends \Ideal\Core\Site\Controller
+class ControllerAbstract extends Controller
 {
     /* @var $model Model Модель соответствующая этому контроллеру */
     protected $model;
+
     /** @var $goodModel \CatalogPlus\Structure\Good\Site\Model Модель товаров */
     protected $goodModel;
 
     /** @var string $pageParamName Название параметра определяющего номер страницы*/
     protected $pageParamName = 'page';
 
-    public function indexAction()
+    public function indexAction(): void
     {
         parent::indexAction();
 
         $request = new Request();
-        $page = (int)substr($request->{$this->pageParamName}, 0, 10);
-        if ($page === 'all') {
+        $page = (int) substr($request->{$this->pageParamName}, 0, 10);
+        if ($page === 0) {
             $page = null;
         } else {
-            $page = (int)$page === 0 ? $page = 1 : (int)$page;
+            $page = $page === 0 ? $page = 1 : $page;
         }
 
         $this->model->setPageNum($page);
@@ -31,7 +35,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $filter = new Filter();
         $filter->setParams($_REQUEST);
 
-        $this->goodModel = new \CatalogPlus\Structure\Good\Site\Model('');
+        $this->goodModel = new Model('');
         $this->goodModel->setCategoryModel($this->model);
 
         $this->goodModel->setFilter($filter);
@@ -40,6 +44,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         if ($this->goodModel->is404) {
             $this->model->is404 = true;
         }
+
         $this->view->pager = $this->goodModel->getPager($this->pageParamName);
 
         // TODO реализация вывода списка групп и подгруппы текущей активной группы

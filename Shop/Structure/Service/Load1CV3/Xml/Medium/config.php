@@ -1,7 +1,8 @@
 <?php
+
 // символ ` заменяется на нэймспэйс
-return array(
+return [
     'key'    => 'Ид',
-    'fields' => array(
-    ),
-);
+    'fields' => [
+    ],
+];

@@ -1,10 +1,11 @@
 <?php
+
 // символ ` заменяется на нэймспэйс
-return array(
+return [
     'key'    => 'Ид',
-    'fields' => array(
+    'fields' => [
         'goodId1c' => '@ИДНоменклатуры',
         'tag' => '@Тэги',
-        'parentTag' => '@Родитель'
-    ),
-);
+        'parentTag' => '@Родитель',
+    ],
+];

@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2;
 
 /**
@@ -10,6 +11,8 @@ namespace Shop\Structure\Service\Load1cV2;
 
 class Xml
 {
+    public $ns;
+
     /** SimpleXMLElement Данные от 1С */
     private $xml ;
 
@@ -19,15 +22,18 @@ class Xml
         if (!file_exists($source)) {
             throw new \RuntimeException("Отсутствует файл выгрузки");
         }
+
         $this->xml = simplexml_load_file($source);
 
-        if (false === $this->xml) {
+        if ($this->xml === false) {
             $errors = '';
             foreach (libxml_get_errors() as $error) {
                 $errors .= $error->message;
             }
+
             throw new \RuntimeException("Во время загрузки файла: {$source} \nвозникли следующие ошибки: {$errors}");
         }
+
         $namespaces = $this->xml->getDocNamespaces();
 
         if (isset($namespaces[''])) {

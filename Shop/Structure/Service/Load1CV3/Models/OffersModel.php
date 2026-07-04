@@ -1,10 +1,9 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Shop\Structure\Service\Load1CV3\Db\Offer\DbOffer;
 use Shop\Structure\Service\Load1CV3\ModelAbstract;
-use Shop\Structure\Service\Load1CV3\Xml\Directory\XmlDirectory;
-use Shop\Structure\Service\Load1CV3\Db\Directory\DbDirectory;
 use Shop\Structure\Service\Load1CV3\Xml\Offer\XmlOffer;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
 
@@ -40,7 +39,7 @@ class OffersModel extends ModelAbstract
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $this->packageNum
+            $this->packageNum,
         );
 
         // инициализируем модель предложений в БД - DbOffer
@@ -62,7 +61,7 @@ class OffersModel extends ModelAbstract
      *
      * @return array разница, которую передаем объекту DbGood для сохранения
      */
-    public function offersParse($dbOffers, $xmlOffers)
+    public function offersParse($dbOffers, $xmlOffers): array
     {
         // Забираем офферы из БД
         $dbResult = $dbOffers->parse();
@@ -71,7 +70,7 @@ class OffersModel extends ModelAbstract
         $xmlResult = $xmlOffers->parse();
 
         if (empty($xmlResult)) {
-            $xmlResult = array();
+            $xmlResult = [];
         }
 
         return $this->offersDiff($dbResult, $xmlResult);
@@ -85,9 +84,9 @@ class OffersModel extends ModelAbstract
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function offersDiff(array $dbResult, array $xmlResult)
+    protected function offersDiff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
@@ -95,12 +94,14 @@ class OffersModel extends ModelAbstract
                 $this->answer['tmpResult']['offers']['insert'][$k] = 1;
                 continue;
             }
+
             $result[$k] = $val;
             $result[$k]['ID'] = $dbResult[$k]['ID'];
             $result[$k]['good_id'] = $dbResult[$k]['good_id'];
             $this->answer['update']++;
             $this->answer['tmpResult']['offers']['update'][$k] = 1;
         }
+
         return $result;
     }
 }

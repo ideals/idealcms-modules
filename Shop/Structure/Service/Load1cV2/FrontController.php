@@ -1,10 +1,19 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2;
 
+use Ideal\Mailer;
+use Shop\Structure\Service\Load1cV2\Category\NewCategory;
+use Shop\Structure\Service\Load1cV2\Good\XmlGood;
+use Shop\Structure\Service\Load1cV2\Good\NewGood;
+use Shop\Structure\Service\Load1cV2\Directory\XmlDirectory;
+use Shop\Structure\Service\Load1cV2\Directory\NewDirectory;
+use Shop\Structure\Service\Load1cV2\Offer\XmlOffer;
+use Shop\Structure\Service\Load1cV2\Offer\NewOffer;
+use Shop\Structure\Service\Load1cV2\Log\Log;
 use Ideal\Core\Config;
 use Ideal\Structure\User\Model;
 use Ideal\Core\Request;
-use Mail\Sender;
 use Shop\Structure\Service\Load1cV2\Category\DbCategory;
 use Shop\Structure\Service\Load1cV2\Category\XmlCategory;
 use Shop\Structure\Service\Load1cV2\Directory\DbDirectory;
@@ -36,13 +45,14 @@ class FrontController
 
     /** @var int количество полученных файлов от 1с. Необходимо для определения окончания выгрузки 1с */
     protected $countFiles = 0;
-    protected $goods = array();
 
-    /** @var \Shop\Structure\Service\Load1cV2\Log\Log Класс для логирования процесса обмена данными с 1С */
-    protected $logClass = null;
+    protected $goods = [];
+
+    /** @var Log Класс для логирования процесса обмена данными с 1С */
+    protected $logClass;
 
     /** @var array Настройки для обмена данными с 1С */
-    protected $config = array();
+    protected $config = [];
 
     public function __construct($config, $logClass)
     {
@@ -55,31 +65,26 @@ class FrontController
         $sessionData = http_build_query($_SESSION);
         $cookieData = http_build_query($_COOKIE);
         $logMessage = <<<LOGMESSAGE
-Дата/время: {$dateTime}
-       Запрос: {$_SERVER['QUERY_STRING']}
-       POST-данные: {$postData}
-       SESSION-данные: {$sessionData}
-       COOKIE-данные: {$cookieData}
-LOGMESSAGE;
+            Дата/время: {$dateTime}
+                   Запрос: {$_SERVER['QUERY_STRING']}
+                   POST-данные: {$postData}
+                   SESSION-данные: {$sessionData}
+                   COOKIE-данные: {$cookieData}
+            LOGMESSAGE;
         self::saveToLog('info', $logMessage);
 
         // Объявляем функции которые будет отлавливать ошибки и заносить их в лог
         if (isset($this->config['keep_log']) && $this->config['keep_log']) {
-            set_error_handler(array($this->logClass, 'logErrorHandler'));
-            register_shutdown_function(array($this->logClass, 'logShutdownFunction'));
+            set_error_handler([$this->logClass, 'logErrorHandler']);
+            register_shutdown_function([$this->logClass, 'logShutdownFunction']);
         }
-    }
-
-    public function __destruct()
-    {
-        self::saveToLog('-----', "-----\n\n");
     }
 
     /**
      * Установка директории и получение списка файлов и путями
      *
      */
-    public function loadFiles()
+    public function loadFiles(): void
     {
         $this->directory = DOCUMENT_ROOT . $this->config['directory'];
         $this->files = $this->readDir($this->directory);
@@ -97,7 +102,7 @@ LOGMESSAGE;
      *
      * @return int ВОЙД
      */
-    public function import()
+    public function import(): int
     {
         $user = new Model();
         $request = new Request();
@@ -143,19 +148,20 @@ LOGMESSAGE;
                     $logMessage .= "Пароль: {$_SERVER['PHP_AUTH_PW']}.\n";
                     self::saveToLog('error', $logMessage);
                 }
+
                 return 0;
 
             case 'init':
-                print "zip={$this->useZip}\n";
-                print "file_limit={$this->filesize}\n";
+                print sprintf('zip=%s%s', $this->useZip, PHP_EOL);
+                print sprintf('file_limit=%d%s', $this->filesize, PHP_EOL);
                 //TODO выяснить для чего нужна третья строка
                 print "kakoeto = znachenie\n";
                 // 1С ищет версию схемы в четвёртой строке при обмене заказами
                 print "schema_version = 2.08\n";
                 $logMessage = "Установлены параметры для обмена данными.\n";
-                $logMessage .= "Использовать архивирование - {$this->useZip}\n";
+                $logMessage .= sprintf('Использовать архивирование - %s%s', $this->useZip, PHP_EOL);
                 $fileSize = self::humanFilesize($this->filesize);
-                $logMessage .= "Ограничение размера принимаемого файла - {$fileSize}\n";
+                $logMessage .= sprintf('Ограничение размера принимаемого файла - %s%s', $fileSize, PHP_EOL);
                 self::saveToLog('info', $logMessage);
                 return 0;
 
@@ -169,11 +175,11 @@ LOGMESSAGE;
                     self::saveToLog('info', "Архив успешно обработан.\n");
                 } else {
                     $folder = 1;
-                    $exists = array('prices', 'rests');
+                    $exists = ['prices', 'rests'];
                     $handle = opendir($this->directory);
 
                     while (false !== ($entry = readdir($handle))) {
-                        if (0 === strpos($entry, '.') || is_dir($this->directory . $entry)) {
+                        if (strpos($entry, '.') === 0 || is_dir($this->directory . $entry)) {
                             continue;
                         }
 
@@ -181,7 +187,7 @@ LOGMESSAGE;
                         $exists[] = $type[1];
                     }
 
-                    $type = array();
+                    $type = [];
 
                     preg_match('/(\w*?)_/', $filename, $type);
 
@@ -190,6 +196,7 @@ LOGMESSAGE;
                         while (file_exists($this->directory . $folder . '/')) {
                             $folder++;
                         }
+
                         $folder--;
                         $filename = $dirName . $filename;
                     }
@@ -197,9 +204,9 @@ LOGMESSAGE;
                     if (in_array($type[1], $exists)) {
                         $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
                         // Если находим то создаём новую директорию для нового пакета
-                        while ($filesGlob !== false && is_array($filesGlob) && count($filesGlob) > 0) {
-                                $folder++;
-                                $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
+                        while ($filesGlob !== false && is_array($filesGlob) && $filesGlob !== []) {
+                            $folder++;
+                            $filesGlob = $this->checkFileExistInPackage($folder, $type[1]);
                         }
 
                         // создание директории для выгрузки очередного пакета
@@ -215,28 +222,26 @@ LOGMESSAGE;
                             self::saveToLog('info', "Размер файла - {$fileSize}.\n");
                             self::saveToLog('info', "Помещён в директорию - \"{$this->directory}{$folder}/\".\n");
                         }
-                    } else {
-                        if (false !== strpos($filename, '.jpeg') || false !== strpos($filename, '.jpg') || false !== strpos($filename, '.gif')) {
-                            // создание директории для выгрузки изображений
-                            $filename = basename($request->filename);
-                            $dirName = str_replace($filename, '', $request->filename);
-                            if (!file_exists($this->directory . $folder . '/' . $dirName . '/' . $filename)) {
-                                mkdir($this->directory . $folder . '/' . $dirName . '/', 0750, true);
-                                $f = fopen($this->directory . $folder . '/' . $dirName . '/' . $filename, 'ab');
-                                fwrite($f, file_get_contents('php://input'));
-                                fclose($f);
-                                $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $dirName . '/' . $filename));
-                                self::saveToLog('info', "Размер файла - {$fileSize}.\n");
-                                self::saveToLog('info', "Помещён в директорию - \"{$this->directory}{$folder}/{$dirName}\".\n");
-                            }
-                        } else {
-                            $f = fopen($this->directory . $filename, 'ab');
+                    } elseif (strpos($filename, '.jpeg') !== false || strpos($filename, '.jpg') !== false || strpos($filename, '.gif') !== false) {
+                        // создание директории для выгрузки изображений
+                        $filename = basename($request->filename);
+                        $dirName = str_replace($filename, '', $request->filename);
+                        if (!file_exists($this->directory . $folder . '/' . $dirName . '/' . $filename)) {
+                            mkdir($this->directory . $folder . '/' . $dirName . '/', 0750, true);
+                            $f = fopen($this->directory . $folder . '/' . $dirName . '/' . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
-                            $fileSize = self::humanFilesize(filesize($this->directory . $filename));
+                            $fileSize = self::humanFilesize(filesize($this->directory . $folder . '/' . $dirName . '/' . $filename));
                             self::saveToLog('info', "Размер файла - {$fileSize}.\n");
-                            self::saveToLog('info', "Помещён в директорию - \"{$this->directory}\".\n");
+                            self::saveToLog('info', "Помещён в директорию - \"{$this->directory}{$folder}/{$dirName}\".\n");
                         }
+                    } else {
+                        $f = fopen($this->directory . $filename, 'ab');
+                        fwrite($f, file_get_contents('php://input'));
+                        fclose($f);
+                        $fileSize = self::humanFilesize(filesize($this->directory . $filename));
+                        self::saveToLog('info', "Размер файла - {$fileSize}.\n");
+                        self::saveToLog('info', "Помещён в директорию - \"{$this->directory}\".\n");
                     }
                 }
 
@@ -247,25 +252,21 @@ LOGMESSAGE;
                 // TODO Здесь реализация пошаговой модели
                 $filename = basename($request->filename);
                 $fileNameMask = $this->directory . '*' . $filename;
-                list($filePath) = glob($fileNameMask);
-                if ($filePath) {
+                [$filePath] = glob($fileNameMask);
+                if ($filePath !== '' && $filePath !== '0') {
                     $filePathArray = explode(DIRECTORY_SEPARATOR, $filePath);
                     $pcgNumr = strval($filePathArray[count($filePathArray) - 2]);
-                    if (strlen($pcgNumr) >= 1 || strlen($pcgNumr) <= 2) {
-                        $pcgNumr = intval($pcgNumr);
-                    } else {
-                        $pcgNumr = 0;
-                    }
-                    if ($pcgNumr) {
+                    $pcgNumr = strlen($pcgNumr) >= 1 || strlen($pcgNumr) <= 2 ? intval($pcgNumr) : 0;
+
+                    if ($pcgNumr !== 0) {
                         // Обработка товаров, предложений и т.д.
-                    } else {
+                    } elseif (strpos($filename, 'import') === 0) {
                         // Обработка основных двух файлов
                         // Считаем что файл формата import___*.xml всегда выгружается обрабатывается первым
-                        if (strpos($filename, 'import') === 0) {
-                            $this->prepareTables();
-                        }
+                        $this->prepareTables();
                     }
                 }
+
                 print "success\n";
                 self::saveToLog('info', "Файл \"{$filename}\" обработан.\n");
                 break;
@@ -280,8 +281,8 @@ LOGMESSAGE;
 
             case 'deactivate':
                 $timeStart = $_SERVER['REQUEST_TIME'];
-                $result = array();
-                $this->loadFiles($this->config['directory']);
+                $result = [];
+                $this->loadFiles();
                 $this->prepareTables();
                 $result[] = $this->category();
                 $result[] = $this->directory();
@@ -291,23 +292,24 @@ LOGMESSAGE;
                     $result[] = $this->offer($package);
                 }
 
-                $vals = array();
+                $vals = [];
                 // подготовка для сообщения на почту
                 foreach ($result as $response) {
                     if (isset($response['offer']) || isset($response['prices']) || isset($response['rests'])) {
                         if (isset($response['infoText'])) {
-                            $vals[] = "Шаг: {$response['infoText']} - <br/>";
-                            unset ($response['infoText']);
+                            $vals[] = sprintf('Шаг: %s - <br/>', $response['infoText']);
+                            unset($response['infoText']);
                         }
+
                         foreach ($response as $value) {
-                            $vals[] = "Шаг: {$value['infoText']} - <br/>".
-                                "Добавлено:{$value['add']}<br/>".
-                                "Обновлено:{$value['update']}<br/>";
+                            $vals[] = sprintf('Шаг: %s - <br/>', $value['infoText'])
+                                . sprintf('Добавлено:%s<br/>', $value['add'])
+                                . sprintf('Обновлено:%s<br/>', $value['update']);
                         }
                     } else {
-                        $vals[] = "Шаг: {$response['infoText']} - <br/>".
-                            "Добавлено:{$response['add']}<br/>".
-                            "Обновлено:{$response['update']}<br/>";
+                        $vals[] = sprintf('Шаг: %s - <br/>', $response['infoText'])
+                            . sprintf('Добавлено:%s<br/>', $response['add'])
+                            . sprintf('Обновлено:%s<br/>', $response['update']);
                     }
                 }
 
@@ -315,7 +317,7 @@ LOGMESSAGE;
                 $html = "Выгрузка 1с<br/>" . $str;
 
                 $con = Config::getInstance();
-                $sender = new Sender();
+                $sender = new Mailer();
                 $sender->setSubj('Выгрузка 1с, версия 2, на сайте ' . $_SERVER['SERVER_NAME']);
                 $sender->setHtmlBody($html);
                 $sender->sent($con->robotEmail, $con->cms['adminEmail']);
@@ -335,48 +337,15 @@ LOGMESSAGE;
                 echo "success\n";
                 self::saveToLog('info', "Сеанс связи с 1С завершён.\n");
                 $html = str_replace('<br>', "\n", $html);
-                self::saveToLog('info', "{$html}\n");
+                self::saveToLog('info', $html . PHP_EOL);
                 return 0;
 
             default:
                 print "success\n";
                 break;
         }
+
         return 0;
-    }
-
-    /**
-     * Получение списка файла в директории $path. Вызывается рекурсивно для обхода вложенных директорий
-     *
-     * @param string $path абсолютный путь к директории
-     * @return array массив данных о файлах в директории array('название' => 'абсолютный путь')
-     */
-    protected function readDir($path)
-    {
-        $handle = opendir($path);
-        $files = array();
-
-        while ($handle && false !== ($entry = readdir($handle))) {
-            if (0 === strpos($entry, '.')
-                || false !== strpos($entry, '.jpeg')
-                || false !== strpos($entry, '.jpg')
-                || 'import_files' == $entry) {
-                continue;
-            }
-
-            // выгрузка изображений производится в ту же директорию, что и xml, но её обходить не надо
-            if ($entry != 'import_files' && is_dir($path . $entry)) {
-                $files[$entry] = $this->readDir($path . $entry . '/');
-                continue;
-            }
-
-            // название файлов выгрузки имеет вид import___хэш.xml
-            preg_match('/(\w*?)_/', $entry, $type);
-            $this->countFiles++;
-            $files[$type[1]] = $path . $entry;
-        }
-
-        return $files;
     }
 
     /**
@@ -389,17 +358,17 @@ LOGMESSAGE;
         $xml = new Xml($this->files['import']);
 
         // инициализируем модель категорий в XML - XmlCategory
-        $xmlCategory = new Category\XmlCategory($xml);
+        $xmlCategory = new XmlCategory($xml);
 
         $xmlCategoryXml = $xmlCategory->getXml();
 
         if (!empty($xmlCategoryXml)) {
 
             // инициализируем модель категорий в БД - DbCategory
-            $dbCategory = new Category\DbCategory();
+            $dbCategory = new DbCategory();
 
             // Инициализируем модель обновления категорий в БД из XML - NewCategory
-            $newCategory = new Category\NewCategory($dbCategory, $xmlCategory);
+            $newCategory = new NewCategory($dbCategory, $xmlCategory);
 
             // Устанавливаем связь БД и XML
             $categories = $newCategory->parse();
@@ -413,10 +382,10 @@ LOGMESSAGE;
             // Уведомление пользователя о количестве добавленных, удалённых и обновлённых категорий
             $answer = $newCategory->answer();
         } else {
-            $answer = array(
+            $answer = [
                 'infoText' => 'Обработка категорий/групп товаров',
                 'successText'   => 'Категории не представленны в выгрузке',
-            );
+            ];
         }
 
         return $answer;
@@ -433,13 +402,13 @@ LOGMESSAGE;
         $xml = new Xml($this->files[$folder]['import']);
 
         // Инициализируем модель товаров в БД - DbGood
-        $dbGood = new Good\DbGood();
+        $dbGood = new DbGood();
 
         // Инициализируем модель товаров в XML - XmlGood
-        $xmlGood = new Good\XmlGood($xml);
+        $xmlGood = new XmlGood($xml);
 
         // Инициализируем модель обновления товаров в БД из XML - NewGood
-        $newGood = new Good\NewGood($dbGood, $xmlGood);
+        $newGood = new NewGood($dbGood, $xmlGood);
 
         // Устанавливаем связь БД и XML и производим сравнение данных
         $goods = $newGood->parse();
@@ -460,7 +429,7 @@ LOGMESSAGE;
         $medium->updateCategoryList($groups);
 
         // Установка количества товаров в группах и родительских группах
-        $dbCategory = new Category\DbCategory();
+        $dbCategory = new DbCategory();
         $dbCategory->updateGoodsCount();
 
         // Уведомление пользователя о количестве добавленных, обновлённых и удалённых товаров
@@ -477,13 +446,13 @@ LOGMESSAGE;
         $xml = new Xml($this->files['offers']);
 
         // инициализируем модель справочников в БД - DbDirectory
-        $dbDirectory = new Directory\DbDirectory();
+        $dbDirectory = new DbDirectory();
 
         // инициализируем модель справочников в XML - XmlDirectory
-        $xmlDirectory = new Directory\XmlDirectory($xml);
+        $xmlDirectory = new XmlDirectory($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
-        $newDirectory = new Directory\NewDirectory($dbDirectory, $xmlDirectory);
+        $newDirectory = new NewDirectory($dbDirectory, $xmlDirectory);
 
         // Устанавливаем связь БД и XML, производим сравнение
         $directories = $newDirectory->parse();
@@ -506,13 +475,13 @@ LOGMESSAGE;
         $xml = new Xml($this->files[$folder]['offers']);
 
         // инициализируем модель предложений в БД - DbOffer
-        $dbOffers = new Offer\DbOffer();
+        $dbOffers = new DbOffer();
 
         // инициализируем модель предложений в XML - XmlOffer
-        $xmlOffers = new Offer\XmlOffer($xml);
+        $xmlOffers = new XmlOffer($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
-        $newOffers = new Offer\NewOffer($dbOffers, $xmlOffers);
+        $newOffers = new NewOffer($dbOffers, $xmlOffers);
 
         // Устанавливаем связь БД и XML
         $offers = $newOffers->parse();
@@ -521,16 +490,16 @@ LOGMESSAGE;
         $answer['offer']['infoText'] = 'Обработка общей информации о предожениях';
 
 
-        unset ($xml, $xmlOffers, $newOffers);
+        unset($xml, $xmlOffers, $newOffers);
 
         // получение xml с данными о ценах
         $xml = new Xml($this->files[$folder]['prices']);
 
         // инициализируем модель категорий в XML - XmlCategory
-        $xmlPrices = new Offer\XmlOffer($xml);
+        $xmlPrices = new XmlOffer($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
-        $newOffers = new Offer\NewOffer($dbOffers, $xmlPrices);
+        $newOffers = new NewOffer($dbOffers, $xmlPrices);
 
         // Устанавливаем связь БД и XML
         $prices = $newOffers->parsePrice();
@@ -538,16 +507,16 @@ LOGMESSAGE;
         $answer['prices'] = $newOffers->answer();
         $answer['prices']['infoText'] = 'Обработка цен предожений';
 
-        unset ($xml, $xmlPrices, $newOffers);
+        unset($xml, $xmlPrices, $newOffers);
 
         // получение xml с данными об остатках
         $xml = new Xml($this->files[$folder]['rests']);
 
         // инициализируем модель категорий в XML - XmlCategory
-        $xmlRests = new Offer\XmlOffer($xml);
+        $xmlRests = new XmlOffer($xml);
 
         // Инициализируем модель обновления категорий в БД из XML - NewCategory
-        $newOffers = new Offer\NewOffer($dbOffers, $xmlRests);
+        $newOffers = new NewOffer($dbOffers, $xmlRests);
 
         // Устанавливаем связь БД и XML
         $rests = $newOffers->parseRests();
@@ -557,7 +526,7 @@ LOGMESSAGE;
         unset($offers, $prices, $rests);
 
         // обновление данных для товаров - установка из выгрузки (часть данных идёт в cp_offer, другая - в cp_good)
-        $dbGood = new Good\DbGood();
+        $dbGood = new DbGood();
 
         $goods = $dbGood->getGoods('ID, id_1c');
 
@@ -569,6 +538,7 @@ LOGMESSAGE;
                 $result[$k]['prev_structure'] = $itemStructure;
             }
         }
+
         // Сохраняем результаты
         $dbOffers->save($result);
 
@@ -593,66 +563,70 @@ LOGMESSAGE;
      *
      * @return array данные о количестве отредактированных изображений
      */
-    public function loadImages($folder = 1, $timeStart = 0)
+    public function loadImages($folder = 1, $timeStart = 0): array
     {
-        $maxExecutionTime = (ini_get('max_execution_time') == 0) ?
-            ini_get('max_input_time') :
-            ini_get('max_execution_time');
+        $maxExecutionTime = (ini_get('max_execution_time') == 0)
+            ? ini_get('max_input_time')
+            : ini_get('max_execution_time');
 
         if ($timeStart == 0) {
             $timeStart = time();
         }
+
         $endTime = $timeStart + (int) $maxExecutionTime;
 
-        $answer = array(
+        $answer = [
             'successText' => 'Изменений: ',
             'count'       => 0,
-            'repeat'      => false
-        );
+            'repeat'      => false,
+        ];
         $this->directory = DOCUMENT_ROOT . $this->config['directory'] . $folder . '/' . $this->config['images_directory'];
 
         if (!file_exists($this->directory)) {
             $answer['successText'] .= $answer['count'];
             return $answer;
         }
+
         $handle = opendir($this->directory);
 
         if (isset($this->config['resize']) && !empty($this->config['resize'])) {
-            list($w, $h) = explode('x', $this->config['resize']);
+            [$w, $h] = explode('x', $this->config['resize']);
         }
 
         while (false !== ($entry = readdir($handle))) {
-            if (0 === strpos($entry, '.')) {
+            if (strpos($entry, '.') === 0) {
                 continue;
             }
 
             if (is_dir($this->directory . $entry)) {
                 $incHandle = opendir($this->directory . $entry);
 
-                while (false !== ($img = readdir($incHandle))) {
-                    if (0 === strpos($img, '.')) {
+                while (($img = readdir($incHandle)) !== false) {
+                    if (strncmp($img, '.', 1) === 0) {
                         continue;
                     }
+
                     if ($this->stopResize($endTime)) {
                         $answer['repeat'] = true;
                         $answer['successText'] .= $answer['count'];
                         return $answer;
                     }
 
-                    if (false !== strpos($img, '.jpeg') || false !== strpos($img, '.jpg') || false !== strpos($img, '.gif')) {
-                        $path = $this->directory . $entry . '/' .$img;
-                        if (isset($w) && isset($h) && !empty($w) && !empty($h)) {
+                    if (strpos($img, '.jpeg') !== false || strpos($img, '.jpg') !== false || strpos($img, '.gif') !== false) {
+                        $path = $this->directory . $entry . '/' . $img;
+                        if (isset($w) && isset($h) && ($w !== '' && $w !== '0') && ($h !== '' && $h !== '0')) {
                             new Image($path, $w, $h);
                         } else {
                             $image = basename($img);
                             $entryTmp = substr($image, 0, 2);
 
-                            if (!file_exists(DOCUMENT_ROOT . "/images/1c/{$entryTmp}")) {
-                                mkdir(DOCUMENT_ROOT . "/images/1c/{$entryTmp}", 0750, true);
+                            if (!file_exists(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp))) {
+                                mkdir(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp), 0750, true);
                             }
 
-                            copy($path, DOCUMENT_ROOT . "/images/1c/{$entryTmp}/{$img}");
+                            copy($path, DOCUMENT_ROOT . sprintf('/images/1c/%s/%s', $entryTmp, $img));
                         }
+
                         $answer['count']++;
                         unlink($path);
                     }
@@ -671,20 +645,21 @@ LOGMESSAGE;
                     return $answer;
                 }
 
-                if (false !== strpos($entry, '.jpeg') || false !== strpos($entry, '.jpg') || false !== strpos($entry, '.gif')) {
+                if (strpos($entry, '.jpeg') !== false || strpos($entry, '.jpg') !== false || strpos($entry, '.gif') !== false) {
                     $path = $this->directory . $entry;
-                    if (isset($w) && isset($h) && !empty($w) && !empty($h)) {
+                    if (isset($w) && isset($h) && ($w !== '' && $w !== '0') && ($h !== '' && $h !== '0')) {
                         new Image($path, $w, $h);
                     } else {
-                        $image = basename($img);
+                        $image = basename($path);
                         $entryTmp = substr($image, 0, 2);
 
-                        if (!file_exists(DOCUMENT_ROOT . "/images/1c/{$entryTmp}")) {
-                            mkdir(DOCUMENT_ROOT . "/images/1c/{$entryTmp}", 0750, true);
+                        if (!file_exists(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp))) {
+                            mkdir(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp), 0750, true);
                         }
 
-                        copy($path, DOCUMENT_ROOT . "/images/1c/{$entryTmp}/{$img}");
+                        copy($path, DOCUMENT_ROOT . sprintf('/images/1c/%s/%s', $entryTmp, $image));
                     }
+
                     $answer['count']++;
                     unlink($path);
                 }
@@ -696,41 +671,12 @@ LOGMESSAGE;
     }
 
     /**
-     * Метод рекурсивного удаления файлов и директорий
-     *
-     * @param string|null $dir абсолютный путь к директории
-     */
-    protected function purge($dir = null)
-    {
-        $path = is_null($dir) ? $this->directory : $dir;
-
-        if (is_dir($path)) {
-            $path = realpath($path);
-            if (substr($path, -1) != DIRECTORY_SEPARATOR) {
-                $path = $path . DIRECTORY_SEPARATOR;
-            }
-            if ($dh = opendir($path)) {
-                while (($file = readdir($dh)) !== false) {
-                    if (strpos($file, '.') === 0) {
-                        continue;
-                    }
-                    $this->purge($path . $file);
-                }
-                closedir($dh);
-            }
-            rmdir($path);
-        } else {
-            unlink($path);
-        }
-    }
-
-    /**
      * Распаковка архива.
      * @param string $filename basename файла
      */
-    public function unzip($filename)
+    public function unzip(string $filename): void
     {
-        $exists = array('prices', 'rests');
+        $exists = ['prices', 'rests'];
         $config = Config::getInstance();
         $tmp = DOCUMENT_ROOT . $config->cms['tmpFolder'];
 
@@ -743,6 +689,7 @@ LOGMESSAGE;
         while (!feof($handle)) {
             fwrite($file, fgets($handle));
         }
+
         fclose($file);
         fclose($handle);
 
@@ -751,6 +698,7 @@ LOGMESSAGE;
             print "success";
             exit;
         }
+
         $fileSize = self::humanFilesize(filesize($pathFile));
         self::saveToLog('info', "Размер файла - {$fileSize}.\n");
         self::saveToLog('info', "Помещён в директорию - \"{$tmp}\".\n");
@@ -762,7 +710,7 @@ LOGMESSAGE;
             unlink($pathFile);  // удаляем загруженный файл
             $errorInfo = $zip->errorInfo(true);
             print "failure\n";
-            print "Ошибка распаковки архива 1: {$errorInfo}";
+            print 'Ошибка распаковки архива 1: ' . $errorInfo;
             self::saveToLog('error', "Ошибка распаковки архива - {$errorInfo}.\n");
             die;
         }
@@ -772,7 +720,7 @@ LOGMESSAGE;
             unlink($pathFile);  // удаляем загруженный файл
             $errorInfo = $zip->errorInfo(true);
             print "failure\n";
-            print "Ошибка распаковки архива 2: {$errorInfo}";
+            print 'Ошибка распаковки архива 2: ' . $errorInfo;
             self::saveToLog('error', "Ошибка распаковки архива - {$errorInfo}.\n");
 
             die;
@@ -780,7 +728,7 @@ LOGMESSAGE;
 
         $handle = opendir($this->directory);
         while (false !== ($entry = readdir($handle))) {
-            if (0 === strpos($entry, '.') || is_dir($this->directory . $entry)) {
+            if (strpos($entry, '.') === 0 || is_dir($this->directory . $entry)) {
                 continue;
             }
 
@@ -794,7 +742,7 @@ LOGMESSAGE;
             unlink($pathFile);
             $errorInfo = $zip->errorInfo(true);
             print "failure\n";
-            print "Ошибка распаковки архива 3:{$errorInfo}";
+            print 'Ошибка распаковки архива 3:' . $errorInfo;
             self::saveToLog('error', "Ошибка распаковки архива - {$errorInfo}.\n");
             die;
         }
@@ -803,12 +751,12 @@ LOGMESSAGE;
 
         if (in_array($type[1], $exists)) {
             if (!file_exists($this->directory . $file['filename'])) {
-                rename($tmp .'/'. $file['filename'], $this->directory . '1/' . $file['filename']);
+                rename($tmp . '/' . $file['filename'], $this->directory . '1/' . $file['filename']);
             } else {
-                unlink($tmp .'/'. $file['filename']);
+                unlink($tmp . '/' . $file['filename']);
             }
         } else {
-            rename($tmp .'/'. $file['filename'], $this->directory . $file['filename']);
+            rename($tmp . '/' . $file['filename'], $this->directory . $file['filename']);
         }
 
         if (count($fileList) > 1) {
@@ -817,7 +765,7 @@ LOGMESSAGE;
                 DOCUMENT_ROOT . $this->config['directory'] . $this->config['images_directory'],
                 PCLZIP_OPT_BY_PREG,
                 '/jpg|jpeg/',
-                PCLZIP_OPT_REMOVE_ALL_PATH
+                PCLZIP_OPT_REMOVE_ALL_PATH,
             );
         }
 
@@ -828,13 +776,13 @@ LOGMESSAGE;
      * Заключительный этап выгрузки - если в процессе импорта не было ошибок
      * меняем название временных таблиц на оригинальные
      */
-    public function renameTables()
+    public function renameTables(): void
     {
-        $dbCategory     = new Category\DbCategory();
-        $dbGood         = new Good\DbGood();
-        $dbDirectory    = new Directory\DbDirectory();
-        $dbMedium       = new Medium\DbMedium();
-        $dbOffers       = new Offer\DbOffer();
+        $dbCategory     = new DbCategory();
+        $dbGood         = new DbGood();
+        $dbDirectory    = new DbDirectory();
+        $dbMedium       = new DbMedium();
+        $dbOffers       = new DbOffer();
 
         $dbCategory->updateOrigTable();
         $dbGood->updateOrigTable();
@@ -843,19 +791,11 @@ LOGMESSAGE;
         $dbOffers->updateOrigTable();
     }
 
-    private function stopResize($endTime)
-    {
-        if ($endTime - time() <= 2) {
-            return true;
-        }
-        return false;
-    }
-
 
     /**
      * Создание временных таблиц всех сущностей, участвующих в выгрузке
      */
-    public function prepareTables()
+    public function prepareTables(): void
     {
         $xml = new Xml($this->files['import']);
         $xmlCategory = new XmlCategory($xml);
@@ -877,7 +817,7 @@ LOGMESSAGE;
         $dbDirectory->prepareTable($isUpdate);
     }
 
-    public function getCountPackages()
+    public function getCountPackages(): int
     {
         $countPackages = 0;
         foreach ($this->files as $value) {
@@ -885,7 +825,80 @@ LOGMESSAGE;
                 $countPackages++;
             }
         }
+
         return $countPackages;
+    }
+
+    /**
+     * Получение списка файла в директории $path. Вызывается рекурсивно для обхода вложенных директорий
+     *
+     * @param string $path абсолютный путь к директории
+     * @return array массив данных о файлах в директории array('название' => 'абсолютный путь')
+     */
+    protected function readDir(string $path): array
+    {
+        $handle = opendir($path);
+        $files = [];
+
+        while ($handle && false !== ($entry = readdir($handle))) {
+            if (strpos($entry, '.') === 0
+                || strpos($entry, '.jpeg') !== false
+                || strpos($entry, '.jpg') !== false
+                || $entry === 'import_files') {
+                continue;
+            }
+
+            // выгрузка изображений производится в ту же директорию, что и xml, но её обходить не надо
+            if ($entry !== 'import_files' && is_dir($path . $entry)) {
+                $files[$entry] = $this->readDir($path . $entry . '/');
+                continue;
+            }
+
+            // название файлов выгрузки имеет вид import___хэш.xml
+            preg_match('/(\w*?)_/', $entry, $type);
+            $this->countFiles++;
+            $files[$type[1]] = $path . $entry;
+        }
+
+        return $files;
+    }
+
+    /**
+     * Метод рекурсивного удаления файлов и директорий
+     *
+     * @param string|null $dir абсолютный путь к директории
+     */
+    protected function purge($dir = null)
+    {
+        $path = is_null($dir) ? $this->directory : $dir;
+
+        if (is_dir($path)) {
+            $path = realpath($path);
+            if (substr($path, -1) != DIRECTORY_SEPARATOR) {
+                $path .= DIRECTORY_SEPARATOR;
+            }
+
+            if ($dh = opendir($path)) {
+                while (($file = readdir($dh)) !== false) {
+                    if (strpos($file, '.') === 0) {
+                        continue;
+                    }
+
+                    $this->purge($path . $file);
+                }
+
+                closedir($dh);
+            }
+
+            rmdir($path);
+        } else {
+            unlink($path);
+        }
+    }
+
+    private function stopResize($endTime): bool
+    {
+        return $endTime - time() <= 2;
     }
 
     /**
@@ -895,7 +908,7 @@ LOGMESSAGE;
      * @param string $fileNamePart Часть имени файла используемая для построения маски
      * @return array Результат поиска файла
      */
-    private function checkFileExistInPackage($folder, $fileNamePart)
+    private function checkFileExistInPackage(int $folder, string $fileNamePart)
     {
         $fileNameMask = $this->directory . $folder . '/' . $fileNamePart . '*.xml';
         return glob($fileNameMask);
@@ -908,24 +921,40 @@ LOGMESSAGE;
      * @param int $precision Количество знаков в десятичной части
      * @return string Человекопонятное отображение размера файла
      */
-    private function humanFilesize($size, $precision = 2)
+    private function humanFilesize($size, $precision = 2): string
     {
-        $mark = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
-        for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
+        $units = ['B','kB','MB','GB','TB','PB','EB','ZB','YB'];
+
+        // Если размер 0, логарифм не берется, возвращаем сразу
+        if ($size <= 0) {
+            return '0' . $units[0];
         }
-        return round($size, $precision).$mark[$i];
+
+        // Вычисляем индекс в массиве единиц
+        $i = (int) floor(log($size, 1024));
+
+        // Ограничиваем индекс длиной массива (на случай эксабайтов и выше)
+        $i = min($i, count($units) - 1);
+
+        $value = $size / (1024 ** $i);
+
+        return round($value, $precision) . $units[$i];
     }
 
     /**
      * Инициация процесса протоколирования
      *
      * @param string $level Константа одного из уровней протоколирования
-     * @param string $message
      */
-    private function saveToLog($level, $message)
+    private function saveToLog(string $level, string $message): void
     {
         if (isset($this->config['keep_log']) && $this->config['keep_log'] && $this->logClass) {
             $this->logClass->log($level, $message);
         }
+    }
+
+    public function __destruct()
+    {
+        self::saveToLog('-----', "-----\n\n");
     }
 }

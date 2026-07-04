@@ -1,24 +1,28 @@
 <?php
+
 namespace CatalogPlus\Structure\Category\Widget;
 
+use Ideal\Field\Url\Model;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
-use Ideal\Field;
 use Ideal\Core\Widget;
 
 class Categories extends Widget
 {
-    public function setPrevStructure($prevStructure)
+    public function setPrevStructure($prevStructure): void
     {
         $this->prevStructure = $prevStructure;
     }
 
-    public function setPrefix($prefix)
+    public function setPrefix($prefix): void
     {
         $this->prefix = $prefix;
     }
 
-    public function getData($limit = 5)
+    /**
+     * @return mixed[]
+     */
+    public function getData($limit = 5): array
     {
         $db = Db::getInstance();
         $config = Config::getInstance();
@@ -28,23 +32,25 @@ class Categories extends Widget
                     ORDER BY cid LIMIT {$limit}";
         $menuList = $db->select($_sql);
 
-        $menu = array();
-        $url = new Field\Url\Model();
+        $menu = [];
+        $url = new Model();
         foreach ($menuList as $v) {
             $v['link'] = $url->getUrlWithPrefix($v, $this->prefix);
             $menu[$v['cid']] = $v;
         }
+
         unset($menuList);
 
         $object = $this->model->getPageData();
         if (
-            isset($object['prev_structure']) &&
-            $object['prev_structure'] == $this->prevStructure &&
-            isset($object['cid']) &&
-            isset($menu[$object['cid']])
+            isset($object['prev_structure'])
+            && $object['prev_structure'] == $this->prevStructure
+            && isset($object['cid'])
+            && isset($menu[$object['cid']])
         ) {
             $menu[$object['cid']]['isActivePage'] = 1;
         }
+
         return $menu;
     }
 }

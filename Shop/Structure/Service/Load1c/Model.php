@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -9,8 +10,4 @@
 
 namespace Shop\Structure\Service\Load1c;
 
-
-class Model extends ModelAbstract
-{
-
-}
+class Model extends ModelAbstract {}

@@ -1,15 +1,16 @@
 <?php
+
 // символ ` заменяется на нэймспэйс
-return array(
+return [
     'key'    => 'Ид',
-    'fields' => array(
+    'fields' => [
         'name' => 'Наименование',
-        'dir_values' => array(
+        'dir_values' => [
             'path'  => 'ВариантыЗначений/Справочник',
-            'field' => array(
+            'field' => [
                 'dir_value_id'  => 'ИдЗначения',
                 'dir_value'     => 'Значение',
-            ),
-        ),
-    ),
-);
+            ],
+        ],
+    ],
+];

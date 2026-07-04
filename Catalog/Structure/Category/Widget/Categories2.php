@@ -1,6 +1,9 @@
 <?php
+
 namespace Catalog\Structure\Category\Widget;
 
+use Ideal\Core\Widget;
+use Ideal\Field\Url\Model;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 
@@ -8,7 +11,7 @@ use Ideal\Core\Config;
  * Виджет получения двухуровневого списка категорий товара из БД
  *
  */
-class Categories2 extends \Ideal\Core\Widget
+class Categories2 extends Widget
 {
     /**
      * Получение двухуровневого меню категорий в структуризированном виде
@@ -19,7 +22,7 @@ class Categories2 extends \Ideal\Core\Widget
      *
      * @return array Список категорий из БД
      */
-    public function getData()
+    public function getData(): array
     {
         // Определяем кол-во разрядов на один уровень cid для структуры категорий
         $config = Config::getInstance();
@@ -30,22 +33,25 @@ class Categories2 extends \Ideal\Core\Widget
 
         // Раскладываем считанное меню во вложенные массивы по cid и lvl
         $num = 0;
-        $menu = array();
-        $url = new \Ideal\Field\Url\Model();
+        $menu = [];
+        $parentUrl = '';
+        $url = new Model();
         foreach ($menuList as $v) {
             if ($v['lvl'] == 1) {
                 $num = substr($v['cid'], 0, $digits);
                 $parentUrl = (isset($v['is_skip']) && $v['is_skip']) ? '' : $v['url'];
                 $v['link'] = $url->getUrlWithPrefix($v, $this->prefix);
-                $v['subMenu'] = array();
+                $v['subMenu'] = [];
                 $menu[$num] = $v;
             }
+
             if ($v['lvl'] == 2) {
                 $prefix = $this->prefix . '/' . $parentUrl;
                 $v['link'] = $url->getUrlWithPrefix($v, $prefix);
                 $menu[$num]['subMenu'][] = $v;
             }
         }
+
         unset($menuList);
 
         // Определение активных пунктов меню
@@ -55,6 +61,7 @@ class Categories2 extends \Ideal\Core\Widget
             if (!isset($menu[$activeUrl])) {
                 return $menu;
             }
+
             $menu[$activeUrl]['activeUrl'] = 1;
             $menu[$activeUrl]['classActiveUrl'] = 'activeMenu';
             foreach ($menu[$activeUrl]['subMenu'] as $k => $elem) {
@@ -85,7 +92,6 @@ class Categories2 extends \Ideal\Core\Widget
         $_sql = "SELECT * FROM {$_table}
                     WHERE (lvl = 1 OR lvl = 2) AND is_active=1 AND is_not_menu=0
                           AND prev_structure='{$this->prevStructure}' ORDER BY cid";
-        $menuList = $db->select($_sql);
-        return $menuList;
+        return $db->select($_sql);
     }
 }

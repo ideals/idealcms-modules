@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Models;
 
 use Ideal\Core\Config;
@@ -80,7 +81,7 @@ class GroupsModel extends ModelAbstract
                     'is_active' => $dbElement['is_active'],
                     'pos' => $cid->getBlock($dbElement['cid'], $dbElement['lvl']),
                     'Ид' => $dbElement['id_1c'],
-                    'Наименование' => $dbElement['name']
+                    'Наименование' => $dbElement['name'],
                 ];
                 $xmlCategory->addChild($data);
             } elseif (isset($xmlResult[$key])) {
@@ -88,7 +89,7 @@ class GroupsModel extends ModelAbstract
                 $data = [
                     'ID' => $dbElement['ID'],
                     'pos' => $cid->getBlock($dbElement['cid'], $dbElement['lvl']),
-                    'Ид' => $dbElement['id_1c']
+                    'Ид' => $dbElement['id_1c'],
                 ];
                 $xmlCategory->updateElement($data);
             }
@@ -104,12 +105,14 @@ class GroupsModel extends ModelAbstract
         foreach ($newXmlResult as $k => $xmlElement) {
             $i = 1;
             if (isset($xmlElement['pos']) && $xmlElement['pos'] !== '') {
-                $i = (int)$xmlElement['pos'];
+                $i = (int) $xmlElement['pos'];
             }
+
             $fullCid = $cid->setBlock($cidNum, $xmlElement['lvl'], $i, true);
-            while (in_array($fullCid, $keys)) {
+            while (in_array($fullCid, $keys, true)) {
                 $fullCid = $cid->setBlock($cidNum, $xmlElement['lvl'], ++$i, true);
             }
+
             $cidNum = $fullCid;
             $xmlElement['cid'] = $fullCid;
             $keys[] = $fullCid;
@@ -117,7 +120,7 @@ class GroupsModel extends ModelAbstract
 
             // Если идентичная запись уже есть в БД, то переходим к рассмотрению следующего элемента
             if (array_key_exists($k, $dbResult)
-                && count(array_diff_assoc($xmlElement, $dbCategory->getMainPartCategory($dbResult[$k]))) === 0) {
+                && array_diff_assoc($xmlElement, $dbCategory->getMainPartCategory($dbResult[$k])) === []) {
                 continue;
             }
 

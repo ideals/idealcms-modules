@@ -1,10 +1,11 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2\Category;
 
+use Ideal\Field\Cid\Model;
 use Shop\Structure\Service\Load1cV2\AbstractDb;
 use Ideal\Field\Url;
 use Ideal\Core\Config;
-use Ideal\Field\Cid;
 use Ideal\Core\Db;
 use Shop\Structure\Service\Load1cV2\Medium\DbMedium;
 
@@ -17,14 +18,14 @@ use Shop\Structure\Service\Load1cV2\Medium\DbMedium;
 
 class DbCategory extends AbstractDb
 {
-    /** @var string Структура для получения prev_structure */
-    protected $structurePart = 'ideal_structure_part';
-
-    /** @var string Предыдущая категория для prev_structure */
-    protected $prevCat;
-
     /** @var string Все неприсвоенные категориям товары будут лежать тут */
     public $defaultCategory = '';
+
+    /** @var string Структура для получения prev_structure */
+    protected string $structurePart = 'ideal_structure_part';
+
+    /** @var string Предыдущая категория для prev_structure */
+    protected string $prevCat;
 
     /**
      *  Установка полей класса - полного имени таблиц с префиксами и получения prev_structure
@@ -36,7 +37,7 @@ class DbCategory extends AbstractDb
         $this->table = $this->prefix . 'catalogplus_structure_category';
         $this->structurePart = $this->prefix . $this->structurePart;
         $res = $db->select(
-            'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Category" LIMIT 1'
+            'SELECT ID FROM ' . $this->structurePart . ' WHERE structure = "CatalogPlus_Category" LIMIT 1',
         );
         $this->prevCat = '1-' . $res[0]['ID'];
     }
@@ -45,19 +46,19 @@ class DbCategory extends AbstractDb
     /**
      * Если необходимо - создание категории товаров из выгрузки, у которых не была указана категория
      */
-    public function createDefaultCategory()
+    public function createDefaultCategory(): void
     {
         $db = Db::getInstance();
 
         $res = $db->select('SELECT ID FROM ' . $this->table . $this->tablePostfix . ' WHERE name="Load1c_default"');
-        if (count($res) == 0) {
+        if (count($res) === 0) {
             $config = Config::getInstance();
             $part = $config->getStructureByName('Ideal_Part');
 
             $cid = $db->select('SELECT max(cid) as cid FROM ' . $this->table . $this->tablePostfix);
-            $cidModel = new Cid\Model($part['params']['levels'], $part['params']['digits']);
+            $cidModel = new Model($part['params']['levels'], $part['params']['digits']);
             $cid = $cidModel->getBlock($cid[0]['cid'], 1, '+1');
-            $values = array(
+            $values = [
                 'lvl' => '1',
                 'id_1c' => 'Load1c_default',
                 'prev_structure' => $this->prevCat,
@@ -67,8 +68,8 @@ class DbCategory extends AbstractDb
                 'url' => 'Load1c_default',
                 'date_create' => time(),
                 'date_mod' => time(),
-                'is_active' => '0'
-            );
+                'is_active' => '0',
+            ];
             $db->insert($this->table . $this->tablePostfix, $values);
         }
     }
@@ -78,11 +79,11 @@ class DbCategory extends AbstractDb
      *
      * @return array массив категорий ключ - id_1c, значение - ID категории в базе
      */
-    public function getCategories()
+    public function getCategories(): array
     {
         $db = Db::getInstance();
 
-        $categories = array();
+        $categories = [];
         $res = $db->select('SELECT ID, id_1c, cid, lvl FROM ' . $this->table . $this->tablePostfix . ' ORDER BY cid');
         foreach ($res as $category) {
             $categories[$category['id_1c']] = $category;
@@ -96,27 +97,27 @@ class DbCategory extends AbstractDb
      *
      * @return array ключ - ид_1с, значение - массив полей в таблице о категории.
      */
-    public function parse()
+    public function parse(): array
     {
         $db = Db::getInstance();
 
         // Сбрасываем счетчик товаров для групп
-        $values = array(
+        $values = [
             'num' => 0,
             'count_sale' => 0,
             'is_not_menu' => 0,
-        );
+        ];
         $db->update($this->table . $this->tablePostfix)
             ->set($values)
             ->exec();
 
         // Считываем категории из нашей БД
-        $sql = "SELECT ID, name, cid, lvl, id_1c, is_active FROM `" .
-            $this->table . $this->tablePostfix . "` ORDER BY cid";
+        $sql = "SELECT ID, name, cid, lvl, id_1c, is_active FROM `"
+            . $this->table . $this->tablePostfix . "` ORDER BY cid";
 
         $tmp = $db->select($sql);
 
-        $result = array();
+        $result = [];
         // Если категория не 1с ключ в массиве - порядковый номер, иначе - id_1c
         foreach ($tmp as $element) {
             if ($element['id_1c'] == 'not-1c') {
@@ -135,11 +136,11 @@ class DbCategory extends AbstractDb
      * @param $parentCid string полный сид
      * @return null|string id_1c
      */
-    public function getParentByCid($parentCid)
+    public function getParentByCid(string $parentCid)
     {
         $db = Db::getInstance();
 
-        $sql = "SELECT id_1c FROM " . $this->table . $this->tablePostfix . " WHERE cid = '{$parentCid}' LIMIT 1";
+        $sql = "SELECT id_1c FROM " . $this->table . $this->tablePostfix . sprintf(" WHERE cid = '%s' LIMIT 1", $parentCid);
         $id = $db->select($sql);
 
         if (!isset($id[0]['id_1c'])) {
@@ -149,26 +150,31 @@ class DbCategory extends AbstractDb
         return $id[0]['id_1c'];
     }
 
+    /**
+     * @param never[][] $categories
+     */
     public function recursiveRestruct(array &$categories, array $goodsCount, $cid = null, $lvl = 0, $k = null)
     {
         $config = Config::getInstance();
         $part = $config->getStructureByName('Ideal_Part');
-        $cidModel = new Cid\Model($part['params']['levels'], $part['params']['digits']);
+        $cidModel = new Model($part['params']['levels'], $part['params']['digits']);
 
         foreach ($categories as $key => $category) {
             if (!isset($category['cid'])) {
                 continue;
             }
+
             if (!is_null($cid)) {
-                if (strpos($category['cid'], $cid) !== 0) {
+                if (strpos($category['cid'], (string) $cid) !== 0) {
                     // пропускаем если не родительский сид
                     continue;
-                } else {
-                    if ($category['lvl'] == $lvl) {
-                        // пропускаем если тотже сид и уровень - также категория
-                        continue;
-                    }
                 }
+
+                if ($category['lvl'] == $lvl) {
+                    // пропускаем если тотже сид и уровень - также категория
+                    continue;
+                }
+
             }
 
             $cidNum = $cid . $cidModel->getBlock($category['cid'], $category['lvl']);
@@ -178,7 +184,8 @@ class DbCategory extends AbstractDb
                 if (isset($goodsCount[$categories[$key]['ID']])) {
                     $tmp = $goodsCount[$categories[$key]['ID']];
                 }
-                $categories[$key] = array();
+
+                $categories[$key] = [];
                 $categories[$key]['ID'] = $category['ID'];
                 $categories[$key]['num'] = $tmp;
                 if (intval($tmp) > 0 && $key != 'Load1c_default') {
@@ -194,8 +201,9 @@ class DbCategory extends AbstractDb
         }
 
         if (!isset($count)) {
-            $count = isset($goodsCount[$categories[$k]['ID']]) ? $goodsCount[$categories[$k]['ID']] : 0;
+            $count = $goodsCount[$categories[$k]['ID']] ?? 0;
         }
+
         return $count;
     }
 
@@ -204,7 +212,7 @@ class DbCategory extends AbstractDb
      *
      * @param array $goodsCount Количество товара привязанного к каждой группе
      */
-    public function updateGoodsCount()
+    public function updateGoodsCount(): void
     {
         // Считываем список категорий
         $categories = $this->getCategories();
@@ -221,30 +229,30 @@ class DbCategory extends AbstractDb
     }
 
     /**
+     * Подготовка временной таблицы для выгрузки
+     *
+     * @param $onlyUpdate bool Файл Содержит Только Обновления
+     */
+    public function prepareTable($onlyUpdate): void
+    {
+        $this->onlyUpdate = $onlyUpdate;
+        $this->dropTestTable();
+        $this->createEmptyTestTable();
+        $this->copyOrigTable();
+    }
+
+    /**
      * Подготовка параметров категории для добавления в БД
      *
      * @param array $element Добавляемая категория
      * @return array Модифицированная категория
      */
-    protected function getForAdd($element)
+    protected function getForAdd(array $element): array
     {
         $element['url'] = Url\Model::translitUrl($element['name']);
         $element['prev_structure'] = $this->prevCat;
         $element['structure'] = 'CatalogPlus_Category';
 
         return parent::getForAdd($element);
-    }
-
-    /**
-     * Подготовка временной таблицы для выгрузки
-     *
-     * @param $onlyUpdate bool Файл Содержит Только Обновления
-     */
-    public function prepareTable($onlyUpdate)
-    {
-        $this->onlyUpdate = $onlyUpdate;
-        $this->dropTestTable();
-        $this->createEmptyTestTable();
-        $this->copyOrigTable();
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -25,21 +26,19 @@ use Ideal\Field\AbstractController;
  */
 class Controller extends AbstractController
 {
-
-    public function showEdit()
+    public function showEdit(): string
     {
         $this->htmlName = $this->groupName . '_' . $this->name;
-        $input = $this->getInputText();
-        return $input;
+        return $this->getInputText();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getInputText()
+    public function getInputText(): string
     {
         return '<input type="hidden" id="' . $this->htmlName
         . '" name="' . $this->htmlName
-        . '" value=\'' . $this->getValue() . '\'>';
+        . '" value=\'' . $this->getValue() . "'>";
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2\Category;
 
 use Ideal\Field\Cid\Model;
@@ -13,10 +14,10 @@ use Ideal\Core\Config;
 class NewCategory
 {
     /** @var array ответ о добавленных и удаленных категориях */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка категорий/групп товаров',
         'successText'   => 'Добавлено: %d<br />Обновлено: %d',
-    );
+    ];
 
     /** @var  bool содержит ли xml только обновления */
     protected $onlyUpdate;
@@ -62,50 +63,49 @@ class NewCategory
                 $parentCid = $cid->getCidByLevel($element['cid'], $element['lvl'] - 1, false);
                 $parentCid = $cid->reconstruct($parentCid);
                 $parent = $dbResult[$parentCid]['id_1c'];
-                $data = array(
+                $data = [
                     'ID' => $element['ID'],
                     'parent' => $parent,
                     'is_active' => $element['is_active'],
                     'pos' => $cid->getBlock($element['cid'], $element['lvl']),
                     'Ид' => $element['id_1c'],
-                    'Наименование' => $element['name']
-                );
+                    'Наименование' => $element['name'],
+                ];
                 $this->xmlCategory->addChild($data);
-            } else {
+            } elseif (isset($xmlResult[$key])) {
                 // Если данные есть в XML - обновляем данные
-                if (isset($xmlResult[$key])) {
-                    // добавляем поля информацию из бд в хмл
-                    $data = array(
-                        'ID' => $element['ID'],
-                        'is_active' => $element['is_active'],
-                        'pos' => $cid->getBlock($element['cid'], $element['lvl']),
-                        'Ид' => $element['id_1c']
-                    );
-                    $this->xmlCategory->updateElement($data);
-                    // Если данных в xml нет - ставим is_active - 0
-                } else {
-                    $parentCid = $cid->getCidByLevel($element['cid'], $element['lvl'] - 1, false);
-                    $parentCid = $cid->reconstruct($parentCid);
-                    $parent = $this->dbCategory->getParentByCid($parentCid);
-                    $data = array(
-                        'ID' => $element['ID'],
-                        'parent' => $parent,
-                        'is_active' => '0',
-                        'pos' => $cid->getBlock($element['cid'], $element['lvl']),
-                        'Ид' => $element['id_1c'],
-                        'Наименование' => $element['name']
-                    );
-                    if ($parent == null) {
-                        $data['Наименование'] = $element['name'];
-                    }
-                    $this->xmlCategory->addChild($data);
+                // добавляем поля информацию из бд в хмл
+                $data = [
+                    'ID' => $element['ID'],
+                    'is_active' => $element['is_active'],
+                    'pos' => $cid->getBlock($element['cid'], $element['lvl']),
+                    'Ид' => $element['id_1c'],
+                ];
+                $this->xmlCategory->updateElement($data);
+                // Если данных в xml нет - ставим is_active - 0
+            } else {
+                $parentCid = $cid->getCidByLevel($element['cid'], $element['lvl'] - 1, false);
+                $parentCid = $cid->reconstruct($parentCid);
+                $parent = $this->dbCategory->getParentByCid($parentCid);
+                $data = [
+                    'ID' => $element['ID'],
+                    'parent' => $parent,
+                    'is_active' => '0',
+                    'pos' => $cid->getBlock($element['cid'], $element['lvl']),
+                    'Ид' => $element['id_1c'],
+                    'Наименование' => $element['name'],
+                ];
+                if ($parent == null) {
+                    $data['Наименование'] = $element['name'];
                 }
+
+                $this->xmlCategory->addChild($data);
             }
         }
 
         unset($xmlResult, $data, $element);
 
-        $keys = array();
+        $keys = [];
         $cidNum = '001';
         // получаем обновленную сплющенную выгрузку XML
         $this->xmlCategory->updateConfigs();
@@ -118,7 +118,7 @@ class NewCategory
                 $i = intval($element['pos']);
                 $fullCid = $cid->setBlock($cidNum, $element['lvl'], $i, true); // element['pos']
 
-                while (in_array($fullCid, $keys)) {
+                while (in_array($fullCid, $keys, true)) {
                     $fullCid = $cid->setBlock($cidNum, $element['lvl'], ++$i, true);
                 }
 
@@ -127,17 +127,19 @@ class NewCategory
                 $keys[] = $fullCid;
 
                 unset($newXmlResult[$k]['pos']);
-                if (!is_null($dbResult[$k]) && count(array_diff($newXmlResult[$k], $dbResult[$k])) === 0) {
+                if (!is_null($dbResult[$k]) && array_diff($newXmlResult[$k], $dbResult[$k]) === []) {
                     unset($newXmlResult[$k]);
                 }
+
                 continue;
             }
 
             $fullCid = $cid->setBlock($cidNum, $element['lvl'], $i, true);
 
-            while (in_array($fullCid, $keys)) {
+            while (in_array($fullCid, $keys, true)) {
                 $fullCid = $cid->setBlock($cidNum, $element['lvl'], ++$i, true);
             }
+
             $keys[] = $fullCid;
             $newXmlResult[$k]['cid'] = $fullCid;
             $cidNum = $fullCid;
@@ -148,15 +150,13 @@ class NewCategory
 
             unset($newXmlResult[$k]['pos']);
 
-            if (array_key_exists($k, $dbResult) &&
-                count(array_diff($newXmlResult[$k], $dbResult[$k])) === 0) {
+            if (array_key_exists($k, $dbResult)
+                && array_diff($newXmlResult[$k], $dbResult[$k]) === []) {
                 unset($newXmlResult[$k]);
+            } elseif (isset($dbResult[$k]['ID'])) {
+                $newXmlResult[$k]['ID'] = $dbResult[$k]['ID'];
             } else {
-                if (isset($dbResult[$k]['ID'])) {
-                    $newXmlResult[$k]['ID'] = $dbResult[$k]['ID'];
-                } else {
-                    unset($newXmlResult[$k]['ID']);
-                }
+                unset($newXmlResult[$k]['ID']);
             }
         }
 
@@ -174,7 +174,7 @@ class NewCategory
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }

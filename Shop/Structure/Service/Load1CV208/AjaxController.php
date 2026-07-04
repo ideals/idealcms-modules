@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -22,6 +23,12 @@ use Shop\Structure\Service\Load1CV208\Models\ImportModel;
  */
 class AjaxController extends \Ideal\Core\AjaxController
 {
+    public $configFile;
+
+    /**
+     * @var string
+     */
+    public $filename;
 
     public function __construct()
     {
@@ -52,14 +59,14 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function getFileAction()
     {
-        $answer = array(
-            'errors' => array(),
+        $answer = [
+            'errors' => [],
             'workDir' => '',
-        );
+        ];
         $request = new Request();
         $dirToScan = DOCUMENT_ROOT . $this->configFile['directory_for_keeping'];
         $onlyImageResize = false;
-        if ($request->onlyImageResize && (string)$request->onlyImageResize === 'true') {
+        if ($request->onlyImageResize && (string) $request->onlyImageResize === 'true') {
             $onlyImageResize = true;
         }
 
@@ -89,8 +96,10 @@ class AjaxController extends \Ideal\Core\AjaxController
                     if (!$onlyImageResize) {
                         $answer['workDir'] = str_replace(basename($key), '', $key);
                     }
+
                     break;
                 }
+
                 if ($value == $this->filename) {
                     $next = true;
                 }
@@ -123,6 +132,7 @@ class AjaxController extends \Ideal\Core\AjaxController
                         break;
                 }
             }
+
             if (substr_count($dir, '/') > 3) {
                 switch ($matches[1]) {
                     case 'import':
@@ -153,6 +163,7 @@ class AjaxController extends \Ideal\Core\AjaxController
                         $answer['response']['infoText'] = 'Обработка заказов';
                         break;
                 }
+
                 $dirParts = explode('/', $dir);
                 $packageNum = (int) end($dirParts);
                 $answer['response']['infoText'] .= ' из пакета № ' . $packageNum;
@@ -174,14 +185,14 @@ class AjaxController extends \Ideal\Core\AjaxController
      */
     public function importFileAction()
     {
-        $answer = array(
-            'errors' => array(),
-        );
+        $answer = [
+            'errors' => [],
+        ];
         $request = new Request();
-        $workDir = (string)$request->workDir;
+        $workDir = (string) $request->workDir;
 
         $onlyImageResize = false;
-        if ($request->onlyImageResize && (string)$request->onlyImageResize === 'true') {
+        if ($request->onlyImageResize && (string) $request->onlyImageResize === 'true') {
             $onlyImageResize = true;
         }
 

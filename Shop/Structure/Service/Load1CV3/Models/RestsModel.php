@@ -2,7 +2,6 @@
 
 namespace Shop\Structure\Service\Load1CV3\Models;
 
-use Ideal\Core\Config;
 use Shop\Structure\Service\Load1CV3\Db\Rests\DbRests;
 use Shop\Structure\Service\Load1CV3\Xml\Rests\XmlRests;
 use Shop\Structure\Service\Load1CV3\Xml\Xml;
@@ -33,7 +32,7 @@ class RestsModel extends ModelAbstract
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $packageNum,
         );
 
         // инициализируем модель остатков в БД - DbRests
@@ -57,7 +56,7 @@ class RestsModel extends ModelAbstract
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -70,7 +69,7 @@ class RestsModel extends ModelAbstract
      *
      * @return array двумерный массив с данными о ценах после сведения XML и БД
      */
-    protected function parse($dbRests, $xmlRests)
+    protected function parse($dbRests, $xmlRests): array
     {
         $dbResult = $dbRests->parse();
 
@@ -91,7 +90,7 @@ class RestsModel extends ModelAbstract
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
         $result = [];
         foreach ($xmlResult as $k => $val) {
@@ -103,6 +102,7 @@ class RestsModel extends ModelAbstract
                 $whatIsThat = 'goods';
                 $key = $goodOffer[0];
             }
+
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
                 $this->answer['add']++;
@@ -116,6 +116,7 @@ class RestsModel extends ModelAbstract
             $this->answer['update']++;
             $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
         }
+
         return $result;
     }
 }

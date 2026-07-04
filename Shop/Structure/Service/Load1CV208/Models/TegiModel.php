@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Ideal\Core\Config;
@@ -11,18 +12,17 @@ use Ideal\Field\Cid\Model as CidModel;
 class TegiModel
 {
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка тегов из пакета № %d',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add' => 0,
-        'update' => 0
-    );
+        'update' => 0,
+    ];
 
     /**
      * Запуск процесса обработки файлов Tegi_*.xml
      *
      * @param string $filePath Полный путь до обрабатываемого файла
-     * @param $packageNum
      * @return array Ответ по факту обработки файла
      */
     public function startProcessing($filePath, $packageNum)
@@ -30,7 +30,7 @@ class TegiModel
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $packageNum,
         );
 
         $xml = new Xml($filePath);
@@ -67,7 +67,7 @@ class TegiModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -97,7 +97,7 @@ class TegiModel
         $xmlAddDiff = array_flip(array_keys($xmlAddDiff));
         $this->answer['tmpResult']['tegi']['insert'] = $xmlAddDiff;
 
-        $keys = array();
+        $keys = [];
         $lastCidNum = '001';
         // Перебираем выгрузку из БД и вставляем в xml данные из БД с is_active = 0
         foreach ($dbResult as $key => $element) {
@@ -107,6 +107,7 @@ class TegiModel
                 $xmlResult[$key]['ID'] = $element['ID'];
                 $xmlResult[$key]['cid'] = $element['cid'];
             }
+
             $keys[] = $element['cid'];
             $lastCidNum = $element['cid'];
         }
@@ -117,31 +118,27 @@ class TegiModel
             if (!isset($element['cid'])) {
                 // Если это тег первого уровня, то генерируем cid первого уровня следующий за
                 // текущим максимальным из базы данных
-                if (intval($element['lvl']) === 1) {
-                    $cidNum = $lastCidNum;
-                } else {
-                    $cidNum = $prevCid;
-                }
+                $cidNum = intval($element['lvl']) === 1 ? $lastCidNum : $prevCid;
+
                 $i = 1;
                 $fullCid = $cid->setBlock($cidNum, $element['lvl'], $i, true);
                 while (in_array($fullCid, $keys)) {
                     $fullCid = $cid->setBlock($cidNum, $element['lvl'], ++$i, true);
                 }
+
                 $keys[] = $fullCid;
                 $xmlResult[$k]['cid'] = $fullCid;
                 $lastCidNum = $fullCid;
             }
+
             $prevCid = $xmlResult[$k]['cid'];
-            if (array_key_exists($k, $dbResult) &&
-                count(array_diff_assoc($xmlResult[$k], $dbResult[$k])) === 0
-            ) {
+            if (array_key_exists($k, $dbResult)
+                && array_diff_assoc($xmlResult[$k], $dbResult[$k]) === []) {
                 unset($xmlResult[$k]);
+            } elseif (isset($dbResult[$k]['ID'])) {
+                $xmlResult[$k]['ID'] = $dbResult[$k]['ID'];
             } else {
-                if (isset($dbResult[$k]['ID'])) {
-                    $xmlResult[$k]['ID'] = $dbResult[$k]['ID'];
-                } else {
-                    unset($xmlResult[$k]['ID']);
-                }
+                unset($xmlResult[$k]['ID']);
             }
         }
 

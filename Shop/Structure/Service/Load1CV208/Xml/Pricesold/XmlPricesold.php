@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Xml\Pricesold;
 
 use Shop\Structure\Service\Load1CV208\Xml\Offer\XmlOffer;
@@ -14,9 +15,9 @@ class XmlPricesold extends XmlOffer
      * @param \SimpleXMLElement $item данные в xml формате
      * @return string Идентификатор определённый в конфиге
      */
-    protected function getXmlId($item)
+    protected function getXmlId($item): string
     {
         $xmlId = $item->xpath($this->ns . $this->configs['key']);
-        return (string)$xmlId[0];
+        return (string) $xmlId[0];
     }
 }

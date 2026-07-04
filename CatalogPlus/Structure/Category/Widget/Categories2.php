@@ -1,6 +1,8 @@
 <?php
+
 namespace CatalogPlus\Structure\Category\Widget;
 
+use Ideal\Field\Url\Model;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
 use Ideal\Core\Widget;
@@ -8,21 +10,25 @@ use Ideal\Core\Widget;
 class Categories2 extends Widget
 {
     protected $structurePath;
+
     protected $prefix;
 
-    public function setPrevStructure($prevStructure)
+    public function setPrevStructure($prevStructure): void
     {
         $this->prevStructure = $prevStructure;
     }
 
 
-    public function setPrefix($prefix)
+    public function setPrefix($prefix): void
     {
         $this->prefix = $prefix;
     }
 
 
-    public function getData()
+    /**
+     * @return mixed[]
+     */
+    public function getData(): array
     {
         // Определяем кол-во разрядов на один уровень cid для структуры категорий
         $config = Config::getInstance();
@@ -37,8 +43,9 @@ class Categories2 extends Widget
 
         // Раскладываем считанное меню во вложенные массивы по cid и lvl
         $num = 0;
-        $menu = array();
-        $url = new \Ideal\Field\Url\Model();
+        $menu = [];
+        $parentUrl = '';
+        $url = new Model();
         foreach ($menuList as $v) {
             if ($v['lvl'] == 1) {
                 $num = substr($v['cid'], 0, $digits);
@@ -48,9 +55,11 @@ class Categories2 extends Widget
                 } else {
                     $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $this->prefix) . '"';
                 }
-                $v['subMenu'] = array();
+
+                $v['subMenu'] = [];
                 $menu[$num] = $v;
             }
+
             if ($v['lvl'] == 2) {
                 $prefix = $this->prefix . '/' . $parentUrl;
                 if (isset($v['url_full']) && strlen($v['url_full']) > 1) {
@@ -58,9 +67,11 @@ class Categories2 extends Widget
                 } else {
                     $v['link'] = 'href="' . $url->getUrlWithPrefix($v, $prefix) . '"';
                 }
+
                 $menu[$num]['subMenu'][] = $v;
             }
         }
+
         unset($menuList);
 
         $object = $this->model->getPageData();
@@ -69,6 +80,7 @@ class Categories2 extends Widget
             if (!isset($menu[$activeUrl])) {
                 return $menu;
             }
+
             $menu[$activeUrl]['activeUrl'] = 1;
             $menu[$activeUrl]['classActiveUrl'] = 'activeMenu';
             foreach ($menu[$activeUrl]['subMenu'] as $k => $elem) {

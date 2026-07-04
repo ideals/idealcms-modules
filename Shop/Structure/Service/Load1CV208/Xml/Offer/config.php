@@ -1,11 +1,12 @@
 <?php
+
 // символ ` заменяется на нэймспэйс
-return array(
+return [
     'key'    => 'Ид',
-    'fields' => array(
+    'fields' => [
         'name'      => 'Наименование',
         'is_active' => 'ПометкаУдаления',
-/**
+        /**
         'dir_params'    => array(
             'path'  => 'ЗначенияСвойств/ЗначенияСвойства',
             'field' => array(
@@ -14,5 +15,5 @@ return array(
             ),
         ),
  */
-    )
-);
+    ],
+];

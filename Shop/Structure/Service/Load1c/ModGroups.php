@@ -1,6 +1,6 @@
 <?php
-namespace Shop\Structure\Service\Load1c;
 
+namespace Shop\Structure\Service\Load1c;
 
 /**
  * Class ModGroups
@@ -9,41 +9,40 @@ namespace Shop\Structure\Service\Load1c;
 class ModGroups
 {
     protected $groupsXML;
+
     protected $xml;
 
     /**
-     * @param $groupsXML
-     * @param $xml
      */
     public function __construct($groupsXML, $xml)
     {
         $this->groupsXML = $groupsXML;
         $this->xml = $xml;
 
-        $rules = array(
+        $rules = [
             // Правила на создание групп
-            'insert' => array( /*array(
+            'insert' => [ /*array(
                     'name' => 'TEST', Имя категории
                     'ID'   => 'insert-1', ID категории
                     'parent' => '', ID одителя
                 )*/
-            ),
+            ],
             // Правила на удаление групп
-            'delete' => array( //'id_1c_element_for_delete' => 1
+            'delete' => [ //'id_1c_element_for_delete' => 1
 
-            ),
+            ],
             // Правила на перемещение групп
-            'move' => array( /*array(
+            'move' => [ /*array(
                     // менять только значения
                     'IDchild' => 'child_id', // ID категории которую переносим
                     'IDparent' => 'parent_id' // ID категории куда переносим если оставить пустым или не указать его,
                     //то перемещение состоится в главный каталог
                 )*/
 
-            ),
-            'plain' => array( // 'ID' // ID группы в которой все подгруппы переместятся в родительскую
-            )
-        );
+            ],
+            'plain' => [ // 'ID' // ID группы в которой все подгруппы переместятся в родительскую
+            ],
+        ];
 
         $this->moveIt($rules);
 
@@ -51,9 +50,9 @@ class ModGroups
 
     /**
      * Выполняет создание, перемещение и удаление групп в соответствии с правилами
-     * @param $rules
+     * @param array<string, mixed> $rules
      */
-    protected function moveIt($rules)
+    protected function moveIt(array $rules)
     {
 
         // Создание новых групп
@@ -127,13 +126,14 @@ class ModGroups
             $tmp = $this->getIdGroups($node);
             $tmp = explode(',', $tmp);
 
-            foreach ($tmp as $k2 => $v2) {
+            foreach ($tmp as $v2) {
                 // Поиск товаров подгрупп
                 $goods = $this->xml->xpath('Каталог/Товары/Товар/Группы[Ид="' . $v2 . '"]');
                 foreach ($goods as $good) {
                     $good->{'Ид'} = $v; // Переносит товар в родителя
                 }
             }
+
             // Удаление подгрупп
             $dom = dom_import_simplexml($node[0]);
             $oldGroups = $dom->getElementsByTagName('Группы')->item(0);
@@ -152,20 +152,21 @@ class ModGroups
 
     /**
      * Возращает строку с ID всех подгрупп через ','
-     * @param $node
      * @return string
      */
     private function getIdGroups($node)
     {
         $tmp = '';
-        foreach ($node as $k => $v) {
+        foreach ($node as $v) {
             $tmp .= $v->{'Ид'} . ',';
             $elem = $v->{'Группы'};
             if ($elem->count() != 0) {
                 $tmp .= $this->getIdGroups($v->xpath('Группы/Группа')) . ',';
             }
         }
-        return substr($tmp, 0, strlen($tmp) - 1);;
+
+        return substr($tmp, 0, strlen($tmp) - 1);
+        ;
     }
 
 

@@ -1,6 +1,7 @@
 <?php
+
 namespace Cabinet\Structure\User\Admin;
 
-class Model extends \Ideal\Structure\User\Admin\ModelAbstract
-{
-}
+use Ideal\Structure\User\Admin\ModelAbstract;
+
+class Model extends ModelAbstract {}

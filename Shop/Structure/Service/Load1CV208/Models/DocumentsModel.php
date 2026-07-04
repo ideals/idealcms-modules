@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Shop\Structure\Service\Load1CV208\Db\Order\DbOrder;
@@ -7,16 +8,16 @@ use Shop\Structure\Service\Load1CV208\Xml\Xml;
 
 class DocumentsModel
 {
+    /** @var array Общие настройки для всего процесса обмена */
+    public $exchangeConfig = [];
+
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка заказов из %s',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add' => 0,
-        'update' => 0
-    );
-
-    /** @var array Общие настройки для всего процесса обмена */
-    public $exchangeConfig = array();
+        'update' => 0,
+    ];
 
     public function __construct($exchangeConfig)
     {
@@ -36,13 +37,13 @@ class DocumentsModel
         if (strlen($packageNum) <= 3) {
             $this->answer['infoText'] = sprintf(
                 $this->answer['infoText'],
-                'пакета №' . $packageNum
+                'пакета №' . $packageNum,
             );
         } else {
             $packageNum = 'корневой директории';
             $this->answer['infoText'] = sprintf(
                 $this->answer['infoText'],
-                $packageNum
+                $packageNum,
             );
         }
 
@@ -65,11 +66,12 @@ class DocumentsModel
             // Уведомление пользователя о количестве добавленных, удалённых и обновлённых категорий
             $answer = $this->answer();
         } else {
-            $answer = array(
+            $answer = [
                 'infoText' => 'Обработка заказов',
                 'successText'   => 'Заказов нет в файле импорта',
-            );
+            ];
         }
+
         return $answer;
     }
 
@@ -83,7 +85,7 @@ class DocumentsModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }

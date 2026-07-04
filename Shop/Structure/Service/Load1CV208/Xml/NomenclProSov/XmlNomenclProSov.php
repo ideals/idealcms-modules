@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Xml\NomenclProSov;
 
 use Shop\Structure\Service\Load1CV208\Xml\Good\XmlGood;
@@ -8,11 +9,11 @@ class XmlNomenclProSov extends XmlGood
     /** @var string путь к категориям в XML */
     public $part = 'НоменклатураПродаваемаяСовместно';
 
-    public function parse()
+    public function parse(): array
     {
         $id = 0;
         foreach ($this->xml as $item) {
-            $this->data[$id] = array();
+            $this->data[$id] = [];
 
             $this->registerNamespace($item);
 

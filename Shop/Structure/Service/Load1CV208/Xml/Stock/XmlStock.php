@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Xml\Stock;
 
 use Shop\Structure\Service\Load1CV208\Xml\AbstractXml;

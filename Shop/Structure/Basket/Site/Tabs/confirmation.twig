@@ -30,7 +30,7 @@
                         </td>
                         <td class="product-quantity">{{ good.count }}</td>
                         <td class="product-total">
-                            <span class="amount">
+                            <span class="summ amount">
                                 {{ (good.total_price/100)|number_format(2, '.', ',') }}&nbsp;руб.
                             </span>
                         </td>
@@ -39,7 +39,7 @@
                 <tr class="cart-subtotal">
                     <th colspan="2">Итог</th>
                     <td>
-                        <span class="amount">
+                        <span class="summ amount">
                             {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
                         </span>
                     </td>
@@ -54,7 +54,7 @@
                     <th colspan="2">Сумма</th>
                     <td>
                         <strong>
-                            <span class="amount">
+                            <span class="summ amount">
                                 {{ (goods.total/100)|number_format(2, '.', ',') }}&nbsp;руб.
                             </span>
                         </strong>

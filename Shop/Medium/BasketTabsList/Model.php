@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -9,15 +10,17 @@
 
 namespace Shop\Medium\BasketTabsList;
 
+use Ideal\Medium\AbstractModel;
 use Ideal\Core\Config;
-use Ideal\Medium;
 
-class Model extends Medium\AbstractModel
+class Model extends AbstractModel
 {
     /** @var string папка с модами */
     protected $dir;
+
     /** @var string шаблон для поиска */
     protected $mask;
+
     /** @var array список доступных шаблонов табов */
     protected $list;
 
@@ -31,20 +34,22 @@ class Model extends Medium\AbstractModel
 
         $this->dir = DOCUMENT_ROOT . '/' . $config->cmsFolder . '/Mods';
         $this->mask = 'Shop/Structure/Basket/Site/Tabs/*.twig';
-        $this->list = array();
+        $this->list = [];
         // Поиск шаблонов в папке с модами
         $this->checkTabs();
 
-        foreach ($this->list as $k => $v) {
+        foreach (array_keys($this->list) as $k) {
             $fileName = explode('/', $k);
             $fileName = end($fileName);
             if (strpos($fileName, '_') == 0) {
                 continue;
             }
+
             unset($this->list[$k]);
             if (strpos($fileName, '.twig')) {
                 $fileName = substr($fileName, 0, -5);
             }
+
             $structure = $config->getStructureByName($fileName);
             if ($structure != false) {
                 $this->list[$k] = $structure['name'] . ' (модуль)';
@@ -58,11 +63,11 @@ class Model extends Medium\AbstractModel
         return $this->list;
     }
 
-    protected function checkTabs()
+    protected function checkTabs(): bool
     {
         $pattern = $this->dir . '{,.c}/' . $this->mask;
 
-        $func = function (&$value) {
+        $func = function (&$value): void {
             // Проверяем наличие файла
             if ($rFile = fopen($value, 'r')) {
                 $k = substr($value, strpos($value, 'Shop/'));
@@ -74,6 +79,7 @@ class Model extends Medium\AbstractModel
                     // Если описания не оказалось в шаблоне используем названия файла шаблона-таба
                     $v = substr($value, strripos($value, '/') + 1, -5);
                 }
+
                 $this->list[$k] = $v; // указываем в какой папке Mods находиться данный шаблон-таб
                 fclose($rFile);
             }

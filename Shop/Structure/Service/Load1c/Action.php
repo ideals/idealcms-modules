@@ -11,10 +11,12 @@
 $base = new \Shop\Structure\Service\Load1c\Tools();
 $_POST['priceId'] = '6988920d-7fd5-11e1-9984-002354786c00';
 
-$import = isset($_POST['import']) ? $_POST['import'] : '/tmp/1c/import.xml';
-$offers = isset($_POST['offers']) ? $_POST['offers'] : '/tmp/1c/offers.xml';
-
-$mode1 = $mode2 = $mode3 = $mode4 = '';
+$import = $_POST['import'] ?? '/tmp/1c/import.xml';
+$offers = $_POST['offers'] ?? '/tmp/1c/offers.xml';
+$mode1 = '';
+$mode2 = '';
+$mode3 = '';
+$mode4 = '';
 
 if (isset($_POST['load'])) {
     $priceId = $_POST['priceId'];
@@ -34,48 +36,48 @@ if (isset($_POST['load'])) {
             break;
     }
     $modeName = 'mode' . $mode;
-    $$modeName = 'checked';
+    ${$modeName} = 'checked';
 }
 ?>
 
-    <form method="POST" action="" class="form-horizontal" style="width: 60%; margin:30px auto;">
-        <div class="control-group">
-            <label class="control-label" for="import">Каталог:</label>
+<form method="POST" action="" class="form-horizontal" style="width: 60%; margin:30px auto;">
+    <div class="control-group">
+        <label class="control-label" for="import">Каталог:</label>
 
-            <div class="controls">
-                <input type="text" name="import" value="<?php echo $import; ?>"/>
-            </div>
+        <div class="controls">
+            <input type="text" name="import" value="<?php echo $import; ?>"/>
         </div>
-        <div class="control-group">
-            <label class="control-label" for="offers">Цены:</label>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="offers">Цены:</label>
 
-            <div class="controls">
-                <input type="text" name="offers" value="<?php echo $offers; ?>"/>
-            </div>
+        <div class="controls">
+            <input type="text" name="offers" value="<?php echo $offers; ?>"/>
         </div>
-        <div class="control-group">
-            <label class="control-label" for="offers">Режим:</label>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="offers">Режим:</label>
 
-            <div class="controls">
-                <label class="radio">
-                    <input type="radio" name="mode" value="1" <?php echo $mode1; ?>/>
-                    Загрузка каталога
-                </label>
-                <label class="radio">
-                    <input type="radio" name="mode" value="4" <?php echo $mode4; ?>/>
-                    Загрузить товары с картинками
-                </label>
-                <label class="radio">
-                    <input type="radio" name="mode" value="2" <?php echo $mode2; ?>/>
-                    Отображение структуры категорий товара
-                </label>
-                <label class="radio">
-                    <input type="radio" name="mode" value="3" <?php echo $mode3; ?>/>
-                    Отображение свойств товара
-                </label>
-            </div>
+        <div class="controls">
+            <label class="radio">
+                <input type="radio" name="mode" value="1" <?php echo $mode1; ?>/>
+                Загрузка каталога
+            </label>
+            <label class="radio">
+                <input type="radio" name="mode" value="4" <?php echo $mode4; ?>/>
+                Загрузить товары с картинками
+            </label>
+            <label class="radio">
+                <input type="radio" name="mode" value="2" <?php echo $mode2; ?>/>
+                Отображение структуры категорий товара
+            </label>
+            <label class="radio">
+                <input type="radio" name="mode" value="3" <?php echo $mode3; ?>/>
+                Отображение свойств товара
+            </label>
         </div>
-        <div style="text-align:center;">
-            <input type="submit" class="btn btn-primary btn-large" name="load" value="Пуск"/>
-        </div>
-    </form>
+    </div>
+    <div style="text-align:center;">
+        <input type="submit" class="btn btn-primary btn-large" name="load" value="Пуск"/>
+    </div>
+</form>

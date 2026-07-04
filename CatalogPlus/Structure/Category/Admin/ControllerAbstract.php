@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  * @link      http://github.com/ideals/idealcms репозиторий исходного кода
@@ -6,11 +7,8 @@
  * @license   http://idealcms.ru/license.html LGPL v3
  */
 
-
 namespace CatalogPlus\Structure\Category\Admin;
 
+use Ideal\Structure\Part\Admin\Controller;
 
-class ControllerAbstract extends \Ideal\Structure\Part\Admin\Controller
-{
-
-}
+class ControllerAbstract extends Controller {}

@@ -1,6 +1,5 @@
 <?php
+
 namespace CatalogPlus\Structure\Offer\Site;
 
-class Model extends ModelAbstract
-{
-}
+class Model extends ModelAbstract {}

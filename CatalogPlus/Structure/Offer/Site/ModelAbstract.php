@@ -1,4 +1,5 @@
 <?php
+
 namespace CatalogPlus\Structure\Offer\Site;
 
 use CatalogPlus;
@@ -7,8 +8,7 @@ use CatalogPlus\Structure\Good\Site\Model as Good;
 
 class ModelAbstract extends Good
 {
-
-    public function detectPageByUrl($path, $url)
+    public function detectPageByUrl($path, $url): \Ideal\Core\Site\Model
     {
         // Определяем, нет ли в URL категории
         $this->categoryModel = new CatalogPlus\Structure\Category\Site\Model($this->prevStructure);
@@ -29,7 +29,7 @@ class ModelAbstract extends Good
 
         // Ищем товар по URL в базе
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM {$this->_table} WHERE BINARY url='{$url}' LIMIT 1";
+        $_sql = sprintf("SELECT * FROM %s WHERE BINARY url='%s' LIMIT 1", $this->_table, $url);
         $list = $db->select($_sql);
 
         // Товар не нашли, возвращаем 404
@@ -88,8 +88,7 @@ class ModelAbstract extends Good
     {
         // Ищем все офферы товара по преструктуре
         $db = Db::getInstance();
-        $_sql = "SELECT * FROM {$this->_table} WHERE prev_structure='{$prevStructure}' ORDER BY name";
-        $list = $db->select($_sql);
-        return $list;
+        $_sql = sprintf("SELECT * FROM %s WHERE prev_structure='%s' ORDER BY name", $this->_table, $prevStructure);
+        return $db->select($_sql);
     }
 }

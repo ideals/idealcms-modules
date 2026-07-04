@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Ideal CMS (http://idealcms.ru/)
  *
@@ -12,7 +13,4 @@ namespace Cabinet\Structure\User;
 /**
  * Класс для работы со сторонними пользователями в системе
  */
-class Model extends ModelAbstract
-{
-
-}
+class Model extends ModelAbstract {}

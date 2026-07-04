@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1cV2\Offer;
 
 /**
@@ -10,12 +11,12 @@ namespace Shop\Structure\Service\Load1cV2\Offer;
 class NewOffer
 {
     /** @var array ответ пользователю об обновленных и добавленных */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка товарных предложений',
         'successText'   => 'Добавлено: %d<br />Обновлено: %d',
         'add'   => 0,
-        'update'=> 0,
-    );
+        'update' => 0,
+    ];
 
     /** @var  bool содержит ли xml только обновления */
     protected $onlyUpdate;
@@ -41,7 +42,7 @@ class NewOffer
      *
      * @return array разница, которую передаем объекту DbGood для сохранения
      */
-    public function parse()
+    public function parse(): array
     {
         // Забираем результаты категорий из БД 1m
         $dbResult = $this->dbOffer->parse();
@@ -50,7 +51,7 @@ class NewOffer
         $xmlResult = $this->xmlOffer->parse();
 
         if (empty($xmlResult)) {
-            $xmlResult = array();
+            $xmlResult = [];
         }
 
         return $this->diff($dbResult, $xmlResult);
@@ -66,9 +67,37 @@ class NewOffer
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
+    }
+
+    public function parsePrice(): array
+    {
+        // Забираем результаты категорий из БД 1m
+        $dbResult = $this->dbOffer->parse();
+
+        $xmlResult = $this->xmlOffer->parsePrice();
+
+        if (empty($xmlResult)) {
+            $xmlResult = [];
+        }
+
+        return $this->diff($dbResult, $xmlResult);
+    }
+
+    public function parseRests(): array
+    {
+        // Забираем реззультаты категорий из БД 1m
+        $dbResult = $this->dbOffer->parse();
+
+        $xmlResult = $this->xmlOffer->parseRests();
+
+        if (empty($xmlResult)) {
+            $xmlResult = [];
+        }
+
+        return $this->diff($dbResult, $xmlResult);
     }
 
     /**
@@ -79,10 +108,9 @@ class NewOffer
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
-        $diffDb = array_diff(array_keys($dbResult), array_keys($xmlResult));
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
@@ -91,50 +119,22 @@ class NewOffer
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $this->answer['update']++;
             }
         }
 
-/*
- * тут видимо была попытка отключить неиспользуемые поля справочников. Нам это не надо
-        foreach ($diffDb as $id) {
-            if ($dbResult[$id]['is_active'] == 1) {
-                $result[$id]['is_active'] = 0;
-                $result[$id]['ID'] = $dbResult[$id]['ID'];
-            }
-        }
-*/
+        /*
+         * тут видимо была попытка отключить неиспользуемые поля справочников. Нам это не надо
+                foreach ($diffDb as $id) {
+                    if ($dbResult[$id]['is_active'] == 1) {
+                        $result[$id]['is_active'] = 0;
+                        $result[$id]['ID'] = $dbResult[$id]['ID'];
+                    }
+                }
+        */
         return $result;
-    }
-
-    public function parsePrice()
-    {
-        // Забираем результаты категорий из БД 1m
-        $dbResult = $this->dbOffer->parse();
-
-        $xmlResult = $this->xmlOffer->parsePrice();
-
-        if (empty($xmlResult)) {
-            $xmlResult = array();
-        }
-
-        return $this->diff($dbResult, $xmlResult);
-    }
-
-    public function parseRests()
-    {
-        // Забираем реззультаты категорий из БД 1m
-        $dbResult = $this->dbOffer->parse();
-
-        $xmlResult = $this->xmlOffer->parseRests();
-
-        if (empty($xmlResult)) {
-            $xmlResult = array();
-        }
-
-        return $this->diff($dbResult, $xmlResult);
     }
 }

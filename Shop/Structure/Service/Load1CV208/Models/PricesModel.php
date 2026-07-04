@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV208\Models;
 
 use Ideal\Core\Config;
@@ -9,12 +10,12 @@ use Shop\Structure\Service\Load1CV208\Xml\Xml;
 class PricesModel
 {
     /** @var array Массив содержащий структурированный ответ по факту обработки файла */
-    protected $answer = array(
+    protected $answer = [
         'infoText' => 'Обработка цен из пакета № %d',
         'successText' => 'Добавлено: %d<br />Обновлено: %d',
         'add' => 0,
-        'update' => 0
-    );
+        'update' => 0,
+    ];
 
     /**
      * Запуск процесса обработки файлов prices_*.xml
@@ -28,7 +29,7 @@ class PricesModel
         // Определяем пакет для отдачи правильного текста в ответе
         $this->answer['infoText'] = sprintf(
             $this->answer['infoText'],
-            $packageNum
+            $packageNum,
         );
 
         // получение xml с данными о ценах
@@ -58,7 +59,7 @@ class PricesModel
         $this->answer['successText'] = sprintf(
             $this->answer['successText'],
             $this->answer['add'],
-            $this->answer['update']
+            $this->answer['update'],
         );
         return $this->answer;
     }
@@ -71,7 +72,7 @@ class PricesModel
      *
      * @return array двумерный массив с данными о ценах после сведения XML и БД
      */
-    protected function parse($dbPrices, $xmlPrices)
+    protected function parse($dbPrices, $xmlPrices): array
     {
         // Забираем цены из БД
         $dbResult = $dbPrices->parse();
@@ -79,7 +80,7 @@ class PricesModel
         $xmlResult = $xmlPrices->parse();
 
         if (empty($xmlResult)) {
-            $xmlResult = array();
+            $xmlResult = [];
         }
 
         return $this->diff($dbResult, $xmlResult);
@@ -93,12 +94,12 @@ class PricesModel
      * @param array $xmlResult распарсенные данные из XML
      * @return array разница массивов на обновление и удаление
      */
-    protected function diff(array $dbResult, array $xmlResult)
+    protected function diff(array $dbResult, array $xmlResult): array
     {
-        $result = array();
+        $result = [];
         foreach ($xmlResult as $k => $val) {
             $val['price_old'] = '0';
-            $whatIsThat = substr_count($k, '#') === 1 ? 'offers' :  'goods';
+            $whatIsThat = substr_count($k, '#') === 1 ? 'offers' : 'goods';
             if (!isset($dbResult[$k])) {
                 $result[$k] = $val;
                 $this->answer['add']++;
@@ -107,7 +108,7 @@ class PricesModel
             }
 
             $res = array_diff_assoc($val, $dbResult[$k]);
-            if (count($res) > 0) {
+            if ($res !== []) {
                 $result[$k] = $res;
                 $result[$k]['ID'] = $dbResult[$k]['ID'];
                 $result[$k]['good_id'] = $dbResult[$k]['good_id'];
@@ -115,34 +116,38 @@ class PricesModel
                 $this->answer['tmpResult'][$whatIsThat]['update'][$k] = 1;
             }
         }
+
         // Если это обновление, то из xmlResult выделяем товары и находим, какие их офферы надо деактивировать
         $config = Config::getInstance();
         if (!empty($config->isOnlyUpdate)) {
             // Выделяем список обновляемых товаров из xmlResult
-            $goodIds = array();
-            foreach ($xmlResult as $key => $item) {
+            $goodIds = [];
+            foreach (array_keys($xmlResult) as $key) {
                 $keys = explode('#', $key);
                 $goodIds[] = $keys[0];
             }
+
             // Извлекаем все офферы товаров
-            $offerIds = array();
-            foreach ($dbResult as $key => $item) {
+            $offerIds = [];
+            foreach (array_keys($dbResult) as $key) {
                 $keys = explode('#', $key);
                 if (in_array($keys[0], $goodIds, true)) {
                     $offerIds[] = $key;
                 }
             }
+
             // Находим все офферы, которых не оказалось в обновлении цен
             $keys = array_keys($xmlResult);
             $delete = array_diff($offerIds, $keys);
             foreach ($delete as $key) {
-                $whatIsThat = substr_count($key, '#') === 1 ? 'offers' :  'goods';
+                $whatIsThat = substr_count($key, '#') === 1 ? 'offers' : 'goods';
                 $result[$key] = $dbResult[$key];
                 $result[$key]['is_active'] = 0;
                 $this->answer['update']++;
                 $this->answer['tmpResult'][$whatIsThat]['update'][$key] = 1;
             }
         }
+
         return $result;
     }
 }

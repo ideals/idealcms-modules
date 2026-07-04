@@ -1,26 +1,27 @@
 <?php
+
 // символ ` заменяется на нэймспэйс
-return array(
+return [
     'key'    => 'Ид',
-    'fields' => array(
+    'fields' => [
         'name'       => 'Наименование',
-// todo то, что помечено на удаление — вообще не добавлять к выгрузке
-//        'ПометкаУдаления'   => 'is_active',
-        'dir_params' => array(
+        // todo то, что помечено на удаление — вообще не добавлять к выгрузке
+        //        'ПометкаУдаления'   => 'is_active',
+        'dir_params' => [
             'path'  => 'ЗначенияСвойств/ЗначенияСвойства',
-            'field' => array(
+            'field' => [
                 'dir_id_1c' => 'Ид',
                 'dir_value_id' => 'Значение',
-            ),
-        ),
-    ),
-    'priceFields'   => array(
-        'price'     => 'Цены/Цена[not(preceding-sibling::`Цена/ЦенаЗаЕдиницу <= `ЦенаЗаЕдиницу)'.
-            ' and not(following-sibling::`Цена/ЦенаЗаЕдиницу < `ЦенаЗаЕдиницу)]/ЦенаЗаЕдиницу',
+            ],
+        ],
+    ],
+    'priceFields'   => [
+        'price'     => 'Цены/Цена[not(preceding-sibling::`Цена/ЦенаЗаЕдиницу <= `ЦенаЗаЕдиницу)'
+            . ' and not(following-sibling::`Цена/ЦенаЗаЕдиницу < `ЦенаЗаЕдиницу)]/ЦенаЗаЕдиницу',
         'currency'  => 'Цены/Цена/Валюта[1]',
-    ),
-    'priceRests'    => array(
-        'rest' => 'Остатки/Остаток/Склад/Количество'.
-            '[not(preceding-sibling::`Склад/Количество > text() or following-sibling::`Склад/Количество > text())]'
-    ),
-);
+    ],
+    'priceRests'    => [
+        'rest' => 'Остатки/Остаток/Склад/Количество'
+            . '[not(preceding-sibling::`Склад/Количество > text() or following-sibling::`Склад/Количество > text())]',
+    ],
+];

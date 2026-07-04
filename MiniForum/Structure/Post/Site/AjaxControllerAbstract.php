@@ -1,45 +1,34 @@
 <?php
+
 namespace MiniForum\Structure\Post\Site;
 
+use Ideal\Core\AjaxController;
 use Ideal\Core\Util;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
 use Ideal\Structure\User;
 
-class AjaxControllerAbstract extends \Ideal\Core\AjaxController
+class AjaxControllerAbstract extends AjaxController
 {
     protected $model;
-    protected $prevStructure;
+
+    protected string $prevStructure;
 
     public function __construct()
     {
-        $config = Config::getInstance();
+        Config::getInstance();
         $this->prevStructure = $this->getForumInPart();
-    }
-
-    protected function getForumInPart()
-    {
-        $config = Config::getInstance();
-        $partTable = $config->db['prefix'] . 'ideal_structure_part';
-        $_sql = "SELECT ID, prev_structure FROM {$partTable} WHERE structure = 'MiniForum_Post'";
-        $db = Db::getInstance();
-        $forum = $db->select($_sql);
-
-        if (!isset($forum[0]['prev_structure'])) {
-            return '';
-        }
-        $part_prev = explode('-', $forum[0]['prev_structure']);
-        return end($part_prev) . '-' . $forum[0]['ID'];
     }
 
     /**
      * Добавление сообщения на форум
      */
-    public function insertAction()
+    public function insertAction(): void
     {
         if (!isset($_POST['form'])) {
             exit;
         }
+
         parse_str($_POST['form'], $post);
         $post = $this->sanitizeInput($post);
 
@@ -47,7 +36,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             exit;
         }
 
-        $post['email'] = isset($post['email']) ? $post['email'] : '';
+        $post['email'] ??= '';
 
         $user = User\Model::getInstance();
         if (($post['email'] == '') && (isset($user->data['email']))) {
@@ -60,14 +49,11 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             exit();
         }
 
-        if ($post['email'] == '') {
-            $post['is_mail'] = false;
-        } else {
-            $post['is_mail'] = true;
-        }
+        $post['is_mail'] = $post['email'] != '';
 
         $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
+
         $result = $this->model->addNewPost();
 
         $post['ID'] = $result;
@@ -80,37 +66,42 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     /**
      * Удаление сообщения
      */
-    public function deleteAction()
+    public function deleteAction(): void
     {
         if (!isset($_POST['ID']) || !isset($_POST['main_parent_id']) || !isset($_POST['parent_id'])) {
             exit;
         }
+
         $post['ID'] = htmlspecialchars($_POST['ID']);
         $post['main_parent_id'] = htmlspecialchars($_POST['main_parent_id']);
         $post['parent_id'] = htmlspecialchars($_POST['parent_id']);
         $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
+
         $result = $this->model->deletePost();
         if ($result) {
             exit('Ответ успешно удалён');
-        } else {
-            exit('Не удалось удалить ответ');
         }
+
+        exit('Не удалось удалить ответ');
+
     }
 
     /**
      * Подтверждение на публикацию сообщения модератором
      */
-    public function moderateAction()
+    public function moderateAction(): void
     {
         $post['ID'] = htmlspecialchars($_POST['ID']);
         $post['isModerated'] = htmlspecialchars($_POST['isModerated']);
         $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
+
         $result = $this->model->moderatedPost();
         if (!$result) {
             exit('Не удалось выполнить действие');
         }
+
         exit;
     }
 
@@ -118,7 +109,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     /**
      * Редактирование сообщения
      */
-    public function updateAction()
+    public function updateAction(): void
     {
         parse_str($_POST['form'], $post);
         $post = $this->sanitizeInput($post);
@@ -136,18 +127,20 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
         $this->model = new Model($this->prevStructure);
         $this->model->setPost($post);
+
         $result = $this->model->updatePost();
         if ($result) {
             exit('Ответ успешно изменён');
-        } else {
-            exit('Не удалось изменить ответ');
         }
+
+        exit('Не удалось изменить ответ');
+
     }
 
     /**
      * Вывод формы для создания темы на форуме
      */
-    public function getModalFormAction()
+    public function getModalFormAction(): void
     {
         parse_str($_POST['formValues'], $formValues);
 
@@ -159,6 +152,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
             $formValues['authorPF'] = $post['author'];
             $formValues['emailPF'] = $post['email'];
         }
+
         //$formValues['content'] = str_replace('<br />', '\r\n', $formValues['content']);
         //$formValues['content'] = str_replace('<br>', '\r\n', $formValues['content']);
 
@@ -170,7 +164,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
     /**
      * Вывод формы для ответа
      */
-    public function getAnswerFormAction()
+    public function getAnswerFormAction(): void
     {
         parse_str($_POST['formValues'], $formValues);
         $formValues = array_map('htmlspecialchars', $formValues);
@@ -180,45 +174,62 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
         } else {
             $goToPost = false;
         }
+
         //parse_str($_GET['formValues'], $formValues);
         $answerForm = stream_resolve_include_path('answerForm.php');
         include($answerForm);
         exit;
     }
 
+    protected function getForumInPart(): string
+    {
+        $config = Config::getInstance();
+        $partTable = $config->db['prefix'] . 'ideal_structure_part';
+        $_sql = sprintf("SELECT ID, prev_structure FROM %s WHERE structure = 'MiniForum_Post'", $partTable);
+        $db = Db::getInstance();
+        $forum = $db->select($_sql);
+
+        if (!isset($forum[0]['prev_structure'])) {
+            return '';
+        }
+
+        $partPrev = explode('-', $forum[0]['prev_structure']);
+        return end($partPrev) . '-' . $forum[0]['ID'];
+    }
+
     /**
-     * @param $post
      * @return bool|string
+     * @param array<string, mixed> $post
      */
-    protected function validation($post)
+    protected function validation(array $post)
     {
         $msgValidation = '';
-        $post['author'] = isset($post['author']) ? $post['author'] : '';
-        $post['content'] = isset($post['content']) ? $post['content'] : '';
-        $post['email'] = isset($post['email']) ? $post['email'] : '';
-        if ((strlen($post['author']) === 0) || (strlen($post['content']) === 0)) {
+        $post['author'] ??= '';
+        $post['content'] ??= '';
+        $post['email'] ??= '';
+        if (((string) $post['author'] === '') || ((string) $post['content'] === '')) {
             $msgValidation = 'Необходимо заполнить все поля формы';
         }
-        if ((strlen($post['email']) != 0) && (!Util::isEmail($post['email']))) {
+
+        if ((strlen($post['email']) !== 0) && (!Util::isEmail($post['email']))) {
             $msgValidation = 'Вы ввели неправильный почтовый адрес';
         }
+
         if (strlen($msgValidation) !== 0) {
-            $msgValidation = 'MSG_Validation:' . $msgValidation;
-            return $msgValidation;
-        } else {
-            return true;
+            return 'MSG_Validation:' . $msgValidation;
         }
+
+        return true;
+
     }
 
     /**
      * Очистка массива входных пользовательских данных
      *
      * @param array $post Массив входных данных
-     * @return array
      */
-    protected function sanitizeInput($post)
+    protected function sanitizeInput($post): array
     {
-        $post = array_map('htmlspecialchars', $post);
-        return $post;
+        return array_map('htmlspecialchars', $post);
     }
 }

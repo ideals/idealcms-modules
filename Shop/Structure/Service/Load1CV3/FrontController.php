@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3;
 
 use Ideal\Core\Request;
@@ -12,25 +13,25 @@ use Shop\Structure\Service\Load1CV3\Models\QueryModel;
 class FrontController
 {
     /** @var array Настройки для обмена данными с 1С */
-    protected $config = array();
+    protected $config = [];
 
     /** @var array Массив с данными о текущем состоянии процесса выгрузки */
-    protected $tmpResult;
+    protected $tmpResult = [];
 
     /** @var string/array Ответ (в виде строки или массива) на обработку запроса */
     protected $response;
 
-    /** @var \Shop\Structure\Service\Load1CV3\Log\Log Класс для логирования процесса обмена данными */
-    protected $logClass;
+    /** @var Log Класс для логирования процесса обмена данными */
+    protected Log $logClass;
 
     /** @var string Текст для хранения в логе */
     protected $logMessage;
 
     /**
      * Инициирует класс с заданными настройками
-     * @param $config
+     * @param array<string, mixed> $config
      */
-    public function __construct($config)
+    public function __construct(array $config)
     {
         $this->config = $config;
 
@@ -40,7 +41,6 @@ class FrontController
         // Считываем результаты работы предыдущих этапов обработки
         $cmsConfig = Config::getInstance();
         $tmpResultFile = DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';
-        $this->tmpResult = array();
 
         if (file_exists($tmpResultFile)) {
             $this->tmpResult = file_get_contents($tmpResultFile);
@@ -59,29 +59,15 @@ class FrontController
 
         $cookieData = http_build_query($_COOKIE);
         $logMessage = <<<LOGMESSAGE
-Дата/время: {$dateTime}
-       Запрос: {$_SERVER['QUERY_STRING']}
-       POST-данные: {$postData}
-       SESSION-данные: {$sessionData}
-       COOKIE-данные: {$cookieData}
-LOGMESSAGE;
+            Дата/время: {$dateTime}
+                   Запрос: {$_SERVER['QUERY_STRING']}
+                   POST-данные: {$postData}
+                   SESSION-данные: {$sessionData}
+                   COOKIE-данные: {$cookieData}
+            LOGMESSAGE;
         $this->logClass = new Log();
         if ($this->config['keep_log'] == 1) {
             $this->logClass->log('info', $logMessage);
-        }
-    }
-
-    public function __destruct()
-    {
-        if (is_array($this->response) && isset($this->response['tmpResult'])) {
-            $this->tmpResult = array_merge($this->tmpResult, $this->response['tmpResult']);
-        }
-        $cmsConfig = Config::getInstance();
-        $tmpResultFile =DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';
-        file_put_contents($tmpResultFile, json_encode($this->tmpResult));
-        if ($this->config['keep_log'] == 1) {
-            $this->logMessage .= "\n------------------------------------------------------------------------\n\n";
-            $this->logClass->log('info', $this->logMessage);
         }
     }
 
@@ -96,11 +82,13 @@ LOGMESSAGE;
             if (!method_exists($this, $actionName)) {
                 throw new \BadMethodCallException('Не существует метода "' . $actionName . '" для обработки запроса');
             }
+
             $this->$actionName();
-        } catch (\Exception $e) {
-            echo "failure\n" . $e->getMessage();
-            Util::addError($e->getMessage());
+        } catch (\Exception $exception) {
+            echo "failure\n" . $exception->getMessage();
+            Util::addError($exception->getMessage());
         }
+
         if (empty($request->par)) {
             $this->printResponse();
         }
@@ -139,7 +127,7 @@ LOGMESSAGE;
      */
     protected function queryAction()
     {
-        $order = new QueryModel($this->config);
+        $order = new QueryModel();
         $xml = $order->generateExportXml();
         header('Content-type: text/xml; charset=utf-8');
         $this->response = trim($xml);
@@ -151,7 +139,7 @@ LOGMESSAGE;
      * @return bool Флг (не)успешного завершения работы метода
      * @throws \ReflectionException
      */
-    protected function importAction()
+    protected function importAction(): bool
     {
         $request = new Request();
         $filename = basename($request->filename);
@@ -161,12 +149,14 @@ LOGMESSAGE;
         if (!empty($request->workDir)) {
             $workDir = $request->workDir;
         }
+
         try {
             $exist = ExchangeUtil::checkFileExist($workDir, $filename);
-        } catch (\Exception $e) {
-            $this->response = "failure\nПроблема при обработке переданного файла\n" . $e->getMessage();
+        } catch (\Exception $exception) {
+            $this->response = "failure\nПроблема при обработке переданного файла\n" . $exception->getMessage();
             return false;
         }
+
         if (!$exist) {
             $this->response = "failure\nНе найден файл для обработки";
             return false;
@@ -187,11 +177,11 @@ LOGMESSAGE;
         if ($newSeance) {
             // Запускаем процесс подготовки базы для приёма данных если временный файл обновлялся более 1,5 минут назад
             ExchangeUtil::prepareTables();
-            $this->tmpResult = array();
+            $this->tmpResult = [];
         }
 
         $path = ExchangeUtil::getLastPackageFolder(DOCUMENT_ROOT . $this->config['directory_for_keeping']);
-        $packageNum = (int)substr($path, strrpos($path, '/') + 1) + 1;
+        $packageNum = (int) substr($path, strrpos($path, '/') + 1) + 1;
 
         $response = $model->startProcessing($packageNum);
 
@@ -204,11 +194,13 @@ LOGMESSAGE;
                 if ($newSeance) {
                     ExchangeUtil::purge($toDir);
                 }
+
                 ExchangeUtil::transferFilesWthStructureSaving($fromDir, $toDir);
             } else {
                 unlink($workDir . $filename);
             }
         }
+
         if (is_array($response)) {
             if (!isset($response['status'])) {
                 array_unshift($response, 'success');
@@ -218,6 +210,7 @@ LOGMESSAGE;
         } else {
             $response = "success\n" . $response;
         }
+
         $this->response = $response;
         return true;
     }
@@ -229,6 +222,7 @@ LOGMESSAGE;
     {
         $request = new Request();
         $request->filename = str_replace('\\', '/', $request->filename);
+
         $filename1 = basename($request->filename);
         $dirName = ltrim(str_replace($filename1, '', $request->filename), '/');
         $filename = DOCUMENT_ROOT . $this->config['directory_for_processing'] . $dirName . $filename1;
@@ -252,6 +246,7 @@ LOGMESSAGE;
             ExchangeUtil::createFolder(basename($backupFile));
             copy($filename, $backupFile);
         }
+
         $this->logClass->log('info', 'BODY size: ' . filesize($filename) . ' bytes');
 
         // Если передан файл отчёта, то запускаем процесс применения информации из временных таблиц и удаляем файл
@@ -263,13 +258,14 @@ LOGMESSAGE;
             } else {
                 unlink($filename);
             }
-            $this->tmpResult = array();
+
+            $this->tmpResult = [];
             ExchangeUtil::finalUpdates();
             $workDir = DOCUMENT_ROOT . $this->config['directory_for_processing'];
             ExchangeUtil::purge($workDir);
             ExchangeUtil::createFolder($workDir);
             if ($this->config['keep_log'] == 1) {
-                $this->logMessage .= "\n" . str_repeat('-', 70) ."\n\n";
+                $this->logMessage .= "\n" . str_repeat('-', 70) . "\n\n";
                 $this->logClass->log('info', $this->logMessage);
 
                 $this->logClass->copySuccessLog();
@@ -288,23 +284,24 @@ LOGMESSAGE;
      */
     protected function initAction()
     {
-        $fileSize = (int)$this->config['filesize'] * 1024 * 1024;
+        $fileSize = (int) $this->config['filesize'] * 1024 * 1024;
         $useZip = 'no';
         if (isset($this->config['enable_zip'])) {
             $useZip = $this->config['enable_zip'] ? 'yes' : 'no';
         }
-        $this->response = "zip={$useZip}\n";
-        $this->response .= "file_limit={$fileSize}\n";
+
+        $this->response = sprintf('zip=%s%s', $useZip, PHP_EOL);
+        $this->response .= sprintf('file_limit=%d%s', $fileSize, PHP_EOL);
         $this->response .= "sessionKey=sessionToken\n";
         // 1С ищет версию схемы в четвёртой строке при обмене заказами
         $this->response .= 'schema_version = 3.1';
         $fileSize = ExchangeUtil::humanFilesize($fileSize);
         $this->logMessage .= <<<LOGMESSAGE
-        
-       Установлены параметры для обмена данными.
-       Использовать архивирование - {$useZip}
-       Ограничение размера принимаемого файла - {$fileSize}
-LOGMESSAGE;
+
+                   Установлены параметры для обмена данными.
+                   Использовать архивирование - {$useZip}
+                   Ограничение размера принимаемого файла - {$fileSize}
+            LOGMESSAGE;
     }
 
     /**
@@ -357,6 +354,21 @@ LOGMESSAGE;
             echo $printResponse;
         } else {
             echo $this->response;
+        }
+    }
+
+    public function __destruct()
+    {
+        if (is_array($this->response) && isset($this->response['tmpResult'])) {
+            $this->tmpResult = array_merge($this->tmpResult, $this->response['tmpResult']);
+        }
+
+        $cmsConfig = Config::getInstance();
+        $tmpResultFile = DOCUMENT_ROOT . $cmsConfig->cms['tmpFolder'] . DIRECTORY_SEPARATOR . 'tmpResult';
+        file_put_contents($tmpResultFile, json_encode($this->tmpResult));
+        if ($this->config['keep_log'] == 1) {
+            $this->logMessage .= "\n------------------------------------------------------------------------\n\n";
+            $this->logClass->log('info', $this->logMessage);
         }
     }
 }

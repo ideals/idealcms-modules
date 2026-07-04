@@ -1,4 +1,5 @@
 <?php
+
 namespace Shop\Structure\Service\Load1CV3\Xml\Storage;
 
 use Shop\Structure\Service\Load1CV3\Xml\AbstractXml;
@@ -11,11 +12,12 @@ class XmlStorageAbstract extends AbstractXml
     /**
      * @return array двумерный массив ключ - id_1c, значения - транслитированные ключи и данные из xml
      */
-    public function parse()
+    public function parse(): array
     {
         if (isset($this->xml[0])) {
             $this->xml = $this->xml[0];
         }
+
         parent::parse();
 
         $this->data = $this->filterData($this->data);
@@ -25,11 +27,8 @@ class XmlStorageAbstract extends AbstractXml
 
     /**
      * Метод-заглушка, для кастомной фильтрации выгружаемых из 1С товаров
-     *
-     * @param array $data
-     * @return array
      */
-    public function filterData($data)
+    public function filterData(array $data): array
     {
         foreach ($data as $k => $val) {
             $data[$k]['is_active'] = $val['is_active'] === 'false' ? '1' : '0';

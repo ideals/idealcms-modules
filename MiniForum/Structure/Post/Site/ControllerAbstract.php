@@ -1,25 +1,28 @@
 <?php
+
 namespace MiniForum\Structure\Post\Site;
 
+use Ideal\Core\Site\Controller;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 
-class ControllerAbstract extends \Ideal\Core\Site\Controller
+class ControllerAbstract extends Controller
 {
     /** @var  $model Model */
     protected $model;
+
     protected $title; // Отвечает за титле на сайте
 
-    public function indexAction()
+    public function indexAction(): void
     {
         parent::indexAction();
-        $this->view->Authorized = isset($_SESSION['IsAuthorized']) ? $_SESSION['IsAuthorized'] : null;
+        $this->view->Authorized = $_SESSION['IsAuthorized'] ?? null;
         $request = new Request();
         $page = intval($request->page);
         $this->view->posts = $this->model->getList($page);
 
         if ($page !== 0) {
-            $title = $this->title. ' - Страница ' . $page;
+            $title = $this->title . ' - Страница ' . $page;
             $this->model->setTitle($title);
         }
 
@@ -27,7 +30,7 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->pager = $this->model->getPager('page');
     }
 
-    public function detailAction()
+    public function detailAction(): void
     {
         $this->templateInit('MiniForum/Structure/Post/Site/detail.twig');
 
@@ -45,13 +48,14 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->view->mainPost =  $pageData;
 
         $this->view->posts = $this->model->getChildPosts();
-        $this->view->Authorized = isset($_SESSION['IsAuthorized']) ? $_SESSION['IsAuthorized'] : null;
+        $this->view->Authorized = $_SESSION['IsAuthorized'] ?? null;
 
         $config = Config::getInstance();
 
         if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] !== '')) {
             $_SESSION['HTTP_REFERER'] = $_SERVER['HTTP_REFERER'];
         }
+
         $this->view->forumLink = '/forum' . $config->urlSuffix;
 
         if (isset($_GET['email']) && isset($_GET['hash'])) {
@@ -66,4 +70,4 @@ class ControllerAbstract extends \Ideal\Core\Site\Controller
         $this->model->setKeywords();
         $this->model->setDescription();
     }
-} 
+}
