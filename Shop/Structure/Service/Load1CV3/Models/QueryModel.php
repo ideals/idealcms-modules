@@ -145,8 +145,8 @@ class QueryModel
             $orderComment .= "\nСпособ оплаты: " . $order['payment_method'];
         }
 
-        if (!empty($item['delivery_info'])) {
-            $orderComment .= "\n" . trim($item['delivery_info']);
+        if (!empty($order['delivery_info'])) {
+            $orderComment .= "\n" . trim($order['delivery_info']);
         }
 
         $doc->addChild('Комментарий', \htmlentities($orderComment));

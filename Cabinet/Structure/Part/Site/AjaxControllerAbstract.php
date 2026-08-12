@@ -119,7 +119,7 @@ class AjaxControllerAbstract extends AjaxController
                 $userData['password'] = $form->getValue('pass');
 
                 $userModel = new User\Model('');
-                return $userModel->saveUserData($userData);
+                return $userModel->saveUserData($userData)['text'];
             }
 
             return "Заполнены не все поля.";

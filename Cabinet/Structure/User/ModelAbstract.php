@@ -201,11 +201,14 @@ class ModelAbstract extends Model
      *
      * @param array $userData Данные с индивидуальной страницы пользователя
      *
-     * @return string Ответ на попытку сохранения данных о пользователе
+     * @return array Ответ на попытку сохранения данных о пользователе
      */
-    public function saveUserData(array $userData): string
+    public function saveUserData(array $userData): array
     {
-        $response = 'Предоставлены не верные данные';
+        $response = [
+            'success' => false,
+            'text' => 'Предоставлены не верные данные',
+        ];
         if ($userData !== []) {
             $update = array_filter($userData);
             $db = Db::getInstance();
@@ -220,7 +223,10 @@ class ModelAbstract extends Model
                 ->set($update)
                 ->where('ID = :ID', ['ID' => $_SESSION['login']['ID']])
                 ->exec();
-            $response = 'Данные сохранены';
+            $response = [
+                'success' => true,
+                'text' => 'Данные сохранены',
+            ];
         }
 
         return $response;
