@@ -73,8 +73,9 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function clearBasketAction(): string
     {
-        setcookie('basket', null, -1, '/');
-        setcookie('tabsInfo', null, -1, '/');
+        setcookie('basket', '', time() - 3600, '/');
+        setcookie('tabsInfo', '', time() - 3600, '/');
+
         return json_encode([
             'error' => false,
             'text' => 'Корзина очищена',
