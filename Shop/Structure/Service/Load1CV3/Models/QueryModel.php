@@ -149,7 +149,13 @@ class QueryModel
             $orderComment .= "\n" . trim($order['delivery_info']);
         }
 
-        $doc->addChild('Комментарий', \htmlentities($orderComment));
+        $node = $doc->addChild('Комментарий');
+
+        // Создаем CDATA и добавляем внутрь узла.
+        $domNode = dom_import_simplexml($node);
+        $domOwner = $domNode->ownerDocument;
+        $cdata = $domOwner->createCDATASection($orderComment);
+        $domNode->appendChild($cdata);
     }
 
     /**
