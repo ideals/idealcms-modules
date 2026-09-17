@@ -90,12 +90,8 @@ class DbOffer extends AbstractDb
             }
 
             foreach ($offerModel->fields as $fieldName => $item) {
-                if ($fieldName === 'ID') {
-                    continue;
-                }
-
-                if (!isset($element[$fieldName])) {
-                    $elements[$k][$fieldName] = $item['default'] ?? '';
+                if ($fieldName !== 'ID' && !isset($element[$fieldName]) && isset($item['default'])) {
+                    $elements[$k][$fieldName] = $item['default'];
                 }
             }
         }

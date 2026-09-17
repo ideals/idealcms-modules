@@ -2,12 +2,16 @@
 
 namespace Shop\Structure\Basket\Site;
 
+use App\Core\Container;
 use Ideal\Core\Db;
 use Ideal\Core\Site\Model;
 use Ideal\Core\Util;
 use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Structure\User;
+use Shop\Structure\Basket\Site\Dto\BasketItemDto;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
 {
@@ -26,9 +30,14 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /** @var string Таблица со списком страниц относящихся к процессу оформления заказа */
     protected $table;
 
+    /** @var BasketItemDto[] */
+    private array $basketItems;
+
     public function __construct($prevStructure)
     {
         parent::__construct($prevStructure);
+
+        $serializer = Container::getInstance()->get(SerializerInterface::class);
 
         $config = Config::getInstance();
 
@@ -53,12 +62,35 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if (!isset($this->basketCookie['time'])) {
             $this->basketCookie['time'] = time();
         }
+
+        try {
+            $cookie = json_encode(
+                json_decode($_COOKIE['basket'], false, 512, JSON_THROW_ON_ERROR)?->goods ?? null,
+                JSON_THROW_ON_ERROR,
+            );
+        } catch (\JsonException) {
+            $cookie = null;
+        }
+
+        try {
+            $this->basketItems = $serializer->deserialize(
+                 $cookie,
+                BasketItemDto::class . '[]',
+                'json',
+            );
+        } catch (ExceptionInterface $e) {
+            // Если корзина поломана, ничего не делаем.
+            $this->basketItems = [];
+        }
     }
 
     /**
      * Получение полного списка товаров со всеми их свойствами и перерасчёт по ним корзины
      *
+     * @deprecated
+     *
      * @return array
+     *
      * @throws \Exception
      */
     public function getGoods()
@@ -82,7 +114,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /**
      * Получение полной версии корзины, со всеми кастомными дополнениями
      *
+     * @deprecated
+     *
      * @return array
+     *
      * @throws \Exception
      */
     public function calcFullBasket()
@@ -118,6 +153,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
      * Если параметр $good['count'] передаётся со знаком '+", то указанное количество товара будет
      * добавлено к существующему, если без знака, то будет установлено переданное количество товара
      *
+     * @deprecated
+     *
      * @throws \Exception
      */
     public function addGood($good)
@@ -150,6 +187,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /**
      * Удаление товара из корзины
      *
+     * @deprecated
+     *
      * @throws \Exception
      */
     public function delGood($id)
@@ -163,6 +202,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     /**
      * Сохранение корзины в Cookies
+     *
+     * @deprecated
      *
      * @throws \Exception
      */
@@ -230,6 +271,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     /**
      * Получение информации с каждого этапа оформления заказа
      *
+     * @deprecated
+     *
      * @return array
      */
     public function getTabsInfo()
@@ -243,6 +286,8 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     /**
      * Получаем первый слайд для начала оформления заказа
+     *
+     * @deprecated
      *
      * @return array
      */
@@ -265,6 +310,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
     /**
      * Получение табов доступных для корзины
+     *
+     * @deprecated
+     *
      * @return array
      */
     public function getTabs()
@@ -321,6 +369,9 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         return $tabs;
     }
 
+    /**
+     * @deprecated
+     */
     public function getCurrentTabId($tabs)
     {
         $pageData = $this->getPageData();
@@ -333,7 +384,19 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     }
 
     /**
+     * Извлечение списка товаров корзины из cookies.
+     *
+     * @return BasketItemDto[]
+     */
+    public function getItems(): array
+    {
+        return $this->basketItems;
+    }
+
+    /**
      * Построение пустой корзины, с минимально необходимым набором полей
+     *
+     * @deprecated
      *
      * @return array
      */
