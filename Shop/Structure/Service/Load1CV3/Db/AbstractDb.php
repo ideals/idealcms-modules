@@ -35,7 +35,9 @@ class AbstractDb
         $path = explode('\\', get_class($this));
         $path = array_slice($path, -2, 1);
         $path = 'Shop/Structure/Service/Load1CV3/Xml/' . $path[0];
-        $this->configs = include $path . '/config.php';
+        $fileName = $path . '/config.php';
+
+        $this->configs = file_exists($fileName) ? include $fileName : [];
     }
 
     public function getTable()
