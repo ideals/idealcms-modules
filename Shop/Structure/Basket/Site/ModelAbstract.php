@@ -65,10 +65,10 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         try {
             $cookie = json_encode(
-                json_decode($_COOKIE['basket'], false, 512, JSON_THROW_ON_ERROR)?->goods ?? null,
+                json_decode($_COOKIE['basket'] ?? '', false, 512, JSON_THROW_ON_ERROR)?->goods ?? '',
                 JSON_THROW_ON_ERROR,
             );
-        } catch (\JsonException) {
+        } catch (\Throwable) {
             $cookie = null;
         }
 
@@ -78,7 +78,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 BasketItemDto::class . '[]',
                 'json',
             );
-        } catch (ExceptionInterface $e) {
+        } catch (\Throwable) {
             // Если корзина поломана, ничего не делаем.
             $this->basketItems = [];
         }
