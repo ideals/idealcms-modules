@@ -125,7 +125,20 @@ class QueryModel
         if (!empty($order['payment_method'])) {
             $orderComment .= "\nСпособ оплаты: " . $order['payment_method'];
         }
-        $doc->addChild('Комментарий', \htmlentities($orderComment));
+
+        if (!empty($order['delivery_info'])) {
+            $orderComment .= "\n" . trim($order['delivery_info']);
+        }
+
+        $node = $doc->addChild('Комментарий'); // '<![CDATA[ ' . \htmlentities() . ' ]]>'
+
+        // 2. Импортируем его в DOM
+        $domNode = dom_import_simplexml($node);
+        $domOwner = $domNode->ownerDocument;
+
+        // 3. Создаем CDATA и добавляем внутрь узла
+        $cdata = $domOwner->createCDATASection($orderComment);
+        $domNode->appendChild($cdata);
     }
 
     protected function getOrderDeliveryAddress(array $order): string
