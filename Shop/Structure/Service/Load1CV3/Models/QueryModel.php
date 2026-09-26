@@ -222,7 +222,11 @@ class QueryModel
             }
 
             $xmlGood->addChild('Ид', $goodId1c);
-            $xmlGood->addChild('Наименование', $good['name']);
+            $goodName = $good['name'];
+            if (isset($good['offer_name']) && $good['offer_name'] !== '' && $goodName !== $good['offer_name']) {
+                $goodName .= '. ' . $good['offer_name'];
+            }
+            $xmlGood->addChild('Наименование', $goodName);
 
             // Рассчитываем сумму без скидок/наценок
             // todo проверить, как идёт расчёт скидок при заказе
