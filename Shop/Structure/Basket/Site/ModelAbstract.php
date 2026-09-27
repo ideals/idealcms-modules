@@ -10,7 +10,6 @@ use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Ideal\Structure\User;
 use Shop\Structure\Basket\Site\Dto\BasketItemDto;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
@@ -74,7 +73,7 @@ class ModelAbstract extends \Ideal\Core\Site\Model
 
         try {
             $this->basketItems = $serializer->deserialize(
-                 $cookie,
+                $cookie,
                 BasketItemDto::class . '[]',
                 'json',
             );

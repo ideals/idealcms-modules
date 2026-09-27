@@ -159,13 +159,7 @@ class ModelAbstract extends Model
             return 'Пользователь с указанными данными ещё не зарегистрирован';
         }
 
-        if (function_exists('password_verify')) {
-            $trueAuth = password_verify($pass, $userData['password']);
-        } else {
-            $trueAuth = crypt($pass, $userData['password']) === $userData['password'];
-        }
-
-        if (!$trueAuth) {
+        if (!password_verify($pass, $userData['password'])) {
             return 'Ошибка в логине или пароле';
         }
 
@@ -215,7 +209,7 @@ class ModelAbstract extends Model
             if (isset($update['password'])) {
                 $update['password'] = $db->real_escape_string($update['password']);
                 if ($update['password'] !== '') {
-                    $update['password'] = crypt($update['password']);
+                    $update['password'] = password_hash($update['password'], PASSWORD_DEFAULT);
                 }
             }
 
@@ -260,7 +254,7 @@ class ModelAbstract extends Model
                 ];
             } else {
                 $pass = static::randPassword();
-                $cryptPass = function_exists('password_hash') ? password_hash($pass, PASSWORD_DEFAULT) : crypt($pass);
+                $cryptPass = password_hash($pass, PASSWORD_DEFAULT);
 
                 $db->update($this->_table)->set(['password' => $cryptPass])->where(
                     'email = :email',
@@ -317,7 +311,7 @@ class ModelAbstract extends Model
                 } else {
                     $key = md5(time());
                     $pass = static::randPassword();
-                    $cryptPass = function_exists('password_hash') ? password_hash($pass, PASSWORD_DEFAULT) : crypt($pass);
+                    $cryptPass = password_hash($pass, PASSWORD_DEFAULT);
 
                     $db->insert($this->_table, [
                         'email' => $userData['email'],

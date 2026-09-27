@@ -26,9 +26,8 @@ class Model extends AbstractModel
 
     /**
      * Получение списка всех доступных шаблонов для таба корзины
-     * @return array
      */
-    public function getList()
+    public function getList(): array
     {
         $config = Config::getInstance();
 
