@@ -3,7 +3,9 @@
 namespace Shop\Structure\Service\Load1c;
 
 use Ideal\Core\Config;
+use Ideal\Core\Session;
 use Ideal\Structure\User\Model;
+
 
 $cmsFolder = 'super';
 $subFolder = '';
@@ -116,7 +118,7 @@ class Transfer
 
 }
 
-session_start();
+Session::start();
 $tool = new Transfer();
 $tmp = $tool->get('mode');
 if ($tmp) {

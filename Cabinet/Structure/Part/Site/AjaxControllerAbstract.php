@@ -7,6 +7,7 @@ use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Cabinet\Structure\User;
 use Cabinet\Structure\Part\Site\AccountForms\AccountForms;
+use Ideal\Core\Session;
 
 class AjaxControllerAbstract extends AjaxController
 {
@@ -22,13 +23,7 @@ class AjaxControllerAbstract extends AjaxController
 
     public function __construct()
     {
-        if (function_exists('session_status')) {
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
-        } elseif (session_id() == '') {
-            session_start();
-        }
+        Session::start();
     }
 
     /**
@@ -57,7 +52,6 @@ class AjaxControllerAbstract extends AjaxController
             }
 
             return 'Вы указали не все данные';
-
         }
 
         $response = '';
@@ -123,7 +117,6 @@ class AjaxControllerAbstract extends AjaxController
             }
 
             return "Заполнены не все поля.";
-
         }
 
         $response = '';
@@ -192,7 +185,6 @@ class AjaxControllerAbstract extends AjaxController
                     }
 
                     return ' Услуга временно недоступна попробуйте позже.';
-
                 }
             } else {
                 return 'Указан не верный e-mail';
@@ -275,7 +267,6 @@ class AjaxControllerAbstract extends AjaxController
                     }
 
                     return 'Ошибка. Попробуйте чуть позже';
-
                 }
 
                 return $response['text'];
