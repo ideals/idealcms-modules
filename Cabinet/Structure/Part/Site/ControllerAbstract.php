@@ -4,6 +4,7 @@ namespace Cabinet\Structure\Part\Site;
 
 use Cabinet\Structure\User;
 use Cabinet\Structure\Part\Site\AccountForms\AccountForms;
+use Ideal\Core\Session;
 
 class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
 {
@@ -67,15 +68,7 @@ class ControllerAbstract extends \Ideal\Structure\Part\Site\Controller
     public function finishRegAction()
     {
         $this->templateInit('Cabinet/Structure/Part/Site/finishReg.twig');
-        if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
-        }
+        Session::start();
         if (isset($_GET['email']) && isset($_GET['key'])) {
             $user = new User\Model('');
             $user->finishReg();

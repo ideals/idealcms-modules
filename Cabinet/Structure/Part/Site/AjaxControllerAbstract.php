@@ -5,6 +5,7 @@ use Ideal\Core\Config;
 use Ideal\Core\Request;
 use Cabinet\Structure\User;
 use Cabinet\Structure\Part\Site\AccountForms\AccountForms;
+use Ideal\Core\Session;
 
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
@@ -21,15 +22,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 
     public function __construct()
     {
-        if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
-        }
+        Session::start();
     }
 
     /**

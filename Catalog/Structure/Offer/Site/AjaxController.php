@@ -1,6 +1,8 @@
 <?php
 namespace Catalog\Structure\Offer\Site;
 
+use Ideal\Core\Session;
+
 class AjaxController extends \Ideal\Core\AjaxController
 {
     /**
@@ -8,7 +10,7 @@ class AjaxController extends \Ideal\Core\AjaxController
     */
     protected function setOfferAction()
     {
-        session_start();
+        Session::start();
         if (!isset($_POST['good_id']) || !isset($_POST['ID'])) {
             print json_encode(array('error' => 'fatal'));
             exit;

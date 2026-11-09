@@ -37,6 +37,7 @@ $config->errorLog = 'firebug';
 // Загружаем список структур из конфигурационных файлов структур
 $config->loadSettings();
 
+use Ideal\Core\Session;
 use Ideal\Structure\User;
 
 class Transfer
@@ -115,7 +116,7 @@ class Transfer
 
 }
 
-session_start();
+Session::start();
 $tool = new Transfer();
 $tmp = $tool->get('mode');
 if ($tmp) {

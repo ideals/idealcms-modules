@@ -12,6 +12,7 @@ namespace Cabinet\Structure\User;
 use Ideal\Core;
 use Ideal\Core\Db;
 use Ideal\Core\Config;
+use Ideal\Core\Session;
 
 /**
  * Класс для работы со сторонними пользователями в системе
@@ -41,16 +42,7 @@ class ModelAbstract extends Core\Model
      */
     public function getLoggedUser()
     {
-        // Устанавливаем сессию, если она не установлена ранее
-        if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
-        }
+        Session::start();
 
         // Если установлены cookies, получаем данные из них
         if (isset($_COOKIE[$this->cookieName]) && empty($_SESSION['login'])) {
@@ -345,15 +337,7 @@ class ModelAbstract extends Core\Model
         // Если корзина не пуста, то вызываем метод её сохранения для выходящего пользователя
         // и очищаем куку корзины
         // header("Set-Cookie: basket=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
-        if (function_exists('session_status')) {
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-        } else {
-            if (session_id() == '') {
-                session_start();
-            }
-        }
+        Session::start();
         unset($_SESSION['login']);
     }
 

@@ -8,6 +8,8 @@
  */
 namespace Shop\Structure\Basket\Site;
 
+use Ideal\Core\Session;
+
 class AjaxControllerAbstract extends \Ideal\Core\AjaxController
 {
     /** @var Model Дополнительные HTTP-заголовки ответа  */
@@ -21,13 +23,7 @@ class AjaxControllerAbstract extends \Ideal\Core\AjaxController
      */
     public function __construct()
     {
-        if (function_exists('session_status')) {
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
-        } elseif (session_id() === '') {
-            session_start();
-        }
+        Session::start();
         $this->httpHeaders['Content-type'] = 'application/json';
         $this->basket = new Model('');
     }
