@@ -12,9 +12,9 @@ namespace Shop\Structure\Service\Load1c;
 
 use Ideal\Core\Config;
 use Ideal\Core\Db;
+use Ideal\Core\Mailer;
 use Ideal\Field\Url;
 use CatalogPlus\Structure\Category;
-use Ideal\Mailer;
 
 class ToolsAbstract
 {
@@ -209,10 +209,12 @@ class ToolsAbstract
         } else {
             $config = Config::getInstance();
             $text .= $txt . "\nВыгрузка еще не завершена. Может идти еще выгрузка картинок";
-            $mail = new Mailer();
-            $mail->setSubj('Выгрузка на' . $config->db['domain']);
-            $mail->setPlainBody($text);
-            $mail->sent('top@neox.ru', 'top@neox.ru, morozov@neox.ru, help1@neox.ru, seo3@neox.ru');
+            new Mailer()
+                ->to('top@neox.ru')
+                ->subject('Выгрузка на' . $config->db['domain'])
+                ->text($text)
+                ->send()
+            ;
             echo $text;
         }
     }
@@ -224,7 +226,7 @@ class ToolsAbstract
     {
         foreach ($changedGroups['update'] as $v) {
             //if ($v['lvl'] == 1) $modelType->getIdType($v['name']);
-            if ($v['Наименование'] != $v['name']) {
+            if ($v['Наименование'] !== $v['name']) {
                 $txt .= 'Переименована категория &laquo;' . $v['name'] . '&raquo; в &laquo;'
                     . $v['Наименование'] . "\n";
             }

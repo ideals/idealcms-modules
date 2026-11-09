@@ -2,24 +2,24 @@
 
 namespace Shop\Structure\Service\Load1cV2;
 
-use Ideal\Mailer;
-use Shop\Structure\Service\Load1cV2\Category\NewCategory;
-use Shop\Structure\Service\Load1cV2\Good\XmlGood;
-use Shop\Structure\Service\Load1cV2\Good\NewGood;
-use Shop\Structure\Service\Load1cV2\Directory\XmlDirectory;
-use Shop\Structure\Service\Load1cV2\Directory\NewDirectory;
-use Shop\Structure\Service\Load1cV2\Offer\XmlOffer;
-use Shop\Structure\Service\Load1cV2\Offer\NewOffer;
-use Shop\Structure\Service\Load1cV2\Log\Log;
 use Ideal\Core\Config;
-use Ideal\Structure\User\Model;
+use Ideal\Core\Mailer;
 use Ideal\Core\Request;
+use Ideal\Structure\User\Model;
 use Shop\Structure\Service\Load1cV2\Category\DbCategory;
+use Shop\Structure\Service\Load1cV2\Category\NewCategory;
 use Shop\Structure\Service\Load1cV2\Category\XmlCategory;
 use Shop\Structure\Service\Load1cV2\Directory\DbDirectory;
+use Shop\Structure\Service\Load1cV2\Directory\NewDirectory;
+use Shop\Structure\Service\Load1cV2\Directory\XmlDirectory;
 use Shop\Structure\Service\Load1cV2\Good\DbGood;
+use Shop\Structure\Service\Load1cV2\Good\NewGood;
+use Shop\Structure\Service\Load1cV2\Good\XmlGood;
+use Shop\Structure\Service\Load1cV2\Log\Log;
 use Shop\Structure\Service\Load1cV2\Medium\DbMedium;
 use Shop\Structure\Service\Load1cV2\Offer\DbOffer;
+use Shop\Structure\Service\Load1cV2\Offer\NewOffer;
+use Shop\Structure\Service\Load1cV2\Offer\XmlOffer;
 use Shop\Structure\Service\Load1cV2\Order\Order;
 
 /**
@@ -317,10 +317,12 @@ class FrontController
                 $html = "Выгрузка 1с<br/>" . $str;
 
                 $con = Config::getInstance();
-                $sender = new Mailer();
-                $sender->setSubj('Выгрузка 1с, версия 2, на сайте ' . $_SERVER['SERVER_NAME']);
-                $sender->setHtmlBody($html);
-                $sender->sent($con->robotEmail, $con->cms['adminEmail']);
+                new Mailer()
+                    ->to($con->cms['adminEmail'])
+                    ->subject('Выгрузка 1с, версия 2, на сайте ' . $_SERVER['SERVER_NAME'])
+                    ->html($html)
+                    ->send()
+                ;
 
                 if (empty($request->curl)) {
                     // переименовываем временные таблицы на оригинальное название

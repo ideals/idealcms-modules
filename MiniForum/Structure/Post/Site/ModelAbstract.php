@@ -5,9 +5,9 @@ namespace MiniForum\Structure\Post\Site;
 use Ideal\Core\Site\Model;
 use Ideal\Core\Config;
 use Ideal\Core\Db;
+use Ideal\Core\Mailer;
 use Ideal\Core\Request;
 use Ideal\Core\Util;
-use Ideal\Mailer;
 use Ideal\Structure\User;
 
 class ModelAbstract extends Model
@@ -391,7 +391,6 @@ class ModelAbstract extends Model
      */
     public function sendMessages(array $post): ?bool
     {
-        $mail = new Mailer();
         $config = Config::getInstance();
 
         // Получаем массив почтовых ящиков менеджеров сайта пригодный для сравнения
@@ -405,7 +404,6 @@ class ModelAbstract extends Model
         $link = $_SERVER['HTTP_REFERER'];
 
         if ($post['main_parent_id'] == "0") {
-            $mail->setSubj($config->domain . ': новая тема на форуме');
             // TODO сделать адекватное получение url раздела
             $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['ID'] . $config->urlSuffix;
 
@@ -414,7 +412,6 @@ class ModelAbstract extends Model
                 . 'Email: ' . $post['email'] . "<br />"
                 . 'Сообщение: ' . "<br />" . $post['content'] . "<br /><br />"
                 . sprintf("На странице: <a href='%s'>%s</a>", $link, $link);
-            $mail->setBody('', $message);
             $emailSend = [];
             foreach ($emailManager as $email) {
                 // Не отправляем сообщение менеджеру сайта, в случае если он создал новую тему
@@ -426,7 +423,13 @@ class ModelAbstract extends Model
             }
 
             $emailSend = implode(", ", $emailSend);
-            $mail->sent($config->robotEmail, $emailSend);
+
+            new Mailer()
+                ->to($emailSend)
+                ->subject($config->domain . ': новая тема на форуме')
+                ->html($message)
+            ;
+
             return true;
         }
 
@@ -441,7 +444,6 @@ class ModelAbstract extends Model
         }
 
         // Задаём тему для всех отправляемых сообщений
-        $mail->setSubj($config->domain . ': новый ответ на сообщение');
         $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['main_parent_id'] . $config->urlSuffix;
         if (isset($post['ID'])) {
             $href = $href . '#post-line-' . $post['ID'];
@@ -453,8 +455,12 @@ class ModelAbstract extends Model
             . 'Email: ' . $post['email'] . "<br />"
             . 'Сообщение: ' . "<br />" . $post['content'] . "<br /><br />"
             . sprintf("На странице: <a href='%s'>%s</a>", $link, $link);
-        $mail->setBody('', $message);
-        $mail->sent($config->robotEmail, $config->mailForm);
+        new Mailer()
+            ->to($config->mailForm)
+            ->subject($config->domain . ': новый ответ на сообщение')
+            ->html($message)
+            ->send()
+        ;
 
         $message = "Здравствуйте! <br />
                     На форуме сайта {$config->domain} появился новый ответ на Ваше сообщение, <br />
@@ -477,9 +483,12 @@ class ModelAbstract extends Model
             if ($postDB['ID'] === $post['main_parent_id']) {
                 $unsubscribe = '';
             }
-
-            $mail->setBody('', $message . $unsubscribe);
-            $mail->sent($config->robotEmail, $postDB['email']);
+            new Mailer()
+                ->to($postDB['email'])
+                ->subject($config->domain . ': новый ответ на сообщение')
+                ->html($message . $unsubscribe)
+                ->send()
+            ;
         }
 
         return null;
