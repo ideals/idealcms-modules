@@ -3,9 +3,9 @@ namespace MiniForum\Structure\Post\Site;
 
 use Ideal\Core\Config;
 use Ideal\Core\Db;
+use Ideal\Core\Mailer;
 use Ideal\Core\Request;
 use Ideal\Core\Util;
-use Ideal\Mailer;
 use Ideal\Structure\User;
 
 class ModelAbstract extends \Ideal\Core\Site\Model
@@ -468,7 +468,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
     // TODO функция требует оптимизации
     public function sendMessages($post)
     {
-        $mail = new Mailer();
         $config = Config::getInstance();
 
         // Получаем массив почтовых ящиков менеджеров сайта пригодный для сравнения
@@ -482,7 +481,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         $link = $_SERVER['HTTP_REFERER'];
 
         if ($post['main_parent_id'] == "0") {
-            $mail->setSubj($config->domain . ': новая тема на форуме');
             // TODO сделать адекватное получение url раздела
             $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['ID'] . $config->urlSuffix;
 
@@ -491,7 +489,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 . 'Email: ' . $post['email'] . "<br />"
                 . 'Сообщение: ' . "<br />" . $post['content'] . "<br /><br />"
                 . "На странице: <a href='{$link}'>{$link}</a>";
-            $mail->setBody('', $message);
             $emailSend = array();
             foreach ($emailManager as $k => $email) {
                 // Не отправляем сообщение менеджеру сайта, в случае если он создал новую тему
@@ -499,7 +496,14 @@ class ModelAbstract extends \Ideal\Core\Site\Model
                 $emailSend[] = '<' . $email . '>';
             }
             $emailSend = implode(", ", $emailSend);
-            $mail->sent($config->robotEmail, $emailSend);
+
+            (new Mailer)->send(
+                $emailSend,
+                $config->domain . ': новая тема на форуме',
+                null,
+                $message,
+            );
+
             return true;
         }
 
@@ -512,7 +516,6 @@ class ModelAbstract extends \Ideal\Core\Site\Model
         if (!$postsDB) return false;
 
         // Задаём тему для всех отправляемых сообщений
-        $mail->setSubj($config->domain . ': новый ответ на сообщение');
         $href = 'http://' . $_SERVER['SERVER_NAME'] . '/forum/' . $post['main_parent_id'] . $config->urlSuffix;
         if (isset($post['ID'])) {
             $href = $href . '#post-line-' . $post['ID'];
@@ -524,8 +527,12 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             . 'Email: ' . $post['email'] . "<br />"
             . 'Сообщение: ' . "<br />" . $post['content'] . "<br /><br />"
             . "На странице: <a href='{$link}'>{$link}</a>";
-        $mail->setBody('', $message);
-        $mail->sent($config->robotEmail, $config->mailForm);
+        (new Mailer)->send(
+            $config->mailForm,
+            $config->domain . ': новый ответ на сообщение',
+            null,
+            $message,
+        );
 
         $message = "Здравствуйте! <br />
                     На форуме сайта {$config->domain} появился новый ответ на Ваше сообщение, <br />
@@ -542,9 +549,15 @@ class ModelAbstract extends \Ideal\Core\Site\Model
             $hrefUnsubscribe = $href . '?email=' . urlencode($postDB['email']) . '&post=' . urlencode($postDB['main_parent_id']) . '&id=' . urlencode($postDB['ID']) . '&hash=' . urlencode($hash);
             $unsubscribe = "Чтобы больше не получать уведомления об ответах на Ваше сообщение нажмите сюда: <a href=\"{$hrefUnsubscribe}\">{$hrefUnsubscribe}</a></br>";
             // Не даём отписаться создателю темы
-            if ($postDB['ID'] === $post['main_parent_id']) $unsubscribe = '';
-            $mail->setBody('', $message . $unsubscribe);
-            $mail->sent($config->robotEmail, $postDB['email']);
+            if ($postDB['ID'] === $post['main_parent_id']) {
+                $unsubscribe = '';
+            }
+            (new Mailer)->send(
+                $postDB['email'],
+                $config->domain . ': новый ответ на сообщение',
+                null,
+                $message . $unsubscribe,
+            );
         }
     }
 
