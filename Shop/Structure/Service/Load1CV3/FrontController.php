@@ -164,7 +164,7 @@ class FrontController
 
         // Если запрошенный для обработки файл найден на сервере,
         // то получаем модель, которая будет заниматься его обработкой
-        $model = (new ModelAbstractFactory())
+        $model = new ModelAbstractFactory()
             ->setConfig($this->config)
             ->createByFilename($workDir . $filename);
 
@@ -339,7 +339,7 @@ class FrontController
     protected function infoAction(): void
     {
         header('Content-type: text/xml; charset=utf-8');
-        $this->response = (new InfoModel())->execute();
+        $this->response = new InfoModel()->execute();
     }
 
     /**

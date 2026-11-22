@@ -115,7 +115,7 @@ class GoodsModel extends ModelAbstract
                             $entryTmp = substr($image, 0, 2);
                             $concurrDir = DOCUMENT_ROOT . ('/images/1c/' . $entryTmp);
                             /** @noinspection MkdirRaceConditionInspection */
-                            if (!is_dir($concurrDir) && !mkdir($concurrDir, 0750, true)) {
+                            if (!is_dir($concurrDir) && !mkdir($concurrDir, 0o750, true)) {
                                 throw new \RuntimeException(sprintf('Не удалось создать директорию "%s"', $concurrDir));
                             }
 
@@ -146,7 +146,7 @@ class GoodsModel extends ModelAbstract
 
                         $concurrDir = DOCUMENT_ROOT . ('/images/1c/' . $entryTmp);
                         /** @noinspection MkdirRaceConditionInspection */
-                        if (!is_dir($concurrDir) && !mkdir($concurrDir, 0750, true)) {
+                        if (!is_dir($concurrDir) && !mkdir($concurrDir, 0o750, true)) {
                             throw new \RuntimeException(sprintf('Не удалось создать директорию "%s"', $concurrDir));
                         }
 

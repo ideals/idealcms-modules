@@ -21,7 +21,7 @@ class Image
         $this->dirImage = DOCUMENT_ROOT . '/images/1c';
 
         if (!file_exists(sprintf('%s/%s', $this->dirImage, $entry))) {
-            mkdir(sprintf('%s/%s', $this->dirImage, $entry), 0750, true);
+            mkdir(sprintf('%s/%s', $this->dirImage, $entry), 0o750, true);
         }
 
         $this->color1("e6e6e6");

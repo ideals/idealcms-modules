@@ -51,7 +51,7 @@ class Transfer
         $this->tmpDir = DOCUMENT_ROOT . '/tmp/1c/';
         // Проверка существования папки для временных данных
         if (!file_exists($this->tmpDir)) {
-            mkdir($this->tmpDir, 0777, true);
+            mkdir($this->tmpDir, 0o777, true);
         }
     }
 
@@ -87,7 +87,7 @@ class Transfer
                 $dir = $filename === 'import.xml' || $filename === 'offers.xml' ? '' : str_replace('/' . $filename, '', $_GET['filename']);
 
                 if (!file_exists($this->tmpDir . '' . $dir)) {
-                    mkdir($this->tmpDir . '' . $dir, 0755, true);
+                    mkdir($this->tmpDir . '' . $dir, 0o755, true);
                 }
 
                 $f = fopen($this->tmpDir . '' . $dir . '/' . $filename, 'ab');

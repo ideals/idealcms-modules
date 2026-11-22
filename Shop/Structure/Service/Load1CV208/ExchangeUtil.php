@@ -68,7 +68,7 @@ class ExchangeUtil
     public static function createFolder($directory): void
     {
         /** @noinspection MkdirRaceConditionInspection */
-        if (!is_dir($directory) && !mkdir($directory, 0750, true)) {
+        if (!is_dir($directory) && !mkdir($directory, 0o750, true)) {
             throw new \RuntimeException(sprintf('Не удалось создать директорию "%s" ', $directory));
         }
     }

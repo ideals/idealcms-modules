@@ -37,7 +37,7 @@ class Image
         $this->dirImage = DOCUMENT_ROOT . '/images/1c';
 
         if (!file_exists(sprintf('%s/%s/%s/', $this->dirImage, $nameDir, $dir))) {
-            mkdir(sprintf('%s/%s/%s/', $this->dirImage, $nameDir, $dir), 0777, true);
+            mkdir(sprintf('%s/%s/%s/', $this->dirImage, $nameDir, $dir), 0o777, true);
         }
 
         $this->minSizeWater = "140*140";

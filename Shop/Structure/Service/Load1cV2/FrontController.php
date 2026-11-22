@@ -116,7 +116,7 @@ class FrontController
 
         // создание директории для выгрузки первого пакета
         if (!file_exists($this->directory . '1/')) {
-            mkdir($this->directory . '1/', 0750, true);
+            mkdir($this->directory . '1/', 0o750, true);
         }
 
         // удаление файлов от предыдущей выгрузки
@@ -211,7 +211,7 @@ class FrontController
 
                         // создание директории для выгрузки очередного пакета
                         if (!file_exists($this->directory . $folder . '/')) {
-                            mkdir($this->directory . $folder . '/', 0750, true);
+                            mkdir($this->directory . $folder . '/', 0o750, true);
                         }
 
                         if (!file_exists($this->directory . $folder . '/' . $filename)) {
@@ -227,7 +227,7 @@ class FrontController
                         $filename = basename($request->filename);
                         $dirName = str_replace($filename, '', $request->filename);
                         if (!file_exists($this->directory . $folder . '/' . $dirName . '/' . $filename)) {
-                            mkdir($this->directory . $folder . '/' . $dirName . '/', 0750, true);
+                            mkdir($this->directory . $folder . '/' . $dirName . '/', 0o750, true);
                             $f = fopen($this->directory . $folder . '/' . $dirName . '/' . $filename, 'ab');
                             fwrite($f, file_get_contents('php://input'));
                             fclose($f);
@@ -623,7 +623,7 @@ class FrontController
                             $entryTmp = substr($image, 0, 2);
 
                             if (!file_exists(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp))) {
-                                mkdir(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp), 0750, true);
+                                mkdir(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp), 0o750, true);
                             }
 
                             copy($path, DOCUMENT_ROOT . sprintf('/images/1c/%s/%s', $entryTmp, $img));
@@ -656,7 +656,7 @@ class FrontController
                         $entryTmp = substr($image, 0, 2);
 
                         if (!file_exists(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp))) {
-                            mkdir(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp), 0750, true);
+                            mkdir(DOCUMENT_ROOT . ('/images/1c/' . $entryTmp), 0o750, true);
                         }
 
                         copy($path, DOCUMENT_ROOT . sprintf('/images/1c/%s/%s', $entryTmp, $image));

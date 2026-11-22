@@ -69,7 +69,7 @@ class ExchangeUtil
     public static function createFolder($directory): void
     {
         /** @noinspection MkdirRaceConditionInspection */
-        if (!is_dir($directory) && !mkdir($directory, 0750, true)) {
+        if (!is_dir($directory) && !mkdir($directory, 0o750, true)) {
             throw new \RuntimeException(sprintf('Не удалось создать директорию "%s" ', $directory));
         }
     }
@@ -317,15 +317,15 @@ class ExchangeUtil
      */
     public static function prepareTables(): void
     {
-        (new DbCategory())->prepareTable();
-        (new DbGood())->prepareTable();
-        (new DbMedium())->prepareTable();
-        (new DbOffer())->prepareTable();
-        (new DbDirectory())->prepareTable();
-        (new DbOrder())->prepareTable();
-        (new DbUnit())->prepareTable();
-        (new DbStorage())->prepareTable();
-        (new DbCustom())->prepareTable();
+        new DbCategory()->prepareTable();
+        new DbGood()->prepareTable();
+        new DbMedium()->prepareTable();
+        new DbOffer()->prepareTable();
+        new DbDirectory()->prepareTable();
+        new DbOrder()->prepareTable();
+        new DbUnit()->prepareTable();
+        new DbStorage()->prepareTable();
+        new DbCustom()->prepareTable();
     }
 
     /**
@@ -334,28 +334,28 @@ class ExchangeUtil
      */
     public static function renameTables(): void
     {
-        (new DbCategory())->renameTable();
-        (new DbGood())->renameTable();
-        (new DbDirectory())->renameTable();
-        (new DbMedium())->renameTable();
-        (new DbOffer())->renameTable();
-        (new DbOrder())->renameTable();
-        (new DbUnit())->renameTable();
-        (new DbStorage())->renameTable();
-        (new DbCustom())->renameTable();
+        new DbCategory()->renameTable();
+        new DbGood()->renameTable();
+        new DbDirectory()->renameTable();
+        new DbMedium()->renameTable();
+        new DbOffer()->renameTable();
+        new DbOrder()->renameTable();
+        new DbUnit()->renameTable();
+        new DbStorage()->renameTable();
+        new DbCustom()->renameTable();
     }
 
     public static function deactivateTables(): void
     {
-        (new DbCategory())->deactivateTable(); // не требуется, тк категории отображаются если num>0
-        (new DbGood())->deactivateTable();
-        (new DbDirectory())->deactivateTable();
-        (new DbMedium())->deactivateTable();
-        (new DbOffer())->deactivateTable();
-        (new DbOrder())->deactivateTable();
-        (new DbUnit())->deactivateTable();
-        (new DbStorage())->deactivateTable();
-        (new DbCustom())->deactivateTable();
+        new DbCategory()->deactivateTable(); // не требуется, тк категории отображаются если num>0
+        new DbGood()->deactivateTable();
+        new DbDirectory()->deactivateTable();
+        new DbMedium()->deactivateTable();
+        new DbOffer()->deactivateTable();
+        new DbOrder()->deactivateTable();
+        new DbUnit()->deactivateTable();
+        new DbStorage()->deactivateTable();
+        new DbCustom()->deactivateTable();
     }
 
     /**
@@ -382,7 +382,7 @@ class ExchangeUtil
         }
 
         $config = require __DIR__ . '/load1cV3Settings.php'; // todo обнаружение в папке Mod.s
-        $modelFactory = (new ModelAbstractFactory())->setConfig($config);
+        $modelFactory = new ModelAbstractFactory()->setConfig($config);
 
         uksort($exchangeFiles, static function (string $curr, string $next) use ($modelFactory) {
             $currName = basename($curr);
